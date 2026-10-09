@@ -10093,6 +10093,56 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
 // ==========================================================================
 // 🎮 AC Kahoot Game Integration
 // ==========================================================================
+window.onGameIframeLoaded = function() {
+  const spinner = document.getElementById('gameLoadingSpinner');
+  if (spinner) spinner.style.display = 'none';
+
+  // Automatically move away / fade out the notice banner when render.com server is awake & loaded!
+  const notice = document.getElementById('gameRenderNotice');
+  if (notice) {
+    notice.style.transition = 'all 0.5s ease';
+    notice.style.opacity = '0';
+    notice.style.maxHeight = '0';
+    notice.style.padding = '0';
+    notice.style.overflow = 'hidden';
+    notice.style.border = 'none';
+    setTimeout(() => {
+      notice.style.display = 'none';
+    }, 500);
+  }
+};
+
+window.dismissGameNotice = function() {
+  const notice = document.getElementById('gameRenderNotice');
+  if (notice) notice.style.display = 'none';
+};
+
+window.toggleGameFullscreen = function() {
+  const card = document.getElementById('gameModalCard');
+  const icon = document.getElementById('iconGameFullscreen');
+  const text = document.getElementById('textGameFullscreen');
+  if (!card) return;
+
+  const isFull = card.classList.toggle('game-modal-full');
+  if (isFull) {
+    card.style.maxWidth = '100vw';
+    card.style.width = '100vw';
+    card.style.height = '100vh';
+    card.style.maxHeight = '100vh';
+    card.style.borderRadius = '0';
+    if (icon) icon.className = 'fa-solid fa-compress';
+    if (text) text.textContent = 'បង្រួម';
+  } else {
+    card.style.maxWidth = '98vw';
+    card.style.width = '98vw';
+    card.style.height = '96vh';
+    card.style.maxHeight = '96vh';
+    card.style.borderRadius = '14px';
+    if (icon) icon.className = 'fa-solid fa-expand';
+    if (text) text.textContent = 'ពេញអេក្រង់';
+  }
+};
+
 window.openGameModal = function() {
   const m = document.getElementById('gameModal');
   if (m) {
