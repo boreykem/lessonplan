@@ -118,7 +118,7 @@ const PRESET_TEMPLATES = {
         { id: 1, name: "ជំហានទី ១ : រដ្ឋបាលថ្នាក់", duration: "០៥ នាទី", description: "ពិនិត្យអនាម័យ សម្រង់វត្តមាន និងសណ្ដាប់ធ្នាប់" },
         { id: 2, name: "ជំហានទី ២ : កែកិច្ចការផ្ទះ & ពិនិត្យការស្វ័យសិក្សា", duration: "២០ នាទី", description: "កែកិច្ចការផ្ទះសប្តាហ៍មុន ពិនិត្យការមើលវីដេអូ បង្ហាញលទ្ធផលបុរេតេស្ត (Pre-Test QCM ៥ សំណួរ ៦-៣-១) និងកត់ត្រាចម្ងល់ Muddiest Point" },
         { id: 3, name: "ជំហានទី ៣ : ខ្លឹមសារមេរៀនថ្មី & ដោះស្រាយចម្ងល់", duration: "២០ នាទី", description: "គ្រូសំយោគទ្រឹស្តីស្នូល បំភ្លឺចំណុចខុសក្នុង Pre-Test និងដោះស្រាយចម្ងល់ Muddiest Points (គ្មានការពិភាក្សាក្រុមឡើយ)" },
-        { id: 4, name: "ជំហានទី ៤ : ពង្រឹងចំណេះដឹង & បេសកកម្មក្រុមស៊ីជម្រៅ", duration: "១០០-១២០ នាទី", description: "សកម្មភាពក្រុម Challenge Scenario លើផ្ទាំងក្រដាសធំ A0/A1, Gallery Walk, បទបង្ហាញការពារ, Brain Break ២ នាទី, និង Post-Test (៥ សំណួរ)" },
+        { id: 4, name: "ជំហានទី ៤ : ពង្រឹងចំណេះដឹង & បេសកកម្មក្រុមស៊ីជម្រៅ", duration: "១០០-១២០ នាទី", description: "សកម្មភាពក្រុម Challenge Scenario លើផ្ទាំងក្រដាសធំ A0/A1, Gallery Walk, បទបង្ហាញការពារ, Brain Break ២ នាទី, និង Post-Test (${numQuestions} សំណួរ)" },
         { id: 5, name: "ជំហានទី ៥ : បណ្ដាំផ្ញើ និងកិច្ចការស្រាវជ្រាវ", duration: "០៥-១០ នាទី", description: "ដាក់កិច្ចការស្រាវជ្រាវសម្រាប់សប្តាហ៍បន្ទាប់ ណែនាំការស្វ័យសិក្សា និងអប់រំទូន្មានសីលធម៌" }
       ]
     }
@@ -4921,19 +4921,19 @@ function renderLearningGainReflectionBlock(data) {
 // Separates diagnostic/mastery assessments from core lesson plan generation
 // ==========================================================================
 
-async function callAiForSingleTest(testType, plan) {
+async function callAiForSingleTest(testType, plan, numQuestions = 5) {
   const apiKey = state.geminiApiKey;
   const isPre = testType === 'pre';
   const isEn = (state.language === 'en');
 
   const prompt = isPre ? `You are Google Gemini AI expert pedagogical educator for Cambodia MoEYS.
-Generate EXACTLY 5 specific Pre-Test Multiple-Choice Diagnostic Questions (QCM) in ${isEn ? 'English' : 'Khmer'} testing prerequisite knowledge for this lesson:
+Generate EXACTLY ${numQuestions} specific Pre-Test Multiple-Choice Diagnostic Questions (QCM) in ${isEn ? 'English' : 'Khmer'} testing prerequisite knowledge for this lesson:
 Topic: "${plan.lessonTitle}"
 Subject: "${plan.subject}"
 Grade: "${plan.grade}"
 Difficulty level: 3 Easy (Remember), 1 Medium (Apply), 1 Hard (Analyze).
 
-Return ONLY valid JSON array with 5 objects matching this schema:
+Return ONLY valid JSON array with ${numQuestions} objects matching this schema:
 [
   {
     "number": 1,
@@ -4945,13 +4945,13 @@ Return ONLY valid JSON array with 5 objects matching this schema:
     "explanation": "..."
   }
 ]` : `You are Google Gemini AI expert pedagogical educator for Cambodia MoEYS.
-Generate EXACTLY 5 specific Post-Test Multiple-Choice Mastery Assessment Questions (MCQ) in ${isEn ? 'English' : 'Khmer'} measuring student learning mastery of this specific lesson:
+Generate EXACTLY ${numQuestions} specific Post-Test Multiple-Choice Mastery Assessment Questions (MCQ) in ${isEn ? 'English' : 'Khmer'} measuring student learning mastery of this specific lesson:
 Topic: "${plan.lessonTitle}"
 Subject: "${plan.subject}"
 Grade: "${plan.grade}"
 Bloom's Taxonomy: 1 Remember/Understand, 3 Apply/Analyze, 1 Evaluate/Create.
 
-Return ONLY valid JSON array with 5 objects matching this schema:
+Return ONLY valid JSON array with ${numQuestions} objects matching this schema:
 [
   {
     "number": 1,
@@ -5029,7 +5029,7 @@ Return ONLY valid JSON array with 5 objects matching this schema:
     : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []);
 }
 
-async function generatePreTestOnDemand() {
+async function generatePreTestOnDemand(numQuestions = 5) {
   const plan = state.generatedPlanData || state.currentPlan;
   if (!plan) {
     showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
@@ -5037,13 +5037,13 @@ async function generatePreTestOnDemand() {
   }
 
   const isEn = (state.language === 'en');
-  const wrapper = document.getElementById('preTestModuleWrapper');
+  const wrapper = document.getElementById('preTestModuleWrapper');\n  const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');\n  titleWrapper.forEach(el => el.style.display = 'flex');
   if (wrapper) {
     wrapper.innerHTML = `
       <div style="background: #f8fafc; border: 1.5px solid #c7d2fe; border-radius: 10px; padding: 22px; text-align: center;">
         <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: #6366f1; margin-bottom: 10px;"></i>
         <div style="font-weight: 700; font-size: 11pt; color: #3730a3;">
-          ${isEn ? 'AI is generating Pre-Test Diagnostic QCM (5 Questions)...' : 'AI កំពុងបង្កើតកម្រងសំណួរ Pre-Test (៥ សំណួរ QCM)...'}
+          ${isEn ? 'AI is generating Pre-Test Diagnostic QCM (${numQuestions} Questions)...' : 'AI កំពុងបង្កើតកម្រងសំណួរ Pre-Test (${numQuestions} សំណួរ QCM)...'}
         </div>
         <div style="font-size: 9.5pt; color: #64748b; margin-top: 5px;">
           ${isEn ? `Analyzing "${plan.lessonTitle}" according to Bloom's Taxonomy (Easy, Medium, Hard)...` : `កំពុងវិភាគមេរៀន «${plan.lessonTitle}» តាម Bloom's Taxonomy (៣ ងាយ, ១ មធ្យម, ១ ពិបាក)...`}
@@ -5055,7 +5055,7 @@ async function generatePreTestOnDemand() {
   showToast(isEn ? 'Generating Pre-Test QCM with AI...' : '🤖 កំពុងបង្កើតបុរេតេស្ត (Pre-Test QCM) តាម AI...', 'info');
 
   try {
-    const qList = await callAiForSingleTest('pre', plan);
+    const qList = await callAiForSingleTest('pre', plan, numQuestions);
     plan.preTestQCM = qList;
     state.currentPlan = plan;
     state.generatedPlanData = plan;
@@ -5077,7 +5077,7 @@ async function generatePreTestOnDemand() {
 }
 window.generatePreTestOnDemand = generatePreTestOnDemand;
 
-async function generatePostTestOnDemand() {
+async function generatePostTestOnDemand(numQuestions = 5) {
   const plan = state.generatedPlanData || state.currentPlan;
   if (!plan) {
     showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
@@ -5085,13 +5085,13 @@ async function generatePostTestOnDemand() {
   }
 
   const isEn = (state.language === 'en');
-  const wrapper = document.getElementById('postTestModuleWrapper');
+  const wrapper = document.getElementById('postTestModuleWrapper');\n  const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');\n  titleWrapper.forEach(el => el.style.display = 'flex');
   if (wrapper) {
     wrapper.innerHTML = `
       <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; padding: 22px; text-align: center;">
         <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: #16a34a; margin-bottom: 10px;"></i>
         <div style="font-weight: 700; font-size: 11pt; color: #166534;">
-          ${isEn ? 'AI is generating Post-Test Diagnostic MCQ (5 Questions)...' : 'AI កំពុងបង្កើតកម្រងសំណួរ Post-Test (៥ សំណួរ MCQ)...'}
+          ${isEn ? 'AI is generating Post-Test Diagnostic MCQ (${numQuestions} Questions)...' : 'AI កំពុងបង្កើតកម្រងសំណួរ Post-Test (៥ សំណួរ MCQ)...'}
         </div>
         <div style="font-size: 9.5pt; color: #475569; margin-top: 5px;">
           ${isEn ? `Measuring mastery of "${plan.lessonTitle}" (Bloom's: Remember, Apply, Analyze)...` : `កំពុងវិភាគវាស់ស្ទង់សមត្ថភាពសម្រេចបាននៃ «${plan.lessonTitle}» (Bloom's Taxonomy)...`}
@@ -5103,7 +5103,7 @@ async function generatePostTestOnDemand() {
   showToast(isEn ? 'Generating Post-Test MCQ with AI...' : '🎓 កំពុងបង្កើតបច្ឆិមតេស្ត (Post-Test MCQ) តាម AI...', 'info');
 
   try {
-    const qList = await callAiForSingleTest('post', plan);
+    const qList = await callAiForSingleTest('post', plan, numQuestions);
     plan.postTestMCQ = qList;
     state.currentPlan = plan;
     state.generatedPlanData = plan;
@@ -5129,7 +5129,7 @@ function removePreTestModule() {
   const plan = state.generatedPlanData || state.currentPlan;
   if (plan) {
     plan.preTestQCM = null;
-    const wrapper = document.getElementById('preTestModuleWrapper');
+    const wrapper = document.getElementById('preTestModuleWrapper');\n  const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');\n  titleWrapper.forEach(el => el.style.display = 'flex');
     if (wrapper) wrapper.innerHTML = renderPreTestModule(plan, state.language === 'en');
   }
 }
@@ -5139,7 +5139,7 @@ function removePostTestModule() {
   const plan = state.generatedPlanData || state.currentPlan;
   if (plan) {
     plan.postTestMCQ = null;
-    const wrapper = document.getElementById('postTestModuleWrapper');
+    const wrapper = document.getElementById('postTestModuleWrapper');\n  const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');\n  titleWrapper.forEach(el => el.style.display = 'flex');
     if (wrapper) wrapper.innerHTML = renderPostTestModule(plan, state.language === 'en');
   }
 }
@@ -5147,47 +5147,13 @@ window.removePostTestModule = removePostTestModule;
 
 function renderPreTestModule(data, isEn = false) {
   const hasQuestions = data.preTestQCM && Array.isArray(data.preTestQCM) && data.preTestQCM.length > 0;
-  if (!hasQuestions) {
-    return `
-      <div class="test-cta-box" style="background: #f8fafc; border: 1.5px dashed #6366f1; border-radius: 10px; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-        <div style="flex: 1; min-width: 260px;">
-          <div style="font-size: 11pt; font-weight: 700; color: #3730a3; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-wand-magic-sparkles" style="color: #6366f1;"></i>
-            <span>${isEn ? 'Pre-Test Diagnostic QCM (5 Questions)' : 'វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test QCM ៥ សំណួរ)'}</span>
-          </div>
-          <div style="font-size: 9.5pt; color: #64748b; margin-top: 4px;">
-            ${isEn ? "Diagnostic questions testing prerequisite knowledge (Bloom's 3 Easy, 1 Medium, 1 Hard). Click to generate on-demand." : "កម្រងសំណួរស្ទង់ចំណេះដឹងបុរេលក្ខខណ្ឌ តាម Bloom's Taxonomy (៣ ងាយ | ១ មធ្យម | ១ ពិបាក)។ ចុចបង្កើតដើម្បីឱ្យ Gemini AI រៀបចំកម្រងសំណួរដោយស្វ័យប្រវត្ត។"}
-          </div>
-        </div>
-        <button type="button" class="btn-create-test" onclick="generatePreTestOnDemand()" style="padding: 9px 18px; font-weight: 700; font-size: 0.95rem; border-radius: 8px; background: linear-gradient(135deg, #4f46e5, #6366f1); color: white; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> <span>${isEn ? '📝 Generate Pre-Test QCM' : '📝 បង្កើតបុរេតេស្ត (Pre-Test QCM)'}</span>
-        </button>
-      </div>
-    `;
-  }
+  if (!hasQuestions) { return ''; }
   return renderPreTestHtmlBlock(data);
 }
 
 function renderPostTestModule(data, isEn = false) {
   const hasQuestions = data.postTestMCQ && Array.isArray(data.postTestMCQ) && data.postTestMCQ.length > 0;
-  if (!hasQuestions) {
-    return `
-      <div class="test-cta-box" style="background: #f0fdf4; border: 1.5px dashed #22c55e; border-radius: 10px; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
-        <div style="flex: 1; min-width: 260px;">
-          <div style="font-size: 11pt; font-weight: 700; color: #166534; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-graduation-cap" style="color: #16a34a;"></i>
-            <span>${isEn ? 'Post-Test Mastery MCQ (5 Questions)' : 'វិញ្ញាសាវាយតម្លៃបញ្ចប់ (Post-Test MCQ ៥ សំណួរ)'}</span>
-          </div>
-          <div style="font-size: 9.5pt; color: #475569; margin-top: 4px;">
-            ${isEn ? "Mastery assessment measuring learning outcomes (Bloom's: Remember, Apply, Analyze). Click to generate on-demand." : "កម្រងសំណួរវាស់ស្ទង់សមត្ថភាពក្រោយរៀនចប់ តាមវត្ថុបំណងមេរៀន (Bloom's Taxonomy)។ ចុចបង្កើតដើម្បីឱ្យ Gemini AI រៀបចំកម្រងសំណួរដោយស្វ័យប្រវត្ត។"}
-          </div>
-        </div>
-        <button type="button" class="btn-create-test" onclick="generatePostTestOnDemand()" style="padding: 9px 18px; font-weight: 700; font-size: 0.95rem; border-radius: 8px; background: linear-gradient(135deg, #16a34a, #22c55e); color: white; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);">
-          <i class="fa-solid fa-graduation-cap"></i> <span>${isEn ? '🎓 Generate Post-Test MCQ' : '🎓 បង្កើតបច្ឆិមតេស្ត (Post-Test MCQ)'}</span>
-        </button>
-      </div>
-    `;
-  }
+  if (!hasQuestions) { return ''; }
   return renderPostTestHtmlBlock(data);
 }
 
@@ -5351,7 +5317,7 @@ function renderLessonPlanToA4(data) {
       </table>
 
       <!-- Section 5: Assessment & Diagnostic Testing (On-Demand Pre-Test & Post-Test) -->
-      <div class="doc-section-title flex justify-between items-center" style="margin-top: 22px;">
+      <div id="assessmentSectionTitle" class="doc-section-title flex justify-between items-center" style="margin-top: 22px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? \'\' : \'display: none;\' }">
         <span>៥. តេស្តវាស់ស្ទង់សមត្ថភាព & កម្រងសំណួរ (Diagnostic & Mastery Assessments)</span>
       </div>
       <div class="test-modules-container" style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px; margin-bottom: 18px;">
@@ -5464,7 +5430,7 @@ function renderLessonPlanToA4(data) {
       </table>
 
       <!-- Section IV: Assessment & Diagnostic Testing (On-Demand Pre-Test & Post-Test) -->
-      <div class="doc-section-title flex justify-between items-center" style="margin-top: 22px;">
+      <div id="assessmentSectionTitle" class="doc-section-title flex justify-between items-center" style="margin-top: 22px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? \'\' : \'display: none;\' }">
         <span>${isEn ? 'IV. Diagnostic & Mastery Assessments' : 'IV. តេស្តវាស់ស្ទង់សមត្ថភាព & កម្រងសំណួរ (Diagnostic & Mastery Assessments)'}</span>
       </div>
       <div class="test-modules-container" style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px; margin-bottom: 18px;">
@@ -5547,9 +5513,9 @@ function renderLessonPlanToA4(data) {
     </table>
 
     <!-- Section V: Assessment & Diagnostic Testing (On-Demand Pre-Test & Post-Test) -->
-    <div class="doc-section-title flex justify-between items-center" style="margin-top: 22px;">
-      <span>${isEn ? 'V. Diagnostic & Mastery Assessments' : 'V. តេស្តវាស់ស្ទង់សមត្ថភាព & កម្រងសំណួរ (Diagnostic & Mastery Assessments)'}</span>
-    </div>
+    <div id="assessmentSectionTitle" class="doc-section-title flex justify-between items-center" style="margin-top: 22px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? \'\' : \'display: none;\' }">
+        <span>${isEn ? 'V. Diagnostic & Mastery Assessments' : 'V. តេស្តវាស់ស្ទង់សមត្ថភាព & កម្រងសំណួរ (Diagnostic & Mastery Assessments)'}</span>
+      </div>
     <div class="test-modules-container" style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px; margin-bottom: 18px;">
       <div id="preTestModuleWrapper">${renderPreTestModule(data, isEn)}</div>
       <div id="postTestModuleWrapper">${renderPostTestModule(data, isEn)}</div>
@@ -9293,3 +9259,22 @@ function closeInstallModal() {
 }
 window.closeInstallModal = closeInstallModal;
 
+
+
+window.promptGenerateTest = async function(type) {
+  const isEn = (state.language === 'en');
+  const numStr = prompt(isEn ? 'How many questions do you want to generate? (e.g. 5, 10)' : 'តើលោកគ្រូចង់បានកម្រងសំណួរប៉ុន្មាន? (ឧ. ៥, ១០)', '5');
+  if (!numStr) return; // User cancelled
+  
+  const num = parseInt(numStr, 10);
+  if (isNaN(num) || num <= 0 || num > 20) {
+    showToast(isEn ? 'Please enter a valid number (1-20)' : 'សូមបញ្ចូលចំនួនសំណួរឱ្យបានត្រឹមត្រូវ (១-២០)', 'warning');
+    return;
+  }
+  
+  if (type === 'pre') {
+    await generatePreTestOnDemand(num);
+  } else {
+    await generatePostTestOnDemand(num);
+  }
+};
