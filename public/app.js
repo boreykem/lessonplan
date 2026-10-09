@@ -7073,19 +7073,17 @@ async function autoOpenNotebookLMWithPrompt() {
   const title = data.lessonTitle || 'មេរៀន';
   const subject = data.subject || '';
   const grade = data.grade || '';
-  const prompt = `🌟 INSTRUCTION FOR NOTEBOOKLM / AI VIDEO GENERATION:
-1. Format: Educational Explainer Video / Micro-Lecture Script (រយៈពេល ៦ ទៅ ១០ នាទី).
-2. Language: 100% KHMER LANGUAGE (ភាសាខ្មែរ) exclusively.
-3. Narration: Engaging, clear, pedagogical narration in Khmer by a passionate teacher/instructor explaining "${title}" (${subject} ${grade}). NO podcast hosts dialogue!
-4. On-Screen Captions & Typography: All on-screen text, key formulas, terms, and subtitles MUST run in Khmer using font "Kantumruy Pro" exclusively.
-5. Structure (6-10 Minutes):
-   - [0:00 - 1:30] Hook & Introduction to "${title}"
-   - [1:30 - 5:00] Core Concept & Formula/Rule Deep Dive
-   - [5:00 - 8:00] Real-world Application & Case Examples
-   - [8:00 - 10:00] Summary, Muddiest Point Reflection & Pre-test Challenge
-6. Output: Include Scene Description, Khmer Narration, and exact On-Screen Display Text (Font: Kantumruy Pro) for each timestamp.
-
-សូមបង្កើត Script វីដេអូបង្រៀន Micro-Lecture (៦ ទៅ ១០ នាទី) ជា «ភាសាខ្មែរ» ជាមួយអក្សររត់ Font «Kantumruy Pro» តែមួយគត់! ត្រូវធានាថាការអធិប្បាយ និងពន្យល់គឺស្របទៅតាមកិច្ចតែងការរបស់ខ្ញុំ១០០%។`;
+  const prompt = `Focus on explaining the lesson "${title}" for ${subject} ${grade}.
+Please ensure the ENTIRE VIDEO NARRATION and ON-SCREEN TEXT are in KHMER LANGUAGE (ភាសាខ្មែរ).
+Video Style: Explainer.
+Duration: 6 to 10 minutes.
+Content:
+1. Hook & Introduction to the core concept.
+2. Deep dive into formulas, rules, or main theories.
+3. Real-world applications and examples relevant to Cambodia.
+4. Summary and a short quiz challenge for the students.
+Please align the explanation strictly with the uploaded lesson plan documents.
+Output MUST be spoken and written in KHMER ONLY!`;
 
   try {
     await navigator.clipboard.writeText(prompt);
