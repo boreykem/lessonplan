@@ -9304,3 +9304,183 @@ window.promptGenerateTest = async function(type) {
     await generatePostTestOnDemand(num);
   }
 };
+
+// ==========================================================================
+// 🗂️ LocalStorage History & Dashboard System
+// ==========================================================================
+const HISTORY_STORAGE_KEY = 'alps_plan_history';
+const MAX_HISTORY_ITEMS = 30; // Store up to 30 plans to stay well within 5MB limit
+
+function saveToHistory(planData, isFlipped = false) {
+  if (!planData || !planData.lessonTitle) return;
+  try {
+    let history = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || '[]');
+    
+    // Create new history record
+    const record = {
+      id: Date.now().toString(),
+      date: new Date().toISOString(),
+      subject: planData.subject || '',
+      grade: planData.grade || '',
+      title: planData.lessonTitle || 'មេរៀនថ្មី',
+      template: isFlipped ? 'flipped' : (planData.templateType || 'standard'),
+      gNum: null, // Will be updated if they calculate learning gain
+      planData: planData // Full object for restoring later
+    };
+
+    // Add to beginning of array
+    history.unshift(record);
+    
+    // Trim to max items
+    if (history.length > MAX_HISTORY_ITEMS) {
+      history = history.slice(0, MAX_HISTORY_ITEMS);
+    }
+    
+    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+    console.log("Plan saved to local history.");
+  } catch (e) {
+    console.error("Failed to save history to LocalStorage:", e);
+  }
+}
+
+// Called from applyLearningGainToReflection
+function updateHistoryGain(gNum, planData) {
+  try {
+    let history = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || '[]');
+    if (history.length === 0) return;
+    
+    // We assume the most recent plan that matches the current plan is the one to update.
+    // Or simpler: just update the very first one if generated recently.
+    if (history[0].title === planData.lessonTitle) {
+      history[0].gNum = gNum;
+      history[0].planData = planData; // update with the new selfEvaluation attached
+      localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+    }
+  } catch (e) {
+    console.error("Failed to update history gain:", e);
+  }
+}
+
+function openHistoryModal() {
+  const modal = document.getElementById('historyModal');
+  if (modal) {
+    modal.classList.add('active');
+    renderHistoryList();
+  }
+}
+
+function closeHistoryModal() {
+  const modal = document.getElementById('historyModal');
+  if (modal) {
+    modal.classList.remove('active');
+  }
+}
+
+function renderHistoryList() {
+  const container = document.getElementById('historyListContainer');
+  const statTotal = document.getElementById('statTotalPlans');
+  const statAvgGain = document.getElementById('statAvgGain');
+  
+  if (!container || !statTotal || !statAvgGain) return;
+  
+  let history = [];
+  try {
+    history = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || '[]');
+  } catch(e) {}
+  
+  statTotal.innerText = history.length;
+  
+  // Calculate average gain
+  let sumGain = 0;
+  let countGain = 0;
+  history.forEach(item => {
+    if (item.gNum !== null && item.gNum !== undefined) {
+      sumGain += parseFloat(item.gNum);
+      countGain++;
+    }
+  });
+  
+  if (countGain > 0) {
+    statAvgGain.innerText = (sumGain / countGain).toFixed(2);
+  } else {
+    statAvgGain.innerText = "N/A";
+  }
+  
+  if (history.length === 0) {
+    container.innerHTML = `<div style="text-align: center; padding: 40px 20px; color: #64748b;">
+      <i class="fa-solid fa-folder-open" style="font-size: 3rem; margin-bottom: 12px; opacity: 0.5;"></i>
+      <div>មិនទាន់មានប្រវត្តិកិច្ចតែងការនៅឡើយទេ។<br>រាល់កិច្ចតែងការដែលលោកគ្រូបង្កើត វានឹងត្រូវរក្សាទុកនៅទីនេះដោយស្វ័យប្រវត្តិ។</div>
+    </div>`;
+    return;
+  }
+  
+  let html = '';
+  history.forEach((item, index) => {
+    const d = new Date(item.date);
+    const dateStr = d.toLocaleDateString('km-KH') + ' ' + d.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
+    
+    let gainBadge = '';
+    if (item.gNum !== null && item.gNum !== undefined) {
+      let gColor = '#ef4444'; // low
+      if (item.gNum >= 0.7) gColor = '#10b981'; // high
+      else if (item.gNum >= 0.3) gColor = '#f59e0b'; // med
+      
+      gainBadge = `<span style="display: inline-block; background: ${gColor}15; color: ${gColor}; padding: 2px 8px; border-radius: 4px; font-size: 8.5pt; font-weight: 700; margin-top: 4px;">Gain: ${item.gNum.toFixed(2)}</span>`;
+    }
+    
+    html += `
+      <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s;">
+        <div style="flex: 1; padding-right: 12px;">
+          <div style="font-size: 11pt; font-weight: 700; color: #0f172a; margin-bottom: 4px;">${escapeHtml(item.title)}</div>
+          <div style="font-size: 9pt; color: #64748b;">${escapeHtml(item.subject)} | កម្រិត៖ ${escapeHtml(item.grade)}</div>
+          <div style="font-size: 8.5pt; color: #94a3b8; margin-top: 4px;"><i class="fa-regular fa-clock"></i> ${dateStr}</div>
+          ${gainBadge}
+        </div>
+        <div style="display: flex; gap: 8px; flex-direction: column;">
+          <button onclick="loadPlanFromHistory(${index})" style="background: #4f46e5; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 9pt; font-weight: 600;"><i class="fa-solid fa-folder-open"></i> បើកមើល</button>
+          <button onclick="deleteHistoryItem(${index})" style="background: #f8fafc; color: #ef4444; border: 1px solid #fca5a5; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 9pt;"><i class="fa-solid fa-trash-can"></i> លុប</button>
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+}
+
+function loadPlanFromHistory(index) {
+  try {
+    const history = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || '[]');
+    if (history[index] && history[index].planData) {
+      state.generatedPlanData = history[index].planData;
+      state.currentPlan = history[index].planData;
+      renderLessonPlanToA4(history[index].planData);
+      
+      document.getElementById('emptyState').style.display = 'none';
+      const wrapper = document.getElementById('a4Wrapper');
+      wrapper.style.display = 'block';
+      wrapper.scrollIntoView({ behavior: 'smooth' });
+      
+      closeHistoryModal();
+      showToast('✅ បានទាញយកកិច្ចតែងការពីប្រវត្តិដោយជោគជ័យ!', 'success');
+    }
+  } catch (e) {
+    showToast('មានបញ្ហាក្នុងការទាញយកកិច្ចតែងការ!', 'error');
+  }
+}
+
+function deleteHistoryItem(index) {
+  if (!confirm('តើលោកគ្រូពិតជាចង់លុបកិច្ចតែងការនេះចេញពីប្រវត្តិមែនទេ?')) return;
+  try {
+    const history = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || '[]');
+    history.splice(index, 1);
+    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
+    renderHistoryList();
+  } catch (e) {}
+}
+
+function clearHistory() {
+  if (!confirm('តើលោកគ្រូពិតជាចង់លុបប្រវត្តិកិច្ចតែងការទាំងអស់ចេញពីកុំព្យូទ័រនេះមែនទេ? (សកម្មភាពនេះមិនអាចទាញត្រលប់មកវិញបានទេ)')) return;
+  localStorage.removeItem(HISTORY_STORAGE_KEY);
+  renderHistoryList();
+  showToast('បានលុបប្រវត្តិទាំងអស់ដោយជោគជ័យ!', 'success');
+}

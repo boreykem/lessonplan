@@ -119,6 +119,12 @@
           <span id="apiKeyBadge" class="status-dot active"></span>
         </button>
 
+        <!-- History Button -->
+        <button class="btn-secondary" onclick="openHistoryModal()" title="ប្រវត្តិកិច្ចតែងការ (History Dashboard)">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <span class="btn-text">ប្រវត្តិ</span>
+        </button>
+
         <!-- Install App / Add to Screen Button -->
         <button id="btnInstallApp" class="btn-primary" style="display: inline-flex; align-items: center; gap: 7px; padding: 7px 15px; font-size: 0.88rem; font-weight: 700; border-radius: 8px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; border: none; cursor: pointer; box-shadow: 0 2px 10px rgba(79, 70, 229, 0.35);" onclick="handleInstallPwaClick()" title="ដំឡើងកម្មវិធីលើអេក្រង់កុំព្យូទ័រ ឬទូរស័ព្ទ (Install App / Add to Screen)">
           <i class="fa-solid fa-download"></i>
@@ -1376,6 +1382,44 @@
         <button type="button" class="btn-secondary" onclick="closeVideoStudioModal()" style="background: #334155; color: white; border: none;">
           បិទ
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- History / Dashboard Modal -->
+  <div id="historyModal" class="modal-backdrop">
+    <div class="modal" style="max-width: 800px; width: 95%;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="fa-solid fa-clock-rotate-left"></i> <span>ប្រវត្តិកិច្ចតែងការ និងស្ថិតិ (Local History Dashboard)</span>
+        </div>
+        <button class="modal-close" onclick="closeHistoryModal()"><i class="fa-solid fa-times"></i></button>
+      </div>
+      <div class="modal-body" style="max-height: 70vh; overflow-y: auto; background: #f8fafc; padding: 20px;">
+        <div id="historyStatsContainer" style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 150px; background: white; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
+            <div style="font-size: 24pt; font-weight: 800; color: #4f46e5;" id="statTotalPlans">0</div>
+            <div style="font-size: 10pt; color: #64748b; font-weight: 600;">កិច្ចតែងការសរុប</div>
+          </div>
+          <div style="flex: 1; min-width: 150px; background: white; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
+            <div style="font-size: 24pt; font-weight: 800; color: #10b981;" id="statAvgGain">0.00</div>
+            <div style="font-size: 10pt; color: #64748b; font-weight: 600;">មធ្យមភាគ Learning Gain (g)</div>
+          </div>
+        </div>
+        
+        <div style="font-weight: 700; font-size: 11pt; color: #1e293b; margin-bottom: 12px; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px;">
+          <i class="fa-solid fa-list"></i> បញ្ជីកិច្ចតែងការចុងក្រោយ (រក្សាទុកក្នុងកុំព្យូទ័រនេះ)
+        </div>
+        
+        <div id="historyListContainer" style="display: flex; flex-direction: column; gap: 12px;">
+          <!-- Items will be injected here -->
+        </div>
+      </div>
+      <div class="modal-footer" style="border-top: 1px solid #e2e8f0; padding: 12px 20px; justify-content: space-between;">
+        <button type="button" class="btn-secondary" onclick="clearHistory()" style="color: #ef4444; border-color: #fca5a5;">
+          <i class="fa-solid fa-trash-can"></i> លុបប្រវត្តិទាំងអស់
+        </button>
+        <button type="button" class="btn-secondary" onclick="closeHistoryModal()">បិទ</button>
       </div>
     </div>
   </div>
