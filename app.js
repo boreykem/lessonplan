@@ -5,6 +5,15 @@
  */
 
 // Global State
+// System Default Gemini API Key (embedded so teachers can generate lesson plans out-of-the-box without manual key entry)
+const SYSTEM_DEFAULT_GEMINI_KEY = (typeof atob === 'function') ? atob('QVEuQWI4Uk42S002TkRrb3BRTjZoRE84bzNwbDJVYzNHZ2NNOHplUG9LeHM2a0R1T2pTY3c=') : '';
+
+function getActiveGeminiApiKey() {
+  const stored = localStorage.getItem('gemini_api_key');
+  if (stored && stored.trim()) return stored.trim();
+  return SYSTEM_DEFAULT_GEMINI_KEY;
+}
+
 const state = {
   templateMode: 'preset', // 'preset' | 'saved' | 'custom'
   selectedPresetId: 'moeys_standard_5step',
@@ -21,7 +30,7 @@ const state = {
   lessonContent: '',
   currentZoom: 1.0,
   aiProvider: localStorage.getItem('ai_provider') || 'gemini',
-  geminiApiKey: localStorage.getItem('gemini_api_key') || '',
+  geminiApiKey: getActiveGeminiApiKey(),
   generatedPlanData: null
 };
 
@@ -1333,28 +1342,29 @@ function initEventListeners() {
 
   btnSaveKey.addEventListener('click', () => {
     const key = inputGeminiKey.value.trim();
-    const provider = selectAiProvider ? selectAiProvider.value : 'groq';
-    state.geminiApiKey = key;
+    const provider = selectAiProvider ? selectAiProvider.value : 'gemini';
     state.aiProvider = provider;
     localStorage.setItem('ai_provider', provider);
     if (key) {
+      state.geminiApiKey = key;
       localStorage.setItem('gemini_api_key', key);
       const provName = provider === 'groq' ? 'Groq Cloud (Free)' : (provider === 'openrouter' ? 'OpenRouter' : 'Google Gemini');
       showToast(`បានរក្សាទុក ${provName} API Key ដោយជោគជ័យ!`, 'success');
     } else {
+      state.geminiApiKey = SYSTEM_DEFAULT_GEMINI_KEY;
       localStorage.removeItem('gemini_api_key');
-      showToast('បានដក API Key ចេញរួចរាល់ (ប្តូរមកប្រើ Smart MoEYS Engine)', 'info');
+      showToast('បានកំណត់ឡើងវិញទៅ System Gemini API Key លំនាំដើម', 'info');
     }
     checkApiKeyStatus();
     apiKeyModal.style.display = 'none';
   });
 
   btnRemoveKey.addEventListener('click', () => {
-    inputGeminiKey.value = '';
-    state.geminiApiKey = '';
+    state.geminiApiKey = SYSTEM_DEFAULT_GEMINI_KEY;
     localStorage.removeItem('gemini_api_key');
+    if (inputGeminiKey) inputGeminiKey.value = SYSTEM_DEFAULT_GEMINI_KEY;
     checkApiKeyStatus();
-    showToast('បានលុប API Key រួចរាល់ (ប្រើប្រាស់ Smart Engine ជំនួស)', 'info');
+    showToast('បានកំណត់ទៅប្រើប្រាស់ System Gemini API Key លំនាំដើម!', 'info');
     apiKeyModal.style.display = 'none';
   });
 
@@ -1607,7 +1617,7 @@ async function extractTextFromFile(file) {
       const mimeType = file.type || (extension === 'png' ? 'image/png' : 'image/jpeg');
       const rawBase64 = base64Data.split(',')[1];
 
-      const ocrCandidateModels = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+      const ocrCandidateModels = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-flash-latest', 'gemini-2.5-flash'];
       for (const model of ocrCandidateModels) {
         try {
           const ocrUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -1785,7 +1795,7 @@ async function handleGenerateLessonPlan() {
     let planData;
     const key = (state.geminiApiKey || '').trim();
     let provider = state.aiProvider || 'gemini';
-    if (key.startsWith('AIza')) {
+    if (key.startsWith('AIza') || key.startsWith('AQ.')) {
       provider = 'gemini';
     } else if (key.startsWith('gsk_')) {
       provider = 'groq';
@@ -2700,13 +2710,18 @@ GENERATE THE COMPLETE LESSON PLAN NOW. Every field must contain real, specific, 
   if (discovered && discovered.length > 0) {
     discovered.sort((a, b) => {
       const score = (m) => {
-                const name = (m.name || '').toLowerCase();
+        const name = (m.name || '').toLowerCase();
+        if (name.includes('3.8-flash')) return 150;
+        if (name.includes('3.6-flash')) return 140;
+        if (name.includes('3.7-flash')) return 135;
+        if (name.includes('3.5-flash')) return 130;
+        if (name.includes('flash-latest')) return 125;
         if (name.includes('2.5-pro')) return 120;
         if (name.includes('2.5-flash')) return 110;
         if (name.includes('2.0-flash')) return 100;
         if (name.includes('1.5-pro')) return 90;
         if (name.includes('1.5-flash')) return 80;
-        if (name.includes('flash-latest') || name.includes('gemini-flash')) return 75;
+        if (name.includes('gemini-flash')) return 75;
         if (name.includes('gemini-pro')) return 60;
         return 10;
       };
@@ -2721,13 +2736,12 @@ GENERATE THE COMPLETE LESSON PLAN NOW. Every field must contain real, specific, 
 
   if (candidateModels.length === 0) {
     candidateModels = [
-      { ver: 'v1beta', name: 'gemini-2.5-pro' },
+      { ver: 'v1beta', name: 'gemini-3.8-flash' },
       { ver: 'v1beta', name: 'gemini-3.6-flash' },
-      { ver: 'v1beta', name: 'gemini-2.0-flash' },
-      { ver: 'v1', name: 'gemini-1.5-flash' },
-      { ver: 'v1beta', name: 'gemini-1.5-flash' },
-      { ver: 'v1beta', name: 'gemini-1.5-pro' },
-      { ver: 'v1', name: 'gemini-1.5-pro' }
+      { ver: 'v1beta', name: 'gemini-3.7-flash' },
+      { ver: 'v1beta', name: 'gemini-flash-latest' },
+      { ver: 'v1beta', name: 'gemini-2.5-flash' },
+      { ver: 'v1beta', name: 'gemini-2.5-pro' }
     ];
   }
 
@@ -3024,10 +3038,10 @@ function openApiKeyModal() {
   const inputGeminiKey = document.getElementById('inputGeminiKey');
   const selectAiProvider = document.getElementById('selectAiProvider');
   if (inputGeminiKey) {
-    inputGeminiKey.value = state.geminiApiKey || localStorage.getItem('gemini_api_key') || '';
+    inputGeminiKey.value = state.geminiApiKey || getActiveGeminiApiKey();
   }
   if (selectAiProvider) {
-    const savedKey = state.geminiApiKey || localStorage.getItem('gemini_api_key') || '';
+    const savedKey = state.geminiApiKey || getActiveGeminiApiKey();
     const savedProvider = state.aiProvider || localStorage.getItem('ai_provider') || (savedKey.startsWith('gsk_') ? 'groq' : (savedKey.startsWith('sk-or-') ? 'openrouter' : 'gemini'));
     selectAiProvider.value = savedProvider;
     handleAiProviderChange();
@@ -3052,16 +3066,17 @@ function saveApiKeyFromModal() {
   const apiKeyModal = document.getElementById('apiKeyModal');
   const key = (inputGeminiKey?.value || '').trim();
   const provider = selectAiProvider ? selectAiProvider.value : 'gemini';
-  state.geminiApiKey = key;
   state.aiProvider = provider;
   localStorage.setItem('ai_provider', provider);
   if (key) {
+    state.geminiApiKey = key;
     localStorage.setItem('gemini_api_key', key);
     const provName = provider === 'groq' ? 'Groq Cloud (Free)' : (provider === 'openrouter' ? 'OpenRouter' : 'Google Gemini');
     showToast(`បានរក្សាទុក ${provName} API Key ដោយជោគជ័យ!`, 'success');
   } else {
+    state.geminiApiKey = SYSTEM_DEFAULT_GEMINI_KEY;
     localStorage.removeItem('gemini_api_key');
-    showToast('បានដក API Key ចេញរួចរាល់ (ប្តូរមកប្រើ Smart MoEYS Engine)', 'info');
+    showToast('បានកំណត់ឡើងវិញទៅ System Gemini API Key លំនាំដើម', 'info');
   }
   checkApiKeyStatus();
   if (apiKeyModal) apiKeyModal.style.display = 'none';
@@ -3071,11 +3086,11 @@ window.saveApiKeyFromModal = saveApiKeyFromModal;
 function removeApiKeyFromModal() {
   const inputGeminiKey = document.getElementById('inputGeminiKey');
   const apiKeyModal = document.getElementById('apiKeyModal');
-  if (inputGeminiKey) inputGeminiKey.value = '';
-  state.geminiApiKey = '';
+  state.geminiApiKey = SYSTEM_DEFAULT_GEMINI_KEY;
   localStorage.removeItem('gemini_api_key');
+  if (inputGeminiKey) inputGeminiKey.value = SYSTEM_DEFAULT_GEMINI_KEY;
   checkApiKeyStatus();
-  showToast('បានលុប API Key រួចរាល់ (ប្រើប្រាស់ Smart Engine ជំនួស)', 'info');
+  showToast('បានកំណត់ទៅប្រើប្រាស់ System Gemini API Key លំនាំដើម!', 'info');
   if (apiKeyModal) apiKeyModal.style.display = 'none';
 }
 window.removeApiKeyFromModal = removeApiKeyFromModal;
@@ -3139,7 +3154,7 @@ function autoDetectApiKeyProvider(val) {
       select.value = 'openrouter';
       handleAiProviderChange();
     }
-  } else if (clean.startsWith('AIzaSy')) {
+  } else if (clean.startsWith('AIzaSy') || clean.startsWith('AQ.')) {
     if (select.value !== 'gemini') {
       select.value = 'gemini';
       handleAiProviderChange();
@@ -3250,29 +3265,32 @@ async function testCurrentAiProviderKey() {
     if (discovered && discovered.length > 0) {
       discovered.sort((a, b) => {
         const score = (m) => {
-                  const name = (m.name || '').toLowerCase();
-        if (name.includes('2.5-pro')) return 120;
-        if (name.includes('2.5-flash')) return 110;
-        if (name.includes('2.0-flash')) return 100;
-        if (name.includes('1.5-pro')) return 90;
-        if (name.includes('1.5-flash')) return 80;
-        if (name.includes('flash-latest') || name.includes('gemini-flash')) return 75;
-        if (name.includes('gemini-pro')) return 60;
-        return 10;
+          const name = (m.name || '').toLowerCase();
+          if (name.includes('3.8-flash')) return 150;
+          if (name.includes('3.6-flash')) return 140;
+          if (name.includes('3.7-flash')) return 135;
+          if (name.includes('3.5-flash')) return 130;
+          if (name.includes('flash-latest')) return 125;
+          if (name.includes('2.5-pro')) return 120;
+          if (name.includes('2.5-flash')) return 110;
+          if (name.includes('2.0-flash')) return 100;
+          if (name.includes('1.5-pro')) return 90;
+          if (name.includes('1.5-flash')) return 80;
+          if (name.includes('gemini-flash')) return 75;
+          if (name.includes('gemini-pro')) return 60;
+          return 10;
         };
         return score(b) - score(a);
       });
       modelsToTest = discovered;
     } else {
       modelsToTest = [
-        { ver: 'v1beta', name: 'gemini-2.5-pro' },
+        { ver: 'v1beta', name: 'gemini-3.8-flash' },
         { ver: 'v1beta', name: 'gemini-3.6-flash' },
-        { ver: 'v1beta', name: 'gemini-2.0-flash' },
-        { ver: 'v1', name: 'gemini-1.5-flash' },
-        { ver: 'v1beta', name: 'gemini-1.5-flash' },
-        { ver: 'v1beta', name: 'gemini-1.5-pro' },
-        { ver: 'v1', name: 'gemini-1.5-pro' },
-        { ver: 'v1', name: 'gemini-pro' }
+        { ver: 'v1beta', name: 'gemini-3.7-flash' },
+        { ver: 'v1beta', name: 'gemini-flash-latest' },
+        { ver: 'v1beta', name: 'gemini-2.5-flash' },
+        { ver: 'v1beta', name: 'gemini-2.5-pro' }
       ];
     }
 
@@ -3297,7 +3315,7 @@ async function testCurrentAiProviderKey() {
           statusEl.style.background = '#f0fdf4';
           statusEl.style.color = '#16a34a';
           const isPro = item.name.includes('pro');
-          const badge = isPro ? ' 🏆 <strong>(Pro Model Activated!)</strong>' : ' ⚡ <strong>(Gemini 2.0 Flash Activated!)</strong>';
+          const badge = isPro ? ' 🏆 <strong>(Pro Model Activated!)</strong>' : ' ⚡ <strong>(Gemini Flash Activated!)</strong>';
           statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> ការតភ្ជាប់ជោគជ័យ! Google Gemini <strong>${item.name}</strong> ដំណើរការ ១០០%!${badge}`;
           break;
         } else {
@@ -3325,9 +3343,9 @@ window.testGeminiApiKey = testCurrentAiProviderKey;
 // 1-Click Reset to Default Smart Engine (Clean Start)
 function resetToSmartEngineDefault() {
   localStorage.removeItem('gemini_api_key');
-  state.geminiApiKey = '';
+  state.geminiApiKey = SYSTEM_DEFAULT_GEMINI_KEY;
   const inputEl = document.getElementById('inputGeminiKey');
-  if (inputEl) inputEl.value = '';
+  if (inputEl) inputEl.value = SYSTEM_DEFAULT_GEMINI_KEY;
   const statusEl = document.getElementById('apiKeyTestStatus');
   if (statusEl) statusEl.style.display = 'none';
   checkApiKeyStatus();
@@ -3335,10 +3353,7 @@ function resetToSmartEngineDefault() {
   const modal = document.getElementById('apiKeyModal');
   if (modal) modal.style.display = 'none';
 
-  showToast('🔄 បានកំណត់ឡើងវិញទៅ Smart MoEYS Engine (លំនាំដើម) ដោយជោគជ័យ!', 'success');
-
-  // Immediately load clean default demo and generate
-  loadQuickDemo('phys_10_energy');
+  showToast('🔄 បានកំណត់ឡើងវិញទៅ System Gemini API Key លំនាំដើមដោយជោគជ័យ!', 'success');
 }
 window.resetToSmartEngineDefault = resetToSmartEngineDefault;
 

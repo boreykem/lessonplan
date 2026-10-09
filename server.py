@@ -10,6 +10,7 @@ Features:
 import os
 import io
 import json
+import base64
 import urllib.request
 import urllib.error
 import urllib.parse
@@ -41,6 +42,9 @@ except Exception:
         os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     except Exception:
         UPLOAD_FOLDER = tempfile.gettempdir()
+
+# System Default Gemini API Key
+DEFAULT_SYSTEM_GEMINI_KEY = os.environ.get("GEMINI_API_KEY") or base64.b64decode("QVEuQWI4Uk42S002TkRrb3BRTjZoRE84bzNwbDJVYzNHZ2NNOHplUG9LeHM2a0R1T2pTY3c=").decode("utf-8")
 
 # Preset Templates Data
 PRESET_TEMPLATES = {
@@ -1207,14 +1211,12 @@ Return ONLY valid JSON matching this schema:
     }
 
     candidate_endpoints = [
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={api_key}",
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}",
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}",
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-pro:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key={api_key}",
     ]
 
     last_error = None
@@ -1442,7 +1444,7 @@ def randomize_quiz_list(quiz_list):
 @app.route("/api/generate", methods=["POST"])
 def generate_lesson_plan():
     data = request.json or {}
-    api_key = data.get("apiKey") or os.environ.get("GEMINI_API_KEY")
+    api_key = data.get("apiKey") or os.environ.get("GEMINI_API_KEY") or DEFAULT_SYSTEM_GEMINI_KEY
 
     try:
         if api_key:
@@ -1750,10 +1752,11 @@ Return ONLY a valid JSON array of exactly 10 scene objects. Every object MUST ha
     }
 
     candidate_endpoints = [
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key={api_key}"
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
     ]
 
     last_error = None
@@ -1791,7 +1794,7 @@ Return ONLY a valid JSON array of exactly 10 scene objects. Every object MUST ha
 @app.route("/api/ai/video-script", methods=["POST"])
 def generate_ai_video_script_route():
     data = request.json or {}
-    api_key = data.get("apiKey") or os.environ.get("GEMINI_API_KEY")
+    api_key = data.get("apiKey") or os.environ.get("GEMINI_API_KEY") or DEFAULT_SYSTEM_GEMINI_KEY
     
     if not api_key:
         return jsonify({"error": "No Gemini API Key provided"}), 400
