@@ -1,47 +1,62 @@
 import sys
 import os
-from urllib.parse import parse_qs
 
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if root_dir not in sys.path:
     sys.path.insert(0, root_dir)
 
-from server import app
+from server import (
+    app,
+    health_check,
+    get_license_info,
+    activate_license,
+    export_docx,
+    upload_lesson,
+    upload_and_parse_file,
+    generate_lesson_plan,
+    get_system_version,
+    check_system_update,
+    tts_khmer_route
+)
+from flask import request, jsonify
 
-# Add root /api handler
-@app.route("/api", methods=["GET", "POST"])
-@app.route("/api/", methods=["GET", "POST"])
-def api_root_endpoint():
-    from flask import jsonify
-    return jsonify({
-        "status": "ok",
-        "service": "AI Lesson Plan Studio (Python/Flask)",
-        "version": "2.5.0"
-    })
+# Vercel entry dispatcher for /api/index
+@app.route("/api/index", methods=["GET", "POST", "OPTIONS"])
+@app.route("/api", methods=["GET", "POST", "OPTIONS"])
+def vercel_entry_dispatch():
+    if request.method == "OPTIONS":
+        return "", 204
 
-# WSGI Middleware to restore PATH_INFO and clear SCRIPT_NAME under Vercel serverless
-class VercelPathMiddleware:
-    def __init__(self, wsgi_app):
-        self.wsgi_app = wsgi_app
+    v_path = request.args.get("__vercel_path") or request.args.get("match") or "health"
+    v_clean = v_path.strip("/")
+    endpoint_path = f"/api/{v_clean}"
 
-    def __call__(self, environ, start_response):
-        qs = parse_qs(environ.get("QUERY_STRING", ""))
-        v_path = qs.get("__vercel_path", [None])[0]
-        
-        # Clear SCRIPT_NAME mount point so Flask matches routes from root
-        environ["SCRIPT_NAME"] = ""
-        
-        if v_path:
-            v_clean = v_path.strip("/")
-            environ["PATH_INFO"] = f"/api/{v_clean}" if v_clean else "/api"
-        else:
-            matched = environ.get("HTTP_X_MATCHED_PATH") or environ.get("REQUEST_URI") or environ.get("PATH_INFO", "")
-            clean = matched.split("?")[0] if matched else ""
-            if clean and clean.startswith("/api"):
-                environ["PATH_INFO"] = clean
-            elif environ.get("PATH_INFO") and environ.get("PATH_INFO") != "/":
-                environ["PATH_INFO"] = "/api" + environ.get("PATH_INFO")
+    # Try matching via Flask's URL adapter
+    adapter = app.url_map.bind_to_environ(request.environ)
+    try:
+        endpoint, values = adapter.match(endpoint_path, method=request.method)
+        return app.view_functions[endpoint](**values)
+    except Exception:
+        pass
 
-        return self.wsgi_app(environ, start_response)
+    # Direct fallback routing
+    if v_clean in ["health", ""]:
+        return health_check()
+    elif v_clean == "license/info":
+        return get_license_info()
+    elif v_clean == "license/activate":
+        return activate_license()
+    elif v_clean == "export/docx":
+        return export_docx()
+    elif v_clean in ["upload/lesson", "upload/template", "upload/parse"]:
+        return upload_and_parse_file()
+    elif v_clean == "generate":
+        return generate_lesson_plan()
+    elif v_clean == "system/version":
+        return get_system_version()
+    elif v_clean == "system/check_update":
+        return check_system_update()
+    elif v_clean == "tts/khmer":
+        return tts_khmer_route()
 
-app.wsgi_app = VercelPathMiddleware(app.wsgi_app)
+    return jsonify({"error": f"Endpoint /{v_clean} not found"}), 404
