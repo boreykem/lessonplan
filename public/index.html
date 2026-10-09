@@ -20,7 +20,7 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
-  <link rel="stylesheet" href="style.css?v=20261009_v7">
+  <link rel="stylesheet" href="style.css?v=20261009_v8">
   
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="/manifest.json">
@@ -766,19 +766,29 @@
       <div class="modal-header">
         <div class="modal-title-wrap">
           <i class="fa-solid fa-chart-line text-primary"></i>
-          <h4>ម៉ាស៊ីនគណនា Learning Gain (Hake's Normalized Gain)</h4>
+          <h4 data-i18n="modalLearningGainTitle">ម៉ាស៊ីនគណនា Learning Gain (Hake's Normalized Gain)</h4>
         </div>
         <button id="btnCloseGainModal" class="btn-close-modal" onclick="closeLearningGainModal()"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="gain-modal-body">
-        <p class="modal-desc">
-          រូបមន្តស្តង់ដារអន្តរជាតិ (Richard Hake): $g = \\frac{\\text{Post} - \\text{Pre}}{100 - \\text{Pre}}$ សម្រាប់វាស់ស្ទង់ **អត្រាកំណើននៃការរៀនសូត្រ** របស់សិស្សបន្ទាប់ពីឆ្លងកាត់ការបង្រៀន ៧០% ក្នុងថ្នាក់។
-        </p>
+        <div class="modal-desc" style="font-size: 0.92rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 12px;" id="gainFormulaDesc">
+          <div style="font-weight: 600; margin-bottom: 6px;">រូបមន្តស្តង់ដារអន្តរជាតិ (Richard Hake):</div>
+          <div style="display: inline-flex; align-items: center; gap: 8px; background: #eef2ff; border: 1.5px solid #c7d2fe; border-radius: 8px; padding: 6px 14px; font-weight: 700; color: #3730a3; margin: 4px 0 8px 0;">
+            <span style="font-size: 1.1rem; font-family: monospace;">g =</span>
+            <span style="display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; font-size: 0.88rem;">
+              <span style="border-bottom: 1.5px solid #3730a3; padding: 0 4px; font-weight: 700;">Post-Test − Pre-Test</span>
+              <span style="padding: 0 4px; font-weight: 700;">100 − Pre-Test</span>
+            </span>
+          </div>
+          <div style="font-size: 0.88rem; color: #475569;">
+            សម្រាប់វាស់ស្ទង់ <strong>អត្រាកំណើននៃការរៀនសូត្រ (Normalized Gain)</strong> របស់សិស្សបន្ទាប់ពីឆ្លងកាត់ការបង្រៀន និងអនុវត្តជាក់ស្តែង ៧០% ក្នុងថ្នាក់រៀន។
+          </div>
+        </div>
 
         <div class="gain-calc-grid mt-3">
           <div class="control-group">
-            <label for="inputPreTestScore">ពិន្ទុមធ្យម Pre-Test (% ឬពិន្ទុ)</label>
+            <label for="inputPreTestScore" data-i18n="gainPreTestLabel">ពិន្ទុមធ្យម Pre-Test (% ឬពិន្ទុ)</label>
             <div class="input-icon-wrap">
               <i class="fa-solid fa-clipboard-check"></i>
               <input type="number" id="inputPreTestScore" class="form-control" placeholder="ឧ. 35" min="0" max="100" value="35" oninput="calculateLearningGain()">
@@ -786,7 +796,7 @@
           </div>
 
           <div class="control-group">
-            <label for="inputPostTestScore">ពិន្ទុមធ្យម Post-Test (% ឬពិន្ទុ)</label>
+            <label for="inputPostTestScore" data-i18n="gainPostTestLabel">ពិន្ទុមធ្យម Post-Test (% ឬពិន្ទុ)</label>
             <div class="input-icon-wrap">
               <i class="fa-solid fa-trophy"></i>
               <input type="number" id="inputPostTestScore" class="form-control" placeholder="ឧ. 82" min="0" max="100" value="82" oninput="calculateLearningGain()">
@@ -795,7 +805,7 @@
         </div>
 
         <div class="gain-result-card" id="gainResultCard">
-          <div style="font-size: 10pt; color: #475569; font-weight: 600;">អត្រាកំណើននៃការរៀនសូត្រ (Normalized Gain - g)</div>
+          <div style="font-size: 10pt; color: #475569; font-weight: 600;" id="gainResultLabel">អត្រាកំណើននៃការរៀនសូត្រ (Normalized Gain - g)</div>
           <div class="gain-score-display text-primary" id="gainScoreText">0.72 (72.3%)</div>
           <div id="gainBadgeContainer">
             <span class="gain-badge-high"><i class="fa-solid fa-circle-check"></i> High Gain (ប្រសិទ្ធភាពបង្រៀនខ្ពស់ខ្លាំង: g ≥ 0.70)</span>
@@ -807,9 +817,9 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn-secondary" onclick="closeLearningGainModal()">បិទ</button>
+        <button type="button" class="btn-secondary" onclick="closeLearningGainModal()" data-i18n="btnClose">បិទ</button>
         <button type="button" class="btn-primary" onclick="applyLearningGainToReflection()">
-          <i class="fa-solid fa-file-pen"></i> បញ្ចូលក្នុងកិច្ចតែងការ
+          <i class="fa-solid fa-file-pen"></i> <span data-i18n="btnApplyGain">បញ្ចូលក្នុងកិច្ចតែងការ</span>
         </button>
       </div>
     </div>
@@ -1384,6 +1394,6 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261009_v7"></script>
+  <script src="app.js?v=20261009_v8"></script>
 </body>
 </html>
