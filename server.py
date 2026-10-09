@@ -2397,7 +2397,7 @@ def export_docx():
 @app.route("/<path:filename>", methods=["GET"])
 def serve_static_files(filename):
     if filename.startswith("api/") or filename == "api":
-        return jsonify({"error": "Endpoint not found"}), 404
+        return jsonify({"error": "Endpoint not found", "filename": filename, "path": request.path, "query": request.query_string.decode("utf-8", errors="ignore")}), 404
     resp = send_from_directory(".", filename)
     resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     resp.headers["Pragma"] = "no-cache"
