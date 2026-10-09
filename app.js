@@ -9621,6 +9621,158 @@ function clearHistory() {
 // ==========================================================================
 
 
+// ==========================================================================
+// 📊 PPTX Attachment & AI Image Utilities
+// ==========================================================================
+
+async function fetchImageAsBase64(url, timeoutMs = 8000) {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const resp = await fetch(url, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!resp.ok) return null;
+    const blob = await resp.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch (err) {
+    return null;
+  }
+}
+
+async function getSlideImage(slideDef, data, imageMode) {
+  if (imageMode === 'no') return null;
+
+  const keyword = slideDef.imageSearchKeyword || slideDef.title || data.lessonTitle || 'education';
+  
+  if (imageMode === 'ai') {
+    // Generate authentic educational illustration with AI
+    const subject = data.subject || 'general science';
+    const cleanKeyword = keyword.replace(/[^\w\s]/gi, ' ').trim() || 'classroom';
+    const aiPrompt = `educational classroom illustration about ${cleanKeyword}, subject of ${subject}, clear pedagogical concept diagram, high resolution, clean presentation artwork, 4k`;
+    const aiUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(aiPrompt)}?width=1024&height=768&nologo=true&seed=${Math.floor(Math.random() * 999999)}`;
+    
+    // Attempt download to embed as Base64 in PowerPoint
+    try {
+      const base64 = await fetchImageAsBase64(aiUrl, 8000);
+      if (base64) return { data: base64 };
+    } catch (e) {
+      console.warn('AI image Base64 conversion fallback to URL:', e);
+    }
+    return { path: aiUrl };
+  } else {
+    // Web stock photo fallback
+    const webUrl = `https://picsum.photos/seed/${encodeURIComponent(keyword)}/800/600`;
+    try {
+      const base64 = await fetchImageAsBase64(webUrl, 5000);
+      if (base64) return { data: base64 };
+    } catch (e) {}
+    return { path: webUrl };
+  }
+}
+
+function updatePptxAttachmentOptions() {
+  const select = document.getElementById('pptxSourceSelect');
+  const optLesson = document.getElementById('pptxOptUploadedLesson');
+  const optHistory = document.getElementById('pptxOptHistoryPlan');
+  const optCustom = document.getElementById('pptxOptCustomFile');
+  const badge = document.getElementById('pptxUploadedFileBadge');
+  const badgeName = document.getElementById('pptxUploadedFileName');
+
+  if (!select) return;
+
+  // 1. Check if user previously uploaded a lesson file in Step 2
+  if (state.lessonFileName && state.lessonContent) {
+    if (optLesson) {
+      optLesson.style.display = '';
+      optLesson.textContent = `📂 ${state.lessonFileName} (ឯកសារមេរៀនដែលបានផ្ទុកឡើង)`;
+    }
+  } else {
+    if (optLesson) optLesson.style.display = 'none';
+  }
+
+  // 2. Check if history has saved plans
+  try {
+    const history = JSON.parse(localStorage.getItem('alps_plan_history') || '[]');
+    if (history.length > 0) {
+      if (optHistory) {
+        optHistory.style.display = '';
+        optHistory.textContent = `📋 ${history[0].title || 'កិច្ចតែងការចុងក្រោយ'} (ពីប្រវត្តិ)`;
+      }
+    } else {
+      if (optHistory) optHistory.style.display = 'none';
+    }
+  } catch (e) {
+    if (optHistory) optHistory.style.display = 'none';
+  }
+
+  // 3. Check if user attached a custom file inside this modal
+  if (state.pptxCustomSource && state.pptxCustomSource.fileName) {
+    if (optCustom) {
+      optCustom.style.display = '';
+      optCustom.textContent = `📤 ${state.pptxCustomSource.fileName} (ឯកសារទើបបង្ហោះ)`;
+    }
+    if (badge && badgeName) {
+      badge.style.display = 'flex';
+      badgeName.innerHTML = `<i class="fa-solid fa-file-circle-check" style="margin-right: 5px;"></i> <b>${state.pptxCustomSource.fileName}</b> (${Math.round((state.pptxCustomSource.fileSize || 0) / 1024)} KB)`;
+    }
+  } else {
+    if (optCustom) optCustom.style.display = 'none';
+    if (badge) badge.style.display = 'none';
+  }
+}
+
+window.triggerPptxSourceUpload = function() {
+  const input = document.getElementById('pptxSourceFileInput');
+  if (input) input.click();
+};
+
+window.handlePptxSourceFileUploaded = async function(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  showToast(`កំពុងអានឯកសារ ${file.name}...`, 'info');
+  try {
+    const text = await extractTextFromFile(file);
+    if (!text || text.trim().length === 0) {
+      showToast(`⚠️ មិនអាចស្រង់អត្ថបទពី ${file.name} បានទេ។ សូមពិនិត្យឯកសារម្តងទៀត!`, 'warning');
+      return;
+    }
+    state.pptxCustomSource = {
+      fileName: file.name,
+      content: text.trim(),
+      fileSize: file.size
+    };
+    updatePptxAttachmentOptions();
+    const select = document.getElementById('pptxSourceSelect');
+    if (select) select.value = 'custom_file';
+    showToast(`✅ បានភ្ជាប់ឯកសារ ${file.name} (${text.trim().length} តួអក្សរ) សម្រាប់បង្កើតស្លាយ!`, 'success');
+  } catch (err) {
+    console.error('Error reading pptx attachment file:', err);
+    showToast('❌ បរាជ័យក្នុងការអានឯកសារ: ' + err.message, 'error');
+  } finally {
+    event.target.value = '';
+  }
+};
+
+window.clearPptxCustomSource = function() {
+  state.pptxCustomSource = null;
+  updatePptxAttachmentOptions();
+  const select = document.getElementById('pptxSourceSelect');
+  if (select) select.value = 'current_plan';
+  showToast('បានដកឯកសារភ្ជាប់ចេញរួចរាល់', 'info');
+};
+
+window.handlePptxSourceChanged = function(val) {
+  if (val === 'custom_file' && !state.pptxCustomSource) {
+    triggerPptxSourceUpload();
+  }
+};
+
 function synthesizeOfflineSlides(data, numSlides) {
   const slides = [];
   slides.push({
@@ -9639,7 +9791,7 @@ function synthesizeOfflineSlides(data, numSlides) {
       `ឥរិយាបថ: ${(data.objectives?.attitudes || ['ចូលរួមយ៉ាងសកម្ម']).slice(0, 2).join(', ')}`
     ],
     speakerNotes: 'សូមជម្រាបជូនសិស្សអំពីគោលបំណងចម្បងនៃមេរៀននេះ។',
-    imageSearchKeyword: 'classroom'
+    imageSearchKeyword: 'classroom goals'
   });
 
   const steps = data.steps || data.stage3?.steps || [];
@@ -9654,7 +9806,24 @@ function synthesizeOfflineSlides(data, numSlides) {
           s.studentActivity ? `សកម្មភាពសិស្ស: ${s.studentActivity}` : 'ពិភាក្សា និងអនុវត្តជាក្រុម'
         ].filter(Boolean),
         speakerNotes: `ណែនាំសិស្សអំពី ${s.stepTitle || 'ខ្លឹមសារមេរៀន'}`,
-        imageSearchKeyword: 'students'
+        imageSearchKeyword: 'student activity'
+      });
+    }
+  }
+
+  // If source document text exists, construct slides from it
+  if (data.sourceDocumentText && slides.length < numSlides) {
+    const paragraphs = data.sourceDocumentText.split(/\\n\\s*\\n|\\r\\n\\s*\\r\\n/).map(p => p.trim()).filter(p => p.length > 30);
+    for (let i = 0; i < paragraphs.length && slides.length < numSlides; i++) {
+      slides.push({
+        type: 'content',
+        title: `ខ្លឹមសារសំខាន់ទី ${i + 1}`,
+        bullets: [
+          paragraphs[i].substring(0, 160) + (paragraphs[i].length > 160 ? '...' : ''),
+          'សង្ខេប និងពិភាក្សាលើចំណុចគន្លឹះ'
+        ],
+        speakerNotes: 'ពន្យល់លម្អិតអំពីខ្លឹមសារក្នុងស្លាយនេះ។',
+        imageSearchKeyword: 'study concept'
       });
     }
   }
@@ -9669,7 +9838,7 @@ function synthesizeOfflineSlides(data, numSlides) {
         'កិច្ចការផ្ទះ និងការស្រាវជ្រាវបន្ថែម'
       ],
       speakerNotes: 'សង្ខេបខ្លឹមសារមេរៀនជាមួយសិស្ស។',
-      imageSearchKeyword: 'presentation'
+      imageSearchKeyword: 'presentation summary'
     });
   }
 
@@ -9681,6 +9850,7 @@ window.openPptxModal = function() {
   if (m) {
     m.style.display = 'flex';
     m.classList.add('active');
+    updatePptxAttachmentOptions();
   }
 };
 
@@ -9693,8 +9863,28 @@ window.closePptxModal = function() {
 };
 
 window.generatePptxSlides = async function() {
+  const sourceChoice = document.getElementById('pptxSourceSelect')?.value || 'current_plan';
   let data = state.generatedPlanData || state.currentPlan;
-  if (!data) {
+  let sourceDocText = '';
+  let sourceDocTitle = '';
+
+  if (sourceChoice === 'custom_file' && state.pptxCustomSource) {
+    sourceDocText = state.pptxCustomSource.content;
+    sourceDocTitle = state.pptxCustomSource.fileName.replace(/\\.[^/.]+$/, "");
+  } else if (sourceChoice === 'uploaded_lesson_file' && state.lessonContent) {
+    sourceDocText = state.lessonContent;
+    sourceDocTitle = state.lessonFileName ? state.lessonFileName.replace(/\\.[^/.]+$/, "") : '';
+  } else if (sourceChoice === 'history_plan') {
+    try {
+      const history = JSON.parse(localStorage.getItem('alps_plan_history') || '[]');
+      if (history.length > 0 && history[0].planData) {
+        data = history[0].planData;
+        sourceDocTitle = history[0].title;
+      }
+    } catch (e) {}
+  }
+
+  if (!data && !sourceDocText) {
     const title = (document.getElementById('lessonTitleInput')?.value || '').trim();
     const subject = (document.getElementById('subjectSelect')?.value || '').trim();
     const grade = (document.getElementById('gradeSelect')?.value || '').trim();
@@ -9714,18 +9904,34 @@ window.generatePptxSlides = async function() {
       };
       state.currentPlan = data;
     } else {
-      showToast('សូមបញ្ចូលចំណងជើងមេរៀន ឬបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
+      showToast('សូមបញ្ចូលចំណងជើងមេរៀន បង្កើតកិច្ចតែងការ ឬបង្ហោះឯកសារយោងជាមុនសិន!', 'warning');
       return;
     }
   }
 
+  if (!data) {
+    data = {
+      lessonTitle: sourceDocTitle || 'ឯកសារមេរៀន',
+      subject: (document.getElementById('subjectSelect')?.value || 'ទូទៅ').trim(),
+      grade: (document.getElementById('gradeSelect')?.value || 'ទូទៅ').trim(),
+      objectives: { knowledge: ['ស្វែងយល់ខ្លឹមសារឯកសារ'], skills: ['អនុវត្តតាមឯកសារ'], attitudes: ['ការយល់ដឹង'] }
+    };
+  }
+
+  if (sourceDocText) {
+    data.sourceDocumentText = sourceDocText;
+    if (sourceDocTitle && (!data.lessonTitle || data.lessonTitle === 'មេរៀនទូទៅ')) {
+      data.lessonTitle = sourceDocTitle;
+    }
+  }
+
   const numSlides = parseInt(document.getElementById('pptxNumSlides')?.value || '8');
-  const includeImages = document.getElementById('pptxIncludeImages')?.value === 'yes';
+  const imageMode = document.getElementById('pptxIncludeImages')?.value || 'ai';
   const theme = document.getElementById('pptxTheme')?.value || 'modern_blue';
   
   closePptxModal();
   showLoadingOverlay();
-  setLoadingOverlayStatus('🎬 កំពុងរៀបចំស្លាយ PowerPoint...', 'Gemini AI កំពុងអានកិច្ចតែងការនិងសង្ខេបជាស្លាយ...');
+  setLoadingOverlayStatus('🎬 កំពុងរៀបចំស្លាយ PowerPoint...', 'Gemini AI កំពុងវិភាគឯកសារ និងរៀបចំកូដស្លាយ...');
   
   try {
     let slidesData = null;
@@ -9733,7 +9939,7 @@ window.generatePptxSlides = async function() {
 
     if (apiKey) {
       const prompt = `You are an expert educational presenter.
-Convert the following Cambodian MoEYS Lesson Plan into an engaging PowerPoint presentation outline.
+Convert the following Cambodian MoEYS Lesson Plan / Attached Educational Material into an engaging PowerPoint presentation outline.
 Number of slides requested (including Title slide): ${numSlides}
 Rules:
 1. Output MUST be a valid JSON array of objects, with NO markdown formatting, NO code blocks. JUST RAW JSON.
@@ -9745,20 +9951,21 @@ Rules:
     "type": "title",
     "title": "Slide title (Lesson Title)",
     "subtitle": "Subject - Grade",
-    "imageSearchKeyword": "one english word"
+    "imageSearchKeyword": "one english keyword"
   },
   {
     "type": "content",
     "title": "Slide title in Khmer",
     "bullets": ["Bullet 1", "Bullet 2", "Max 4 short bullets"],
     "speakerNotes": "Script for the teacher to read while presenting this slide (in Khmer).",
-    "imageSearchKeyword": "1 or 2 english words describing the slide for stock photo search."
+    "imageSearchKeyword": "1 or 2 english words describing the slide for illustration search."
   }
 ]
-Ensure the content perfectly matches the lesson plan below:
+Ensure the content perfectly matches the lesson plan and attached document below:
 Title: ${data.lessonTitle}
 Subject: ${data.subject}
 Grade: ${data.grade}
+${data.sourceDocumentText ? `\\nAttached Source Material / Context:\\n${data.sourceDocumentText.substring(0, 3500)}\\n` : ''}
 Objectives:
 Knowledge: ${data.objectives?.knowledge?.join(', ')}
 Skills: ${data.objectives?.skills?.join(', ')}
@@ -9802,7 +10009,7 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
       slidesData = synthesizeOfflineSlides(data, numSlides);
     }
 
-    setLoadingOverlayStatus('🎬 កំពុងផ្គុំឯកសារ PPTX...', 'កំពុងរចនាស្លាយមេរៀន...');
+    setLoadingOverlayStatus('🎬 កំពុងផ្គុំឯកសារ PPTX & រូបភាព AI...', `កំពុងរចនា ${slidesData.length} ស្លាយ...`);
 
     if (typeof PptxGenJS === 'undefined') {
       throw new Error('បណ្ណាល័យ PPTXGenJS មិនទាន់ដំណើរការ។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត!');
@@ -9827,21 +10034,28 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
       slideNumber: { x: 0.3, y: '92%', color: bodyColor, fontSize: 10 }
     });
 
-    for (const slideDef of slidesData) {
+    for (let idx = 0; idx < slidesData.length; idx++) {
+      const slideDef = slidesData[idx];
       let slide = pptx.addSlide({ masterName: 'MASTER_SLIDE' });
       if (slideDef.speakerNotes) slide.addNotes(slideDef.speakerNotes);
 
-      let picUrl = '';
-      if (includeImages && slideDef.imageSearchKeyword) {
-        picUrl = `https://picsum.photos/seed/${encodeURIComponent(slideDef.imageSearchKeyword)}/800/600`;
+      setLoadingOverlayStatus('🎬 កំពុងផ្គុំស្លាយ...', `ស្លាយទី ${idx + 1}/${slidesData.length}: ${slideDef.title || 'មាតិកា'}`);
+
+      let picObj = null;
+      if (imageMode !== 'no') {
+        picObj = await getSlideImage(slideDef, data, imageMode);
       }
 
       if (slideDef.type === 'title') {
-        if (picUrl) {
-          slide.addImage({ x: 0, y: 0, w: '100%', h: '100%', path: picUrl });
-          slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: '100%', h: '100%', fill: { color: '000000', transparency: 50 } });
-          slide.addText(slideDef.title, { x: 1, y: 2.5, w: '80%', h: 1.5, fontSize: 44, bold: true, color: 'FFFFFF', align: 'center', fontFace: 'Kantumruy Pro' });
-          slide.addText(slideDef.subtitle || '', { x: 1, y: 4, w: '80%', h: 1, fontSize: 24, color: 'E2E8F0', align: 'center', fontFace: 'Kantumruy Pro' });
+        if (picObj) {
+          if (picObj.data) {
+            slide.addImage({ x: 0, y: 0, w: '100%', h: '100%', data: picObj.data });
+          } else if (picObj.path) {
+            slide.addImage({ x: 0, y: 0, w: '100%', h: '100%', path: picObj.path });
+          }
+          slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: '100%', h: '100%', fill: { color: '000000', transparency: 45 } });
+          slide.addText(slideDef.title, { x: 1, y: 2.2, w: '80%', h: 1.6, fontSize: 42, bold: true, color: 'FFFFFF', align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addText(slideDef.subtitle || '', { x: 1, y: 4.1, w: '80%', h: 1, fontSize: 24, color: 'E2E8F0', align: 'center', fontFace: 'Kantumruy Pro' });
         } else {
           slide.addText(slideDef.title, { x: 1, y: 2.5, w: '80%', h: 1.5, fontSize: 44, bold: true, color: titleColor, align: 'center', fontFace: 'Kantumruy Pro' });
           slide.addText(slideDef.subtitle || '', { x: 1, y: 4, w: '80%', h: 1, fontSize: 24, color: bodyColor, align: 'center', fontFace: 'Kantumruy Pro' });
@@ -9849,10 +10063,14 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
       } else {
         slide.addText(slideDef.title || 'ខ្លឹមសារមេរៀន', { x: 0.5, y: 0.5, w: '90%', h: 0.8, fontSize: 32, bold: true, color: titleColor, fontFace: 'Kantumruy Pro' });
         const bullets = Array.isArray(slideDef.bullets) ? slideDef.bullets : [String(slideDef.bullets || '')];
-        if (picUrl) {
+        if (picObj) {
           slide.addText(bullets.map(b => ({ text: b, options: { bullet: true, breakLine: true } })), 
             { x: 0.5, y: 1.5, w: '45%', h: 3.5, fontSize: 20, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 35 });
-          slide.addImage({ x: '52%', y: 1.5, w: '43%', h: 3.5, path: picUrl, sizing: { type: 'cover', w: '43%', h: 3.5 } });
+          if (picObj.data) {
+            slide.addImage({ x: '52%', y: 1.5, w: '43%', h: 3.5, data: picObj.data, sizing: { type: 'cover', w: '43%', h: 3.5 } });
+          } else if (picObj.path) {
+            slide.addImage({ x: '52%', y: 1.5, w: '43%', h: 3.5, path: picObj.path, sizing: { type: 'cover', w: '43%', h: 3.5 } });
+          }
         } else {
           slide.addText(bullets.map(b => ({ text: b, options: { bullet: true, breakLine: true } })), 
             { x: 0.5, y: 1.5, w: '90%', h: 3.5, fontSize: 22, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 40 });

@@ -21,7 +21,7 @@
   <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
-  <link rel="stylesheet" href="style.css?v=20261009_v18">
+  <link rel="stylesheet" href="style.css?v=20261009_v19">
   
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="/manifest.json">
@@ -1488,50 +1488,90 @@
     </div>
   </div>
 
-    <!-- PPTX Generator Modal -->
+      <!-- PPTX Generator Modal -->
   <div id="pptxModal" class="modal-overlay modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.8); backdrop-filter: blur(6px); z-index: 10000; align-items: center; justify-content: center;">
-    <div class="modal modal-card" style="max-width: 480px; width: 95%; background: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);">
+    <div class="modal modal-card" style="max-width: 520px; width: 95%; background: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);">
       <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
-        <div class="modal-title" style="color: #e11d48; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+        <div class="modal-title" style="color: #e11d48; font-weight: 700; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
           <i class="fa-solid fa-file-powerpoint"></i> បង្កើតស្លាយ PowerPoint (AI Generator)
         </div>
         <button class="modal-close" onclick="closePptxModal()" style="font-size: 1.3rem; background: none; border: none; cursor: pointer; color: #64748b;"><i class="fa-solid fa-times"></i></button>
       </div>
-      <div class="modal-body" style="padding: 20px;">
-        <div style="font-size: 9.5pt; color: #475569; margin-bottom: 16px;">
-          ប្រព័ន្ធ AI នឹងអានកិច្ចតែងការនេះ រួចសង្ខេបនិងរៀបចំជាស្លាយមេរៀន PowerPoint (.pptx) ដោយស្វ័យប្រវត្តិ។
+      <div class="modal-body" style="padding: 20px; max-height: 75vh; overflow-y: auto;">
+        <div style="font-size: 9.5pt; color: #475569; margin-bottom: 16px; line-height: 1.5;">
+          ប្រព័ន្ធ AI នឹងអានកិច្ចតែងការ ឬឯកសារយោង រួចសង្ខេបនិងរៀបចំជាស្លាយ PowerPoint (.pptx) ស្វ័យប្រវត្តិតាមស្តង់ដារ MoEYS។
         </div>
         
-        <div class="form-group">
-          <label>ចំនួនស្លាយ (Number of Slides):</label>
+        <!-- Attachment / Reference Source Dropdown & Upload Button -->
+        <div class="form-group" style="margin-bottom: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label style="font-weight: 600; color: #1e293b; font-size: 9.5pt; margin: 0;">
+              <i class="fa-solid fa-paperclip" style="color: #e11d48;"></i> ជ្រើសរើសឯកសារយោង (Source / Attachment):
+            </label>
+            <button type="button" class="btn-tool-action" id="btnUploadPptxSource" onclick="triggerPptxSourceUpload()" style="background: #fff1f2; color: #e11d48; border: 1px solid #fda4af; padding: 3px 8px; font-size: 8.5pt; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+              <i class="fa-solid fa-cloud-arrow-up"></i> បង្ហោះឯកសារថ្មី
+            </button>
+          </div>
+          <input type="file" id="pptxSourceFileInput" accept=".docx,.pdf,.pptx,.txt,.doc" style="display: none;" onchange="handlePptxSourceFileUploaded(event)">
+          <select id="pptxSourceSelect" class="form-control" onchange="handlePptxSourceChanged(this.value)">
+            <option value="current_plan" selected>📄 កិច្ចតែងការបច្ចុប្បន្ន (Current Lesson Plan)</option>
+            <option value="uploaded_lesson_file" id="pptxOptUploadedLesson" style="display: none;">📂 ឯកសារមេរៀនដែលបានផ្ទុកឡើង (Uploaded Lesson File)</option>
+            <option value="history_plan" id="pptxOptHistoryPlan" style="display: none;">📋 កិច្ចតែងការពីប្រវត្តិ (Saved Plan from History)</option>
+            <option value="custom_file" id="pptxOptCustomFile" style="display: none;">📤 ឯកសារដែលទើបបង្ហោះ (Newly Attached File)</option>
+          </select>
+          <div id="pptxUploadedFileBadge" style="display: none; margin-top: 6px; padding: 6px 10px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; font-size: 8.5pt; color: #166534; display: flex; align-items: center; justify-content: space-between;">
+            <span id="pptxUploadedFileName" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><i class="fa-solid fa-circle-check"></i> <span>ឯកសារភ្ជាប់</span></span>
+            <button type="button" onclick="clearPptxCustomSource()" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0 4px;" title="ដកឯកសារចេញ"><i class="fa-solid fa-times"></i></button>
+          </div>
+        </div>
+
+        <!-- Number of Slides Dropdown with Expanded Options -->
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label style="font-weight: 600; color: #1e293b; font-size: 9.5pt; margin-bottom: 6px; display: block;">
+            <i class="fa-solid fa-list-ol" style="color: #6366f1;"></i> ចំនួនស្លាយ (Number of Slides):
+          </label>
           <select id="pptxNumSlides" class="form-control">
-            <option value="5">៥ ស្លាយ (ខ្លី/សង្ខេប)</option>
-            <option value="8" selected>៨ ស្លាយ (មធ្យម/ស្តង់ដារ)</option>
-            <option value="12">១២ ស្លាយ (វែង/លម្អិត)</option>
+            <option value="4">៤ ស្លាយ (សង្ខេបខ្លីបំផុត / Quick Summary)</option>
+            <option value="6">៦ ស្លាយ (ខ្លីល្មម / Short Overview)</option>
+            <option value="8" selected>៨ ស្លាយ (ស្តង់ដារ ៤៥-៥០ នាទី / Standard MoEYS)</option>
+            <option value="10">១០ ស្លាយ (ទូទៅទូលំទូលាយ / Comprehensive Lesson)</option>
+            <option value="12">១២ ស្លាយ (វែង និងលម្អិត / Detailed Multi-Section)</option>
+            <option value="15">១៥ ស្លាយ (កម្រិតខ្ពស់ / Deep Dive Workshop)</option>
+            <option value="20">២០ ស្លាយ (មេរៀនធំទូលាយពេញលេញ / Full Master Lecture)</option>
           </select>
         </div>
         
-        <div class="form-group" style="margin-top: 12px;">
-          <label>បញ្ចូលរូបភាពស្វ័យប្រវត្តិ? (Auto-Pictures):</label>
+        <!-- Auto Pictures Option with AI Image Generation -->
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label style="font-weight: 600; color: #1e293b; font-size: 9.5pt; margin-bottom: 6px; display: block;">
+            <i class="fa-solid fa-wand-magic-sparkles" style="color: #06b6d4;"></i> បញ្ចូលរូបភាពស្វ័យប្រវត្តិ? (Auto-Pictures):
+          </label>
           <select id="pptxIncludeImages" class="form-control">
-            <option value="yes" selected>បាទ/ចាស (ទាញយករូបភាពពីអ៊ីនធឺណិត)</option>
-            <option value="no">ទេ (ស្លាយអក្សរសុទ្ធ)</option>
+            <option value="ai" selected>🎨 បង្កើតរូបភាពដោយ AI (AI Image Generator - Pollinations / Educational AI)</option>
+            <option value="web">🌐 ទាញយករូបភាពពីអ៊ីនធឺណិត (Web Stock Photos)</option>
+            <option value="no">📄 ទេ (ស្លាយអក្សរសុទ្ធ / Text Only)</option>
           </select>
+          <div style="font-size: 8.5pt; color: #64748b; margin-top: 4px;">
+            <i class="fa-solid fa-circle-info"></i> ជម្រើស "បង្កើតរូបភាពដោយ AI" នឹងបង្កើតរូបគំនូរអប់រំ និងដ្យាក្រាមស្របតាមខ្លឹមសារស្លាយនីមួយៗដោយស្វ័យប្រវត្តិ។
+          </div>
         </div>
         
-        <div class="form-group" style="margin-top: 12px;">
-          <label>រចនាបទពណ៌ (Theme Color):</label>
+        <!-- Theme Color Dropdown -->
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label style="font-weight: 600; color: #1e293b; font-size: 9.5pt; margin-bottom: 6px; display: block;">
+            <i class="fa-solid fa-palette" style="color: #ec4899;"></i> រចនាបទពណ៌ (Theme Color):
+          </label>
           <select id="pptxTheme" class="form-control">
-            <option value="modern_blue" selected>Modern Blue (ខៀវទំនើប)</option>
-            <option value="eco_green">Eco Green (បៃតងធម្មជាតិ)</option>
-            <option value="dark_mode">Dark Mode (ស្រមោលងងឹត)</option>
-            <option value="simple_light">Simple Light (ស/ស្អាត)</option>
+            <option value="modern_blue" selected>Modern Blue (ខៀវទំនើប - ស្តង់ដារ MoEYS)</option>
+            <option value="eco_green">Eco Green (បៃតងធម្មជាតិ - ជីវវិទ្យា/បរិស្ថាន)</option>
+            <option value="dark_mode">Dark Mode (ស្រមោលងងឹត - ទំនើប/បច្ចេកវិទ្យា)</option>
+            <option value="simple_light">Simple Light (ស/ស្អាត - ងាយស្រួលបោះពុម្ព)</option>
           </select>
         </div>
       </div>
       <div class="modal-footer" style="justify-content: flex-end; background: #fff1f2; padding: 14px 20px; border-top: 1px solid #ffe4e6; display: flex; gap: 10px;">
         <button class="btn-secondary" onclick="closePptxModal()" style="border-color: #fda4af; color: #e11d48;">បោះបង់</button>
-        <button class="btn-primary" onclick="generatePptxSlides()" style="background: #e11d48; border: none; padding: 8px 16px; font-weight: 600; border-radius: 8px; color: white; cursor: pointer;">
+        <button class="btn-primary" onclick="generatePptxSlides()" style="background: #e11d48; border: none; padding: 9px 18px; font-weight: 600; border-radius: 8px; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
           <i class="fa-solid fa-wand-magic-sparkles"></i> បង្កើតស្លាយឥឡូវនេះ
         </button>
       </div>
@@ -1541,6 +1581,6 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261009_v18"></script>
+  <script src="app.js?v=20261009_v19"></script>
 </body>
 </html>
