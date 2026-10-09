@@ -8711,7 +8711,7 @@ function buildInteractiveQuizHtmlPage(testType = 'pre') {
 
       <div class="submit-bar">
         <button type="submit" id="btnSubmitQuiz" class="btn-submit">
-          <i class="fa-solid fa-paper-plane"></i> ផ្ញើចម្លើយ និងពិនិត្យពិន្ទុ (Submit Quiz)
+          <i class="fa-solid fa-check-to-slot"></i> ផ្ញើចម្លើយ និងពិនិត្យពិន្ទុ (Submit Quiz)
         </button>
       </div>
     </form>
