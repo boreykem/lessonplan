@@ -576,6 +576,14 @@ const I18N_DICTIONARY = {
     ipSubtext: "បច្ចេកវិទ្យា និងទម្រង់គរុកោសល្យត្រូវបានការពារដោយច្បាប់ស្ដីពីកម្មសិទ្ធិបញ្ញានៃព្រះរាជាណាចក្រកម្ពុជា",
 
     // Alerts
+    // Learning Gain Modal
+    modalLearningGainTitle: "ម៉ាស៊ីនគណនា Learning Gain (Hake's Normalized Gain)",
+    gainPreTestLabel: "ពិន្ទុមធ្យម Pre-Test (% ឬពិន្ទុ)",
+    gainPostTestLabel: "ពិន្ទុមធ្យម Post-Test (% ឬពិន្ទុ)",
+    gainResultLabel: "អត្រាកំណើននៃការរៀនសូត្រ (Normalized Gain - g)",
+    btnApplyGain: "បញ្ចូលក្នុងកិច្ចតែងការ",
+    btnClose: "បិទ",
+
     msgMissingInfo: "សូមបញ្ចូលចំណងជើងមេរៀន ឬខ្លឹមសារមេរៀនជាមុនសិន!",
     msgLangSwitched: "បានប្តូរទៅជាភាសាខ្មែរ 🇰🇭"
   },
@@ -806,6 +814,11 @@ function setLanguage(lang, showNotification = false) {
   if (degreeSelect) {
     const currentGrade = document.getElementById('inputGrade') ? document.getElementById('inputGrade').value : null;
     updateGradeOptions(degreeSelect.value, currentGrade);
+  }
+
+  // Recalculate learning gain for current language
+  if (typeof calculateLearningGain === 'function') {
+    calculateLearningGain();
   }
 
   if (showNotification && typeof showToast === 'function') {
@@ -2164,6 +2177,9 @@ async function handleGenerateLessonPlan() {
       if (!planData.school) planData.school = genParams.school;
     }
 
+    if (state.savedLearningGain && !planData.selfEvaluation) {
+      planData.selfEvaluation = state.savedLearningGain;
+    }
     state.generatedPlanData = planData;
     renderLessonPlanToA4(planData);
 
@@ -4557,6 +4573,28 @@ function renderPostTestHtmlBlock(data) {
   `;
 }
 
+function renderLearningGainReflectionBlock(data) {
+  if (!data || !data.selfEvaluation) return '';
+  const isEn = (state.language === 'en');
+  const sectionTitle = isEn
+    ? "Learning Gain & Pedagogical Reflection (Hake's Normalized Gain)"
+    : "ការវាស់ស្ទង់កំណើន និងស្វ័យវាយតម្លៃការបង្រៀន (Learning Gain & Teaching Reflection)";
+  return `
+    <!-- Learning Gain & Teaching Reflection Block -->
+    <div class="doc-section-title flex items-center gap-2" style="margin-top: 18px; color: #1e3a8a;">
+      <i class="fa-solid fa-chart-line" style="color: #4f46e5;"></i>
+      <span>${escapeHtml(sectionTitle)}</span>
+    </div>
+    <div style="margin: 8px 0 16px 0; padding: 12px 16px; background: #f8fafc; border: 1.5px solid #cbd5e1; border-left: 5px solid #4f46e5; border-radius: 8px; font-size: 10pt; line-height: 1.6; color: #1e293b; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+      <div style="display: flex; align-items: center; gap: 8px; font-weight: 700; color: #4338ca; margin-bottom: 6px;">
+        <i class="fa-solid fa-square-check"></i>
+        <span>${isEn ? "Normalized Learning Gain Evaluation Result:" : "លទ្ធផលវាយតម្លៃតាមរូបមន្ត Richard Hake:"}</span>
+      </div>
+      <div>${formatLineBreaks(data.selfEvaluation)}</div>
+    </div>
+  `;
+}
+
 function renderLessonPlanToA4(data) {
   const doc = document.getElementById('printableDoc');
   if (!doc) return;
@@ -4825,6 +4863,9 @@ function renderLessonPlanToA4(data) {
       <!-- Post-Test MCQ -->
       ${renderPostTestHtmlBlock(data)}
 
+      <!-- Learning Gain & Reflection Block -->
+      ${renderLearningGainReflectionBlock(data)}
+
       ${signaturesHtml}
     `;
     return;
@@ -4901,6 +4942,9 @@ function renderLessonPlanToA4(data) {
 
     <!-- Post-Test MCQ -->
     ${renderPostTestHtmlBlock(data)}
+
+    <!-- Learning Gain & Reflection Block -->
+    ${renderLearningGainReflectionBlock(data)}
 
     ${signaturesHtml}
   `;
@@ -7478,17 +7522,43 @@ function calculateLearningGain() {
 
   g = Math.max(-1, Math.min(1, g));
   const gPercent = (g * 100).toFixed(1);
-  scoreText.textContent = `${g.toFixed(2)} (${gPercent}%)`;
+  if (scoreText) scoreText.textContent = `${g.toFixed(2)} (${gPercent}%)`;
+
+  const isEn = (state.language === 'en');
 
   if (g >= 0.70) {
-    badgeContainer.innerHTML = '<span class="gain-badge-high"><i class="fa-solid fa-circle-check"></i> High Gain (ប្រសិទ្ធភាពបង្រៀនខ្ពស់ខ្លាំង: g ≥ 0.70)</span>';
-    adviceText.textContent = '🌟 សកម្មភាពអនុវត្តជាក្រុម និងបេសកកម្ម ៧០% ក្នុងថ្នាក់រៀន មានប្រសិទ្ធភាពខ្ពស់ខ្លាំងក្នុងការជួយឱ្យសិស្សយល់ដឹងស៊ីជម្រៅ។';
+    if (badgeContainer) {
+      badgeContainer.innerHTML = isEn
+        ? '<span class="gain-badge-high"><i class="fa-solid fa-circle-check"></i> High Gain (Exceptional: g ≥ 0.70)</span>'
+        : '<span class="gain-badge-high"><i class="fa-solid fa-circle-check"></i> High Gain (ប្រសិទ្ធភាពបង្រៀនខ្ពស់ខ្លាំង: g ≥ 0.70)</span>';
+    }
+    if (adviceText) {
+      adviceText.textContent = isEn
+        ? '🌟 Group collaborative tasks and 70% active learning missions showed exceptional effectiveness in deep student comprehension.'
+        : '🌟 សកម្មភាពអនុវត្តជាក្រុម និងបេសកកម្ម ៧០% ក្នុងថ្នាក់រៀន មានប្រសិទ្ធភាពខ្ពស់ខ្លាំងក្នុងការជួយឱ្យសិស្សយល់ដឹងស៊ីជម្រៅ។';
+    }
   } else if (g >= 0.30) {
-    badgeContainer.innerHTML = '<span class="gain-badge-med"><i class="fa-solid fa-triangle-exclamation"></i> Medium Gain (ប្រសិទ្ធភាពបង្រៀនកម្រិតមធ្យម: 0.30 ≤ g < 0.70)</span>';
-    adviceText.textContent = '👍 សិស្សមានការរីកចម្រើនល្អជាមធ្យម។ គ្រូអាចបង្កើនលំហាត់អនុវត្តកម្រិតខ្ពស់ និងការពិភាក្សាដេញដោលបន្ថែម។';
+    if (badgeContainer) {
+      badgeContainer.innerHTML = isEn
+        ? '<span class="gain-badge-med"><i class="fa-solid fa-triangle-exclamation"></i> Medium Gain (Moderate: 0.30 ≤ g < 0.70)</span>'
+        : '<span class="gain-badge-med"><i class="fa-solid fa-triangle-exclamation"></i> Medium Gain (ប្រសិទ្ធភាពបង្រៀនកម្រិតមធ្យម: 0.30 ≤ g < 0.70)</span>';
+    }
+    if (adviceText) {
+      adviceText.textContent = isEn
+        ? '👍 Students demonstrated solid moderate progress. Teacher can incorporate more higher-order practice and guided inquiry.'
+        : '👍 សិស្សមានការរីកចម្រើនល្អជាមធ្យម។ គ្រូអាចបង្កើនលំហាត់អនុវត្តកម្រិតខ្ពស់ និងការពិភាក្សាដេញដោលបន្ថែម។';
+    }
   } else {
-    badgeContainer.innerHTML = '<span class="gain-badge-low"><i class="fa-solid fa-circle-xmark"></i> Low Gain (ប្រសិទ្ធភាពទាប: g < 0.30)</span>';
-    adviceText.textContent = '⚠️ អត្រាកំណើននៅទាប។ គ្រូគួរពិនិត្យឡើងវិញនូវគុណភាពវីដេអូស្វ័យសិក្សាពីផ្ទះ (Pre-class) និងបង្កើនការណែនាំ (Scaffolding) ក្នុងម៉ោងរៀន។';
+    if (badgeContainer) {
+      badgeContainer.innerHTML = isEn
+        ? '<span class="gain-badge-low"><i class="fa-solid fa-circle-xmark"></i> Low Gain (Low: g < 0.30)</span>'
+        : '<span class="gain-badge-low"><i class="fa-solid fa-circle-xmark"></i> Low Gain (ប្រសិទ្ធភាពទាប: g < 0.30)</span>';
+    }
+    if (adviceText) {
+      adviceText.textContent = isEn
+        ? '⚠️ Gain is low. Teacher should review pre-class materials and provide more instructional scaffolding during in-class practice.'
+        : '⚠️ អត្រាកំណើននៅទាប។ គ្រូគួរពិនិត្យឡើងវិញនូវគុណភាពស្វ័យសិក្សាពីផ្ទះ និងបង្កើនការណែនាំ (Scaffolding) ក្នុងម៉ោងរៀន។';
+    }
   }
 }
 
@@ -7497,18 +7567,46 @@ function applyLearningGainToReflection() {
   const postInput = document.getElementById('inputPostTestScore');
   const pre = parseFloat(preInput?.value) || 0;
   const post = parseFloat(postInput?.value) || 0;
-  const g = (100 - pre > 0) ? ((post - pre) / (100 - pre)).toFixed(2) : '1.00';
-  const gLabel = g >= 0.7 ? 'High Gain' : g >= 0.3 ? 'Medium Gain' : 'Low Gain';
+  let gNum = (100 - pre > 0) ? ((post - pre) / (100 - pre)) : (post >= 100 ? 1 : 0);
+  gNum = Math.max(-1, Math.min(1, gNum));
+  const gStr = gNum.toFixed(2);
+  const gPercent = (gNum * 100).toFixed(1);
+  const isEn = (state.language === 'en');
 
-  const reflectionText = `ដំណើរការបង្រៀនតាមបែប Flipped Learning សម្រេចបានលទ្ធផលល្អ៖ ពិន្ទុមធ្យម Pre-Test: ${pre}%, Post-Test: ${post}%, អត្រាកំណើននៃការរៀនសូត្រ Hake's Gain g = ${g} (${gLabel})។ សិស្សមានការចូលរួមសកម្ម ៧០% ក្នុងម៉ោងរៀន។`;
+  let gLabel = '';
+  let advice = '';
+  if (gNum >= 0.70) {
+    gLabel = isEn ? 'High Gain (g ≥ 0.70)' : 'High Gain (ប្រសិទ្ធភាពខ្ពស់ខ្លាំង: g ≥ 0.70)';
+    advice = isEn 
+      ? 'Group collaborative tasks and 70% active learning showed outstanding effectiveness in deep student comprehension.'
+      : 'សកម្មភាពអនុវត្តជាក្រុម និងបេសកកម្ម ៧០% ក្នុងថ្នាក់រៀន មានប្រសិទ្ធភាពខ្ពស់ខ្លាំងក្នុងការជួយឱ្យសិស្សយល់ដឹងស៊ីជម្រៅ។';
+  } else if (gNum >= 0.30) {
+    gLabel = isEn ? 'Medium Gain (0.30 ≤ g < 0.70)' : 'Medium Gain (ប្រសិទ្ធភាពមធ្យម: 0.30 ≤ g < 0.70)';
+    advice = isEn
+      ? 'Students demonstrated solid moderate improvement. Teacher can incorporate more higher-order practice and guided inquiry.'
+      : 'សិស្សមានការរីកចម្រើនល្អជាមធ្យម។ គ្រូអាចបង្កើនលំហាត់អនុវត្តកម្រិតខ្ពស់ និងការពិភាក្សាដេញដោលបន្ថែម។';
+  } else {
+    gLabel = isEn ? 'Low Gain (g < 0.30)' : 'Low Gain (ប្រសិទ្ធភាពទាប: g < 0.30)';
+    advice = isEn
+      ? 'Gain is currently low. Teacher should review pre-class materials and provide more scaffolding during in-class practice.'
+      : 'អត្រាកំណើននៅទាប។ គ្រូគួរពិនិត្យឡើងវិញនូវគុណភាពស្វ័យសិក្សាពីផ្ទះ និងបង្កើនការណែនាំ (Scaffolding) ក្នុងម៉ោងរៀន។';
+  }
+
+  const reflectionText = isEn
+    ? `The instructional process achieved strong pedagogical results:\n• Pre-Test Average: ${pre}%\n• Post-Test Average: ${post}%\n• Hake's Normalized Learning Gain: g = ${gStr} (${gPercent}%) — [${gLabel}]\n• Pedagogical Reflection: ${advice}`
+    : `ដំណើរការបង្រៀនសម្រេចបានលទ្ធផលជាក់ស្តែង៖\n• ពិន្ទុមធ្យមបុរេតេស្ត (Pre-Test): ${pre}%\n• ពិន្ទុមធ្យមបច្ឆិមតេស្ត (Post-Test): ${post}%\n• អត្រាកំណើននៃការរៀនសូត្រ (Hake's Gain): g = ${gStr} (${gPercent}%) — [${gLabel}]\n• ការឆ្លុះបញ្ចាំងគរុកោសល្យ៖ ${advice}`;
+
+  state.savedLearningGain = reflectionText;
 
   if (state.generatedPlanData) {
     state.generatedPlanData.selfEvaluation = reflectionText;
     renderLessonPlanToA4(state.generatedPlanData);
+    closeLearningGainModal();
+    showToast(isEn ? '✅ Learning Gain evaluation added into your lesson plan!' : '✅ បានបញ្ចូលទិន្នន័យ Learning Gain ទៅក្នុងកិច្ចតែងការដោយជោគជ័យ!', 'success');
+  } else {
+    closeLearningGainModal();
+    showToast(isEn ? '✅ Learning Gain saved! It will be automatically attached when you generate a lesson plan.' : '✅ បានរក្សាទុកទិន្នន័យ Learning Gain! វានឹងត្រូវភ្ជាប់ក្នុងកិច្ចតែងការដោយស្វ័យប្រវត្តិពេលបង្កើត។', 'info');
   }
-
-  closeLearningGainModal();
-  showToast('✅ បានបញ្ចូលទិន្នន័យ Learning Gain ទៅក្នុងកិច្ចតែងការដោយជោគជ័យ!', 'success');
 }
 
 // ==========================================================================
