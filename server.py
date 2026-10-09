@@ -1268,13 +1268,7 @@ def add_no_cache_headers(response):
     return response
 
 
-@app.route("/")
-def serve_index():
-    resp = send_from_directory(".", "index.html")
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
+
 
 
 
@@ -2394,19 +2388,57 @@ def export_docx():
     )
 
 
-@app.route("/<path:filename>", methods=["GET"])
-def serve_static_files(filename):
-    if filename.startswith("api/") or filename == "api":
-        return jsonify({"error": "Endpoint not found", "filename": filename, "path": request.path, "query": request.query_string.decode("utf-8", errors="ignore")}), 404
-    resp = send_from_directory(".", filename)
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
+# Vercel Serverless Dispatcher
+@app.route("/api/index", methods=["GET", "POST", "OPTIONS"])
+@app.route("/api", methods=["GET", "POST", "OPTIONS"])
+def vercel_entry_dispatch():
+    if request.method == "OPTIONS":
+        return "", 204
 
+    v_path = request.args.get("__vercel_path") or request.args.get("match") or "health"
+    v_clean = v_path.strip("/")
+    endpoint_path = f"/api/{v_clean}"
+
+    # Try matching via Flask's URL adapter
+    adapter = app.url_map.bind_to_environ(request.environ)
+    try:
+        endpoint, values = adapter.match(endpoint_path, method=request.method)
+        return app.view_functions[endpoint](**values)
+    except Exception:
+        pass
+
+    # Direct fallback routing
+    if v_clean in ["health", ""]:
+        return health_check()
+    elif v_clean == "license/info":
+        return get_license_info()
+    elif v_clean == "license/activate":
+        return activate_license()
+    elif v_clean == "export/docx":
+        return export_docx()
+    elif v_clean in ["upload/lesson", "upload/template", "upload/parse"]:
+        return upload_and_parse_file()
+    elif v_clean == "generate":
+        return generate_lesson_plan()
+    elif v_clean == "system/version":
+        return get_system_version()
+    elif v_clean == "system/check_update":
+        return check_system_update()
+    elif v_clean == "tts/khmer":
+        return tts_khmer_route()
+
+    return jsonify({"error": f"Endpoint /{v_clean} not found"}), 404
 
 
 if __name__ == "__main__":
+    @app.route("/<path:filename>", methods=["GET"])
+    def serve_static_files(filename):
+        resp = send_from_directory(".", filename)
+        resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        resp.headers["Pragma"] = "no-cache"
+        resp.headers["Expires"] = "0"
+        return resp
+
     port = int(os.environ.get("PORT", 8765))
     print(f"🚀 AI Lesson Plan Studio running on http://127.0.0.1:{port}")
     
