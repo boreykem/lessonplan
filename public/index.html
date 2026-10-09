@@ -335,10 +335,10 @@
                 <textarea id="lessonContentText" class="form-control" rows="6" placeholder="បញ្ចូល ឬបិទភ្ជាប់ខ្លឹមសារមេរៀន និយមន័យ រូបមន្ត លំហាត់ ឧទាហរណ៍ ឬអត្ថបទដកស្រង់ពីសៀវភៅពុម្ពនៅទីនេះ..."></textarea>
               </div>
 
-              <!-- Remember / Auto-Save Lesson Bar -->
-              <div class="remember-profile-bar mt-2">
+              <!-- Remember / Auto-Save Lesson Bar (Hidden as requested) -->
+              <div class="remember-profile-bar mt-2" style="display: none;">
                 <label class="remember-checkbox-label">
-                  <input type="checkbox" id="chkAutoRememberLesson" checked>
+                  <input type="checkbox" id="chkAutoRememberLesson">
                   <span>ចងចាំ និងរក្សាទុកខ្លឹមសារមេរៀននេះដោយស្វ័យប្រវត្តិ (Auto-remember Lesson)</span>
                 </label>
                 <span id="savedLessonBadge" class="saved-profile-pill" style="display: none;">
@@ -346,8 +346,8 @@
                 </span>
               </div>
 
-              <!-- Save Lesson Action Bar (Always Accessible) -->
-              <div id="saveLessonActionBar" class="save-template-bar mt-3" style="display: flex; gap: 8px; align-items: center;">
+              <!-- Save Lesson Action Bar (Hidden as requested) -->
+              <div id="saveLessonActionBar" class="save-template-bar mt-3" style="display: none;">
                 <div class="input-icon-wrap" style="flex: 1;">
                   <i class="fa-solid fa-bookmark"></i>
                   <input type="text" id="inputSaveLessonName" class="form-control form-control-sm" placeholder="ដាក់ឈ្មោះសម្គាល់មេរៀន (ឧ. រូបវិទ្យា ថ្នាក់ទី៨ - ច្បាប់ញូតុន)...">
