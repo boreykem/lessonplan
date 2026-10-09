@@ -855,9 +855,6 @@ function setLanguage(lang, showNotification = false) {
 
   // Translate tooltips and titles
   const isEn = (lang === 'en');
-  const btnZoomOut = document.getElementById('btnZoomOut');
-  const btnZoomIn = document.getElementById('btnZoomIn');
-  const btnZoomFit = document.getElementById('btnZoomFit');
   const btnWord = document.getElementById('btnExportWord');
   const btnPdf = document.getElementById('btnPrintPdf');
   const btnCopy = document.getElementById('btnCopyText');
@@ -867,9 +864,6 @@ function setLanguage(lang, showNotification = false) {
   const btnReset = document.getElementById('btnReset');
   const btnTheme = document.getElementById('btnThemeToggle');
 
-  if (btnZoomOut) btnZoomOut.title = isEn ? "Zoom Out" : "បង្រួម";
-  if (btnZoomIn) btnZoomIn.title = isEn ? "Zoom In" : "ពង្រីក";
-  if (btnZoomFit) btnZoomFit.title = isEn ? "Fit to Screen" : "សមនឹងអេក្រង់";
   if (btnWord) btnWord.title = isEn ? "Download Microsoft Word (.docx)" : "ទាញយកជាឯកសារ Microsoft Word (.docx)";
   if (btnPdf) btnPdf.title = isEn ? "Print or Save as PDF" : "បោះពុម្ព ឬរក្សាទុកជា PDF";
   if (btnCopy) btnCopy.title = isEn ? "Copy All Text" : "ចម្លងអត្ថបទទាំងអស់";
@@ -1774,10 +1768,6 @@ function initEventListeners() {
     apiKeyModal.style.display = 'none';
   });
 
-  // Document Zoom Controls
-  document.getElementById('btnZoomIn').addEventListener('click', () => changeZoom(0.1));
-  document.getElementById('btnZoomOut').addEventListener('click', () => changeZoom(-0.1));
-  document.getElementById('btnZoomFit').addEventListener('click', () => resetZoom());
 
   // Export Actions
   document.getElementById('btnExportWord').addEventListener('click', handleExportWord);
