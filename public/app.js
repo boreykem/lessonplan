@@ -5037,7 +5037,9 @@ async function generatePreTestOnDemand(numQuestions = 5) {
   }
 
   const isEn = (state.language === 'en');
-  const wrapper = document.getElementById('preTestModuleWrapper');\n  const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');\n  titleWrapper.forEach(el => el.style.display = 'flex');
+  const wrapper = document.getElementById('preTestModuleWrapper');
+  const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');
+  titleWrapper.forEach(el => el.style.display = 'flex');
   if (wrapper) {
     wrapper.innerHTML = `
       <div style="background: #f8fafc; border: 1.5px solid #c7d2fe; border-radius: 10px; padding: 22px; text-align: center;">
@@ -5085,7 +5087,9 @@ async function generatePostTestOnDemand(numQuestions = 5) {
   }
 
   const isEn = (state.language === 'en');
-  const wrapper = document.getElementById('postTestModuleWrapper');\n  const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');\n  titleWrapper.forEach(el => el.style.display = 'flex');
+  const wrapper = document.getElementById('postTestModuleWrapper');
+  const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');
+  titleWrapper.forEach(el => el.style.display = 'flex');
   if (wrapper) {
     wrapper.innerHTML = `
       <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; padding: 22px; text-align: center;">
@@ -5129,7 +5133,9 @@ function removePreTestModule() {
   const plan = state.generatedPlanData || state.currentPlan;
   if (plan) {
     plan.preTestQCM = null;
-    const wrapper = document.getElementById('preTestModuleWrapper');\n  const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');\n  titleWrapper.forEach(el => el.style.display = 'flex');
+    const wrapper = document.getElementById('preTestModuleWrapper');
+  const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');
+  titleWrapper.forEach(el => el.style.display = 'flex');
     if (wrapper) wrapper.innerHTML = renderPreTestModule(plan, state.language === 'en');
   }
 }
@@ -5139,7 +5145,9 @@ function removePostTestModule() {
   const plan = state.generatedPlanData || state.currentPlan;
   if (plan) {
     plan.postTestMCQ = null;
-    const wrapper = document.getElementById('postTestModuleWrapper');\n  const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');\n  titleWrapper.forEach(el => el.style.display = 'flex');
+    const wrapper = document.getElementById('postTestModuleWrapper');
+  const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');
+  titleWrapper.forEach(el => el.style.display = 'flex');
     if (wrapper) wrapper.innerHTML = renderPostTestModule(plan, state.language === 'en');
   }
 }
@@ -5317,7 +5325,7 @@ function renderLessonPlanToA4(data) {
       </table>
 
       <!-- Section 5: Assessment & Diagnostic Testing (On-Demand Pre-Test & Post-Test) -->
-      <div id="assessmentSectionTitle" class="doc-section-title flex justify-between items-center" style="margin-top: 22px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? \'\' : \'display: none;\' }">
+      <div id="assessmentSectionTitle" class="doc-section-title flex justify-between items-center" style="margin-top: 22px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;' }">
         <span>៥. តេស្តវាស់ស្ទង់សមត្ថភាព & កម្រងសំណួរ (Diagnostic & Mastery Assessments)</span>
       </div>
       <div class="test-modules-container" style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px; margin-bottom: 18px;">
@@ -5430,7 +5438,7 @@ function renderLessonPlanToA4(data) {
       </table>
 
       <!-- Section IV: Assessment & Diagnostic Testing (On-Demand Pre-Test & Post-Test) -->
-      <div id="assessmentSectionTitle" class="doc-section-title flex justify-between items-center" style="margin-top: 22px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? \'\' : \'display: none;\' }">
+      <div id="assessmentSectionTitle" class="doc-section-title flex justify-between items-center" style="margin-top: 22px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;' }">
         <span>${isEn ? 'IV. Diagnostic & Mastery Assessments' : 'IV. តេស្តវាស់ស្ទង់សមត្ថភាព & កម្រងសំណួរ (Diagnostic & Mastery Assessments)'}</span>
       </div>
       <div class="test-modules-container" style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px; margin-bottom: 18px;">
@@ -5513,7 +5521,7 @@ function renderLessonPlanToA4(data) {
     </table>
 
     <!-- Section V: Assessment & Diagnostic Testing (On-Demand Pre-Test & Post-Test) -->
-    <div id="assessmentSectionTitle" class="doc-section-title flex justify-between items-center" style="margin-top: 22px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? \'\' : \'display: none;\' }">
+    <div id="assessmentSectionTitle" class="doc-section-title flex justify-between items-center" style="margin-top: 22px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;' }">
         <span>${isEn ? 'V. Diagnostic & Mastery Assessments' : 'V. តេស្តវាស់ស្ទង់សមត្ថភាព & កម្រងសំណួរ (Diagnostic & Mastery Assessments)'}</span>
       </div>
     <div class="test-modules-container" style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px; margin-bottom: 18px;">
