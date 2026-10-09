@@ -2739,17 +2739,17 @@ Return ONLY valid JSON matching this schema:
       "stepNumber": 4,
       "stepTitle": "ជំហានទី៤៖ ពង្រឹងចំណេះដឹង",
       "duration": "${stepTimeHints.step4}",
-      "teacherActivity": "[ពិពណ៌នាសកម្មភាពគ្រូដោយប្រើវិធីសាស្ត្រមួយក្នុងចំណោម៖ Jigsaw, Concept Mapping, Role-Play, ឬ Metacognition]...",
+      "teacherActivity": "[ពិពណ៌នាសកម្មភាពគ្រូដោយប្រើវិធីសាស្ត្រមួយក្នុងចំណោម៖ Jigsaw, Concept Mapping, Role-Play, ឬ Metacognition។ ធានាថាគ្រូនិយាយត្រឹម ៣០%]...",
       "contentSummary": "[សង្ខេបខ្លឹមសារសកម្មភាព និងទ្រឹស្តីគន្លឹះ]...",
-      "studentActivity": "[សកម្មភាពសិស្សឆ្លើយតបទៅនឹងវិធីសាស្ត្រដែលបានជ្រើសរើស]..."
+      "studentActivity": "[សកម្មភាពសិស្សឆ្លើយតបទៅនឹងវិធីសាស្ត្រដែលបានជ្រើសរើស]... [ជំនាញសហការ និងការគិតស៊ីជម្រៅ 4Cs]"
     },
     {
       "stepNumber": 5,
       "stepTitle": "ជំហានទី៥៖ កិច្ចការផ្ទះ និងបណ្ដាំផ្ញើ",
       "duration": "${stepTimeHints.step5}",
-      "teacherActivity": "ណែនាំការធ្វើតេស្តបញ្ចប់ (Post-Test ៥ សំណួរ) និងដាក់កិច្ចការស្រាវជ្រាវបន្ត",
-      "contentSummary": "ការវាយតម្លៃ Post-Test និងកិច្ចការស្រាវជ្រាវសម្រាប់ម៉ោងក្រោយ",
-      "studentActivity": "ធ្វើ Post-Test ភ្លាមៗ និងកត់ត្រាកិច្ចការផ្ទះ"
+      "teacherActivity": "គ្រូដាក់សកម្មភាព Exit Ticket 3-2-1 (៣ចំណុចដែលបានរៀន, ២ចំណុចចាប់អារម្មណ៍, ១ចំណុចឆ្ងល់) ណែនាំការធ្វើតេស្តបញ្ចប់ (Post-Test ៥ សំណួរ) និងដាក់កិច្ចការស្រាវជ្រាវបន្ត",
+      "contentSummary": "ការវាយតម្លៃ Formative តាមរយៈ Exit Ticket 3-2-1 និងកិច្ចការស្រាវជ្រាវសម្រាប់ម៉ោងក្រោយ",
+      "studentActivity": "សិស្សសរសេរ Exit Ticket 3-2-1 ធ្វើ Post-Test ភ្លាមៗ និងកត់ត្រាកិច្ចការផ្ទះ"
     }
   ]
 };
