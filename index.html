@@ -20,7 +20,7 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
-  <link rel="stylesheet" href="style.css?v=20260905_fixed">
+  <link rel="stylesheet" href="style.css?v=20261009_v5">
   
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="/manifest.json">
@@ -35,11 +35,28 @@
     @media all and (display-mode: standalone) {
       #btnInstallApp { display: none !important; }
     }
+    /* Strictly and permanently hide sample picker and mode switcher cards */
+    .sample-picker-wrapper,
+    #samplePicker,
+    .template-choice-group .radio-cards,
+    .lesson-choice-group .radio-cards {
+      display: none !important;
+    }
   </style>
   <script>
     try {
       if ((window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true || localStorage.getItem('pwa_app_installed') === 'true') {
         document.documentElement.classList.add('pwa-installed');
+      }
+      // Force delete obsolete caches
+      if ('caches' in window) {
+        caches.keys().then(function(keys) {
+          keys.forEach(function(key) {
+            if (key !== 'lessonplan-cache-v5') {
+              caches.delete(key);
+            }
+          });
+        });
       }
     } catch(e) {}
   </script>
@@ -1366,6 +1383,6 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20260906_v29_e2e_verified"></script>
+  <script src="app.js?v=20261009_v5"></script>
 </body>
 </html>
