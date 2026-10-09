@@ -515,6 +515,19 @@ const I18N_DICTIONARY = {
     langLabel: "🇰🇭 ខ្មែរ",
     langTooltip: "ប្តូរទៅជាភាសាអង់គ្លេស / Switch to English",
 
+    stepBadge1: "១",
+    stepBadge2: "២",
+    stepBadge3: "៣",
+
+    templateDropPrimary: 'ទម្លាក់ឯកសារ Template នៅទីនេះ ឬ <span class="browse-link">ចុចដើម្បីរើសឯកសារ</span>',
+    templateDropHint: "គាំទ្រឯកសារ Word (.docx), PDF (.pdf), PowerPoint (.pptx), ឬ Text (.txt)",
+
+    emptyStateDesc: "សូមជ្រើសរើសទម្រង់ Upload ឯកសារមេរៀន ឬជ្រើសរើស <strong>គំរូរហ័ស</strong> នៅខាងលើ ហើយចុចប៊ូតុង <strong>បង្កើតកិច្ចតែងការស្វ័យប្រវត្តិ</strong>។",
+    btnEmptyQuickDemo: "សាកល្បងជាមួយមេរៀនគំរូភ្លាមៗ",
+
+    loadingTitle: "AI កំពុងវិភាគឯកសារ និងរៀបចំកិច្ចតែងការ...",
+    loadingDesc: "កំពុងបង្កើតវត្ថុបំណង ៣ ផ្នែក សម្ភារឧបទេស និងដំណើរការបង្រៀន ៥ ជំហាន",
+
     // Step 1
     step1Title: "ទម្រង់កិច្ចតែងការ (Template)",
     step1Desc: "ជ្រើសរើសប្រភេទកិច្ចតែងការស្តង់ដារ MoEYS",
