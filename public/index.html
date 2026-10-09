@@ -30,6 +30,19 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="LessonPlan KH">
+  <style>
+    .pwa-installed #btnInstallApp { display: none !important; }
+    @media all and (display-mode: standalone) {
+      #btnInstallApp { display: none !important; }
+    }
+  </style>
+  <script>
+    try {
+      if ((window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true || localStorage.getItem('pwa_app_installed') === 'true') {
+        document.documentElement.classList.add('pwa-installed');
+      }
+    } catch(e) {}
+  </script>
 </head>
 <body class="theme-light">
 
@@ -891,7 +904,10 @@
         </div>
       </div>
 
-      <div class="modal-footer">
+      <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <button type="button" class="btn btn-secondary" onclick="markPwaAsInstalled()" style="font-size: 0.84rem; padding: 6px 14px; border-radius: 8px;">
+          <i class="fa-solid fa-circle-check" style="color: #10b981;"></i> ខ្ញុំបានដំឡើងរួចរាល់ហើយ (លាក់ប៊ូតុងនេះ)
+        </button>
         <button type="button" class="btn-ghost" onclick="closeInstallModal()">យល់ព្រម / បិទ</button>
       </div>
     </div>

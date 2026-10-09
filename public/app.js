@@ -8089,10 +8089,70 @@ window.closeUpdateModal = closeUpdateModal;
 // ==========================================================================
 let deferredPrompt = null;
 
+function isPwaInstalledOrStandalone() {
+  const isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+                       window.navigator.standalone === true ||
+                       (document.referrer && document.referrer.includes('android-app://'));
+  let isStoredInstalled = false;
+  try {
+    isStoredInstalled = localStorage.getItem('pwa_app_installed') === 'true';
+  } catch (e) {}
+  return isStandalone || isStoredInstalled;
+}
+
+function updateInstallButtonVisibility() {
+  const btnInstall = document.getElementById('btnInstallApp');
+  if (!btnInstall) return;
+  if (isPwaInstalledOrStandalone()) {
+    btnInstall.style.display = 'none';
+    if (document.documentElement) document.documentElement.classList.add('pwa-installed');
+  } else {
+    btnInstall.style.display = 'inline-flex';
+    if (document.documentElement) document.documentElement.classList.remove('pwa-installed');
+  }
+}
+
+function markPwaAsInstalled() {
+  try {
+    localStorage.setItem('pwa_app_installed', 'true');
+  } catch (e) {}
+  if (document.documentElement) document.documentElement.classList.add('pwa-installed');
+  const btnInstall = document.getElementById('btnInstallApp');
+  if (btnInstall) {
+    btnInstall.style.display = 'none';
+  }
+  closeInstallModal();
+}
+window.markPwaAsInstalled = markPwaAsInstalled;
+
+// Check state immediately
+updateInstallButtonVisibility();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', updateInstallButtonVisibility);
+}
+
+// Listen to display-mode changes (e.g. launched as installed window)
+if (window.matchMedia) {
+  try {
+    window.matchMedia('(display-mode: standalone)').addEventListener('change', (e) => {
+      if (e.matches) {
+        markPwaAsInstalled();
+      } else {
+        updateInstallButtonVisibility();
+      }
+    });
+  } catch(e) {}
+}
+
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
   console.log('[PWA] beforeinstallprompt captured!');
+  // If the browser triggers beforeinstallprompt, the app is not currently installed
+  try {
+    localStorage.removeItem('pwa_app_installed');
+  } catch (err) {}
+  updateInstallButtonVisibility();
   const btnInstall = document.getElementById('btnInstallApp');
   if (btnInstall) {
     btnInstall.style.boxShadow = '0 0 15px rgba(99, 102, 241, 0.8)';
@@ -8102,14 +8162,9 @@ window.addEventListener('beforeinstallprompt', (e) => {
 window.addEventListener('appinstalled', () => {
   console.log('[PWA] App successfully installed!');
   deferredPrompt = null;
+  markPwaAsInstalled();
   if (typeof showToast === 'function') {
     showToast('🎉 បានដំឡើងកម្មវិធីលើអេក្រង់ដោយជោគជ័យ!', 'success');
-  }
-  closeInstallModal();
-  const btnInstall = document.getElementById('btnInstallApp');
-  if (btnInstall) {
-    btnInstall.innerHTML = '<i class="fa-solid fa-circle-check"></i> <span class="btn-text">បានដំឡើងរួច</span>';
-    btnInstall.style.opacity = '0.7';
   }
 });
 
@@ -8130,6 +8185,7 @@ function handleInstallPwaClick() {
     deferredPrompt.userChoice.then((choiceResult) => {
       if (choiceResult.outcome === 'accepted') {
         console.log('[PWA] User accepted the install prompt');
+        markPwaAsInstalled();
         if (typeof showToast === 'function') {
           showToast('🚀 កំពុងដំឡើងកម្មវិធីលើអេក្រង់...', 'info');
         }
@@ -8164,3 +8220,4 @@ function closeInstallModal() {
   if (modal) modal.style.display = 'none';
 }
 window.closeInstallModal = closeInstallModal;
+
