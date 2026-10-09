@@ -29,6 +29,7 @@ const state = {
   lessonFileName: '',
   lessonContent: '',
   currentZoom: 1.0,
+  language: localStorage.getItem('app_language') || 'km',
   aiProvider: localStorage.getItem('ai_provider') || 'gemini',
   geminiApiKey: getActiveGeminiApiKey(),
   generatedPlanData: null
@@ -502,6 +503,324 @@ const SAMPLE_LESSONS = [
 ];
 
 
+
+// ==========================================================================
+// 🌐 Bilingual i18n System (Khmer 🇰🇭 & English 🇬🇧)
+// ==========================================================================
+const I18N_DICTIONARY = {
+  km: {
+    appTitle: "AI Lesson Plan Studio",
+    appSubtitle: "ប្រព័ន្ធបង្កើតកិច្ចតែងការបង្រៀនស្វ័យប្រវត្តិឆ្លាតវៃ",
+    btnInstall: "ដំឡើងលើអេក្រង់",
+    langLabel: "🇰🇭 ខ្មែរ",
+    langTooltip: "ប្តូរទៅជាភាសាអង់គ្លេស / Switch to English",
+
+    // Step 1
+    step1Title: "ទម្រង់កិច្ចតែងការ (Template)",
+    step1Desc: "ជ្រើសរើសប្រភេទកិច្ចតែងការស្តង់ដារ MoEYS",
+    labelPresetTemplate: "ជ្រើសរើសប្រភេទកិច្ចតែងការ MoEYS៖",
+    optPresetStandard: "កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)",
+    optPresetFlipped: "⚡ កិច្ចតែងការតាមបែបថ្នាក់រៀនត្រឡប់ (Flipped Learning ៥ ជំហាន: ៥%-១០%-១០%-៧០%-៥% + Pre-test QCM)",
+    optPresetUbD: "កិច្ចតែងការតាមបែបត្រឡប់ (Backward Design / UbD ៣ ដំណាក់កាល)",
+    optPresetPrimary: "កិច្ចតែងការបឋមសិក្សា (ថ្នាក់ទី ១-៦)",
+    optPresetStem: "កិច្ចតែងការបែប STEM / 5E (វិទ្យាសាស្ត្រ និងពិសោធន៍)",
+
+    // Step 2
+    step2Title: "ឯកសារ និងខ្លឹមសារមេរៀន (Lesson Material)",
+    step2Desc: "Upload ឬបញ្ចូលឯកសារមេរៀន ស្លាយ ឬអត្ថបទ",
+    dropPrimary: 'ទម្លាក់ឯកសារមេរៀន/ស្លាយ/រូបភាព នៅទីនេះ ឬ <span class="browse-link">ចុចដើម្បីរើសឯកសារ</span>',
+    dropHint: "គាំទ្រ PowerPoint (.pptx), Word (.docx), PDF (.pdf), រូបភាពថតសៀវភៅ (.png, .jpg), TXT",
+    lessonContentLabel: "ខ្លឹមសារមេរៀន / ចំណុចសំខាន់ៗ",
+    lessonContentPlaceholder: "បញ្ចូល ឬបិទភ្ជាប់ខ្លឹមសារមេរៀន និយមន័យ រូបមន្ត លំហាត់ ឧទាហរណ៍ ឬអត្ថបទដកស្រង់ពីសៀវភៅពុម្ពនៅទីនេះ...",
+
+    // Step 3
+    step3Title: "ព័ត៌មានរដ្ឋបាល និងវិធីសាស្ត្របង្រៀន",
+    step3Desc: "កំណត់ព័ត៌មានលម្អិតសម្រាប់ក្បាលកិច្ចតែងការ",
+    btnSaveAdminInfo: "រក្សាទុក",
+    schoolLabel: "ឈ្មោះសាលារៀន",
+    schoolPlaceholder: "ឧ. វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម / វិទ្យាល័យ...",
+    teacherLabel: "ឈ្មោះគ្រូបង្រៀន",
+    teacherPlaceholder: "ឧ. លោកគ្រូ / អ្នកគ្រូ...",
+    degreeLabel: "កម្រិតសិក្សា / ស្ថាប័នអប់រំ (Study Degree / Institute)",
+    gradeLabel: "កម្រិតថ្នាក់ / ឆ្នាំសិក្សា (Grade / Class)",
+    gradePlaceholder: "ឧ. ថ្នាក់ទី ៨ ក / ថ្នាក់ទី ១២A1 / ជំនាន់ទី ១៥...",
+    subjectLabel: "មុខវិជ្ជា",
+    durationLabel: "រយៈពេលបង្រៀន (Teaching Duration)",
+    durationPlaceholder: "ឧ. ៦០ នាទី / ៣ ម៉ោង / ២ សប្តាហ៍...",
+    methodLabel: "វិធីសាស្ត្របង្រៀនចម្បង",
+    rememberAdminLabel: "ចងចាំព័ត៌មានរដ្ឋបាលនេះសម្រាប់លើកក្រោយ (Remember for next time)",
+    chapterLabel: "ជំពូក",
+    chapterPlaceholder: "ឧ. ជំពូកទី ៣: ការងារ និងថាមពល",
+    lessonTitleLabel: "ចំណងជើងមេរៀន",
+    lessonTitlePlaceholder: "ឧ. មេរៀនទី ២: ថាមពលមេកានិច",
+    customNotesLabel: "ចំណាំ ឬសំណូមពរបន្ថែម (Prompt Customization)",
+    customNotesPlaceholder: "ឧ. សុំផ្ដោតលើការពិសោធន៍ជាក់ស្ដែង និងមានល្បែងពង្រឹងពុទ្ធិ...",
+
+    // Action buttons
+    btnGenerate: "បង្កើតកិច្ចតែងការស្វ័យប្រវត្តិ (Generate)",
+    btnReset: "សម្អាត",
+
+    // Preview
+    previewBadgeTitle: "សន្លឹកកិច្ចតែងការ",
+    previewBadgeSub: "(Live A4)",
+    editHintText: "Edit ផ្ទាល់លើសន្លឹកបាន",
+    btnDownloadDocx: "Word (.docx)",
+    btnDownloadPdf: "PDF",
+    btnCopy: "ចម្លង",
+    btnPrint: "បោះពុម្ព",
+    btnCreateVideo: "🎬 វីដេអូ Micro-Lecture",
+
+    // Footer
+    partnerTag: "ដៃគូសហការផ្លូវការ (Official Partner)",
+    ipCopyright: "© 2026 <strong>AI Lesson Plan Studio™</strong> & <strong>AC Mart</strong> - រក្សាសិទ្ធិគ្រប់យ៉ាង",
+    ipSubtext: "បច្ចេកវិទ្យា និងទម្រង់គរុកោសល្យត្រូវបានការពារដោយច្បាប់ស្ដីពីកម្មសិទ្ធិបញ្ញានៃព្រះរាជាណាចក្រកម្ពុជា",
+
+    // Alerts
+    msgMissingInfo: "សូមបញ្ចូលចំណងជើងមេរៀន ឬខ្លឹមសារមេរៀនជាមុនសិន!",
+    msgLangSwitched: "បានប្តូរទៅជាភាសាខ្មែរ 🇰🇭"
+  },
+  en: {
+    appTitle: "AI Lesson Plan Studio",
+    appSubtitle: "Intelligent Automated Lesson Plan Generator",
+    btnInstall: "Install App",
+    langLabel: "🇬🇧 English",
+    langTooltip: "Switch to Khmer / ប្តូរជាភាសាខ្មែរ",
+
+    // Step 1
+    step1Title: "Lesson Plan Template",
+    step1Desc: "Select MoEYS Standard Official Template",
+    labelPresetTemplate: "Select Lesson Plan Format:",
+    optPresetStandard: "Standard 5-Step Lesson Plan (General / Secondary)",
+    optPresetFlipped: "⚡ Flipped Learning 5-Step (5%-10%-10%-70%-5% + Pre-test QCM)",
+    optPresetUbD: "Backward Design / UbD (3-Stage Framework)",
+    optPresetPrimary: "Primary School Lesson Plan (Grades 1-6)",
+    optPresetStem: "STEM / 5E Inquiry Lesson Plan (Science & Experiments)",
+
+    // Step 2
+    step2Title: "Lesson Material & Content",
+    step2Desc: "Upload or paste lesson files, slides, or textbook excerpts",
+    dropPrimary: 'Drop lesson files/slides/images here or <span class="browse-link">browse files</span>',
+    dropHint: "Supports PowerPoint (.pptx), Word (.docx), PDF (.pdf), Book photos (.png, .jpg), TXT",
+    lessonContentLabel: "Lesson Content / Key Concepts",
+    lessonContentPlaceholder: "Enter or paste lesson text, definitions, formulas, exercises, examples, or textbook excerpts here...",
+
+    // Step 3
+    step3Title: "Administrative Details & Teaching Method",
+    step3Desc: "Configure lesson header information and class details",
+    btnSaveAdminInfo: "Save Profile",
+    schoolLabel: "School / Institution Name",
+    schoolPlaceholder: "e.g., Preah Sisowath High School / Institute...",
+    teacherLabel: "Teacher Name",
+    teacherPlaceholder: "e.g., Mr. Borey Kem / Teacher...",
+    degreeLabel: "Education Level / Institution Type",
+    gradeLabel: "Grade Level / Academic Year",
+    gradePlaceholder: "e.g., Grade 8 A / Grade 12 A1 / Batch 15...",
+    subjectLabel: "Subject",
+    durationLabel: "Teaching Duration",
+    durationPlaceholder: "e.g., 60 mins / 3 periods / 2 weeks...",
+    methodLabel: "Primary Teaching Methodology",
+    rememberAdminLabel: "Remember administrative info for next time",
+    chapterLabel: "Chapter / Unit",
+    chapterPlaceholder: "e.g., Chapter 3: Work and Energy",
+    lessonTitleLabel: "Lesson Title",
+    lessonTitlePlaceholder: "e.g., Lesson 2: Mechanical Energy",
+    customNotesLabel: "Notes or Custom Prompt Instructions",
+    customNotesPlaceholder: "e.g., Focus on hands-on inquiry, gamified formative assessments...",
+
+    // Action buttons
+    btnGenerate: "Generate Lesson Plan (AI Studio)",
+    btnReset: "Reset Form",
+
+    // Preview
+    previewBadgeTitle: "Lesson Plan Document",
+    previewBadgeSub: "(Live A4)",
+    editHintText: "Direct Inline Editing Enabled",
+    btnDownloadDocx: "Word (.docx)",
+    btnDownloadPdf: "PDF",
+    btnCopy: "Copy",
+    btnPrint: "Print",
+    btnCreateVideo: "🎬 Create Video",
+
+    // Footer
+    partnerTag: "Official Partner (ដៃគូសហការផ្លូវការ)",
+    ipCopyright: "© 2026 <strong>AI Lesson Plan Studio™</strong> & <strong>AC Mart</strong> - All Rights Reserved",
+    ipSubtext: "Educational technology & pedagogical structure protected by Intellectual Property law of Cambodia",
+
+    // Alerts
+    msgMissingInfo: "Please enter a lesson title or lesson content first!",
+    msgLangSwitched: "Switched to English language 🇬🇧"
+  }
+};
+
+function setLanguage(lang, showNotification = false) {
+  if (lang !== 'en' && lang !== 'km') lang = 'km';
+  state.language = lang;
+  try {
+    localStorage.setItem('app_language', lang);
+  } catch (e) {}
+
+  document.documentElement.lang = (lang === 'en') ? 'en' : 'km';
+  const dict = I18N_DICTIONARY[lang] || I18N_DICTIONARY.km;
+
+  // 1. Update Language Switcher Button Label & Title
+  const langLabel = document.getElementById('langSwitchLabel');
+  const btnLang = document.getElementById('btnLanguageToggle');
+  if (langLabel) langLabel.textContent = dict.langLabel;
+  if (btnLang) btnLang.title = dict.langTooltip;
+
+  // 2. Translate elements with data-i18n
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    const key = el.getAttribute('data-i18n');
+    if (dict[key] !== undefined) {
+      el.innerHTML = dict[key];
+    }
+  });
+
+  // 3. Translate placeholders
+  const placeholderMap = {
+    inputSchool: dict.schoolPlaceholder,
+    inputTeacher: dict.teacherPlaceholder,
+    inputCustomGradeText: dict.gradePlaceholder,
+    inputCustomDurationText: dict.durationPlaceholder,
+    inputChapter: dict.chapterPlaceholder,
+    inputLessonTitle: dict.lessonTitlePlaceholder,
+    inputCustomNotes: dict.customNotesPlaceholder,
+    lessonContentText: dict.lessonContentPlaceholder
+  };
+  Object.keys(placeholderMap).forEach((id) => {
+    const el = document.getElementById(id);
+    if (el && placeholderMap[id]) el.placeholder = placeholderMap[id];
+  });
+
+  // 4. Translate Dropzone Text
+  const dropPrimary = document.getElementById('dropPrimaryText');
+  const dropHint = document.getElementById('dropHintText');
+  if (dropPrimary) dropPrimary.innerHTML = dict.dropPrimary;
+  if (dropHint) dropHint.textContent = dict.dropHint;
+
+  // 5. Translate Preset Template Select
+  const presetSelect = document.getElementById('presetTemplateSelect');
+  if (presetSelect && presetSelect.options.length >= 5) {
+    presetSelect.options[0].text = dict.optPresetStandard;
+    presetSelect.options[1].text = dict.optPresetFlipped;
+    presetSelect.options[2].text = dict.optPresetUbD;
+    presetSelect.options[3].text = dict.optPresetPrimary;
+    presetSelect.options[4].text = dict.optPresetStem;
+  }
+
+  // 6. Translate Degree Select
+  const degreeSelect = document.getElementById('inputDegree');
+  if (degreeSelect && degreeSelect.options.length >= 9) {
+    const degreesEn = [
+      "🏫 Lower Secondary (Grades 7-9)",
+      "🎓 Upper Secondary (Grades 10-12)",
+      "📚 Primary Education (Grades 1-6)",
+      "🌱 Kindergarten / Early Childhood",
+      "🏛️ TEC Kampong Cham Institute",
+      "👨‍🏫 Teacher Training & NIE",
+      "🏛️ Higher Education / University",
+      "🛠️ TVET / Vocational Training",
+      "✏️ Custom / Other"
+    ];
+    const degreesKm = [
+      "🏫 អនុវិទ្យាល័យ (Lower Secondary: ថ្នាក់ទី ៧-៩)",
+      "🎓 វិទ្យាល័យ (Upper Secondary: ថ្នាក់ទី ១០-១២)",
+      "📚 បឋមសិក្សា (Primary: ថ្នាក់ទី ១-៦)",
+      "🌱 មត្តេយ្យសិក្សា (Kindergarten)",
+      "🏛️ វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម (TEC Kampong Cham)",
+      "👨‍🏫 គរុកោសល្យ និង NIE (Teacher Training)",
+      "🏛️ ឧត្តមសិក្សា / បរិញ្ញាបត្រ (Higher Education)",
+      "🛠️ បណ្តុះបណ្តាលវិជ្ជាជីវៈ (TVET / Vocational)",
+      "✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)"
+    ];
+    const targetDegrees = (lang === 'en') ? degreesEn : degreesKm;
+    for (let i = 0; i < targetDegrees.length; i++) {
+      if (degreeSelect.options[i]) degreeSelect.options[i].text = targetDegrees[i];
+    }
+  }
+
+  // 7. Translate Subjects
+  const subjectSelect = document.getElementById('inputSubject');
+  if (subjectSelect && subjectSelect.options.length >= 12) {
+    const subjectsEn = [
+      "Physics", "Mathematics", "Khmer Literature", "Educational Psychology",
+      "Computer Science (ICT)", "Chemistry", "Biology", "History",
+      "Geography", "Civics & Morality", "English", "Earth Science"
+    ];
+    const subjectsKm = [
+      "រូបវិទ្យា", "គណិតវិទ្យា", "ភាសាខ្មែរ", "ចិត្តវិទ្យាអប់រំ",
+      "ព័ត៌មានវិទ្យា (ICT / Computer)", "គីមីវិទ្យា", "ជីវវិទ្យា", "ប្រវត្តិវិទ្យា",
+      "ភូមិវិទ្យា", "ពលរដ្ឋវិជ្ជា", "ភាសាអង់គ្លេស", "ផែនដីវិទ្យា"
+    ];
+    const targetSubjects = (lang === 'en') ? subjectsEn : subjectsKm;
+    for (let i = 0; i < targetSubjects.length; i++) {
+      if (subjectSelect.options[i]) subjectSelect.options[i].text = targetSubjects[i];
+    }
+  }
+
+  // 8. Translate Duration
+  const durSelect = document.getElementById('inputDurationSelect');
+  if (durSelect && durSelect.options.length >= 9) {
+    const durEn = [
+      "50 mins (1 period)", "45 mins (1 period)", "90 mins (2 periods)",
+      "100 mins (2 periods)", "135 mins (3 periods)", "150 mins (3 periods)",
+      "180 mins (4 periods / workshop)", "240 mins (1 day / short course)", "✏️ Custom"
+    ];
+    const durKm = [
+      "៥០ នាទី (១ ម៉ោងសិក្សា)", "៤៥ នាទី (១ ម៉ោងសិក្សា)", "៩០ នាទី (២ ម៉ោងសិក្សា)",
+      "១០០ នាទី (២ ម៉ោងសិក្សា)", "១៣៥ នាទី (៣ ម៉ោងសិក្សា)", "១៥០ នាទី (៣ ម៉ោងសិក្សា)",
+      "១៨០ នាទី (៤ ម៉ោងសិក្សា / សិក្ខាសាលា)", "២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)", "✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)"
+    ];
+    const targetDur = (lang === 'en') ? durEn : durKm;
+    for (let i = 0; i < targetDur.length; i++) {
+      if (durSelect.options[i]) durSelect.options[i].text = targetDur[i];
+    }
+  }
+
+  // 9. Translate Methods
+  const methodSelect = document.getElementById('inputMethod');
+  if (methodSelect && methodSelect.options.length >= 6) {
+    const methodsEn = [
+      "Flipped Learning (5-Step: 5%-10%-10%-70%-5% + Pre-test QCM)",
+      "Student-Centered Active Learning Approach",
+      "Inquiry-Based & STEM Experimentation",
+      "5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)",
+      "Collaborative Group Discussion & Problem Solving",
+      "Direct Instruction, Demonstration & Practical Application"
+    ];
+    const methodsKm = [
+      "ថ្នាក់រៀនត្រឡប់ (Flipped Learning ៥ ជំហាន: ៥%-១០%-១០%-៧០%-៥% + QCM)",
+      "សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)",
+      "ការរិះរក និងពិសោធន៍ (Inquiry-based / STEM)",
+      "វិធីសាស្ត្រ 5E (Engage, Explore, Explain, Elaborate, Evaluate)",
+      "ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា",
+      "ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង"
+    ];
+    const targetMethods = (lang === 'en') ? methodsEn : methodsKm;
+    for (let i = 0; i < targetMethods.length; i++) {
+      if (methodSelect.options[i]) methodSelect.options[i].text = targetMethods[i];
+    }
+  }
+
+  // 10. Re-populate localized grades based on current degree
+  if (degreeSelect) {
+    const currentGrade = document.getElementById('inputGrade') ? document.getElementById('inputGrade').value : null;
+    updateGradeOptions(degreeSelect.value, currentGrade);
+  }
+
+  if (showNotification && typeof showToast === 'function') {
+    showToast(dict.msgLangSwitched, 'success');
+  }
+}
+
+function toggleLanguage() {
+  const currentLang = state.language || localStorage.getItem('app_language') || 'km';
+  const newLang = (currentLang === 'en') ? 'km' : 'en';
+  setLanguage(newLang, true);
+}
+window.setLanguage = setLanguage;
+window.toggleLanguage = toggleLanguage;
+
 // Study Degrees & Grades Dictionary
 const STUDY_DEGREES = {
   lower_sec: {
@@ -603,7 +922,7 @@ function updateGradeOptions(degreeKey, preselectGrade = null) {
   if (!degree || degreeKey === 'custom') {
     const opt = document.createElement('option');
     opt.value = 'custom';
-    opt.textContent = '-- បញ្ចូលថ្នាក់រៀនផ្ទាល់ខ្លួន... --';
+    opt.textContent = (state.language === 'en') ? '-- Enter Custom Grade... --' : '-- បញ្ចូលថ្នាក់រៀនផ្ទាល់ខ្លួន... --';
     opt.selected = true;
     gradeSelect.appendChild(opt);
     if (customWrap) customWrap.style.display = 'block';
@@ -611,11 +930,20 @@ function updateGradeOptions(degreeKey, preselectGrade = null) {
     return;
   }
 
-  let matched = false;
+    let matched = false;
   degree.grades.forEach((g, idx) => {
+    let displayText = g;
+    if (state.language === 'en') {
+      displayText = g.replace('ថ្នាក់ទី ', 'Grade ')
+                     .replace('មត្តេយ្យ', 'Kindergarten ')
+                     .replace('គរុនិស្សិត ឆ្នាំទី ', 'Pre-service Teacher Year ')
+                     .replace('គរុសិស្ស', 'Teacher Trainee ')
+                     .replace('បរិញ្ញាបត្រ ឆ្នាំទី ', 'Bachelor Year ')
+                     .replace('ឆ្នាំទី ', 'Year ');
+    }
     const opt = document.createElement('option');
     opt.value = g;
-    opt.textContent = g;
+    opt.textContent = displayText;
     if (preselectGrade && preselectGrade === g) {
       opt.selected = true;
       matched = true;
@@ -629,7 +957,7 @@ function updateGradeOptions(degreeKey, preselectGrade = null) {
   // Add custom fallback option at the bottom
   const customOpt = document.createElement('option');
   customOpt.value = 'custom';
-  customOpt.textContent = '-- បញ្ចូលថ្នាក់រៀនផ្សេងទៀត... --';
+  customOpt.textContent = (state.language === 'en') ? '-- Enter Other Grade... --' : '-- បញ្ចូលថ្នាក់រៀនផ្សេងទៀត... --';
   gradeSelect.appendChild(customOpt);
 
   if (preselectGrade && !matched) {
@@ -824,6 +1152,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try { initEventListeners(); } catch (e) { console.error('initEventListeners err:', e); }
   try { initDropzones(); } catch (e) { console.error('initDropzones err:', e); }
   try { checkApiKeyStatus(); } catch (e) { console.error('checkApiKeyStatus err:', e); }
+  try { setLanguage(state.language || 'km', false); } catch(e) { console.error('setLanguage err:', e); }
   try { updateWordCount(); } catch (e) { console.error('updateWordCount err:', e); }
   try { loadSavedAdminProfile(); } catch (e) { console.error('loadSavedAdminProfile err:', e); }
   try { loadSavedTemplates(); } catch (e) { console.error('loadSavedTemplates err:', e); }
@@ -1785,6 +2114,7 @@ async function handleGenerateLessonPlan() {
 
   const genParams = {
     school, teacher, subject, grade, duration, chapter, lessonTitle, method, customNotes, lessonContent,
+    language: state.language || 'km',
     templateMode: state.templateMode,
     presetId: state.selectedPresetId,
     customTemplate: state.customTemplateText,
@@ -2698,7 +3028,13 @@ For the topic "${params.lessonTitle}" in subject "${params.subject}" at grade le
 DO NOT write generic content. Write as if you are a ${params.subject} teacher who has taught this topic many times and knows exactly what students need to learn.`
 }
 ═══════════════════════════════════════
-GENERATE THE COMPLETE LESSON PLAN NOW. Every field must contain real, specific, classroom-ready Khmer content.`;
+${(params.language === 'en' || state.language === 'en')
+  ? `🌐 MANDATORY LANGUAGE INSTRUCTION:
+The user has chosen ENGLISH language mode. Generate the ENTIRE lesson plan in professional, fluent, academic ENGLISH (standard MoEYS-compliant pedagogical 5-step format in English). All headings, objectives, steps, teacher activities, student activities, questions, answers, and reflection must be written in English.`
+  : `🌐 MANDATORY LANGUAGE INSTRUCTION:
+Every field must contain real, specific, classroom-ready Khmer content.`
+}
+GENERATE THE COMPLETE LESSON PLAN NOW.`;
 
   // Dynamic Candidate API endpoints for Google AI Studio
   let candidateModels = [];

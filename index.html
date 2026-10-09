@@ -20,7 +20,7 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
-  <link rel="stylesheet" href="style.css?v=20261009_v5">
+  <link rel="stylesheet" href="style.css?v=20261009_v6">
   
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="/manifest.json">
@@ -52,7 +52,7 @@
       if ('caches' in window) {
         caches.keys().then(function(keys) {
           keys.forEach(function(key) {
-            if (key !== 'lessonplan-cache-v5') {
+            if (key !== 'lessonplan-cache-v6') {
               caches.delete(key);
             }
           });
@@ -72,7 +72,7 @@
         </div>
         <div class="logo-text">
           <h1>AI Lesson Plan Studio</h1>
-          <span class="sub-title">ប្រព័ន្ធបង្កើតកិច្ចតែងការបង្រៀនស្វ័យប្រវត្តិឆ្លាតវៃ</span>
+          <span class="sub-title" data-i18n="appSubtitle">ប្រព័ន្ធបង្កើតកិច្ចតែងការបង្រៀនស្វ័យប្រវត្តិឆ្លាតវៃ</span>
         </div>
       </div>
 
@@ -125,6 +125,12 @@
           <span class="btn-text">ដំឡើងលើអេក្រង់</span>
         </button>
 
+                <!-- Language Switcher Button (Khmer / English) -->
+        <button id="btnLanguageToggle" class="btn-secondary" onclick="toggleLanguage()" title="ប្តូរភាសា / Switch Language (Khmer / English)" style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-weight: 700; border-radius: 8px; border: 1.5px solid var(--border-color, #cbd5e1); cursor: pointer; background: var(--bg-card); color: var(--text-primary); transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
+          <i class="fa-solid fa-globe" style="color: #4f46e5; font-size: 1.05rem;"></i>
+          <span id="langSwitchLabel" style="font-size: 0.86rem; font-weight: 700;">🇰🇭 ខ្មែរ</span>
+        </button>
+
         <!-- Theme Toggle -->
         <button id="btnThemeToggle" class="btn-icon" title="ប្តូរពណ៌ Theme">
           <i class="fa-solid fa-moon"></i>
@@ -145,8 +151,8 @@
           <div class="card-header">
             <div class="step-badge">១</div>
             <div class="card-title-group">
-              <h3>ទម្រង់កិច្ចតែងការ (Template)</h3>
-              <p>ជ្រើសរើសប្រភេទកិច្ចតែងការស្តង់ដារ MoEYS</p>
+              <h3 data-i18n="step1Title">ទម្រង់កិច្ចតែងការ (Template)</h3>
+              <p data-i18n="step1Desc">ជ្រើសរើសប្រភេទកិច្ចតែងការស្តង់ដារ MoEYS</p>
             </div>
           </div>
           
@@ -180,7 +186,7 @@
 
             <!-- 1. Preset Selector Dropdown -->
             <div id="presetTemplateWrapper" class="control-group">
-              <label for="presetTemplateSelect">ជ្រើសរើសប្រភេទកិច្ចតែងការ MoEYS៖</label>
+              <label for="presetTemplateSelect" data-i18n="labelPresetTemplate">ជ្រើសរើសប្រភេទកិច្ចតែងការ MoEYS៖</label>
               <select id="presetTemplateSelect" class="form-control">
                 <option value="moeys_standard_5step">កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)</option>
                 <option value="flipped_learning_5step">⚡ កិច្ចតែងការតាមបែបថ្នាក់រៀនត្រឡប់ (Flipped Learning ៥ ជំហាន: ៥%-១០%-១០%-៧០%-៥% + Pre-test QCM)</option>
@@ -278,8 +284,8 @@
           <div class="card-header">
             <div class="step-badge">២</div>
             <div class="card-title-group">
-              <h3>ឯកសារ និងខ្លឹមសារមេរៀន (Lesson Material)</h3>
-              <p>Upload ឬបញ្ចូលឯកសារមេរៀន ស្លាយ ឬអត្ថបទ</p>
+              <h3 data-i18n="step2Title">ឯកសារ និងខ្លឹមសារមេរៀន (Lesson Material)</h3>
+              <p data-i18n="step2Desc">Upload ឬបញ្ចូលឯកសារមេរៀន ស្លាយ ឬអត្ថបទ</p>
             </div>
           </div>
 
@@ -374,7 +380,7 @@
               <!-- Lesson Text Box -->
               <div class="control-group mt-3">
                 <div class="label-with-action">
-                  <label for="lessonContentText">ខ្លឹមសារមេរៀន / ចំណុចសំខាន់ៗ <span class="req">*</span></label>
+                  <label for="lessonContentText" data-i18n="lessonContentLabel">ខ្លឹមសារមេរៀន / ចំណុចសំខាន់ៗ <span class="req">*</span></label>
                   <span class="badge-tag" id="charCount">0 ពាក្យ</span>
                 </div>
                 <textarea id="lessonContentText" class="form-control" rows="6" placeholder="បញ្ចូល ឬបិទភ្ជាប់ខ្លឹមសារមេរៀន និយមន័យ រូបមន្ត លំហាត់ ឧទាហរណ៍ ឬអត្ថបទដកស្រង់ពីសៀវភៅពុម្ពនៅទីនេះ..."></textarea>
@@ -412,13 +418,13 @@
             <div class="header-step-title">
               <div class="step-badge">៣</div>
               <div class="card-title-group">
-                <h3>ព័ត៌មានរដ្ឋបាល និងវិធីសាស្ត្របង្រៀន</h3>
-                <p>កំណត់ព័ត៌មានលម្អិតសម្រាប់ក្បាលកិច្ចតែងការ</p>
+                <h3 data-i18n="step3Title">ព័ត៌មានរដ្ឋបាល និងវិធីសាស្ត្របង្រៀន</h3>
+                <p data-i18n="step3Desc">កំណត់ព័ត៌មានលម្អិតសម្រាប់ក្បាលកិច្ចតែងការ</p>
               </div>
             </div>
             <div class="admin-quick-actions">
               <button type="button" id="btnSaveAdminInfo" class="btn-pill-action" title="ចុចដើម្បីរក្សាទុកព័ត៌មានរដ្ឋបាលនេះទុកប្រើលើកក្រោយ">
-                <i class="fa-solid fa-floppy-disk"></i> <span>រក្សាទុក</span>
+                <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="btnSaveAdminInfo">រក្សាទុក</span>
               </button>
               <button type="button" id="btnClearAdminInfo" class="btn-pill-ghost" title="លុបព័ត៌មានដែលបានចងចាំ" style="display: none;">
                 <i class="fa-solid fa-trash-can"></i>
@@ -428,7 +434,7 @@
 
           <div class="form-grid-2">
             <div class="control-group">
-              <label for="inputSchool">ឈ្មោះសាលារៀន</label>
+              <label for="inputSchool" data-i18n="schoolLabel">ឈ្មោះសាលារៀន</label>
               <div class="input-icon-wrap">
                 <i class="fa-solid fa-school"></i>
                 <input type="text" id="inputSchool" class="form-control" list="schoolSuggestions" placeholder="ឧ. វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម / វិទ្យាល័យ...">
@@ -443,7 +449,7 @@
             </div>
 
             <div class="control-group">
-              <label for="inputTeacher">ឈ្មោះគ្រូបង្រៀន</label>
+              <label for="inputTeacher" data-i18n="teacherLabel">ឈ្មោះគ្រូបង្រៀន</label>
               <div class="input-icon-wrap">
                 <i class="fa-solid fa-user-tie"></i>
                 <input type="text" id="inputTeacher" class="form-control" placeholder="ឧ. លោកគ្រូ / អ្នកគ្រូ...">
@@ -454,7 +460,7 @@
           <!-- Row 2: Study Degree & Grade (Separated side-by-side) -->
           <div class="form-grid-2 mt-2">
             <div class="control-group">
-              <label for="inputDegree">កម្រិតសិក្សា / ស្ថាប័នអប់រំ (Study Degree / Institute) <span class="req">*</span></label>
+              <label for="inputDegree" data-i18n="degreeLabel">កម្រិតសិក្សា / ស្ថាប័នអប់រំ (Study Degree / Institute) <span class="req">*</span></label>
               <select id="inputDegree" class="form-control">
                 <option value="lower_sec" selected>🏫 អនុវិទ្យាល័យ (Lower Secondary: ថ្នាក់ទី ៧-៩)</option>
                 <option value="upper_sec">🎓 វិទ្យាល័យ (Upper Secondary: ថ្នាក់ទី ១០-១២)</option>
@@ -469,7 +475,7 @@
             </div>
 
             <div class="control-group">
-              <label for="inputGrade">កម្រិតថ្នាក់ / ឆ្នាំសិក្សា (Grade / Class) <span class="req">*</span></label>
+              <label for="inputGrade" data-i18n="gradeLabel">កម្រិតថ្នាក់ / ឆ្នាំសិក្សា (Grade / Class) <span class="req">*</span></label>
               <select id="inputGrade" class="form-control">
                 <option value="ថ្នាក់ទី ៧">ថ្នាក់ទី ៧</option>
                 <option value="ថ្នាក់ទី ៨" selected>ថ្នាក់ទី ៨</option>
@@ -490,7 +496,7 @@
           <!-- Row 3: Subject & Duration -->
           <div class="form-grid-2 mt-2">
             <div class="control-group">
-              <label for="inputSubject">មុខវិជ្ជា <span class="req">*</span></label>
+              <label for="inputSubject" data-i18n="subjectLabel">មុខវិជ្ជា <span class="req">*</span></label>
               <select id="inputSubject" class="form-control">
                 <option value="រូបវិទ្យា">រូបវិទ្យា</option>
                 <option value="គណិតវិទ្យា">គណិតវិទ្យា</option>
@@ -508,7 +514,7 @@
             </div>
 
             <div class="control-group">
-              <label for="inputDurationSelect">រយៈពេលបង្រៀន (Teaching Duration) <span class="req">*</span></label>
+              <label for="inputDurationSelect" data-i18n="durationLabel">រយៈពេលបង្រៀន (Teaching Duration) <span class="req">*</span></label>
               <select id="inputDurationSelect" class="form-control">
                 <option value="៥០ នាទី (១ ម៉ោងសិក្សា)" selected>៥០ នាទី (១ ម៉ោងសិក្សា)</option>
                 <option value="៤៥ នាទី (១ ម៉ោងសិក្សា)">៤៥ នាទី (១ ម៉ោងសិក្សា)</option>
@@ -532,7 +538,7 @@
           </div>
 
           <div class="control-group mt-2">
-            <label for="inputMethod">វិធីសាស្ត្របង្រៀនចម្បង</label>
+            <label for="inputMethod" data-i18n="methodLabel">វិធីសាស្ត្របង្រៀនចម្បង</label>
             <select id="inputMethod" class="form-control">
               <option value="ថ្នាក់រៀនត្រឡប់ (Flipped Learning) ៥ ជំហាន (៥% - ១០% - ១០% - ៧០% - ៥%) ជាមួយ Pre-test QCM ១០ សំណួរ">ថ្នាក់រៀនត្រឡប់ (Flipped Learning ៥ ជំហាន: ៥%-១០%-១០%-៧០%-៥% + QCM)</option>
               <option value="សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)">សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)</option>
@@ -547,7 +553,7 @@
           <div class="remember-profile-bar">
             <label class="remember-checkbox-label">
               <input type="checkbox" id="chkAutoRememberAdmin" checked>
-              <span>ចងចាំព័ត៌មានរដ្ឋបាលនេះសម្រាប់លើកក្រោយ (Remember for next time)</span>
+              <span data-i18n="rememberAdminLabel">ចងចាំព័ត៌មានរដ្ឋបាលនេះសម្រាប់លើកក្រោយ (Remember for next time)</span>
             </label>
             <span id="savedProfileBadge" class="saved-profile-pill" style="display: none;">
               <i class="fa-solid fa-check"></i> បានចងចាំ
@@ -556,18 +562,18 @@
 
           <div class="form-grid-2 mt-3">
             <div class="control-group">
-              <label for="inputChapter">ជំពូក</label>
+              <label for="inputChapter" data-i18n="chapterLabel">ជំពូក</label>
               <input type="text" id="inputChapter" class="form-control" placeholder="ឧ. ជំពូកទី ៣: ការងារ និងថាមពល">
             </div>
 
             <div class="control-group">
-              <label for="inputLessonTitle">ចំណងជើងមេរៀន <span class="req">*</span></label>
+              <label for="inputLessonTitle" data-i18n="lessonTitleLabel">ចំណងជើងមេរៀន <span class="req">*</span></label>
               <input type="text" id="inputLessonTitle" class="form-control" placeholder="ឧ. មេរៀនទី ២: ថាមពលមេកានិច">
             </div>
           </div>
 
           <div class="control-group mt-2">
-            <label for="inputCustomNotes">ចំណាំ ឬសំណូមពរបន្ថែម (Prompt Customization)</label>
+            <label for="inputCustomNotes" data-i18n="customNotesLabel">ចំណាំ ឬសំណូមពរបន្ថែម (Prompt Customization)</label>
             <input type="text" id="inputCustomNotes" class="form-control" placeholder="ឧ. សុំផ្ដោតលើការពិសោធន៍ជាក់ស្ដែង និងមានល្បែងពង្រឹងពុទ្ធិ...">
           </div>
         </section>
@@ -576,11 +582,11 @@
         <div class="action-dock">
           <button id="btnGenerate" class="btn-primary-glow">
             <i class="fa-solid fa-wand-magic-sparkles"></i>
-            <span>បង្កើតកិច្ចតែងការស្វ័យប្រវត្តិ (Generate)</span>
+            <span data-i18n="btnGenerate">បង្កើតកិច្ចតែងការស្វ័យប្រវត្តិ (Generate)</span>
           </button>
           
           <button id="btnReset" class="btn-ghost" title="កំណត់ទិន្នន័យឡើងវិញ">
-            <i class="fa-solid fa-rotate-right"></i> សម្អាត
+            <i class="fa-solid fa-rotate-right"></i> <span data-i18n="btnReset">សម្អាត</span>
           </button>
         </div>
 
@@ -589,12 +595,12 @@
           <div class="associated-partner-badge" style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 12px; padding: 10px 16px; background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(124, 58, 237, 0.08)); border: 1.5px solid rgba(79, 70, 229, 0.25); border-radius: 14px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08);">
             <img src="/ac-mart-logo-1.jpg" alt="AC Mart Logo" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; box-shadow: 0 3px 10px rgba(0,0,0,0.18); border: 2px solid #ffffff; flex-shrink: 0;">
             <div style="text-align: left; line-height: 1.35;">
-              <span style="display: block; font-size: 0.74rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">ដៃគូសហការផ្លូវការ (Official Partner)</span>
+              <span style="display: block; font-size: 0.74rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="partnerTag">ដៃគូសហការផ្លូវការ (Official Partner)</span>
               <strong style="font-size: 1.1rem; color: var(--primary); font-weight: 800; font-family: 'Kantumruy Pro', sans-serif;">AC Mart</strong>
             </div>
           </div>
           <div class="ip-copyright" style="font-size: 0.86rem; margin-bottom: 4px;">© 2026 <strong>AI Lesson Plan Studio™</strong> & <strong>AC Mart</strong> - រក្សាសិទ្ធិគ្រប់យ៉ាង</div>
-          <div class="ip-subtext">បច្ចេកវិទ្យា និងទម្រង់គរុកោសល្យត្រូវបានការពារដោយច្បាប់ស្ដីពីកម្មសិទ្ធិបញ្ញានៃព្រះរាជាណាចក្រកម្ពុជា</div>
+          <div class="ip-subtext" data-i18n="ipSubtext">បច្ចេកវិទ្យា និងទម្រង់គរុកោសល្យត្រូវបានការពារដោយច្បាប់ស្ដីពីកម្មសិទ្ធិបញ្ញានៃព្រះរាជាណាចក្រកម្ពុជា</div>
         </footer>
 
       </div>
@@ -606,8 +612,8 @@
       <!-- Preview Studio Toolbar -->
       <div class="preview-toolbar">
         <div class="toolbar-left">
-          <span class="preview-badge"><i class="fa-solid fa-file-circle-check"></i> <span class="badge-title">សន្លឹកកិច្ចតែងការ</span> <span class="preview-badge-sub">(Live A4)</span></span>
-          <span class="editable-indicator" title="អ្នកអាចចុច Edit កែប្រែផ្ទាល់លើសន្លឹកកិច្ចតែងការបាន"><i class="fa-solid fa-pen-to-square"></i> <span class="edit-hint-text">Edit ផ្ទាល់លើសន្លឹកបាន</span></span>
+          <span class="preview-badge"><i class="fa-solid fa-file-circle-check"></i> <span class="badge-title" data-i18n="previewBadgeTitle">សន្លឹកកិច្ចតែងការ</span> <span class="preview-badge-sub" data-i18n="previewBadgeSub">(Live A4)</span></span>
+          <span class="editable-indicator" title="អ្នកអាចចុច Edit កែប្រែផ្ទាល់លើសន្លឹកកិច្ចតែងការបាន"><i class="fa-solid fa-pen-to-square"></i> <span class="edit-hint-text" data-i18n="editHintText">Edit ផ្ទាល់លើសន្លឹកបាន</span></span>
         </div>
 
         <div class="toolbar-right">
@@ -633,7 +639,7 @@
 
           <!-- In-App Video Micro-Lecture Studio -->
           <button id="btnOpenVideoStudio" class="btn-tool-action btn-video-studio" onclick="openVideoStudioModal()" title="មើល និងចាក់វីដេអូបង្រៀន (In-App Video Micro-Lecture Studio)">
-            <i class="fa-solid fa-film"></i> 🎬 វីដេអូ Micro-Lecture
+            <i class="fa-solid fa-film"></i> <span data-i18n="btnCreateVideo">🎬 វីដេអូ Micro-Lecture</span>
           </button>
 
           <!-- NotebookLM Quick Access -->
@@ -651,7 +657,7 @@
           </button>
 
           <button id="btnCopyText" class="btn-tool-action btn-copy" title="ចម្លងអត្ថបទទាំងអស់">
-            <i class="fa-regular fa-copy"></i> ចម្លង
+            <i class="fa-regular fa-copy"></i> <span data-i18n="btnCopy">ចម្លង</span>
           </button>
         </div>
       </div>
@@ -1384,6 +1390,6 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261009_v5"></script>
+  <script src="app.js?v=20261009_v6"></script>
 </body>
 </html>
