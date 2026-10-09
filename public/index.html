@@ -44,22 +44,23 @@
     }
 
     @keyframes magicBlink {
-      0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); }
-      50% { box-shadow: 0 0 12px 4px rgba(139, 92, 246, 0.2); background-color: #f5f3ff; }
-      100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+      0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); background-color: transparent; }
+      50% { box-shadow: 0 0 14px 4px rgba(139, 92, 246, 0.4); background-color: rgba(139, 92, 246, 0.15); }
+      100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); background-color: transparent; }
     }
     .btn-magic-blink {
-      animation: magicBlink 2s infinite !important;
+      animation: magicBlink 2s ease-in-out infinite;
       border: 1.5px solid #8b5cf6 !important;
       color: #8b5cf6 !important;
+      transition: none !important;
+    }
+    @keyframes pulseIcon {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
     }
     .btn-magic-blink i {
-      animation: pulse 1s infinite;
-    }
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.15); color: #7c3aed; }
-      100% { transform: scale(1); }
+      animation: pulseIcon 1.5s ease-in-out infinite;
     }
   </style>
   <script>
@@ -117,7 +118,17 @@
           <span id="savedPlansCountBadge" class="count-badge">០</span>
         </button>
 
-                <!-- Game Integration Button -->
+                <!-- Spinner and Group Generator -->
+        <button class="btn-secondary" onclick="window.open('https://wheelofnames.com/', '_blank')" title="បង្វិលកងចៃដន្យ (Random Spinner Wheel)">
+          <i class="fa-solid fa-dharmachakra" style="color: #f59e0b;"></i>
+          <span class="btn-text">បង្វិលកង</span>
+        </button>
+        <button class="btn-secondary" onclick="window.open('https://keamk.com/', '_blank')" title="ជ្រើសរើសក្រុមចៃដន្យ (Random Group Maker)">
+          <i class="fa-solid fa-users" style="color: #06b6d4;"></i>
+          <span class="btn-text">ជ្រើសក្រុម</span>
+        </button>
+
+        <!-- Game Integration Button -->
         <button class="btn-secondary btn-magic-blink" onclick="openGameModal()" title="Play AC Kahoot Cloud Game for Study Enhancement">
           <i class="fa-solid fa-gamepad" style="color: #8b5cf6;"></i>
           <span class="btn-text">AC Game</span>
