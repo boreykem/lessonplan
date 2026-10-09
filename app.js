@@ -7074,18 +7074,18 @@ async function autoOpenNotebookLMWithPrompt() {
   const subject = data.subject || '';
   const grade = data.grade || '';
   const prompt = `🌟 INSTRUCTION FOR NOTEBOOKLM / AI VIDEO GENERATION:
-1. Format: Educational Explainer Video / Micro-Lecture Script (រយៈពេល ៥ ទៅ ៨ នាទី).
+1. Format: Educational Explainer Video / Micro-Lecture Script (រយៈពេល ៦ ទៅ ១០ នាទី).
 2. Language: 100% KHMER LANGUAGE (ភាសាខ្មែរ) exclusively.
 3. Narration: Engaging, clear, pedagogical narration in Khmer by a passionate teacher/instructor explaining "${title}" (${subject} ${grade}). NO podcast hosts dialogue!
 4. On-Screen Captions & Typography: All on-screen text, key formulas, terms, and subtitles MUST run in Khmer using font "Kantumruy Pro" exclusively.
-5. Structure (5-8 Minutes):
+5. Structure (6-10 Minutes):
    - [0:00 - 1:30] Hook & Introduction to "${title}"
-   - [1:30 - 4:00] Core Concept & Formula/Rule Deep Dive
-   - [4:00 - 6:30] Real-world Application & Case Examples
-   - [6:30 - 8:00] Summary, Muddiest Point Reflection & Pre-test Challenge
+   - [1:30 - 5:00] Core Concept & Formula/Rule Deep Dive
+   - [5:00 - 8:00] Real-world Application & Case Examples
+   - [8:00 - 10:00] Summary, Muddiest Point Reflection & Pre-test Challenge
 6. Output: Include Scene Description, Khmer Narration, and exact On-Screen Display Text (Font: Kantumruy Pro) for each timestamp.
 
-សូមបង្កើត Script វីដេអូបង្រៀន Micro-Lecture (៥ ទៅ ៨ នាទី) ជា «ភាសាខ្មែរ» ជាមួយអក្សររត់ Font «Kantumruy Pro» តែមួយគត់!`;
+សូមបង្កើត Script វីដេអូបង្រៀន Micro-Lecture (៦ ទៅ ១០ នាទី) ជា «ភាសាខ្មែរ» ជាមួយអក្សររត់ Font «Kantumruy Pro» តែមួយគត់! ត្រូវធានាថាការអធិប្បាយ និងពន្យល់គឺស្របទៅតាមកិច្ចតែងការរបស់ខ្ញុំ១០០%។`;
 
   try {
     await navigator.clipboard.writeText(prompt);
