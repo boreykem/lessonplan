@@ -21,6 +21,15 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
   <link rel="stylesheet" href="style.css?v=20260905_fixed">
+  
+  <!-- Progressive Web App (PWA) Meta & Manifest -->
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <meta name="theme-color" content="#4f46e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="LessonPlan KH">
 </head>
 <body class="theme-light">
 
@@ -78,6 +87,12 @@
           <i class="fa-solid fa-key"></i>
           <span class="btn-text">API Key</span>
           <span id="apiKeyBadge" class="status-dot active"></span>
+        </button>
+
+        <!-- Install App / Add to Screen Button -->
+        <button id="btnInstallApp" class="btn-primary" style="display: inline-flex; align-items: center; gap: 7px; padding: 7px 15px; font-size: 0.88rem; font-weight: 700; border-radius: 8px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; border: none; cursor: pointer; box-shadow: 0 2px 10px rgba(79, 70, 229, 0.35);" onclick="handleInstallPwaClick()" title="ដំឡើងកម្មវិធីលើអេក្រង់កុំព្យូទ័រ ឬទូរស័ព្ទ (Install App / Add to Screen)">
+          <i class="fa-solid fa-download"></i>
+          <span class="btn-text">ដំឡើងលើអេក្រង់</span>
         </button>
 
         <!-- Theme Toggle -->
@@ -819,6 +834,65 @@
         <button id="btnRemoveKey" type="button" class="btn-ghost" onclick="removeApiKeyFromModal()">លុប Key</button>
         <button id="btnTestKey" type="button" class="btn-secondary" onclick="testCurrentAiProviderKey()"><i class="fa-solid fa-bolt"></i> សាកល្បងតភ្ជាប់ (Test)</button>
         <button id="btnSaveKey" type="button" class="btn-primary" onclick="saveApiKeyFromModal()">រក្សាទុក</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Install App / Add to Screen Guide Modal -->
+  <div id="installGuideModal" class="modal-overlay" style="display: none; z-index: 10020;">
+    <div class="modal-card" style="max-width: 540px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i class="fa-solid fa-download text-primary"></i>
+          <h4>ដំឡើងកម្មវិធីលើអេក្រង់ (Install App / Add to Screen)</h4>
+        </div>
+        <button class="btn-close-modal" onclick="closeInstallModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 10px; padding: 14px; text-align: center; margin-bottom: 16px;">
+          <img src="/icon-192.png" alt="App Icon" style="width: 64px; height: 64px; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 8px;">
+          <h4 style="margin: 0; color: #312e81; font-weight: 700;">AI Lesson Plan Studio</h4>
+          <p style="margin: 4px 0 0; font-size: 0.86rem; color: #4338ca;">ដំឡើងដាក់លើអេក្រង់ដើម្បីបើកប្រើប្រាស់ផ្ទាល់ដូចកម្មវិធី Native App (លឿន និងពេញអេក្រង់)</p>
+          <div id="pwaNativePromptWrap" style="margin-top: 12px;">
+            <button type="button" class="btn-primary" id="btnTriggerNativeInstall" onclick="triggerPwaPromptDirectly()" style="padding: 9px 20px; font-weight: 700; width: 100%; justify-content: center; background: linear-gradient(135deg, #4f46e5, #7c3aed);">
+              <i class="fa-solid fa-download"></i> ដំឡើងឥឡូវនេះ (Install Now)
+            </button>
+          </div>
+        </div>
+
+        <div style="font-size: 0.88rem; color: #334155;">
+          <p style="font-weight: 700; margin-bottom: 8px; color: #1e293b;"><i class="fa-solid fa-circle-info text-primary"></i> របៀបដំឡើងតាមឧបករណ៍នីមួយៗ៖</p>
+
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;">
+              <strong style="color: #0f172a;"><i class="fa-solid fa-laptop text-primary"></i> លើកុំព្យូទ័រ (Google Chrome / Microsoft Edge):</strong>
+              <div style="margin-top: 4px; font-size: 0.84rem; line-height: 1.5;">
+                • សម្លឹងមើលទៅលើ <strong>Address Bar (របារអាសយដ្ឋាន)</strong> ផ្នែកខាងស្តាំដៃ ➔ ចុចលើសញ្ញា <strong>⊕</strong> ឬ <strong>Install</strong><br>
+                • ឬចុច Menu (⋮ ឬ ⋯) ➔ ជ្រើសយក <strong>Save and Share</strong> (ឬ Apps) ➔ <strong>Install AI Lesson Plan Studio</strong>។
+              </div>
+            </div>
+
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;">
+              <strong style="color: #0f172a;"><i class="fa-brands fa-apple text-primary"></i> លើទូរស័ព្ទ iPhone / iPad (Safari):</strong>
+              <div style="margin-top: 4px; font-size: 0.84rem; line-height: 1.5;">
+                • ចុចលើប៊ូតុង <strong>Share</strong> (សញ្ញាព្រួញឡើងលើ <i class="fa-solid fa-arrow-up-from-bracket"></i>)<br>
+                • អូសចុះក្រោម រួចជ្រើសរើស <strong>«Add to Home Screen (បន្ថែមលើអេក្រង់ដើម)»</strong>។
+              </div>
+            </div>
+
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 12px;">
+              <strong style="color: #0f172a;"><i class="fa-brands fa-android text-primary"></i> លើទូរស័ព្ទ Android (Chrome):</strong>
+              <div style="margin-top: 4px; font-size: 0.84rem; line-height: 1.5;">
+                • ចុចលើសញ្ញាចុចបី (⋮) នៅជ្រុងខាងលើស្តាំ ➔ ជ្រើសរើស <strong>«Install app»</strong> ឬ <strong>«Add to Home screen»</strong>។
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-ghost" onclick="closeInstallModal()">យល់ព្រម / បិទ</button>
       </div>
     </div>
   </div>
