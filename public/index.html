@@ -52,8 +52,8 @@
           </select>
         </div>
 
-        <!-- Saved Plans Library Button -->
-        <button id="btnOpenSavedPlans" class="btn-secondary" title="បើកបណ្ណាល័យកិច្ចតែងការដែលបានរក្សាទុក">
+        <!-- Saved Plans Library Button (Hidden) -->
+        <button id="btnOpenSavedPlans" class="btn-secondary" style="display: none;" title="បើកបណ្ណាល័យកិច្ចតែងការដែលបានរក្សាទុក">
           <i class="fa-solid fa-folder-open"></i>
           <span class="btn-text">បណ្ណាល័យ</span>
           <span id="savedPlansCountBadge" class="count-badge">០</span>
@@ -66,15 +66,15 @@
           <span id="updateAvailableDot" class="status-dot" style="display: none; background: #10b981;"></span>
         </button>
 
-        <!-- License Key Modal Trigger -->
-        <button id="btnOpenLicenseModal" class="btn-secondary" style="border-color: #f59e0b;" onclick="openLicenseModal()" title="ព័ត៌មានអាជ្ញាបណ្ណ និងការ Activate កម្មវិធី">
+        <!-- License Key Modal Trigger (Hidden) -->
+        <button id="btnOpenLicenseModal" class="btn-secondary" style="display: none; border-color: #f59e0b;" onclick="openLicenseModal()" title="ព័ត៌មានអាជ្ញាបណ្ណ និងការ Activate កម្មវិធី">
           <i class="fa-solid fa-shield-halved" style="color: #f59e0b;"></i>
           <span class="btn-text" id="headerLicenseLabel">អាជ្ញាបណ្ណ</span>
           <span id="headerLicenseBadge" class="status-dot online"></span>
         </button>
 
-        <!-- API Key Modal Trigger -->
-        <button id="btnApiKey" class="btn-secondary" onclick="openApiKeyModal()" title="ប្រព័ន្ធ Gemini AI រួចរាល់ជាស្រេច">
+        <!-- API Key Modal Trigger (Hidden) -->
+        <button id="btnApiKey" class="btn-secondary" style="display: none;" onclick="openApiKeyModal()" title="ប្រព័ន្ធ Gemini AI រួចរាល់ជាស្រេច">
           <i class="fa-solid fa-key"></i>
           <span class="btn-text">API Key</span>
           <span id="apiKeyBadge" class="status-dot active"></span>
@@ -570,8 +570,8 @@
 
           <div class="toolbar-divider"></div>
 
-          <!-- Save Plan Button -->
-          <button id="btnSaveGeneratedPlan" class="btn-tool-action btn-save-plan" title="រក្សាទុកកិច្ចតែងការនេះទៅក្នុងបណ្ណាល័យ">
+          <!-- Save Plan Button (Hidden) -->
+          <button id="btnSaveGeneratedPlan" class="btn-tool-action btn-save-plan" style="display: none;" title="រក្សាទុកកិច្ចតែងការនេះទៅក្នុងបណ្ណាល័យ">
             <i class="fa-solid fa-floppy-disk"></i> រក្សាទុក
           </button>
 
@@ -1154,7 +1154,7 @@
 
           <!-- AI Gemini Synthesizer & Edit Actions -->
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <button type="button" onclick="openApiKeyModal()" style="background: #0f172a; color: #facc15; border: 1.5px solid #facc15; border-radius: 6px; padding: 6px 12px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px;" title="ពិនិត្យ ឬបញ្ចូល Google Gemini API Key">
+            <button type="button" onclick="openApiKeyModal()" style="display: none; background: #0f172a; color: #facc15; border: 1.5px solid #facc15; border-radius: 6px; padding: 6px 12px; font-size: 0.82rem; font-weight: 700; cursor: pointer; align-items: center; gap: 5px;" title="ពិនិត្យ ឬបញ្ចូល Google Gemini API Key">
               <i class="fa-solid fa-key"></i> <span>🔑 Gemini Key</span>
             </button>
             <button type="button" onclick="generateVideoScriptWithGemini()" id="btnStudioGeminiAI" style="background: linear-gradient(135deg, #7c3aed, #4f46e5); color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 10px rgba(124, 58, 237, 0.4);" title="ប្រើប្រាស់ Google Gemini AI ដើម្បីសង្ខេប និងបង្កើតស្គ្រីបវីដេអូ ១០ ឈុតយ៉ាងស៊ីជម្រៅ">
