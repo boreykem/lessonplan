@@ -5333,6 +5333,9 @@ function renderLessonPlanToA4(data) {
         <div id="postTestModuleWrapper">${renderPostTestModule(data, false)}</div>
       </div>
 
+      <!-- Learning Gain & Reflection Block -->
+      ${renderLearningGainReflectionBlock(data)}
+
       <!-- Signatures -->
       <div class="doc-footer-signatures" style="margin-top: 24px;">
         <div class="sig-box">
