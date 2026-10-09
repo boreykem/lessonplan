@@ -2199,3 +2199,11 @@ textarea.form-control {
   }
 }
 
+/* Permanently Hide Sample Picker & Mode Radio Cards */
+.sample-picker-wrapper,
+#samplePicker,
+.template-choice-group .radio-cards,
+.lesson-choice-group .radio-cards {
+  display: none !important;
+}
+

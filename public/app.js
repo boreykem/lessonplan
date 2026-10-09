@@ -8168,16 +8168,38 @@ window.addEventListener('appinstalled', () => {
   }
 });
 
-// Register Service Worker for PWA
+// Register Service Worker for PWA with auto-update
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').then((reg) => {
       console.log('[PWA] ServiceWorker registered:', reg.scope);
+      reg.update();
     }).catch((err) => {
       console.warn('[PWA] ServiceWorker registration failed:', err);
     });
   });
 }
+
+// Ensure unwanted widgets remain hidden
+function enforceHiddenWidgets() {
+  const hiddenSelectors = [
+    '.sample-picker-wrapper',
+    '#samplePicker',
+    '.template-choice-group .radio-cards',
+    '.lesson-choice-group .radio-cards'
+  ];
+  hiddenSelectors.forEach((sel) => {
+    document.querySelectorAll(sel).forEach((el) => {
+      el.style.setProperty('display', 'none', 'important');
+    });
+  });
+}
+enforceHiddenWidgets();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', enforceHiddenWidgets);
+}
+window.addEventListener('load', enforceHiddenWidgets);
+
 
 function handleInstallPwaClick() {
   if (deferredPrompt) {
