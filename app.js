@@ -8083,3 +8083,84 @@ window.calculateLearningGain = calculateLearningGain;
 window.applyLearningGainToReflection = applyLearningGainToReflection;
 window.openUpdateModal = openUpdateModal;
 window.closeUpdateModal = closeUpdateModal;
+
+// ==========================================================================
+// 📱 PWA (Progressive Web App) & Install to Home Screen Logic
+// ==========================================================================
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  console.log('[PWA] beforeinstallprompt captured!');
+  const btnInstall = document.getElementById('btnInstallApp');
+  if (btnInstall) {
+    btnInstall.style.boxShadow = '0 0 15px rgba(99, 102, 241, 0.8)';
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  console.log('[PWA] App successfully installed!');
+  deferredPrompt = null;
+  if (typeof showToast === 'function') {
+    showToast('🎉 បានដំឡើងកម្មវិធីលើអេក្រង់ដោយជោគជ័យ!', 'success');
+  }
+  closeInstallModal();
+  const btnInstall = document.getElementById('btnInstallApp');
+  if (btnInstall) {
+    btnInstall.innerHTML = '<i class="fa-solid fa-circle-check"></i> <span class="btn-text">បានដំឡើងរួច</span>';
+    btnInstall.style.opacity = '0.7';
+  }
+});
+
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then((reg) => {
+      console.log('[PWA] ServiceWorker registered:', reg.scope);
+    }).catch((err) => {
+      console.warn('[PWA] ServiceWorker registration failed:', err);
+    });
+  });
+}
+
+function handleInstallPwaClick() {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('[PWA] User accepted the install prompt');
+        if (typeof showToast === 'function') {
+          showToast('🚀 កំពុងដំឡើងកម្មវិធីលើអេក្រង់...', 'info');
+        }
+      }
+      deferredPrompt = null;
+    });
+  } else {
+    openInstallModal();
+  }
+}
+window.handleInstallPwaClick = handleInstallPwaClick;
+
+function triggerPwaPromptDirectly() {
+  if (deferredPrompt) {
+    handleInstallPwaClick();
+  } else {
+    if (typeof showToast === 'function') {
+      showToast('💡 សូមអនុវត្តតាមការណែនាំខាងក្រោម ដើម្បីដំឡើងលើឧបករណ៍របស់អ្នក!', 'info');
+    }
+  }
+}
+window.triggerPwaPromptDirectly = triggerPwaPromptDirectly;
+
+function openInstallModal() {
+  const modal = document.getElementById('installGuideModal');
+  if (modal) modal.style.display = 'flex';
+}
+window.openInstallModal = openInstallModal;
+
+function closeInstallModal() {
+  const modal = document.getElementById('installGuideModal');
+  if (modal) modal.style.display = 'none';
+}
+window.closeInstallModal = closeInstallModal;
