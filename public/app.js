@@ -4814,7 +4814,7 @@ function renderPreTestHtmlBlock(data) {
     <div class="doc-pretest-container">
       <div class="doc-pretest-header">
         <div class="doc-pretest-title"><i class="fa-solid fa-wand-magic-sparkles" style="color: #0284c7;"></i> កម្រងសំណួរស្ទង់ការយល់ដឹងមុនម៉ោង (Pre-Test Diagnostic QCM)</div>
-        <span class="doc-pretest-formula">កម្រិតលំបាក: 🟢 ៣ ងាយ (Easy) | 🟡 ១ មធ្យម (Medium) | 🔴 ១ ពិបាក (Hard)</span>
+        <span class="doc-pretest-formula">កម្រិតលំបាក: 🟢 ងាយ (Easy) | 🟡 មធ្យម (Medium) | 🔴 ពិបាក (Hard)</span>
       </div>
       <div class="qcm-grid">
         ${preQcmHtml}
@@ -4878,7 +4878,7 @@ function renderPostTestHtmlBlock(data) {
     <div class="doc-pretest-container" style="background: #f0fdf4; border-color: #86efac;">
       <div class="doc-pretest-header" style="border-bottom-color: #86efac;">
         <div class="doc-pretest-title" style="color: #166534;"><i class="fa-solid fa-graduation-cap"></i> កម្រងសំណួរវាស់ស្ទង់សមត្ថភាពបញ្ចប់ (Post-Test Diagnostic MCQ)</div>
-        <span class="doc-pretest-formula" style="background: #dcfce7; color: #166534;">Bloom's: ៣ Remember/Understand | ៤ Apply | ៣ Analyze</span>
+        <span class="doc-pretest-formula" style="background: #dcfce7; color: #166534;">Bloom's: 🟢 ងាយ | 🟡 មធ្យម | 🔴 ពិបាក</span>
       </div>
       <div class="qcm-grid">
         ${postQcmHtml}
@@ -4921,17 +4921,35 @@ function renderLearningGainReflectionBlock(data) {
 // Separates diagnostic/mastery assessments from core lesson plan generation
 // ==========================================================================
 
-async function callAiForSingleTest(testType, plan, numQuestions = 5) {
+async function callAiForSingleTest(testType, plan, numQuestions = 10, scale = null) {
   const apiKey = state.geminiApiKey;
   const isPre = testType === 'pre';
   const isEn = (state.language === 'en');
+  
+  let e = isPre ? 6 : 2;
+  let m = isPre ? 3 : 6;
+  let h = isPre ? 1 : 2;
+  
+  if (scale) {
+    e = scale.e;
+    m = scale.m;
+    h = scale.h;
+  } else if (numQuestions === 5) {
+    e = isPre ? 3 : 1;
+    m = isPre ? 1 : 3;
+    h = 1;
+  }
+
+  const diffPrompt = isPre ? 
+    `Difficulty level: ${e} Easy (Remember), ${m} Medium (Apply), ${h} Hard (Analyze).` :
+    `Bloom's Taxonomy / Difficulty: ${e} Easy (Remember/Understand), ${m} Medium (Apply/Analyze), ${h} Hard (Evaluate/Create).`;
 
   const prompt = isPre ? `You are Google Gemini AI expert pedagogical educator for Cambodia MoEYS.
 Generate EXACTLY ${numQuestions} specific Pre-Test Multiple-Choice Diagnostic Questions (QCM) in ${isEn ? 'English' : 'Khmer'} testing prerequisite knowledge for this lesson:
 Topic: "${plan.lessonTitle}"
 Subject: "${plan.subject}"
 Grade: "${plan.grade}"
-Difficulty level: 3 Easy (Remember), 1 Medium (Apply), 1 Hard (Analyze).
+${diffPrompt}
 
 Return ONLY valid JSON array with ${numQuestions} objects matching this schema:
 [
@@ -4949,7 +4967,7 @@ Generate EXACTLY ${numQuestions} specific Post-Test Multiple-Choice Mastery Asse
 Topic: "${plan.lessonTitle}"
 Subject: "${plan.subject}"
 Grade: "${plan.grade}"
-Bloom's Taxonomy: 1 Remember/Understand, 3 Apply/Analyze, 1 Evaluate/Create.
+${diffPrompt}
 
 Return ONLY valid JSON array with ${numQuestions} objects matching this schema:
 [
@@ -5029,7 +5047,7 @@ Return ONLY valid JSON array with ${numQuestions} objects matching this schema:
     : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []);
 }
 
-async function generatePreTestOnDemand(numQuestions = 5) {
+async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
   const plan = state.generatedPlanData || state.currentPlan;
   if (!plan) {
     showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
@@ -5079,7 +5097,7 @@ async function generatePreTestOnDemand(numQuestions = 5) {
 }
 window.generatePreTestOnDemand = generatePreTestOnDemand;
 
-async function generatePostTestOnDemand(numQuestions = 5) {
+async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
   const plan = state.generatedPlanData || state.currentPlan;
   if (!plan) {
     showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
@@ -9287,20 +9305,91 @@ window.closeInstallModal = closeInstallModal;
 
 window.promptGenerateTest = async function(type) {
   const isEn = (state.language === 'en');
-  const numStr = prompt(isEn ? 'How many questions do you want to generate? (e.g. 5, 10)' : 'តើលោកគ្រូចង់បានកម្រងសំណួរប៉ុន្មាន? (ឧ. ៥, ១០)', '5');
-  if (!numStr) return; // User cancelled
+  const isPre = type === 'pre';
   
-  const num = parseInt(numStr, 10);
-  if (isNaN(num) || num <= 0 || num > 20) {
-    showToast(isEn ? 'Please enter a valid number (1-20)' : 'សូមបញ្ចូលចំនួនសំណួរឱ្យបានត្រឹមត្រូវ (១-២០)', 'warning');
-    return;
-  }
+  // Default scales for 10 questions
+  const defEasy = isPre ? 6 : 2;
+  const defMed = isPre ? 3 : 6;
+  const defHard = isPre ? 1 : 2;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-backdrop active';
+  overlay.style.zIndex = '9999';
   
-  if (type === 'pre') {
-    await generatePreTestOnDemand(num);
-  } else {
-    await generatePostTestOnDemand(num);
+  const title = isPre ? (isEn ? 'Pre-Test Configuration' : 'ការកំណត់បុរេតេស្ត (Pre-Test)') : (isEn ? 'Post-Test Configuration' : 'ការកំណត់បច្ឆិមតេស្ត (Post-Test)');
+  
+  overlay.innerHTML = `
+    <div class="modal active" style="max-width: 420px; width: 95%;">
+      <div class="modal-header">
+        <div class="modal-title" style="color: ${isPre ? '#4338ca' : '#166534'};">
+          <i class="fa-solid ${isPre ? 'fa-wand-magic-sparkles' : 'fa-graduation-cap'}"></i> ${title}
+        </div>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <div class="form-group">
+          <label>${isEn ? 'Total Questions:' : 'ចំនួនសំណួរសរុប៖'}</label>
+          <input type="number" id="testTotalQ" class="form-control" value="10" min="1" max="25" oninput="window.updateScaleInputs()">
+        </div>
+        <div style="font-weight: 600; font-size: 10pt; margin-top: 20px; margin-bottom: 12px; color: #475569; padding-bottom: 5px; border-bottom: 2px solid #e2e8f0;">
+          ${isEn ? 'Difficulty Scale (Sum must equal total)' : 'កម្រិតលំបាកសំណួរ (ផលបូកត្រូវស្មើចំនួនសរុប)'}:
+        </div>
+        <div style="display: flex; gap: 12px;">
+          <div class="form-group" style="flex: 1;">
+            <label style="color: #15803d; font-size: 9.5pt;">${isEn ? 'Easy' : 'ងាយ'}</label>
+            <input type="number" id="testEasyQ" class="form-control" style="border: 1.5px solid #86efac; background: #f0fdf4; font-weight: 700; color: #166534;" value="${defEasy}" min="0">
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label style="color: #a16207; font-size: 9.5pt;">${isEn ? 'Medium' : 'មធ្យម'}</label>
+            <input type="number" id="testMedQ" class="form-control" style="border: 1.5px solid #fde047; background: #fefce8; font-weight: 700; color: #854d0e;" value="${defMed}" min="0">
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label style="color: #b91c1c; font-size: 9.5pt;">${isEn ? 'Hard' : 'ពិបាក'}</label>
+            <input type="number" id="testHardQ" class="form-control" style="border: 1.5px solid #fca5a5; background: #fef2f2; font-weight: 700; color: #991b1b;" value="${defHard}" min="0">
+          </div>
+        </div>
+        <div id="testScaleError" style="color: #ef4444; font-size: 9.5pt; margin-top: 12px; display: none; background: #fee2e2; padding: 8px; border-radius: 6px; border: 1px solid #fca5a5;"></div>
+      </div>
+      <div class="modal-footer" style="justify-content: flex-end; background: #f8fafc;">
+        <button class="btn-secondary" onclick="this.closest('.modal-backdrop').remove()">${isEn ? 'Cancel' : 'បោះបង់'}</button>
+        <button class="btn-primary" id="btnConfirmTestGen" style="background: ${isPre ? '#4f46e5' : '#10b981'}; box-shadow: none;">
+          <i class="fa-solid fa-bolt"></i> ${isEn ? 'Generate Test' : 'បង្កើតកម្រងសំណួរ'}
+        </button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  window.updateScaleInputs = function() {
+    const total = parseInt(document.getElementById('testTotalQ').value) || 0;
+    // We won't auto-calculate here to give users freedom, but we validate on click.
   }
+
+  document.getElementById('btnConfirmTestGen').onclick = async function() {
+    const total = parseInt(document.getElementById('testTotalQ').value) || 0;
+    const e = parseInt(document.getElementById('testEasyQ').value) || 0;
+    const m = parseInt(document.getElementById('testMedQ').value) || 0;
+    const h = parseInt(document.getElementById('testHardQ').value) || 0;
+
+    const errBox = document.getElementById('testScaleError');
+
+    if (total <= 0 || total > 30) {
+      errBox.innerHTML = isEn ? '<i class="fa-solid fa-triangle-exclamation"></i> Total questions must be between 1 and 30.' : '<i class="fa-solid fa-triangle-exclamation"></i> ចំនួនសំណួរសរុបត្រូវចន្លោះពី ១ ដល់ ៣០។';
+      errBox.style.display = 'block';
+      return;
+    }
+    if (e + m + h !== total) {
+      errBox.innerHTML = isEn ? `<i class="fa-solid fa-triangle-exclamation"></i> Scale sum (${e+m+h}) does not match Total (${total}).` : `<i class="fa-solid fa-triangle-exclamation"></i> ផលបូកសំណួរ (${e}+${m}+${h} = ${e+m+h}) មិនស្មើចំនួនសរុប (${total}) ទេ។`;
+      errBox.style.display = 'block';
+      return;
+    }
+    overlay.remove();
+
+    if (type === 'pre') {
+      await generatePreTestOnDemand(total, {e, m, h});
+    } else {
+      await generatePostTestOnDemand(total, {e, m, h});
+    }
+  };
 };
 
 // ==========================================================================
