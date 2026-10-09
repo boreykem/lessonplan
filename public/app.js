@@ -9571,3 +9571,170 @@ function clearHistory() {
   renderHistoryList();
   showToast('បានលុបប្រវត្តិទាំងអស់ដោយជោគជ័យ!', 'success');
 }
+
+// ==========================================================================
+// 📊 PPTX Generation (PowerPoint) via PptxGenJS + Gemini
+// ==========================================================================
+
+window.openPptxModal = function() {
+  const data = state.generatedPlanData || state.currentPlan;
+  if (!data) {
+    showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
+    return;
+  }
+  document.getElementById('pptxModal').style.display = 'flex';
+};
+
+window.closePptxModal = function() {
+  document.getElementById('pptxModal').style.display = 'none';
+};
+
+window.generatePptxSlides = async function() {
+  const data = state.generatedPlanData || state.currentPlan;
+  if (!data) return;
+
+  if (!state.geminiApiKey) {
+    showToast('សូមបញ្ចូល Google Gemini API Key ជាមុនសិន!', 'error');
+    openSettingsModal();
+    return;
+  }
+
+  const numSlides = document.getElementById('pptxNumSlides').value;
+  const includeImages = document.getElementById('pptxIncludeImages').value === 'yes';
+  const theme = document.getElementById('pptxTheme').value;
+  
+  closePptxModal();
+  setLoadingOverlayStatus('🎬 កំពុងបង្កើតកូដបញ្ជាស្លាយ...', 'Gemini AI កំពុងអានកិច្ចតែងការនិងសង្ខេបជាស្លាយ...');
+  
+  try {
+    const isEn = (state.language === 'en');
+    const prompt = `You are an expert educational presenter.
+Convert the following Cambodian MoEYS Lesson Plan into an engaging PowerPoint presentation outline.
+Number of slides requested (including Title slide): ${numSlides}
+Rules:
+1. Output MUST be a valid JSON array of objects, with NO markdown formatting, NO code blocks. JUST RAW JSON.
+2. Language MUST be exclusively Khmer for titles and content (except for imageSearchKeyword which MUST be in English).
+3. First object must be the Title Slide.
+4. Each object must have this schema:
+[
+  {
+    "type": "title",
+    "title": "Slide title (Lesson Title)",
+    "subtitle": "Subject - Grade",
+    "imageSearchKeyword": "one english word"
+  },
+  {
+    "type": "content",
+    "title": "Slide title in Khmer",
+    "bullets": ["Bullet 1", "Bullet 2", "Max 4 short bullets"],
+    "speakerNotes": "Script for the teacher to read while presenting this slide (in Khmer).",
+    "imageSearchKeyword": "1 or 2 english words describing the slide for stock photo search (e.g. 'mathematics', 'cambodia', 'biology', 'teamwork')."
+  }
+]
+Ensure the content perfectly matches the lesson plan below:
+
+Title: ${data.lessonTitle}
+Subject: ${data.subject}
+Grade: ${data.grade}
+
+Objectives:
+Knowledge: ${data.objectives?.knowledge?.join(', ')}
+Skills: ${data.objectives?.skills?.join(', ')}
+Attitudes: ${data.objectives?.attitudes?.join(', ')}
+
+Content Summary:
+${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('\n') : (data.stage3?.steps ? data.stage3.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('\n') : '')}
+`;
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${state.geminiApiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.2,
+          response_mime_type: "application/json"
+        }
+      })
+    });
+
+    const result = await response.json();
+    if (result.error) throw new Error(result.error.message);
+
+    let textResponse = result.candidates[0].content.parts[0].text;
+    textResponse = textResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
+    let slidesData = JSON.parse(textResponse);
+
+    setLoadingOverlayStatus('🎬 កំពុងផ្គុំឯកសារ PPTX...', 'កំពុងរចនាស្លាយមេរៀន...');
+
+    // Initialize PptxGenJS
+    let pptx = new PptxGenJS();
+    pptx.layout = 'LAYOUT_16x9';
+
+    // Theme definitions
+    let bg = 'FFFFFF', titleColor = '333333', bodyColor = '555555', accent = '0078D7';
+    if (theme === 'modern_blue') {
+      bg = 'F4F6F9'; titleColor = '003366'; bodyColor = '333333'; accent = '0055A4';
+    } else if (theme === 'eco_green') {
+      bg = 'F0Fdf4'; titleColor = '14532D'; bodyColor = '166534'; accent = '15803D';
+    } else if (theme === 'dark_mode') {
+      bg = '1E293B'; titleColor = 'F8FAFC'; bodyColor = 'CBD5E1'; accent = '38BDF8';
+    }
+
+    // Default master slides setup (optional, but we can just do inline styling for simplicity)
+    pptx.defineSlideMaster({
+      title: 'MASTER_SLIDE',
+      background: { color: bg },
+      slideNumber: { x: 0.3, y: '92%', color: bodyColor, fontSize: 10 }
+    });
+
+    for (const slideDef of slidesData) {
+      let slide = pptx.addSlide({ masterName: 'MASTER_SLIDE' });
+      slide.addNotes(slideDef.speakerNotes || '');
+
+      let picUrl = '';
+      if (includeImages && slideDef.imageSearchKeyword) {
+        // use picsum photos for placeholders
+        picUrl = `https://picsum.photos/seed/${encodeURIComponent(slideDef.imageSearchKeyword)}/800/600`;
+      }
+
+      if (slideDef.type === 'title') {
+        if (picUrl) {
+          slide.addImage({ x: 0, y: 0, w: '100%', h: '100%', path: picUrl });
+          // Add overlay to make text readable
+          slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: '100%', h: '100%', fill: { color: '000000', transparency: 50 } });
+          slide.addText(slideDef.title, { x: 1, y: 2.5, w: '80%', h: 1.5, fontSize: 44, bold: true, color: 'FFFFFF', align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addText(slideDef.subtitle, { x: 1, y: 4, w: '80%', h: 1, fontSize: 24, color: 'E2E8F0', align: 'center', fontFace: 'Kantumruy Pro' });
+        } else {
+          slide.addText(slideDef.title, { x: 1, y: 2.5, w: '80%', h: 1.5, fontSize: 44, bold: true, color: titleColor, align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addText(slideDef.subtitle, { x: 1, y: 4, w: '80%', h: 1, fontSize: 24, color: bodyColor, align: 'center', fontFace: 'Kantumruy Pro' });
+        }
+      } else {
+        // Content Slide
+        slide.addText(slideDef.title, { x: 0.5, y: 0.5, w: '90%', h: 0.8, fontSize: 32, bold: true, color: titleColor, fontFace: 'Kantumruy Pro' });
+        
+        if (picUrl) {
+          // Half layout
+          slide.addText(slideDef.bullets.map(b => ({ text: b, options: { bullet: true, breakLine: true } })), 
+            { x: 0.5, y: 1.5, w: '45%', h: 3.5, fontSize: 22, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 35 });
+          
+          slide.addImage({ x: '52%', y: 1.5, w: '43%', h: 3.5, path: picUrl, sizing: { type: 'cover', w: '43%', h: 3.5 } });
+        } else {
+          // Full layout
+          slide.addText(slideDef.bullets.map(b => ({ text: b, options: { bullet: true, breakLine: true } })), 
+            { x: 0.5, y: 1.5, w: '90%', h: 3.5, fontSize: 24, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 40 });
+        }
+      }
+    }
+
+    const fileName = `PPT_${data.lessonTitle || 'Lesson'}.pptx`;
+    await pptx.writeFile({ fileName: fileName });
+    hideLoadingOverlay();
+    showToast(`✅ បានទាញយកស្លាយ ${fileName} ជោគជ័យ!`, 'success');
+
+  } catch (error) {
+    console.error(error);
+    hideLoadingOverlay();
+    showToast('❌ បរាជ័យក្នុងការបង្កើតស្លាយ: ' + error.message, 'error');
+  }
+};
