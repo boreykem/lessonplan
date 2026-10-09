@@ -871,16 +871,19 @@ Pedagogical Principles & Step Guidelines for Flipped Learning:
    - ជំហានទី ២ : ត្រួតពិនិត្យការស្វ័យសិក្សាពីផ្ទះ & ដោះស្រាយចម្ងល់ Muddiest Points (Engage & Explore) (១០%): គ្រូផ្សារភ្ជាប់លទ្ធផល Pre-Test, ចោទសួរផ្ទាល់មាត់បំផុសស្មារតី ២ សំណួរខ្លីៗ, ហៅសិស្សលើកឡើង Muddiest Points, និងបង្ហាញការវាយតម្លៃ Pre-Test។
    - ជំហានទី ៣ : តម្រង់ទិស និងប្រគល់បេសកកម្មសិក្សា Challenge Scenario (Explore) (១០%): គ្រូដាក់ ៤ សំណួរតម្រង់ទិសដើម្បីពិនិត្យការយល់ដឹង និងសង្ខេបចម្លើយមុនប្រគល់បេសកកម្ម។
    - ជំហានទី ៤ : សកម្មភាពអនុវត្ត និងដោះស្រាយបញ្ហាក្នុងថ្នាក់ (Explain & Elaborate) (៧០% - CORE PHASE):
-     • ចែកសិស្សជា ៤ ក្រុមស្មើគ្នា (ក្រុមទី១, ២, ៣, ៤) ដោយប្រគល់សំណួរពិភាក្សាស៊ីជម្រៅរៀងៗខ្លួន (Challenge Scenario Worksheets)។
-     • គ្រប់គ្រងតាម ៤ ដំណាក់កាលជាក់លាក់៖
-       * ដំណាក់កាលទី១: ការពិភាក្សា និងវិភាគស៊ីជម្រៅក្នុងក្រុម (២០ នាទី)
-       * ដំណាក់កាលទី២: ការអនុវត្តសរសេរ & Mind Mapping លើ Flipchart A0/A1 ជាមួយប៊ិចហ្វឺតពណ៌ (៣០ នាទី)
-       * ដំណាក់កាលទី៣: ការធ្វើ Gallery Walk & បទបង្ហាញការពារ និងឆ្លើយសំណួរដេញដោល (៤០ នាទី)
-       * ដំណាក់កាលទី៤: ការបូកសរុបទាញក្បួនរួម + លំហាត់ Brain Break ២ នាទី (ដកដង្ហើមជ្រៅៗ និងបន្ធូរអារម្មណ៍) (១០ នាទី)
+     • អ្នកត្រូវជ្រើសរើសដោយចៃដន្យ និងអនុវត្តនូវវិធីសាស្ត្រមួយក្នុងចំណោម ៤ នេះ៖ 
+       (1) ការរៀនសហការបែប Jigsaw (ក្រុមអ្នកជំនាញ), 
+       (2) ការគូសផែនទីគំនិត (Concept Mapping), 
+       (3) ការដើរតួដោះស្រាយវិបត្តិ (Role-Play / Simulation), ឬ 
+       (4) ការត្រិះរិះពីការគិត (Metacognitive Reflection)។
+     • រៀបចំសកម្មភាពនេះឱ្យមានភាពស៊ីជម្រៅ ដោយបែងចែកជា ៤ ដំណាក់កាលតូចៗ (ការរៀបចំ, ការអនុវត្ត, ការបង្ហាញ/ឆ្លុះបញ្ចាំង, ការបូកសរុប) ដោយផ្អែកលើខ្លឹមសារមេរៀន។
      • ដាក់តេស្តបញ្ចប់ Post-Test & Exit Ticket 3-2-1។
    - ជំហានទី ៥ : បណ្តាំផ្ញើ និងកិច្ចការផ្ទះ (៥%): បណ្តាំផ្ញើសីលធម៌/បរិស្ថាន + ដាក់ ១ សំណួរកិច្ចការស្រាវជ្រាវ (Research Task) សម្រាប់រៀបចំម៉ោងបន្ទាប់។
 4. Post-Class / Extension Phase (សកម្មភាពពង្រីកពុទ្ធិក្រោយម៉ោង).
-5. MANDATORY INSTRUCTIONAL OBJECTIVE FORMULA (ក្បួនតែងវត្ថុបំណងបង្រៀនស្តង់ដារ MoEYS / គរុកោសល្យ A-C-S):
+5. TTT 30% / STT 70% RULE: In Step 4, explicitly design activities so the Teacher Talking Time is max 30%, and Student Talking Time is 70% (Student-Centered).
+6. 21st CENTURY SKILLS (4Cs): At the end of student activities (especially in Step 4), tag the exact 4Cs skill being developed in brackets (e.g., [ជំនាញសហការ និងការគិតស៊ីជម្រៅ]).
+7. EXIT TICKET 3-2-1: In Step 5, you MUST include an "Exit Ticket 3-2-1" formative assessment (e.g., សរសេរ ៣ចំណុចដែលបានរៀន, ២ចំណុចដែលចាប់អារម្មណ៍, ១ចំណុចដែលឆ្ងល់).
+8. MANDATORY INSTRUCTIONAL OBJECTIVE FORMULA (ក្បួនតែងវត្ថុបំណងបង្រៀនស្តង់ដារ MoEYS / គរុកោសល្យ A-C-S):
    ⚠️ វិធានកំណត់ចំនួនចំណុច (STRICT 1-BULLET LIMIT): នៅក្នុងវត្ថុបំណងនីមួយៗទាំង ៣ ផ្នែក (វិជ្ជាសម្បទា បំណិនសម្បទា ចរិយាសម្បទា) ត្រូវតែមានត្រឹមតែ ១ ចំណុចគត់ (EXACTLY 1 single comprehensive bullet point per category) ដែលមានសមាសភាគពេញលេញទាំង ៣ តាមរូបមន្ត ACS៖
    - [A - Action / សកម្មភាព ឬ របៀបធ្វើសកម្មភាព]: ប្រើកិរិយាស័ព្ទសកម្មដែលអាចវាស់វែងបាន (ឧ. កំណត់, ពន្យល់, រៀបរាប់, គណនា, វិភាគ, ដោះស្រាយ, រៀបចំ, បង្ហាញ, ប្ដេជ្ញាចិត្ត...)
    - [C - Condition / លក្ខខណ្ឌ]: មធ្យោបាយ ឬវិធីសាស្ត្ររៀន (ឧ. «តាមរយៈការពន្យល់របស់គ្រូ និងការសង្កេតស្លាយ/វីដេអូ», «តាមរយៈការអានឯកសារគោល», «តាមរយៈការអនុវត្តលំហាត់ជាក់ស្តែង និងការពិភាក្សាជាក្រុម», «តាមរយៈការឆ្លុះបញ្ចាំងលើ Exit Ticket»...)
@@ -997,9 +1000,9 @@ Return ONLY valid JSON matching this schema:
       "stepNumber": 4,
       "stepTitle": "ជំហានទី៤៖ ពង្រឹងចំណេះដឹង",
       "duration": "១២០ នាទី",
-      "teacherActivity": "បែងចែកក្រុម ដាក់សន្លឹកកិច្ចការករណីសិក្សាលើ Flipchart និងសម្របសម្រួល Gallery Walk",
-      "contentSummary": "ដំណោះស្រាយករណីសិក្សាជាក់ស្តែង និងការការពារទស្សនៈ",
-      "studentActivity": "ធ្វើការជាក្រុម សរសេរលើ Flipchart ឡើងការពារ និងឆ្លើយសំណួរដេញដោល"
+      "teacherActivity": "[ពិពណ៌នាសកម្មភាពគ្រូដោយប្រើវិធីសាស្ត្រមួយក្នុងចំណោម៖ Jigsaw, Concept Mapping, Role-Play, ឬ Metacognition]...",
+      "contentSummary": "[សង្ខេបខ្លឹមសារសកម្មភាព និងទ្រឹស្តីគន្លឹះ]...",
+      "studentActivity": "[សកម្មភាពសិស្សឆ្លើយតបទៅនឹងវិធីសាស្ត្រដែលបានជ្រើសរើស]..."
     }},
     {{
       "stepNumber": 5,
@@ -1141,6 +1144,10 @@ Structure requirements:
      • teacherActivity: List every question in quotation marks «...» by number.
      • contentSummary: Complete theoretical answers for each question (ចម្លើយទី១៖ ..., ចម្លើយទី២៖ ..., ចម្លើយទី៣៖ ..., ចម្លើយទី៤៖ ...).
      • studentActivity: Predicted summarized student answers for each question («សិស្សឆ្លើយ (ចម្លើយរំពឹងទុក)៖ - សំណួរទី១៖ ..., - សំណួរទី២៖ ..., - សំណួរទី៣៖ ..., - សំណួរទី៤៖ ...»).
+   - ADVANCED PEDAGOGY:
+     • TTT 30% / STT 70%: In Step 4, explicitly design activities so the Teacher Talking Time is max 30%, and Student Talking Time is 70% (Student-Centered).
+     • 21st CENTURY SKILLS (4Cs): At the end of student activities (especially in Step 4), tag the exact 4Cs skill being developed in brackets (e.g., [ជំនាញសហការ និងការគិតស៊ីជម្រៅ]).
+     • EXIT TICKET 3-2-1: In Step 5, you MUST include an "Exit Ticket 3-2-1" formative assessment (e.g., សរសេរ ៣ចំណុចដែលបានរៀន, ២ចំណុចដែលចាប់អារម្មណ៍, ១ចំណុចដែលឆ្ងល់).
 5. Self-Reflection (ការស្វ័យវាយតម្លៃ)
 
 {f"IMPORTANT: The user provided a custom template structure. You MUST adopt this custom format: {custom_template}" if custom_template else ""}
