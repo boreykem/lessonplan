@@ -2187,3 +2187,15 @@ textarea.form-control {
   font-weight: 700;
   box-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
 }
+
+/* PWA Standalone Mode & Installed State - Hide Install Button */
+.pwa-installed #btnInstallApp {
+  display: none !important;
+}
+
+@media all and (display-mode: standalone) {
+  #btnInstallApp {
+    display: none !important;
+  }
+}
+
