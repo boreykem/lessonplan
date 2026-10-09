@@ -1584,10 +1584,36 @@
       </div>
     </div>
   </div>
+    <!-- Floating Background Task Widget for PowerPoint -->
+  <div id="pptxBackgroundWidget" class="pptx-floating-widget" style="display: none;">
+    <div class="pptx-widget-card">
+      <div class="pptx-widget-header">
+        <div class="pptx-widget-title">
+          <span class="pptx-widget-icon"><i class="fa-solid fa-file-powerpoint"></i></span>
+          <span id="pptxWidgetTitle">កំពុងបង្កើតស្លាយ PowerPoint</span>
+        </div>
+        <div class="pptx-widget-actions">
+          <span id="pptxWidgetTimer" class="pptx-widget-timer">⏱️ 00:00</span>
+          <button type="button" class="pptx-widget-btn-close" onclick="closePptxWidget()" title="បិទផ្ទាំង"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+      </div>
+      <div class="pptx-widget-body">
+        <div id="pptxWidgetStatus" class="pptx-widget-status">🧠 Gemini AI កំពុងវិភាគ និងរៀបចំខ្លឹមសារ...</div>
+        <div class="pptx-widget-progress-bg">
+          <div id="pptxWidgetProgressBar" class="pptx-widget-progress-bar" style="width: 15%;"></div>
+        </div>
+        <div class="pptx-widget-footer">
+          <span class="pptx-widget-badge"><i class="fa-solid fa-bolt"></i> ដំណើរការនៅផ្ទៃខាងក្រោយ</span>
+          <span id="pptxWidgetActionBtnArea"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Notification System -->
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261009_v20"></script>
+  <script src="app.js?v=20261009_v21"></script>
 </body>
 </html>

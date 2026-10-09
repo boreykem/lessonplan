@@ -10064,7 +10064,164 @@ window.closePptxModal = function() {
   }
 };
 
+// ==========================================================================
+// 🔔 Background PPTX Floating Widget & Web Audio Notification
+// ==========================================================================
+
+let pptxWidgetTimerInterval = null;
+let pptxWidgetStartTime = null;
+
+function playSuccessChime() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+    
+    // Note 1: E5 (659.25 Hz)
+    const o1 = ctx.createOscillator();
+    const g1 = ctx.createGain();
+    o1.type = 'sine';
+    o1.frequency.setValueAtTime(659.25, ctx.currentTime);
+    g1.gain.setValueAtTime(0.18, ctx.currentTime);
+    g1.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+    o1.connect(g1);
+    g1.connect(ctx.destination);
+    o1.start(ctx.currentTime);
+    o1.stop(ctx.currentTime + 0.35);
+
+    // Note 2: B5 (987.77 Hz)
+    const o2 = ctx.createOscillator();
+    const g2 = ctx.createGain();
+    o2.type = 'sine';
+    o2.frequency.setValueAtTime(987.77, ctx.currentTime + 0.15);
+    g2.gain.setValueAtTime(0.22, ctx.currentTime + 0.15);
+    g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.7);
+    o2.connect(g2);
+    g2.connect(ctx.destination);
+    o2.start(ctx.currentTime + 0.15);
+    o2.stop(ctx.currentTime + 0.7);
+  } catch (e) {
+    // Audio context may be muted or blocked, fail silently
+  }
+}
+
+function showPptxWidget(initialTitle = 'កំពុងបង្កើតស្លាយ PowerPoint...') {
+  const el = document.getElementById('pptxBackgroundWidget');
+  if (!el) return;
+  el.style.display = 'block';
+  
+  const titleEl = document.getElementById('pptxWidgetTitle');
+  if (titleEl) titleEl.textContent = initialTitle;
+  
+  const progressEl = document.getElementById('pptxWidgetProgressBar');
+  if (progressEl) {
+    progressEl.style.width = '10%';
+    progressEl.style.background = 'linear-gradient(90deg, #e11d48, #f43f5e)';
+  }
+  
+  const btnArea = document.getElementById('pptxWidgetActionBtnArea');
+  if (btnArea) btnArea.innerHTML = '';
+
+  const timerEl = document.getElementById('pptxWidgetTimer');
+  if (timerEl) timerEl.textContent = '⏱️ 00:00';
+
+  pptxWidgetStartTime = Date.now();
+  if (pptxWidgetTimerInterval) clearInterval(pptxWidgetTimerInterval);
+  pptxWidgetTimerInterval = setInterval(() => {
+    const elapsedSec = Math.floor((Date.now() - pptxWidgetStartTime) / 1000);
+    const m = Math.floor(elapsedSec / 60);
+    const s = elapsedSec % 60;
+    if (timerEl) {
+      timerEl.textContent = `⏱️ ${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+  }, 1000);
+}
+
+function updatePptxWidgetStatus(statusHtml, progressPct = null) {
+  const statusEl = document.getElementById('pptxWidgetStatus');
+  if (statusEl) statusEl.innerHTML = statusHtml;
+  
+  if (progressPct !== null) {
+    const barEl = document.getElementById('pptxWidgetProgressBar');
+    if (barEl) barEl.style.width = `${Math.min(100, Math.max(5, progressPct))}%`;
+  }
+}
+
+function finishPptxWidgetSuccess(fileName) {
+  if (pptxWidgetTimerInterval) clearInterval(pptxWidgetTimerInterval);
+  const titleEl = document.getElementById('pptxWidgetTitle');
+  if (titleEl) titleEl.innerHTML = '✅ បង្កើតស្លាយជោគជ័យ!';
+  
+  const barEl = document.getElementById('pptxWidgetProgressBar');
+  if (barEl) {
+    barEl.style.width = '100%';
+    barEl.style.background = '#10b981';
+  }
+
+  const statusEl = document.getElementById('pptxWidgetStatus');
+  if (statusEl) {
+    statusEl.innerHTML = `<span style="color: #059669; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> ឯកសារ <b>${escapeHtml(fileName)}</b> បានទាញយករួចរាល់!</span>`;
+  }
+
+  const btnArea = document.getElementById('pptxWidgetActionBtnArea');
+  if (btnArea) {
+    btnArea.innerHTML = `<button type="button" onclick="closePptxWidget()" style="background: #10b981; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-weight: 600;">យល់ព្រម</button>`;
+  }
+
+  // Restore title after 10s
+  const prevTitle = document.title;
+  document.title = '✅ [ស្លាយ PPTX រួចរាល់] ' + prevTitle.replace(/^\[.*?\]\s*/, '').replace(/^⏳\s*\(.*?\)\s*/, '');
+  setTimeout(() => {
+    document.title = prevTitle;
+  }, 10000);
+
+  // Play audio chime
+  playSuccessChime();
+
+  // Auto-dismiss widget after 25s if not closed
+  setTimeout(() => {
+    closePptxWidget();
+  }, 25000);
+}
+
+function finishPptxWidgetError(errorMessage) {
+  if (pptxWidgetTimerInterval) clearInterval(pptxWidgetTimerInterval);
+  const titleEl = document.getElementById('pptxWidgetTitle');
+  if (titleEl) titleEl.innerHTML = '⚠️ មិនទាន់អាចបង្កើតស្លាយ';
+
+  const barEl = document.getElementById('pptxWidgetProgressBar');
+  if (barEl) {
+    barEl.style.background = '#f59e0b';
+    barEl.style.width = '100%';
+  }
+
+  const statusEl = document.getElementById('pptxWidgetStatus');
+  if (statusEl) {
+    statusEl.innerHTML = `<span style="color: #d97706; font-size: 0.82rem;">${escapeHtml(errorMessage)}</span>`;
+  }
+
+  const btnArea = document.getElementById('pptxWidgetActionBtnArea');
+  if (btnArea) {
+    btnArea.innerHTML = `<button type="button" onclick="generatePptxSlides()" style="background: #e11d48; color: white; border: none; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-weight: 600;"><i class="fa-solid fa-rotate-right"></i> សាកម្តងទៀត</button>`;
+  }
+}
+
+function closePptxWidget() {
+  if (pptxWidgetTimerInterval) clearInterval(pptxWidgetTimerInterval);
+  const el = document.getElementById('pptxBackgroundWidget');
+  if (el) el.style.display = 'none';
+}
+window.closePptxWidget = closePptxWidget;
+
 window.generatePptxSlides = async function() {
+  if (state.isPptxGenerating) {
+    showToast('⚠️ កំពុងមានដំណើរការបង្កើតស្លាយមួយរួចហើយ សូមរង់ចាំបន្តិច...', 'warning');
+    return;
+  }
+
   const sourceChoice = document.getElementById('pptxSourceSelect')?.value || 'current_plan';
   let data = state.generatedPlanData || state.currentPlan;
   let sourceDocText = '';
@@ -10132,9 +10289,16 @@ window.generatePptxSlides = async function() {
   const theme = document.getElementById('pptxTheme')?.value || 'modern_blue';
   
   closePptxModal();
-  showLoadingOverlay();
-  setLoadingOverlayStatus('🎬 កំពុងរៀបចំស្លាយ PowerPoint...', 'Gemini AI កំពុងវិភាគឯកសារ និងរៀបចំខ្លឹមសារស្លាយកម្រិតខ្ពស់... (សូមរង់ចាំបន្តិច)');
-  
+  state.isPptxGenerating = true;
+
+  // 🚀 Start Floating Background Task (Does NOT lock teacher's screen!)
+  showPptxWidget(`🎬 កំពុងបង្កើត ${numSlides} ស្លាយ PowerPoint...`);
+  updatePptxWidgetStatus('🧠 Gemini AI កំពុងវិភាគឯកសារ និងរៀបចំខ្លឹមសារស្លាយកម្រិតខ្ពស់... (រហូតដល់ ៥ នាទី)', 12);
+  showToast('🚀 កំពុងដំណើរការបង្កើតស្លាយនៅផ្ទៃខាងក្រោយ... លោកគ្រូអាចបន្តធ្វើការងារផ្សេងៗបានដោយសេរី!', 'info', 7000);
+
+  const originalDocTitle = document.title;
+  document.title = `⏳ (កំពុងបង្កើត ${numSlides} ស្លាយ...) ` + originalDocTitle.replace(/^\[.*?\]\s*/, '').replace(/^⏳\s*\(.*?\)\s*/, '');
+
   try {
     let slidesData = null;
     let lastError = null;
@@ -10142,7 +10306,7 @@ window.generatePptxSlides = async function() {
     const activeProvider = state.aiProvider || (apiKey.startsWith('gsk_') ? 'groq' : 'gemini');
 
     if (!apiKey) {
-      hideLoadingOverlay();
+      finishPptxWidgetError('មិនទាន់បានភ្ជាប់ Gemini API Key');
       if (typeof openAiErrorModal === 'function') openAiErrorModal('NO_KEY');
       return;
     }
@@ -10195,7 +10359,7 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
     // ⚡ Case A: Groq Provider (if configured)
     if (activeProvider === 'groq' && apiKey.startsWith('gsk_')) {
       try {
-        setLoadingOverlayStatus('⚡ Groq AI កំពុងបង្កើតស្លាយ...', 'កំពុងដំណើរការតាមរយៈ Groq Llama 3.3 70B...');
+        updatePptxWidgetStatus('⚡ Groq AI កំពុងបង្កើតស្លាយយ៉ាងរហ័ស (Llama 3.3 70B)...', 25);
         const groqResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -10225,7 +10389,7 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
       }
     }
 
-    // 🧠 Case B: Google Gemini AI (Dynamic discovery, 90s timeout, up to 3 retries with backoff)
+    // 🧠 Case B: Google Gemini AI (Dynamic discovery, up to 5 minutes timeout, 3 retries with backoff)
     if (!slidesData) {
       let candidateModels = [];
       if (typeof discoverGeminiModels === 'function') {
@@ -10262,23 +10426,23 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
       for (let attempt = 0; attempt < MAX_ATTEMPTS && !slidesData; attempt++) {
         if (attempt > 0) {
           const waitSec = attempt * 3;
-          setLoadingOverlayStatus(
-            '🔄 Gemini AI កំពុងព្យាយាមម្តងទៀត...',
-            `ម៉ាស៊ីនបម្រើកំពុងរវល់... កំពុងរៀបចំជុំទី ${attempt + 1}/${MAX_ATTEMPTS} (រង់ចាំ ${waitSec} វិនាទី)...`
+          updatePptxWidgetStatus(
+            `🔄 Gemini AI កំពុងព្យាយាមម្តងទៀត (ជុំទី ${attempt + 1}/${MAX_ATTEMPTS})... រង់ចាំ ${waitSec} វិនាទី (Server Backoff)`,
+            20 + attempt * 5
           );
           await new Promise(r => setTimeout(r, waitSec * 1000));
         }
 
         for (const item of candidateModels) {
           try {
-            setLoadingOverlayStatus(
-              '🧠 Gemini AI កំពុងវិភាគ និងបង្កើតខ្លឹមសារស្លាយ...',
-              `កំពុងដំណើរការម៉ូដែល ${item.name} (ជុំទី ${attempt + 1}/${MAX_ATTEMPTS})... សូមរង់ចាំបន្តិច!`
+            updatePptxWidgetStatus(
+              `🧠 Gemini AI (${item.name}) កំពុងវិភាគ និងបង្កើតខ្លឹមសារស្លាយ... (អនុញ្ញាតពេលរហូតដល់ ៥ នាទី)`,
+              30 + attempt * 5
             );
 
             const controller = new AbortController();
-            // Generous 90 seconds timeout so Gemini AI has ample time to generate detailed, authentic slides
-            const timeoutMs = 90000;
+            // Generous 5 MINUTES (300,000ms) timeout allowance so Gemini AI has full uninterrupted time
+            const timeoutMs = 300000;
             const timer = setTimeout(() => controller.abort(), timeoutMs);
 
             const resp = await fetch(`https://generativelanguage.googleapis.com/${item.ver}/models/${item.name}:generateContent?key=${apiKey}`, {
@@ -10323,7 +10487,6 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
     // If Gemini still failed after all retries, DO NOT output repetitive dummy slides!
     // Instead, inform the user honestly with instructions to try again.
     if (!slidesData || !Array.isArray(slidesData) || slidesData.length === 0) {
-      hideLoadingOverlay();
       const errStr = lastError ? (lastError.message || String(lastError)) : '';
       const isQuota = /429|quota|resource_exhausted|too many requests/i.test(errStr);
       const isBusy = /503|overloaded|unavailable|busy/i.test(errStr);
@@ -10331,11 +10494,12 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
 
       let alertMessage = '⚠️ Google Gemini AI កំពុងរវល់ខ្លាំង (Server Busy / 429 Rate Limit)។ សូមមេត្តារង់ចាំប្រមាណ ២០ ទៅ ៣០ វិនាទី រួចចុច «បង្កើតស្លាយឥឡូវនេះ» ម្ដងទៀត!';
       if (isTimeout) {
-        alertMessage = '⚠️ ការបង្កើតស្លាយលើសរយៈពេលកំណត់ (Timeout) ដោយសារខ្លឹមសារវែង ឬបណ្តាញយឺត។ សូមពិនិត្យអ៊ីនធឺណិត រួចចុចបង្កើតម្ដងទៀត!';
+        alertMessage = '⚠️ ការបង្កើតស្លាយលើសរយៈពេលកំណត់ (Timeout 5 នាទី)។ សូមពិនិត្យអ៊ីនធឺណិត រួចចុចបង្កើតម្ដងទៀត!';
       } else if (isBusy) {
         alertMessage = '⚠️ ម៉ាស៊ីនបម្រើ Google Gemini កំពុងផ្ទុកទិន្នន័យច្រើន (503 Server Unavailable)។ សូមរង់ចាំបន្តិច រួចព្យាយាមម្ដងទៀត!';
       }
 
+      finishPptxWidgetError(alertMessage);
       showToast(alertMessage, 'warning', 9000);
       if (typeof openAiErrorModal === 'function') {
         openAiErrorModal(lastError || new Error(alertMessage));
@@ -10343,7 +10507,7 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
       return; // Exit cleanly without creating fake/repetitive dummy presentation!
     }
 
-    setLoadingOverlayStatus('🎬 កំពុងផ្គុំឯកសារ PPTX & រូបភាព AI...', `កំពុងរចនា ${slidesData.length} ស្លាយ...`);
+    updatePptxWidgetStatus(`🎬 កំពុងផ្គុំឯកសារ PPTX & រូបភាព AI... (រៀបចំ ${slidesData.length} ស្លាយ)`, 55);
 
     if (typeof PptxGenJS === 'undefined') {
       throw new Error('បណ្ណាល័យ PPTXGenJS មិនទាន់ដំណើរការ។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត!');
@@ -10373,7 +10537,11 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
       let slide = pptx.addSlide({ masterName: 'MASTER_SLIDE' });
       if (slideDef.speakerNotes) slide.addNotes(slideDef.speakerNotes);
 
-      setLoadingOverlayStatus('🎬 កំពុងផ្គុំស្លាយ...', `ស្លាយទី ${idx + 1}/${slidesData.length}: ${slideDef.title || 'មាតិកា'}`);
+      const slideProgress = 55 + Math.round(((idx + 1) / slidesData.length) * 38);
+      updatePptxWidgetStatus(
+        `🎨 កំពុងរៀបចំស្លាយទី ${idx + 1}/${slidesData.length}: <b>${escapeHtml((slideDef.title || 'ខ្លឹមសារ').substring(0, 35))}</b>`,
+        slideProgress
+      );
 
       let picObj = null;
       if (imageMode !== 'no') {
@@ -10404,6 +10572,8 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
       }
     }
 
+    updatePptxWidgetStatus('📦 កំពុងបង្កើត និងទាញយកឯកសារ .pptx ទៅកាន់កុំព្យូទ័រ...', 98);
+
     // Clean lesson title to avoid double extension .docx.pptx and illegal filename characters
     let cleanTitle = (data.lessonTitle || 'Lesson')
       .replace(/\.(docx|pdf|pptx|txt|doc)$/gi, '')
@@ -10411,13 +10581,17 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
       .trim();
     const fileName = `PPT_${cleanTitle || 'Lesson'}.pptx`;
     await pptx.writeFile({ fileName: fileName });
-    showToast(`✅ បានទាញយកស្លាយ ${fileName} ជោគជ័យ!`, 'success');
+    
+    finishPptxWidgetSuccess(fileName);
+    showToast(`✅ បានទាញយកស្លាយ ${fileName} ជោគជ័យ!`, 'success', 10000);
 
   } catch (error) {
     console.error('PPTX error:', error);
+    finishPptxWidgetError('បរាជ័យ: ' + error.message);
     showToast('❌ បរាជ័យក្នុងការបង្កើតស្លាយ: ' + error.message, 'error');
   } finally {
-    hideLoadingOverlay();
+    state.isPptxGenerating = false;
+    document.title = originalDocTitle;
   }
 };
 
