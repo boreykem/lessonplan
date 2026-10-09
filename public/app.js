@@ -5908,7 +5908,7 @@ async function handleExportWord() {
         : generatePreTestQCMOffline(data.subject, data.grade, data.lessonTitle, []);
       let pList = [
         new Paragraph({ children: [new TextRun({ text: "វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test QCM ៥ សំណួរ)", bold: true, size: 24 })] }),
-        new Paragraph({ children: [new TextRun({ text: "កម្រិតលំបាក៖ 🟢 ៣ ងាយ (Easy) | 🟡 ១ មធ្យម (Medium) | 🔴 ១ ពិបាក (Hard)", italics: true, size: 20 })] })
+        new Paragraph({ children: [new TextRun({ text: "កម្រិតលំបាក៖ 🟢 ៣ ងាយ (Easy) | 🟡 ១ មធ្យម (Medium) | 🔴 ១ ពិបាក (Hard)", italics: true, size: 24 })] })
       ];
       let answerKeys = [];
       qcmList.forEach((q, idx) => {
@@ -5924,22 +5924,22 @@ async function handleExportWord() {
           }),
           new Paragraph({
             children: [
-              new TextRun({ text: `  ក. ${opts.A || opts['ក'] || ''}    ខ. ${opts.B || opts['ខ'] || ''}`, size: 20 })
+              new TextRun({ text: `  ក. ${opts.A || opts['ក'] || ''}    ខ. ${opts.B || opts['ខ'] || ''}`, size: 24 })
             ]
           }),
           new Paragraph({
             children: [
-              new TextRun({ text: `  គ. ${opts.C || opts['គ'] || ''}    ឃ. ${opts.D || opts['ឃ'] || ''}`, size: 20 })
+              new TextRun({ text: `  គ. ${opts.C || opts['គ'] || ''}    ឃ. ${opts.D || opts['ឃ'] || ''}`, size: 24 })
             ]
           })
         );
         if (q.explanation) {
-          pList.push(new Paragraph({ children: [new TextRun({ text: `  💡 ពន្យល់៖ ${q.explanation}`, italics: true, size: 18 })] }));
+          pList.push(new Paragraph({ children: [new TextRun({ text: `  💡 ពន្យល់៖ ${q.explanation}`, italics: true, size: 22 })] }));
         }
       });
       pList.push(
         new Paragraph({ text: "" }),
-        new Paragraph({ children: [new TextRun({ text: `🔑 បន្ទះចម្លើយត្រឹមត្រូវ (Pre-Test Answer Keys)៖ ${answerKeys.join(' | ')}`, bold: true, size: 20 })] }),
+        new Paragraph({ children: [new TextRun({ text: `🔑 បន្ទះចម្លើយត្រឹមត្រូវ (Pre-Test Answer Keys)៖ ${answerKeys.join(' | ')}`, bold: true, size: 24 })] }),
         new Paragraph({ text: "" })
       );
       return pList;
@@ -5952,7 +5952,7 @@ async function handleExportWord() {
         : generatePostTestMCQOffline(data.subject, data.grade, data.lessonTitle, []);
       let pList = [
         new Paragraph({ children: [new TextRun({ text: "វិញ្ញាសាវាយតម្លៃបញ្ចប់ Post-Test (MCQ ៥ សំណួរ)", bold: true, size: 24 })] }),
-        new Paragraph({ children: [new TextRun({ text: "  (វាស់ស្ទង់សមត្ថភាពក្រោយរៀន Bloom's Taxonomy)", italics: true, size: 20 })] })
+        new Paragraph({ children: [new TextRun({ text: "  (វាស់ស្ទង់សមត្ថភាពក្រោយរៀន Bloom's Taxonomy)", italics: true, size: 24 })] })
       ];
       let postAnswerKeys = [];
       postTestList.forEach((q, idx) => {
@@ -5962,28 +5962,28 @@ async function handleExportWord() {
         pList.push(
           new Paragraph({
             children: [
-              new TextRun({ text: `សំណួរទី ${qNum} : `, bold: true, size: 20 }),
-              new TextRun({ text: q.question || '', size: 20 })
+              new TextRun({ text: `សំណួរទី ${qNum} : `, bold: true, size: 24 }),
+              new TextRun({ text: q.question || '', size: 24 })
             ]
           }),
           new Paragraph({
             children: [
-              new TextRun({ text: `  ក. ${opts.A || opts['ក'] || ''}    ខ. ${opts.B || opts['ខ'] || ''}`, size: 20 })
+              new TextRun({ text: `  ក. ${opts.A || opts['ក'] || ''}    ខ. ${opts.B || opts['ខ'] || ''}`, size: 24 })
             ]
           }),
           new Paragraph({
             children: [
-              new TextRun({ text: `  គ. ${opts.C || opts['គ'] || ''}    ឃ. ${opts.D || opts['ឃ'] || ''}`, size: 20 })
+              new TextRun({ text: `  គ. ${opts.C || opts['គ'] || ''}    ឃ. ${opts.D || opts['ឃ'] || ''}`, size: 24 })
             ]
           })
         );
         if (q.explanation) {
-          pList.push(new Paragraph({ children: [new TextRun({ text: `  💡 ពន្យល់៖ ${q.explanation}`, italics: true, size: 18 })] }));
+          pList.push(new Paragraph({ children: [new TextRun({ text: `  💡 ពន្យល់៖ ${q.explanation}`, italics: true, size: 22 })] }));
         }
       });
       pList.push(
         new Paragraph({ text: "" }),
-        new Paragraph({ children: [new TextRun({ text: `🔑 បន្ទះចម្លើយត្រឹមត្រូវ (Post-Test Answer Keys)៖ ${postAnswerKeys.join(' | ')}`, bold: true, size: 20 })] }),
+        new Paragraph({ children: [new TextRun({ text: `🔑 បន្ទះចម្លើយត្រឹមត្រូវ (Post-Test Answer Keys)៖ ${postAnswerKeys.join(' | ')}`, bold: true, size: 24 })] }),
         new Paragraph({ text: "" })
       );
       return pList;
@@ -6024,7 +6024,7 @@ async function handleExportWord() {
                   children: [
                     new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `រយៈពេល៖ ${data.duration || '១៨០ នាទី'}`, bold: true, size: 22 })] }),
                     new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `គ្រូឧទ្ទេស៖ ${data.teacher || 'កែម បូរី'}`, bold: true, size: 22 })] }),
-                    new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `${data.dateStr || ''}`, size: 20 })] }),
+                    new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `${data.dateStr || ''}`, size: 24 })] }),
                   ]
                 })
               ]
@@ -6074,9 +6074,9 @@ async function handleExportWord() {
         new TableRow({
           tableHeader: true,
           children: [
-            new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពគ្រូ", bold: true, size: 20 })] })] }),
-            new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "ខ្លឹមសារ", bold: true, size: 20 })] })] }),
-            new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពសិស្ស", bold: true, size: 20 })] })] }),
+            new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពគ្រូ", bold: true, size: 24 })] })] }),
+            new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "ខ្លឹមសារ", bold: true, size: 24 })] })] }),
+            new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពសិស្ស", bold: true, size: 24 })] })] }),
           ]
         })
       ];
@@ -6095,9 +6095,9 @@ async function handleExportWord() {
           }),
           new TableRow({
             children: [
-              new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: (step.teacherActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 20 })] })) }),
-              new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: (step.contentSummary || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 20, bold: true })] })) }),
-              new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: (step.studentActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 20 })] })) }),
+              new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: (step.teacherActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 24 })] })) }),
+              new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: (step.contentSummary || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 24, bold: true })] })) }),
+              new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: (step.studentActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 24 })] })) }),
             ]
           })
         );
@@ -6154,7 +6154,7 @@ async function handleExportWord() {
         new Paragraph({ text: "" }),
         new Paragraph({
           children: [
-            new TextRun({ text: "* អាជ្ញាបណ្ណ និងកម្មសិទ្ធិ (License)： ខ្ញុំឈ្មោះកែម បូរី ជាគ្រូឧទ្ទេសមុខវិជ្ជាចិត្តវិទ្យាអប់រំ នៅវិទ្យាស្ថានគរុកោសល្យកំពង់ចាម", italics: true, size: 18, color: "64748B" })
+            new TextRun({ text: "* អាជ្ញាបណ្ណ និងកម្មសិទ្ធិ (License)： ខ្ញុំឈ្មោះកែម បូរី ជាគ្រូឧទ្ទេសមុខវិជ្ជាចិត្តវិទ្យាអប់រំ នៅវិទ្យាស្ថានគរុកោសល្យកំពង់ចាម", italics: true, size: 22, color: "64748B" })
           ]
         })
       );
@@ -6223,7 +6223,7 @@ async function handleExportWord() {
 
       if (stage2.criteria && stage2.criteria.length > 0) {
         docChildren.push(
-          new Paragraph({ children: [new TextRun({ text: `  • លក្ខណៈវិនិច្ឆ័យវាយតម្លៃ៖ ${stage2.criteria.join(' | ')}`, italics: true, size: 20 })] })
+          new Paragraph({ children: [new TextRun({ text: `  • លក្ខណៈវិនិច្ឆ័យវាយតម្លៃ៖ ${stage2.criteria.join(' | ')}`, italics: true, size: 24 })] })
         );
       }
       docChildren.push(new Paragraph({ text: "" }));
@@ -6239,19 +6239,19 @@ async function handleExportWord() {
             new TableRow({
               tableHeader: true,
               children: [
-                new TableCell({ width: { size: 20, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "ដំណាក់កាល/ពេល", bold: true, size: 20 })] })] }),
-                new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពគ្រូ", bold: true, size: 20 })] })] }),
-                new TableCell({ width: { size: 25, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "ខ្លឹមសារមេរៀន", bold: true, size: 20 })] })] }),
-                new TableCell({ width: { size: 25, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពសិស្ស", bold: true, size: 20 })] })] }),
+                new TableCell({ width: { size: 24, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "ដំណាក់កាល/ពេល", bold: true, size: 24 })] })] }),
+                new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពគ្រូ", bold: true, size: 24 })] })] }),
+                new TableCell({ width: { size: 25, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "ខ្លឹមសារមេរៀន", bold: true, size: 24 })] })] }),
+                new TableCell({ width: { size: 25, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពសិស្ស", bold: true, size: 24 })] })] }),
               ]
             }),
             ...activities.map(step => new TableRow({
               children: [
                 new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${step.stepTitle}
-(${step.duration})`, bold: true, size: 18 })] })] }),
-                new TableCell({ children: (step.teacherActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 18 })] })) }),
-                new TableCell({ children: (step.contentSummary || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, bold: true, size: 18 })] })) }),
-                new TableCell({ children: (step.studentActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 18 })] })) }),
+(${step.duration})`, bold: true, size: 22 })] })] }),
+                new TableCell({ children: (step.teacherActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
+                new TableCell({ children: (step.contentSummary || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, bold: true, size: 22 })] })) }),
+                new TableCell({ children: (step.studentActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
               ]
             }))
           ]
@@ -6299,19 +6299,19 @@ async function handleExportWord() {
             new TableRow({
               tableHeader: true,
               children: [
-                new TableCell({ width: { size: 20, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "ជំហាន/ពេល", bold: true, size: 20 })] })] }),
-                new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពគ្រូ", bold: true, size: 20 })] })] }),
-                new TableCell({ width: { size: 25, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "ខ្លឹមសារមេរៀន", bold: true, size: 20 })] })] }),
-                new TableCell({ width: { size: 25, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពសិស្ស", bold: true, size: 20 })] })] }),
+                new TableCell({ width: { size: 24, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "ជំហាន/ពេល", bold: true, size: 24 })] })] }),
+                new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពគ្រូ", bold: true, size: 24 })] })] }),
+                new TableCell({ width: { size: 25, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "ខ្លឹមសារមេរៀន", bold: true, size: 24 })] })] }),
+                new TableCell({ width: { size: 25, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពសិស្ស", bold: true, size: 24 })] })] }),
               ]
             }),
             ...steps.map(step => new TableRow({
               children: [
                 new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${step.stepTitle}
-(${step.duration})`, bold: true, size: 18 })] })] }),
-                new TableCell({ children: (step.teacherActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 18 })] })) }),
-                new TableCell({ children: (step.contentSummary || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, bold: true, size: 18 })] })) }),
-                new TableCell({ children: (step.studentActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 18 })] })) }),
+(${step.duration})`, bold: true, size: 22 })] })] }),
+                new TableCell({ children: (step.teacherActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
+                new TableCell({ children: (step.contentSummary || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, bold: true, size: 22 })] })) }),
+                new TableCell({ children: (step.studentActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
               ]
             }))
           ]
