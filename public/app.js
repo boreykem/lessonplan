@@ -6162,7 +6162,10 @@ async function handleExportWord() {
       // Done for flipped learning export
       const blob = await Packer.toBlob(new Document({ sections: [{ children: docChildren }] }));
       const filename = `កិច្ចតែងការបង្រៀនតាមបែបត្រឡប់_${(data.subject || 'មេរៀន')}_${(data.teacher || 'កែម_បូរី')}.docx`.replace(/\s+/g, '_');
-      saveAs(blob, filename);
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
       showToast(`✅ បានទាញយកឯកសារ Word ដោយជោគជ័យ៖ ${filename}`, 'success');
       return;
     }
