@@ -21,7 +21,7 @@
   <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
-  <link rel="stylesheet" href="style.css?v=20261009_v12">
+  <link rel="stylesheet" href="style.css?v=20261009_v18">
   
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="/manifest.json">
@@ -1422,7 +1422,7 @@
   </div>
 
   <!-- History / Dashboard Modal -->
-  <div id="historyModal" class="modal-backdrop">
+  <div id="historyModal" class="modal-overlay modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.8); backdrop-filter: blur(6px); z-index: 10000; align-items: center; justify-content: center;">
     <div class="modal" style="max-width: 800px; width: 95%;">
       <div class="modal-header">
         <div class="modal-title">
@@ -1461,19 +1461,24 @@
 
 
   
-  <!-- AC Kahoot Game Modal -->
-  <div id="gameModal" class="modal-backdrop">
-    <div class="modal" style="max-width: 1000px; width: 95%; height: 85vh; display: flex; flex-direction: column;">
-      <div class="modal-header">
-        <div class="modal-title" style="color: #8b5cf6;">
+    <!-- AC Kahoot Game Modal -->
+  <div id="gameModal" class="modal-overlay modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.8); backdrop-filter: blur(6px); z-index: 10000; align-items: center; justify-content: center;">
+    <div class="modal modal-card" style="max-width: 1050px; width: 95%; height: 85vh; display: flex; flex-direction: column; background: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
+      <div class="modal-header" style="padding: 12px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; background: #ffffff;">
+        <div class="modal-title" style="color: #8b5cf6; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
           <i class="fa-solid fa-gamepad"></i> AC Kahoot Cloud (Study Enhancement)
         </div>
-        <button class="modal-close" onclick="closeGameModal()"><i class="fa-solid fa-times"></i></button>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <a href="https://ac-kahoot-cloud.onrender.com/" target="_blank" rel="noopener noreferrer" class="btn-tool-action" style="background: #f3e8ff; color: #7c3aed; text-decoration: none; padding: 6px 12px; font-size: 9.5pt; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; border: 1px solid #d8b4fe;" title="បើកលេងក្នុងផ្ទាំង Browser ថ្មី">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> បើកក្នុងផ្ទាំងថ្មី
+          </a>
+          <button class="modal-close" onclick="closeGameModal()" style="font-size: 1.3rem; background: none; border: none; cursor: pointer; color: #64748b; padding: 4px 8px;"><i class="fa-solid fa-times"></i></button>
+        </div>
       </div>
       <div style="background: #fffbeb; color: #b45309; padding: 10px 15px; font-size: 9.5pt; text-align: center; border-bottom: 1px solid #fde68a;">
         <i class="fa-solid fa-circle-info"></i> <b>ជូនដំណឹង៖</b> ដោយសារយើងមិនទាន់មានអ្នកឧបត្ថម្ភសម្រាប់ការងារបង្កើតកម្មវិធីនេះនៅឡើយ ទើបយើងប្រើប្រាស់វេបសាយ (render.com) ឥតគិតថ្លៃ ដែលវានឹងត្រូវការពេល <b>៣០វិនាទី ទៅ ១នាទី</b> ដើម្បីបើកវេបសាយ AC Kahoot នេះ! សូមមេត្តារង់ចាំដោយអនុគ្រោះ!
       </div>
-      <div class="modal-body" style="flex: 1; padding: 0; background: #000; overflow: hidden; border-radius: 0 0 10px 10px; position: relative;">
+      <div class="modal-body" style="flex: 1; padding: 0; background: #000; overflow: hidden; position: relative;">
         <div style="position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); color: #94a3b8; text-align: center; z-index: 1;">
            <i class="fa-solid fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 15px;"></i>
            <div style="font-family: 'Kantumruy Pro'; font-size: 11pt;">កំពុងដំណើរការម៉ាស៊ីនមេហ្គេម...<br>(អាចប្រើពេលដល់ទៅ ១ នាទី សម្រាប់ការបើកដំបូង)</div>
@@ -1483,18 +1488,18 @@
     </div>
   </div>
 
-  <!-- PPTX Generator Modal -->
-  <div id="pptxModal" class="modal-backdrop">
-    <div class="modal" style="max-width: 450px; width: 95%;">
-      <div class="modal-header">
-        <div class="modal-title" style="color: #e11d48;">
+    <!-- PPTX Generator Modal -->
+  <div id="pptxModal" class="modal-overlay modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.8); backdrop-filter: blur(6px); z-index: 10000; align-items: center; justify-content: center;">
+    <div class="modal modal-card" style="max-width: 480px; width: 95%; background: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);">
+      <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+        <div class="modal-title" style="color: #e11d48; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
           <i class="fa-solid fa-file-powerpoint"></i> បង្កើតស្លាយ PowerPoint (AI Generator)
         </div>
-        <button class="modal-close" onclick="closePptxModal()"><i class="fa-solid fa-times"></i></button>
+        <button class="modal-close" onclick="closePptxModal()" style="font-size: 1.3rem; background: none; border: none; cursor: pointer; color: #64748b;"><i class="fa-solid fa-times"></i></button>
       </div>
       <div class="modal-body" style="padding: 20px;">
         <div style="font-size: 9.5pt; color: #475569; margin-bottom: 16px;">
-          ប្រព័ន្ធ AI នឹងអានកិច្ចតែងការនេះ រួចសង្ខេបនិងរៀបចំជាស្លាយមេរៀនដោយស្វ័យប្រវត្តិ។
+          ប្រព័ន្ធ AI នឹងអានកិច្ចតែងការនេះ រួចសង្ខេបនិងរៀបចំជាស្លាយមេរៀន PowerPoint (.pptx) ដោយស្វ័យប្រវត្តិ។
         </div>
         
         <div class="form-group">
@@ -1524,9 +1529,9 @@
           </select>
         </div>
       </div>
-      <div class="modal-footer" style="justify-content: flex-end; background: #fff1f2;">
+      <div class="modal-footer" style="justify-content: flex-end; background: #fff1f2; padding: 14px 20px; border-top: 1px solid #ffe4e6; display: flex; gap: 10px;">
         <button class="btn-secondary" onclick="closePptxModal()" style="border-color: #fda4af; color: #e11d48;">បោះបង់</button>
-        <button class="btn-primary" onclick="generatePptxSlides()" style="background: #e11d48; border: none;">
+        <button class="btn-primary" onclick="generatePptxSlides()" style="background: #e11d48; border: none; padding: 8px 16px; font-weight: 600; border-radius: 8px; color: white; cursor: pointer;">
           <i class="fa-solid fa-wand-magic-sparkles"></i> បង្កើតស្លាយឥឡូវនេះ
         </button>
       </div>
@@ -1536,6 +1541,6 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261009_v16"></script>
+  <script src="app.js?v=20261009_v18"></script>
 </body>
 </html>
