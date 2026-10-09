@@ -650,6 +650,9 @@
           <button id="btnExportWord" class="btn-tool-action btn-word" title="ទាញយកជាឯកសារ Microsoft Word (.docx)">
             <i class="fa-solid fa-file-word"></i> Word
           </button>
+          <button id="btnExportPptx" class="btn-tool-action" style="background: #fff1f2; color: #e11d48; border-color: #fda4af;" onclick="openPptxModal()" title="បង្កើត និងទាញយកស្លាយ PowerPoint (.pptx)">
+            <i class="fa-solid fa-file-powerpoint"></i> PPTX
+          </button>
 
           <button id="btnPrintPdf" class="btn-tool-action btn-pdf" title="បោះពុម្ព ឬរក្សាទុកជា PDF">
             <i class="fa-solid fa-print"></i> PDF
@@ -1424,6 +1427,56 @@
     </div>
   </div>
 
+
+  <!-- PPTX Generator Modal -->
+  <div id="pptxModal" class="modal-backdrop">
+    <div class="modal" style="max-width: 450px; width: 95%;">
+      <div class="modal-header">
+        <div class="modal-title" style="color: #e11d48;">
+          <i class="fa-solid fa-file-powerpoint"></i> បង្កើតស្លាយ PowerPoint (AI Generator)
+        </div>
+        <button class="modal-close" onclick="closePptxModal()"><i class="fa-solid fa-times"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <div style="font-size: 9.5pt; color: #475569; margin-bottom: 16px;">
+          ប្រព័ន្ធ AI នឹងអានកិច្ចតែងការនេះ រួចសង្ខេបនិងរៀបចំជាស្លាយមេរៀនដោយស្វ័យប្រវត្តិ។
+        </div>
+        
+        <div class="form-group">
+          <label>ចំនួនស្លាយ (Number of Slides):</label>
+          <select id="pptxNumSlides" class="form-control">
+            <option value="5">៥ ស្លាយ (ខ្លី/សង្ខេប)</option>
+            <option value="8" selected>៨ ស្លាយ (មធ្យម/ស្តង់ដារ)</option>
+            <option value="12">១២ ស្លាយ (វែង/លម្អិត)</option>
+          </select>
+        </div>
+        
+        <div class="form-group" style="margin-top: 12px;">
+          <label>បញ្ចូលរូបភាពស្វ័យប្រវត្តិ? (Auto-Pictures):</label>
+          <select id="pptxIncludeImages" class="form-control">
+            <option value="yes" selected>បាទ/ចាស (ទាញយករូបភាពពីអ៊ីនធឺណិត)</option>
+            <option value="no">ទេ (ស្លាយអក្សរសុទ្ធ)</option>
+          </select>
+        </div>
+        
+        <div class="form-group" style="margin-top: 12px;">
+          <label>រចនាបទពណ៌ (Theme Color):</label>
+          <select id="pptxTheme" class="form-control">
+            <option value="modern_blue" selected>Modern Blue (ខៀវទំនើប)</option>
+            <option value="eco_green">Eco Green (បៃតងធម្មជាតិ)</option>
+            <option value="dark_mode">Dark Mode (ស្រមោលងងឹត)</option>
+            <option value="simple_light">Simple Light (ស/ស្អាត)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: flex-end; background: #fff1f2;">
+        <button class="btn-secondary" onclick="closePptxModal()" style="border-color: #fda4af; color: #e11d48;">បោះបង់</button>
+        <button class="btn-primary" onclick="generatePptxSlides()" style="background: #e11d48; border: none;">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> បង្កើតស្លាយឥឡូវនេះ
+        </button>
+      </div>
+    </div>
+  </div>
   <!-- Toast Notification System -->
   <div id="toastContainer" class="toast-container"></div>
 
