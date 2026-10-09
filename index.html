@@ -1444,8 +1444,15 @@
         </div>
         <button class="modal-close" onclick="closeGameModal()"><i class="fa-solid fa-times"></i></button>
       </div>
-      <div class="modal-body" style="flex: 1; padding: 0; background: #000; overflow: hidden; border-radius: 0 0 10px 10px;">
-        <iframe src="https://ac-kahoot-cloud.onrender.com/" style="width: 100%; height: 100%; border: none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      <div style="background: #fffbeb; color: #b45309; padding: 10px 15px; font-size: 9.5pt; text-align: center; border-bottom: 1px solid #fde68a;">
+        <i class="fa-solid fa-circle-info"></i> <b>ជូនដំណឹង៖</b> ដោយសារយើងមិនទាន់មានអ្នកឧបត្ថម្ភសម្រាប់ការងារបង្កើតកម្មវិធីនេះនៅឡើយ ទើបយើងប្រើប្រាស់វេបសាយ (render.com) ឥតគិតថ្លៃ ដែលវានឹងត្រូវការពេល <b>៣០វិនាទី ទៅ ១នាទី</b> ដើម្បីបើកវេបសាយ AC Kahoot នេះ! សូមមេត្តារង់ចាំដោយអនុគ្រោះ!
+      </div>
+      <div class="modal-body" style="flex: 1; padding: 0; background: #000; overflow: hidden; border-radius: 0 0 10px 10px; position: relative;">
+        <div style="position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); color: #94a3b8; text-align: center; z-index: 1;">
+           <i class="fa-solid fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 15px;"></i>
+           <div style="font-family: 'Kantumruy Pro'; font-size: 11pt;">កំពុងដំណើរការម៉ាស៊ីនមេហ្គេម...<br>(អាចប្រើពេលដល់ទៅ ១ នាទី សម្រាប់ការបើកដំបូង)</div>
+        </div>
+        <iframe src="https://ac-kahoot-cloud.onrender.com/" style="width: 100%; height: 100%; border: none; position: relative; z-index: 2;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </div>
     </div>
   </div>
