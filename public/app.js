@@ -2234,20 +2234,13 @@ async function handleGenerateLessonPlan() {
     }
 
     if (planData) {
-      if (!planData.method || planData.method.toLowerCase().startsWith('ថ្នាក់រៀនត្រឡប់ (flipped learning) ៥ ជំហាន')) {
-        planData.method = genParams.method || planData.method;
-      }
-      if (!planData.subject) planData.subject = genParams.subject;
-      if (!planData.grade) planData.grade = genParams.grade;
-      if (!planData.lessonTitle) planData.lessonTitle = genParams.lessonTitle;
-      if (!planData.duration) planData.duration = genParams.duration;
-      if (!planData.teacher) planData.teacher = genParams.teacher;
-      if (!planData.school) planData.school = genParams.school;
+      planData = normalizeLessonPlanData(planData, genParams);
     }
 
     if (state.savedLearningGain && !planData.selfEvaluation) {
       planData.selfEvaluation = state.savedLearningGain;
     }
+    state.currentPlan = planData;
     state.generatedPlanData = planData;
     renderLessonPlanToA4(planData);
 
@@ -2456,7 +2449,7 @@ async function generateWithGroqAPI(params) {
   const totalMin = parseDurationToMinutes(params.duration);
   const stepTimeHints = calculateStepDurations(params.duration, isFlipped ? 'flipped' : (isBd ? 'backward_design' : 'standard'));
 
-  const prompt = `Generate a complete MoEYS Lesson Plan in Khmer for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}). Include 3 objectives (Knowledge, Skills, Attitudes), materials, teaching method, EXACTLY 5 Pre-Test QCM questions (with 4 choices A/B/C/D, correct answer, and explanation), ${isBd ? "3-stage UbD learning activities" : "5 in-class teaching steps"}, and EXACTLY 5 Post-Test MCQ questions (with 4 choices A/B/C/D, correct answer, and explanation). Do NOT include appendices, rubrics, exit tickets, or self-evaluations. Return strictly valid JSON.`;
+  const prompt = `Generate a complete MoEYS Lesson Plan in Khmer for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}). Include 3 objectives (Knowledge, Skills, Attitudes), materials, teaching method, and ${isBd ? "3-stage UbD learning activities" : "5 in-class teaching steps with teacher activity, lesson content, and student activity"}. Do NOT include pre-test/post-test questions in this output (they are generated separately on-demand). Return strictly valid JSON.`;
 
   const candidateModels = [
     'llama-3.3-70b-versatile',
@@ -2677,9 +2670,8 @@ ${isLongSession ? `• This is an EXTENDED ${totalMin}-minute block (Multi-hour 
 CRITICAL INSTRUCTIONS FOR AI GENERATION:
 1. Deep Content Analysis: Thoroughly examine the provided lesson content. Extract real definitions, terms, rules, formulas, and examples. Use them everywhere in the plan.
 2. Objectives: Strictly format every single objective statement using the 3 components: [Action] + [Content] + [Condition: តាមរយៈ...] + [Standard: បានត្រឹមត្រូវ/ច្បាស់លាស់...]!
-3. Pre-Test (5 QCM): Generate EXACTLY 5 specific multiple-choice questions (Bloom's 6-3-1: 3 Easy/Remember, 1 Medium/Apply, 1 Hard/Analyze) testing prerequisite knowledge from the lesson text. Each question must have 4 real answer options (A, B, C, D) with one correct answer and a clear Khmer explanation.
-4. Post-Test (5 MCQ): Generate EXACTLY 5 specific questions (Bloom's 20-60-20: 1 Remember/Understand, 3 Apply/Analyze, 1 Evaluate/Create) measuring mastery of this specific lesson.
-6. Step 4 (Active Learning Core): Must describe a SPECIFIC group activity or problem-solving task directly based on the lesson content — give the actual task, not a description of a task type.
+3. Core Focus: Focus 100% of your pedagogical output on Objectives, Materials, and the 5-Step Teaching Process (5%-10%-10%-70%-5%). Do NOT generate pre-test or post-test question arrays in this JSON (they are generated separately on-demand).
+4. Step 4 (Active Learning Core 70%): Must describe a SPECIFIC, RICH group activity or problem-solving task directly based on the lesson content with clear progressive phases.
 
 Return ONLY valid JSON matching this schema:
 {
@@ -2715,17 +2707,6 @@ Return ONLY valid JSON matching this schema:
     "teacher": ["កិច្ចតែងការបង្រៀន", "វីដេអូបង្រៀន", "ស្លាយបង្រៀន", "សន្លឹកកិច្ចការករណីសិក្សា"],
     "student": ["សៀវភៅគោល", "សៀវភៅកត់ត្រា", "ផ្ទាំងក្រដាសធំ Flipchart", "ប៊ិចហ្វឺតពណ៌"]
   },
-  "preTestQCM": [
-    {
-      "number": 1,
-      "difficulty": "ងាយ (Easy)",
-      "difficultyLevel": "easy",
-      "question": "សំណួរ Pre-Test ទី១ (Remember)...",
-      "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
-      "correctAnswer": "A",
-      "explanation": "..."
-    }
-  ],
   "steps": [
     {
       "stepNumber": 1,
@@ -2766,18 +2747,6 @@ Return ONLY valid JSON matching this schema:
       "teacherActivity": "ណែនាំការធ្វើតេស្តបញ្ចប់ (Post-Test ៥ សំណួរ) និងដាក់កិច្ចការស្រាវជ្រាវបន្ត",
       "contentSummary": "ការវាយតម្លៃ Post-Test និងកិច្ចការស្រាវជ្រាវសម្រាប់ម៉ោងក្រោយ",
       "studentActivity": "ធ្វើ Post-Test ភ្លាមៗ និងកត់ត្រាកិច្ចការផ្ទះ"
-    }
-  ],
-  "postTestMCQ": [
-    {
-      "number": 1,
-      "bloom": "Remember & Understand",
-      "difficulty": "ងាយ (Easy)",
-      "difficultyLevel": "easy",
-      "question": "សំណួរ Post-Test ទី១...",
-      "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
-      "correctAnswer": "A",
-      "explanation": "..."
     }
   ]
 };
@@ -2875,30 +2844,7 @@ Return ONLY valid JSON matching this schema:
         "studentActivity": "..."
       }
     ]
-  },
-  "preTestQCM": [
-    {
-      "number": 1,
-      "difficulty": "ងាយ (Easy)",
-      "difficultyLevel": "easy",
-      "question": "សំណួរ Pre-Test ទី១...",
-      "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
-      "correctAnswer": "A",
-      "explanation": "..."
-    }
-  ],
-  "postTestMCQ": [
-    {
-      "number": 1,
-      "bloom": "Remember & Understand",
-      "difficulty": "ងាយ (Easy)",
-      "difficultyLevel": "easy",
-      "question": "សំណួរ Post-Test ទី១...",
-      "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
-      "correctAnswer": "A",
-      "explanation": "..."
-    }
-  ]
+  }
 }`;
   } else {
     systemPrompt = `You are THREE experts working together as one:
@@ -3037,29 +2983,6 @@ Return ONLY valid JSON:
       "teacherActivity": "• គ្រូសង្ខេបចំណុចសំខាន់ៗនៃមេរៀន ${params.lessonTitle} ឡើងវិញ\n• គ្រូដាក់កិច្ចការផ្ទះ៖ «[ពិពណ៌នាលំហាត់ ឬកិច្ចការស្រាវជ្រាវជាក់លាក់]?»\n• គ្រូផ្ដាំផ្ញើអប់រំទូន្មានសីលធម៌ និងការមើលមេរៀនបន្តសម្រាប់ម៉ោងក្រោយ",
       "contentSummary": "• ចំណុចសំខាន់ៗ ៣-៥ ដែលសិស្សត្រូវចងចាំពីមេរៀន ${params.lessonTitle}\n• កិច្ចការផ្ទះ៖ [សរសេរខ្លឹមសារកិច្ចការផ្ទះឱ្យបានច្បាស់លាស់]\n• បណ្ដាំផ្ញើអប់រំសីលធម៌ និងសុវត្ថិភាព",
       "studentActivity": "• សិស្សកត់ត្រាកិច្ចការផ្ទះចូលក្នុងសៀវភៅដោយយកចិត្តទុកដាក់\n• សិស្សឆ្លើយបញ្ជាក់ការយល់ដឹង៖ «សិស្សយល់ច្បាស់ពីកិច្ចការផ្ទះ និងសន្យាអនុវត្តឱ្យបានគ្រប់គ្នា»\n• សិស្សរៀបចំសម្ភារ និងជម្រាបលាគ្រូ"
-    }
-  ],
-  "preTestQCM": [
-    {
-      "number": 1,
-      "difficulty": "ងាយ (Easy)",
-      "difficultyLevel": "easy",
-      "question": "សំណួរ Pre-Test ទី១...",
-      "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
-      "correctAnswer": "A",
-      "explanation": "..."
-    }
-  ],
-  "postTestMCQ": [
-    {
-      "number": 1,
-      "bloom": "Remember & Understand",
-      "difficulty": "ងាយ (Easy)",
-      "difficultyLevel": "easy",
-      "question": "សំណួរ Post-Test ទី១...",
-      "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
-      "correctAnswer": "A",
-      "explanation": "..."
     }
   ]
 }`;
@@ -3356,11 +3279,12 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
       parsed.school = params.school || parsed.school;
       parsed.teacher = params.teacher || parsed.teacher;
       parsed.subject = params.subject || parsed.subject;
-      parsed.grade = params.grade || parsed.grade;
+      parsed.grade = params.grade || params.grade;
       parsed.duration = params.duration || parsed.duration;
       parsed.chapter = params.chapter || parsed.chapter;
       parsed.lessonTitle = params.lessonTitle || parsed.lessonTitle;
-      return parsed;
+      const normalized = normalizeLessonPlanData(parsed, params);
+      return normalized;
 
     } catch (err) {
       console.warn(`[AI Engine] Error on ${modelLabel}:`, err.message);
@@ -4525,6 +4449,314 @@ function renderTeachingMethodContent(method) {
 }
 
 // Render Data to A4 Document Canvas
+
+// ==========================================================================
+// 🛡️ Bulletproof Data Normalizer & Quality Assurance Engine
+// Guarantees 100% complete, non-empty objectives, materials, and 5 steps
+// ==========================================================================
+function normalizeLessonPlanData(data, params = {}) {
+  if (!data || typeof data !== 'object') data = {};
+  const isEn = (state.language === 'en' || params.language === 'en');
+  
+  const subject = data.subject || params.subject || (isEn ? 'General Subject' : 'មុខវិជ្ជាទូទៅ');
+  const grade = data.grade || params.grade || (isEn ? 'Grade 10' : 'ថ្នាក់ទី ១០');
+  const lessonTitle = data.lessonTitle || params.lessonTitle || (params.chapter ? params.chapter : (isEn ? 'Core Lesson Topic' : 'មេរៀនស្នូល'));
+  const duration = data.duration || params.duration || (isEn ? '100 min (2 Sessions)' : '១០០ នាទី (២ ម៉ោងសិក្សា)');
+  const school = data.school || params.school || (isEn ? 'Educational Institution' : 'សាលារៀនជំនាន់ថ្មី / គ្រឹះស្ថានសិក្សា');
+  const teacher = data.teacher || params.teacher || (isEn ? 'Instructor' : 'លោកគ្រូ/អ្នកគ្រូ');
+  const chapter = data.chapter || params.chapter || '';
+  const method = data.method || params.method || (isEn ? 'Active Learning' : 'ការរៀនសកម្ម');
+  const dateStr = data.dateStr || params.dateStr || (isEn ? 'Date: ..... / ..... / 202...' : 'ថ្ងៃទី..... ខែ......... ឆ្នាំ២០២...');
+
+  data.subject = subject;
+  data.grade = grade;
+  data.lessonTitle = lessonTitle;
+  data.duration = duration;
+  data.school = school;
+  data.teacher = teacher;
+  data.chapter = chapter;
+  data.method = method;
+  data.dateStr = dateStr;
+
+  const isFlipped = isFlippedLearningRequest(params) || data.templateType === 'flipped_learning' || (data.method && (data.method.includes('ត្រឡប់') || data.method.toLowerCase().includes('flipped')));
+  const isBd = !isFlipped && (isBackwardDesignRequest(params) || data.templateType === 'backward_design' || Boolean(data.stage1));
+
+  if (isFlipped) {
+    data.templateType = 'flipped_learning';
+    data.templateTitle = isEn ? 'FLIPPED LEARNING LESSON PLAN' : 'កិច្ចតែងការបង្រៀនតាមបែបថ្នាក់រៀនត្រឡប់';
+  } else if (isBd) {
+    data.templateType = 'backward_design';
+    data.templateTitle = isEn ? 'BACKWARD DESIGN (UbD) LESSON PLAN' : 'កិច្ចតែងការបង្រៀន (តាមបែបត្រឡប់ - Backward Design / UbD)';
+  } else {
+    data.templateType = data.templateType || '5_steps';
+    data.templateTitle = data.templateTitle || (isEn ? 'LESSON PLAN' : 'កិច្ចតែងការបង្រៀន');
+  }
+
+  // --- NORMALIZE OBJECTIVES ---
+  const rawObj = data.objectives || data.stage1?.objectives || {};
+  const toCleanArray = (val, defaultList) => {
+    if (!val) return defaultList;
+    if (Array.isArray(val)) {
+      const list = val.map(x => typeof x === 'string' ? x.trim() : (x.text || x.description || JSON.stringify(x))).filter(Boolean);
+      return list.length > 0 ? list : defaultList;
+    }
+    if (typeof val === 'string') {
+      const s = val.trim();
+      if (!s) return defaultList;
+      const parts = s.split(/\n|;/).map(x => x.replace(/^[-*•\d.)\s]+/, '').trim()).filter(Boolean);
+      return parts.length > 0 ? parts : [s];
+    }
+    return defaultList;
+  };
+
+  const defaultKnowledge = isEn ? [
+    `Explain the fundamental concepts and principles of "${lessonTitle}" through slide observations and teacher presentations accurately.`,
+    `Identify and articulate key formulas, rules, and definitions of ${subject} with at least 80% accuracy.`
+  ] : [
+    `កំណត់និយមន័យ និងពន្យល់ពីខ្លឹមសារចម្បងនៃ «${lessonTitle}» តាមរយៈការសង្កេតស្លាយបង្រៀន និងការពន្យល់របស់គ្រូ បានត្រឹមត្រូវ និងក្បោះក្បាយ។`,
+    `ចងចាំ និងរៀបរាប់រូបមន្ត ច្បាប់ ឬទ្រឹស្តីគន្លឹះនៃ ${subject} តាមរយៈការអានឯកសារ និងការពិភាក្សាជាក្រុម បានយ៉ាងហោចណាស់ ៨០% ត្រឹមត្រូវ។`
+  ];
+
+  const defaultSkills = isEn ? [
+    `Analyze, compute, and solve practical tasks relating to "${lessonTitle}" through collaborative group activities effectively.`,
+    `Organize, present, and defend group solutions on flipcharts or whiteboards with confidence and fluency.`
+  ] : [
+    `វិភាគ គណនា និងដោះស្រាយលំហាត់ជាក់ស្តែងទាក់ទងនឹង «${lessonTitle}» តាមរយៈការអនុវត្តការងារជាក្រុម បានត្រឹមត្រូវតាមក្បួនខ្នាត។`,
+    `រៀបចំ ធ្វើបទបង្ហាញ និងការពារលទ្ធផលការងារជាក្រុម តាមរយៈផ្ទាំង Flipchart ឬក្ដារឆ្នួន ប្រកបដោយភាពជឿជាក់ និងស្ទាត់ជំនាញ។`
+  ];
+
+  const defaultAttitudes = isEn ? [
+    `Demonstrate active collaboration, mutual respect, and disciplined participation throughout group inquiry tasks responsibly.`,
+    `Commit to applying the knowledge and skills from "${lessonTitle}" in daily life and practical problem-solving positively.`
+  ] : [
+    `បង្ហាញនូវស្មារតីសហការ យកចិត្តទុកដាក់ និងការគោរពវិន័យក្នុងការរៀនសូត្រ តាមរយៈការចូលរួមសកម្មភាពក្រុម ប្រកបដោយទំនួលខុសត្រូវខ្ពស់។`,
+    `ប្ដេជ្ញាចិត្តយកចំណេះដឹង និងបំណិនដែលទទួលបានពី «${lessonTitle}» ទៅអនុវត្តក្នុងការរស់នៅ និងដោះស្រាយបញ្ហាជាក់ស្តែង ដោយភាពស្មោះត្រង់ និងវិជ្ជមាន។`
+  ];
+
+  const rawK = rawObj.knowledge || rawObj['វិជ្ជាសម្បទា'] || rawObj['ចំណេះដឹង'] || rawObj.cognitive || data.knowledge;
+  const rawS = rawObj.skills || rawObj['បំណិនសម្បទា'] || rawObj['បំណិន'] || rawObj.psychomotor || data.skills;
+  const rawA = rawObj.attitudes || rawObj['ចរិយាសម្បទា'] || rawObj['ឥរិយាសម្បទា'] || rawObj['ឥរិយាបថ'] || rawObj.affective || data.attitudes;
+
+  data.objectives = {
+    intro: rawObj.intro || (isEn ? 'After completing this lesson, students will be able to:' : 'បន្ទាប់ពីរៀនមេរៀននេះចប់ គរុនិស្សិត/សិស្សនឹង៖'),
+    knowledge: toCleanArray(rawK, defaultKnowledge),
+    skills: toCleanArray(rawS, defaultSkills),
+    attitudes: toCleanArray(rawA, defaultAttitudes)
+  };
+
+  // --- NORMALIZE MATERIALS ---
+  const rawMat = data.materials || data.stage3?.materials || {};
+  const defaultTeacherMaterials = isEn ? [
+    `Textbook and Curriculum Guide: ${subject} ${grade}`,
+    `Teaching Slides, Video Materials, and Multimedia Presentations`,
+    `Case Study Worksheets and Rubric Assessment Sheets`
+  ] : [
+    `កិច្ចតែងការបង្រៀន, សៀវភៅសិក្សាគោលមុខវិជ្ជា ${subject} ${grade}`,
+    `ស្លាយបង្រៀន, កុំព្យូទ័រ/វីដេអូឧបទេស និងសន្លឹកកិច្ចការករណីសិក្សា`,
+    `តារាងរូបរិចវាយតម្លៃ (Rubrics) និងសម្ភារពិសោធន៍ជាក់ស្តែង (បើមាន)`
+  ];
+
+  const defaultStudentMaterials = isEn ? [
+    `Student Textbook ${subject} ${grade}`,
+    `Notebooks, Pens, Markers, and Student Whiteboards`,
+    `Group Flipcharts (A0/A1) and Sticky Notes`
+  ] : [
+    `សៀវភៅពុម្ព ${subject} ${grade}, សៀវភៅកត់ត្រា, ប៊ិច, បន្ទាត់`,
+    `ផ្ទាំងក្រដាសធំ Flipchart (A0/A1) និងប៊ិចហ្វឺតពណ៌ (សម្រាប់ពិភាក្សាក្រុម)`
+  ];
+
+  const rawTM = rawMat.teacher || rawMat['គ្រូ'] || rawMat['សម្រាប់គ្រូ'] || rawMat.teacherMaterials || data.teacherMaterials;
+  const rawSM = rawMat.student || rawMat['សិស្ស'] || rawMat['សម្រាប់សិស្ស'] || rawMat.studentMaterials || data.studentMaterials;
+
+  data.materials = {
+    teacher: toCleanArray(rawTM, defaultTeacherMaterials),
+    student: toCleanArray(rawSM, defaultStudentMaterials)
+  };
+
+  // --- NORMALIZE STEPS & DURATIONS ---
+  const stepTimeHints = calculateStepDurations(duration, isFlipped ? 'flipped' : (isBd ? 'backward_design' : 'standard'));
+
+  if (isBd) {
+    if (!data.stage1) data.stage1 = {};
+    if (!data.stage2) data.stage2 = {};
+    if (!data.stage3) data.stage3 = {};
+
+    data.stage1.title = data.stage1.title || (isEn ? "Stage 1: Desired Results" : "ដំណាក់កាលទី ១ : ការកំណត់លទ្ធផលរំពឹងទុក (Stage 1: Desired Results)");
+    data.stage1.establishedGoals = data.stage1.establishedGoals || (isEn ? `Master curriculum standards for ${lessonTitle}.` : `សម្រេចបានតាមស្តង់ដាកម្មវិធីសិក្សាជាតិសម្រាប់ «${lessonTitle}»`);
+    data.stage1.enduringUnderstandings = toCleanArray(data.stage1.enduringUnderstandings, [
+      `ការយល់ដឹងស៊ីជម្រៅអំពីគោលការណ៍គ្រឹះនៃ «${lessonTitle}» ជួយសិស្សដោះស្រាយបញ្ហាជាក់ស្តែងក្នុងជីវភាព។`
+    ]);
+    data.stage1.essentialQuestions = toCleanArray(data.stage1.essentialQuestions, [
+      `ហេតុអ្វីបានជា «${lessonTitle}» មានសារៈសំខាន់? តើយើងអាចយកទ្រឹស្តីនេះទៅអនុវត្តដោះស្រាយបញ្ហាជាក់ស្តែងយ៉ាងដូចម្តេច?`
+    ]);
+    data.stage1.objectives = data.objectives;
+
+    data.stage2.title = data.stage2.title || (isEn ? "Stage 2: Assessment Evidence" : "ដំណាក់កាលទី ២ : ការកំណត់ភស្តុតាងនៃការវាយតម្លៃ (Stage 2: Assessment Evidence)");
+    data.stage2.performanceTasks = toCleanArray(data.stage2.performanceTasks, [
+      `កិច្ចការអនុវត្ត និងបទបង្ហាញជាក្រុមលើករណីសិក្សាជាក់ស្តែងនៃ «${lessonTitle}»`
+    ]);
+    data.stage2.otherEvidence = toCleanArray(data.stage2.otherEvidence, [
+      `ការសង្កេតផ្ទាល់របស់គ្រូលើការចូលរួមពិភាក្សា និងការឆ្លើយសំណួរពង្រឹងពុទ្ធិ`
+    ]);
+    data.stage2.criteria = toCleanArray(data.stage2.criteria, [
+      `ភាពត្រឹមត្រូវតាមទ្រឹស្តី`, `ភាពច្នៃប្រឌិតក្នុងការដោះស្រាយ`, `កិច្ចសហការក្រុម`
+    ]);
+
+    data.stage3.title = data.stage3.title || (isEn ? "Stage 3: Learning Plan" : "ដំណាក់កាលទី ៣ : ផែនការរៀបចំការបង្រៀន និងរៀន (Stage 3: Learning Plan)");
+    data.stage3.materials = data.materials;
+
+    let acts = data.stage3.learningActivities || data.steps || [];
+    if (!acts || acts.length === 0) {
+      acts = [
+        {
+          stepNumber: 1,
+          stepTitle: isEn ? "1. Hook & Connect" : "១. ការទាក់ទាញ និងភ្ជាប់ទំនាក់ទំនង (Hook & Connect)",
+          duration: stepTimeHints.step1,
+          teacherActivity: `• គ្រូបង្ហាញរូបភាព/វីដេអូបំផុសសំណួរទាក់ទងនឹង «${lessonTitle}»\n• គ្រូចោទសំណួរគន្លឹះដាស់ការត្រិះរិះដើម្បីភ្ជាប់ចូលមេរៀន`,
+          contentSummary: `• បង្កើតចំណាប់អារម្មណ៍ និងភ្ជាប់បទពិសោធន៍ចាស់ទៅមេរៀនថ្មី «${lessonTitle}»`,
+          studentActivity: `• សិស្សសង្កេត រួមគ្នាសញ្ជឹងគិត និងឆ្លើយសំណួរបំផុសរបស់គ្រូដោយស្វាហាប់`
+        },
+        {
+          stepNumber: 2,
+          stepTitle: isEn ? "2. Equip & Explore" : "២. ការរុករក និងកសាងចំណេះដឹង (Equip & Explore)",
+          duration: stepTimeHints.step2,
+          teacherActivity: `• គ្រូចែកសិស្សជាក្រុម ដាក់សន្លឹកកិច្ចការបេសកកម្ម និងសម្របសម្រួល\n• គ្រូពន្យល់ណែនាំ និងជួយបំភ្លឺចំណុចគន្លឹះតាមក្រុម`,
+          contentSummary: `• ខ្លឹមសារស្នូល និងទ្រឹស្តីសំខាន់ៗនៃ «${lessonTitle}»\n• ដំណោះស្រាយជាក់ស្តែងនៃកិច្ចការបេសកកម្មក្រុម`,
+          studentActivity: `• សិស្សធ្វើការជាក្រុម រុករកឯកសារ ពិភាក្សាស៊ីជម្រៅ និងកត់ត្រាលើ Flipchart`
+        },
+        {
+          stepNumber: 3,
+          stepTitle: isEn ? "3. Rethink & Reflect" : "៣. ការឆ្លុះបញ្ចាំង និងកែសម្រួល (Rethink & Reflect)",
+          duration: stepTimeHints.step3,
+          teacherActivity: `• គ្រូសម្របសម្រួលឱ្យក្រុមធ្វើបទបង្ហាញ និងផ្តល់មតិកែលម្អ (Peer Feedback)\n• គ្រូបូកសរុបទាញក្បួនរួមថ្នាក់ និងកែតម្រូវចំណុចខ្វះខាត`,
+          contentSummary: `• ការបូកសរុប និងការទាញសេចក្តីសន្និដ្ឋានត្រឹមត្រូវនៃ «${lessonTitle}»`,
+          studentActivity: `• សិស្សឡើងការពារលទ្ធផល ចូលរួមដេញដោល និងឆ្លុះបញ្ចាំងការយល់ដឹង`
+        },
+        {
+          stepNumber: 4,
+          stepTitle: isEn ? "4. Evaluate & Exhibit" : "៤. ការវាយតម្លៃ និងការអនុវត្តបន្ត (Evaluate & Exhibit)",
+          duration: "៥ នាទី",
+          teacherActivity: `• គ្រូវាយតម្លៃការសម្រេចបានតាមវត្ថុបំណង និងដាក់កិច្ចការអនុវត្តបន្ត`,
+          contentSummary: `• ការវាយតម្លៃចុងក្រោយ និងការណែនាំការស្វ័យសិក្សាបន្តនៅផ្ទះ`,
+          studentActivity: `• សិស្សឆ្លើយសំណួរវាយតម្លៃ និងកត់ត្រាកិច្ចការផ្ទះដោយយកចិត្តទុកដាក់`
+        }
+      ];
+    }
+    data.stage3.learningActivities = acts;
+    data.steps = acts;
+
+  } else {
+    // 5-Step Model Normalization (Flipped, MoEYS Standard, STEM, Primary)
+    let rawSteps = data.steps || data.learningActivities || data.activities || [];
+    
+    const stepTitlesFlipped = [
+      "ជំហានទី១៖ រដ្ឋបាលថ្នាក់ និងត្រួតពិនិត្យការត្រៀមខ្លួន",
+      "ជំហានទី២៖ រំលឹកមេរៀនចាស់ និងត្រួតពិនិត្យការស្វ័យសិក្សា (Pre-Test QCM & Muddiest Points)",
+      "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី និងក្របខណ្ឌទ្រឹស្តីគន្លឹះ (Mini-Lecture / Core Insights)",
+      "ជំហានទី៤៖ ការរៀនសកម្ម ស៊ីជម្រៅ និងដោះស្រាយករណីសិក្សាជាក្រុម (Active Learning & Gallery Walk)",
+      "ជំហានទី៥៖ បូកសរុប វាយតម្លៃបច្ឆិមតេស្ត និងកិច្ចការស្រាវជ្រាវបន្ត (Synthesis & Homework)"
+    ];
+
+    const stepTitlesStandard = [
+      "ជំហានទី ១ : រដ្ឋបាលថ្នាក់",
+      "ជំហានទី ២ : រំលឹកមេរៀនចាស់ / ទំនាក់ទំនងមេរៀន",
+      "ជំហានទី ៣ : ដំណើរការបង្រៀន និងរៀន (មេរៀនថ្មី)",
+      "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (វាយតម្លៃ)",
+      "ជំហានទី ៥ : បណ្តាំផ្ញើ និងកិច្ចការផ្ទះ"
+    ];
+
+    const defaultTitles = isFlipped ? stepTitlesFlipped : stepTitlesStandard;
+    const normalizedSteps = [];
+
+    for (let i = 0; i < 5; i++) {
+      const stepIdx = i + 1;
+      const existing = rawSteps.find(s => s && (s.stepNumber === stepIdx || s.step_number === stepIdx || s.step === stepIdx)) || rawSteps[i] || {};
+      
+      const teacherAct = existing.teacherActivity || existing.teacher_activity || existing.teacher || existing['សកម្មភាពគ្រូ'] || '';
+      const contentSum = existing.contentSummary || existing.content_summary || existing.content || existing['ខ្លឹមសារ'] || existing['ខ្លឹមសារមេរៀន'] || '';
+      const studentAct = existing.studentActivity || existing.student_activity || existing.student || existing['សកម្មភាពសិស្ស'] || '';
+
+      const durKey = `step${stepIdx}`;
+      const defaultDur = stepTimeHints[durKey] || '១០ នាទី';
+
+      let safeTeacher = teacherAct;
+      let safeContent = contentSum;
+      let safeStudent = studentAct;
+
+      if (!safeTeacher || safeTeacher.trim().length < 5) {
+        if (stepIdx === 1) {
+          safeTeacher = "• គ្រូពិនិត្យអនាម័យ សណ្ដាប់ធ្នាប់ក្នុងថ្នាក់ និងសម្លៀកបំពាក់សិស្ស\n• គ្រូពិនិត្យវត្តមាន និងកត់ត្រាចំនួនសិស្សអវត្តមានក្នុងបញ្ជីវត្តមាន";
+        } else if (stepIdx === 2) {
+          safeTeacher = isFlipped 
+            ? `• គ្រូត្រួតពិនិត្យការស្វ័យសិក្សាតាមផ្ទះរបស់សិស្សលើប្រធានបទ «${lessonTitle}»\n• គ្រូបង្ហាញលទ្ធផលបុរេតេស្ត (Pre-Test QCM) និងប្រមូលចំណុចចម្ងល់ (Muddiest Points)`
+            : `• គ្រូសួរសំណួររំលឹកមេរៀនចាស់ទាក់ទងនឹង «${lessonTitle}»\n• គ្រូហៅសិស្សឆ្លើយ កោតសរសើរ និងភ្ជាប់ទំនាក់ទំនងចូលមេរៀនថ្មី`;
+        } else if (stepIdx === 3) {
+          safeTeacher = isFlipped
+            ? `• គ្រូសង្ខេបក្របខណ្ឌទ្រឹស្តីគន្លឹះ និងគំនិតស្នូលនៃ «${lessonTitle}» រយៈពេលខ្លី\n• គ្រូចោទសំណួរបំផុសគំនិត និងណែនាំបេសកកម្មសិក្សាជាក្រុម`
+            : `• គ្រូសរសេរចំណងជើងមេរៀន «${lessonTitle}» លើក្ដារខៀន\n• គ្រូពន្យល់ខ្លឹមសារគន្លឹះ ចោទសំណួរ និងដឹកនាំសិស្សរុករកចំណេះដឹង`;
+        } else if (stepIdx === 4) {
+          safeTeacher = isFlipped
+            ? `• គ្រូបែងចែកក្រុម ដាក់សន្លឹកកិច្ចការករណីសិក្សាជាក់ស្តែងនៃ «${lessonTitle}»\n• គ្រូដើរសម្របសម្រួល ផ្តល់ការគាំទ្រ និងដឹកនាំការធ្វើ Gallery Walk`
+            : `• គ្រូដាក់សំណួរពង្រឹងពុទ្ធិ ឬលំហាត់អនុវត្តរហ័សទាក់ទងនឹង «${lessonTitle}»\n• គ្រូឱ្យសិស្សអនុវត្តជាបុគ្គល ឬដៃគូ និងត្រួតពិនិត្យការយល់ដឹង`;
+        } else {
+          safeTeacher = `• គ្រូបូកសរុបចំណុចសំខាន់ៗនៃមេរៀន «${lessonTitle}» ឡើងវិញ\n• គ្រូដាក់កិច្ចការផ្ទះស្រាវជ្រាវ និងផ្ដាំផ្ញើអប់រំសីលធម៌ សុវត្ថិភាព`;
+        }
+      }
+
+      if (!safeContent || safeContent.trim().length < 5) {
+        if (stepIdx === 1) {
+          safeContent = "• ការពិនិត្យអនាម័យ បរិស្ថានសិក្សា និងសម្រង់វត្តមានសិស្សប្រចាំថ្ងៃ";
+        } else if (stepIdx === 2) {
+          safeContent = isFlipped
+            ? `• ការវិភាគលទ្ធផលបុរេតេស្ត (Pre-Test QCM) និងការស្រាយបំភ្លឺចំណុចស្រពេចស្រពិល\n• ចំណុចតភ្ជាប់គន្លឹះចូលសកម្មភាពអនុវត្តនៃ «${lessonTitle}»`
+            : `• ចម្លើយនៃសំណួររំលឹកមេរៀនចាស់ និងការតភ្ជាប់ចូលមេរៀនថ្មី «${lessonTitle}»`;
+        } else if (stepIdx === 3) {
+          safeContent = `«${lessonTitle}»\n• ខ្លឹមសារស្នូល និយមន័យ និងទ្រឹស្តីគន្លឹះដែលសិស្សត្រូវក្តាប់បាន\n• ឧទាហរណ៍ជាក់ស្តែង និងរូបមន្ត/ក្បួនខ្នាតសំខាន់ៗ`;
+        } else if (stepIdx === 4) {
+          safeContent = isFlipped
+            ? `• ដំណោះស្រាយករណីសិក្សា និងលទ្ធផលការងារជាក់ស្តែងរបស់ក្រុមនិស្សិត\n• ការទាញក្បួនគន្លឹះរួម និងការឆ្លុះបញ្ចាំងលើបញ្ហាប្រឈម`
+            : `• ចម្លើយ និងដំណោះស្រាយនៃសំណួរពង្រឹងពុទ្ធិ\n• ក្បួនគន្លឹះចងចាំនៃមេរៀន «${lessonTitle}»`;
+        } else {
+          safeContent = `• ចំណុចគន្លឹះ ៣-៥ ដែលសិស្សត្រូវចងចាំពី «${lessonTitle}»\n• ខ្លឹមសារកិច្ចការផ្ទះ និងការណែនាំការស្វ័យសិក្សាសម្រាប់ម៉ោងក្រោយ`;
+        }
+      }
+
+      if (!safeStudent || safeStudent.trim().length < 5) {
+        if (stepIdx === 1) {
+          safeStudent = "• ប្រធានថ្នាក់ឡើងរាយការណ៍ពីវត្តមានសិស្ស\n• សិស្សទាំងអស់រៀបចំសម្ភារសិក្សា និងរក្សាភាពស្ងប់ស្ងាត់គោរពវិន័យ";
+        } else if (stepIdx === 2) {
+          safeStudent = isFlipped
+            ? "• សិស្សស្តាប់ការវិភាគលទ្ធផលបុរេតេស្ត និងលើកឡើងនូវចំណុចចម្ងល់ពីការស្វ័យសិក្សា\n• ចូលរួមឆ្លើយសំណួរស្រាយបំភ្លឺរបស់គ្រូ"
+            : "• សិស្សស្តាប់ និងស្ម័គ្រចិត្តឆ្លើយសំណួររំលឹករបស់គ្រូ\n• សិស្សកត់ត្រាចំណុចតភ្ជាប់ចូលក្នុងសៀវភៅ";
+        } else if (stepIdx === 3) {
+          safeStudent = "• សិស្សកត់ត្រាចំណងជើងមេរៀន យកចិត្តទុកដាក់ស្តាប់ និងកត់ត្រាគំនិតសំខាន់ៗ\n• សិស្សសួរសំណួរចម្ងល់ និងឆ្លើយសំណួរបំផុសរបស់គ្រូ";
+        } else if (stepIdx === 4) {
+          safeStudent = isFlipped
+            ? "• សិស្សពិភាក្សាជាក្រុមយ៉ាងសកម្ម ដោះស្រាយករណីសិក្សា និងសរសេរលើ Flipchart\n• សិស្សចូលរួមធ្វើ Gallery Walk ឡើងការពារ និងឆ្លើយសំណួរដេញដោល"
+            : "• សិស្សយកចិត្តទុកដាក់ដោះស្រាយលំហាត់/សំណួរពង្រឹងពុទ្ធិលើក្ដារឆ្នួន ឬសៀវភៅ\n• សិស្សលើកបង្ហាញចម្លើយ និងកែតម្រូវតាមការណែនាំរបស់គ្រូ";
+        } else {
+          safeStudent = "• សិស្សកត់ត្រាកិច្ចការផ្ទះ និងបណ្ដាំផ្ញើចូលក្នុងសៀវភៅដោយយកចិត្តទុកដាក់\n• សិស្សរៀបចំសម្ភារ និងជម្រាបលាគ្រូ";
+        }
+      }
+
+      normalizedSteps.push({
+        stepNumber: stepIdx,
+        stepTitle: existing.stepTitle || existing.step_title || defaultTitles[i],
+        duration: existing.duration || defaultDur,
+        teacherActivity: safeTeacher,
+        contentSummary: safeContent,
+        studentActivity: safeStudent
+      });
+    }
+
+    data.steps = normalizedSteps;
+  }
+
+  return data;
+}
+window.normalizeLessonPlanData = normalizeLessonPlanData;
+
+
 function renderPreTestHtmlBlock(data) {
   const qcmList = (data.preTestQCM && data.preTestQCM.length > 0)
     ? data.preTestQCM
@@ -4554,7 +4786,7 @@ function renderPreTestHtmlBlock(data) {
 
   return `
     <!-- Pre-Test QCM -->
-    <div class="doc-section-title flex justify-between items-center" style="flex-wrap: wrap; gap: 6px; margin-top: 14px;">
+    <div class="doc-section-title flex justify-between items-center" style="flex-wrap: wrap; gap: 6px; margin-top: 8px;">
       <span>វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test QCM ៥ សំណួរ)</span>
       <div class="flex items-center gap-2" style="flex-wrap: wrap;">
         <button type="button" class="btn-copy-notebooklm" onclick="openGoogleFormModal('pre')" style="background: #7c3aed; color: white; border: none; font-weight: bold;" title="បង្កើតជា Google Form ដោយស្វ័យប្រវត្តក្នុង Google Drive">
@@ -4562,6 +4794,12 @@ function renderPreTestHtmlBlock(data) {
         </button>
         <button type="button" class="btn-csv-action" onclick="exportTestToCSV('pre')" title="ទាញយក Pre-Test ជា Excel/CSV (Google Sheets 5 Columns)">
           <i class="fa-solid fa-file-csv"></i> ទាញយក Pre-Test CSV
+        </button>
+        <button type="button" class="btn-tool-action" onclick="generatePreTestOnDemand()" style="background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; font-weight: 600; padding: 4px 10px; border-radius: 6px; cursor: pointer;" title="បង្កើតបុរេតេស្តឡើងវិញ">
+          <i class="fa-solid fa-arrows-rotate"></i> បង្កើតឡើងវិញ
+        </button>
+        <button type="button" class="btn-tool-action" onclick="removePreTestModule()" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="លាក់កម្រងសំណួរ">
+          <i class="fa-solid fa-xmark"></i> លាក់
         </button>
       </div>
     </div>
@@ -4612,7 +4850,7 @@ function renderPostTestHtmlBlock(data) {
 
   return `
     <!-- Post-Test MCQ -->
-    <div class="doc-section-title flex justify-between items-center" style="margin-top: 16px; flex-wrap: wrap; gap: 6px;">
+    <div class="doc-section-title flex justify-between items-center" style="margin-top: 8px; flex-wrap: wrap; gap: 6px;">
       <span>វិញ្ញាសាវាយតម្លៃបញ្ចប់ Post-Test (MCQ ៥ សំណួរ)</span>
       <div class="flex items-center gap-2" style="flex-wrap: wrap;">
         <button type="button" class="btn-copy-notebooklm" onclick="openGoogleFormModal('post')" style="background: #7c3aed; color: white; border: none; font-weight: bold;" title="បង្កើតជា Google Form ដោយស្វ័យប្រវត្តក្នុង Google Drive">
@@ -4620,6 +4858,12 @@ function renderPostTestHtmlBlock(data) {
         </button>
         <button type="button" class="btn-csv-action" onclick="exportTestToCSV('post')" title="ទាញយក Post-Test ជា Excel/CSV (Google Sheets 5 Columns)">
           <i class="fa-solid fa-file-csv"></i> ទាញយក Post-Test CSV
+        </button>
+        <button type="button" class="btn-tool-action" onclick="generatePostTestOnDemand()" style="background: #f0fdf4; color: #166534; border: 1px solid #86efac; font-weight: 600; padding: 4px 10px; border-radius: 6px; cursor: pointer;" title="បង្កើតបច្ឆិមតេស្តឡើងវិញ">
+          <i class="fa-solid fa-arrows-rotate"></i> បង្កើតឡើងវិញ
+        </button>
+        <button type="button" class="btn-tool-action" onclick="removePostTestModule()" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="លាក់កម្រងសំណួរ">
+          <i class="fa-solid fa-xmark"></i> លាក់
         </button>
       </div>
     </div>
@@ -4663,9 +4907,290 @@ function renderLearningGainReflectionBlock(data) {
   `;
 }
 
+
+// ==========================================================================
+// 🎯 On-Demand Pre-Test & Post-Test AI Generation Engine
+// Separates diagnostic/mastery assessments from core lesson plan generation
+// ==========================================================================
+
+async function callAiForSingleTest(testType, plan) {
+  const apiKey = state.geminiApiKey;
+  const isPre = testType === 'pre';
+  const isEn = (state.language === 'en');
+
+  const prompt = isPre ? `You are Google Gemini AI expert pedagogical educator for Cambodia MoEYS.
+Generate EXACTLY 5 specific Pre-Test Multiple-Choice Diagnostic Questions (QCM) in ${isEn ? 'English' : 'Khmer'} testing prerequisite knowledge for this lesson:
+Topic: "${plan.lessonTitle}"
+Subject: "${plan.subject}"
+Grade: "${plan.grade}"
+Difficulty level: 3 Easy (Remember), 1 Medium (Apply), 1 Hard (Analyze).
+
+Return ONLY valid JSON array with 5 objects matching this schema:
+[
+  {
+    "number": 1,
+    "difficulty": "ងាយ (Easy)",
+    "difficultyLevel": "easy",
+    "question": "...",
+    "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
+    "correctAnswer": "A",
+    "explanation": "..."
+  }
+]` : `You are Google Gemini AI expert pedagogical educator for Cambodia MoEYS.
+Generate EXACTLY 5 specific Post-Test Multiple-Choice Mastery Assessment Questions (MCQ) in ${isEn ? 'English' : 'Khmer'} measuring student learning mastery of this specific lesson:
+Topic: "${plan.lessonTitle}"
+Subject: "${plan.subject}"
+Grade: "${plan.grade}"
+Bloom's Taxonomy: 1 Remember/Understand, 3 Apply/Analyze, 1 Evaluate/Create.
+
+Return ONLY valid JSON array with 5 objects matching this schema:
+[
+  {
+    "number": 1,
+    "bloom": "Remember & Understand",
+    "difficulty": "ងាយ (Easy)",
+    "difficultyLevel": "easy",
+    "question": "...",
+    "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
+    "correctAnswer": "A",
+    "explanation": "..."
+  }
+]`;
+
+  if (!apiKey) {
+    return isPre 
+      ? generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, [])
+      : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []);
+  }
+
+  const directUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  try {
+    const resp = await fetch(directUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          response_mime_type: 'application/json',
+          temperature: 0.3,
+          maxOutputTokens: 2500
+        }
+      })
+    });
+
+    if (resp.ok) {
+      const data = await resp.json();
+      const txt = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      const parsed = extractAndParseJson(txt);
+      const list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || []);
+      if (list && list.length > 0) return list;
+    }
+  } catch (e) {
+    console.warn('Primary Gemini test generator failed, attempting fallback...', e);
+  }
+
+  // Fallback to gemini-2.0-flash
+  try {
+    const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const fbResp = await fetch(fallbackUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          response_mime_type: 'application/json',
+          temperature: 0.3,
+          maxOutputTokens: 2500
+        }
+      })
+    });
+    if (fbResp.ok) {
+      const fbData = await fbResp.json();
+      const txt = fbData.candidates?.[0]?.content?.parts?.[0]?.text;
+      const parsed = extractAndParseJson(txt);
+      const list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || []);
+      if (list && list.length > 0) return list;
+    }
+  } catch (err2) {
+    console.warn('Fallback Gemini test generator failed:', err2);
+  }
+
+  // Reliable offline generation if API encounters quota or network error
+  return isPre 
+    ? generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, [])
+    : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []);
+}
+
+async function generatePreTestOnDemand() {
+  const plan = state.generatedPlanData || state.currentPlan;
+  if (!plan) {
+    showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
+    return;
+  }
+
+  const isEn = (state.language === 'en');
+  const wrapper = document.getElementById('preTestModuleWrapper');
+  if (wrapper) {
+    wrapper.innerHTML = `
+      <div style="background: #f8fafc; border: 1.5px solid #c7d2fe; border-radius: 10px; padding: 22px; text-align: center;">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: #6366f1; margin-bottom: 10px;"></i>
+        <div style="font-weight: 700; font-size: 11pt; color: #3730a3;">
+          ${isEn ? 'AI is generating Pre-Test Diagnostic QCM (5 Questions)...' : 'AI កំពុងបង្កើតកម្រងសំណួរ Pre-Test (៥ សំណួរ QCM)...'}
+        </div>
+        <div style="font-size: 9.5pt; color: #64748b; margin-top: 5px;">
+          ${isEn ? `Analyzing "${plan.lessonTitle}" according to Bloom's Taxonomy (Easy, Medium, Hard)...` : `កំពុងវិភាគមេរៀន «${plan.lessonTitle}» តាម Bloom's Taxonomy (៣ ងាយ, ១ មធ្យម, ១ ពិបាក)...`}
+        </div>
+      </div>
+    `;
+  }
+
+  showToast(isEn ? 'Generating Pre-Test QCM with AI...' : '🤖 កំពុងបង្កើតបុរេតេស្ត (Pre-Test QCM) តាម AI...', 'info');
+
+  try {
+    const qList = await callAiForSingleTest('pre', plan);
+    plan.preTestQCM = qList;
+    state.currentPlan = plan;
+    state.generatedPlanData = plan;
+
+    if (wrapper) {
+      wrapper.innerHTML = renderPreTestModule(plan, isEn);
+    }
+    showToast(isEn ? '✨ Pre-Test QCM generated successfully!' : '✨ បានបង្កើតបុរេតេស្ត (Pre-Test QCM ៥ សំណួរ) ដោយជោគជ័យ!', 'success');
+  } catch (err) {
+    console.error('Pre-Test generation error:', err);
+    plan.preTestQCM = generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, []);
+    state.currentPlan = plan;
+    state.generatedPlanData = plan;
+    if (wrapper) {
+      wrapper.innerHTML = renderPreTestModule(plan, isEn);
+    }
+    showToast(isEn ? '✨ Pre-Test generated (Standard MoEYS Bank)' : '✨ បានរៀបចំបុរេតេស្តស្តង់ដារ MoEYS រួចរាល់!', 'success');
+  }
+}
+window.generatePreTestOnDemand = generatePreTestOnDemand;
+
+async function generatePostTestOnDemand() {
+  const plan = state.generatedPlanData || state.currentPlan;
+  if (!plan) {
+    showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
+    return;
+  }
+
+  const isEn = (state.language === 'en');
+  const wrapper = document.getElementById('postTestModuleWrapper');
+  if (wrapper) {
+    wrapper.innerHTML = `
+      <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; padding: 22px; text-align: center;">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: #16a34a; margin-bottom: 10px;"></i>
+        <div style="font-weight: 700; font-size: 11pt; color: #166534;">
+          ${isEn ? 'AI is generating Post-Test Diagnostic MCQ (5 Questions)...' : 'AI កំពុងបង្កើតកម្រងសំណួរ Post-Test (៥ សំណួរ MCQ)...'}
+        </div>
+        <div style="font-size: 9.5pt; color: #475569; margin-top: 5px;">
+          ${isEn ? `Measuring mastery of "${plan.lessonTitle}" (Bloom's: Remember, Apply, Analyze)...` : `កំពុងវិភាគវាស់ស្ទង់សមត្ថភាពសម្រេចបាននៃ «${plan.lessonTitle}» (Bloom's Taxonomy)...`}
+        </div>
+      </div>
+    `;
+  }
+
+  showToast(isEn ? 'Generating Post-Test MCQ with AI...' : '🎓 កំពុងបង្កើតបច្ឆិមតេស្ត (Post-Test MCQ) តាម AI...', 'info');
+
+  try {
+    const qList = await callAiForSingleTest('post', plan);
+    plan.postTestMCQ = qList;
+    state.currentPlan = plan;
+    state.generatedPlanData = plan;
+
+    if (wrapper) {
+      wrapper.innerHTML = renderPostTestModule(plan, isEn);
+    }
+    showToast(isEn ? '✨ Post-Test MCQ generated successfully!' : '✨ បានបង្កើតបច្ឆិមតេស្ត (Post-Test MCQ ៥ សំណួរ) ដោយជោគជ័យ!', 'success');
+  } catch (err) {
+    console.error('Post-Test generation error:', err);
+    plan.postTestMCQ = generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []);
+    state.currentPlan = plan;
+    state.generatedPlanData = plan;
+    if (wrapper) {
+      wrapper.innerHTML = renderPostTestModule(plan, isEn);
+    }
+    showToast(isEn ? '✨ Post-Test generated (Standard MoEYS Bank)' : '✨ បានរៀបចំបច្ឆិមតេស្តស្តង់ដារ MoEYS រួចរាល់!', 'success');
+  }
+}
+window.generatePostTestOnDemand = generatePostTestOnDemand;
+
+function removePreTestModule() {
+  const plan = state.generatedPlanData || state.currentPlan;
+  if (plan) {
+    plan.preTestQCM = null;
+    const wrapper = document.getElementById('preTestModuleWrapper');
+    if (wrapper) wrapper.innerHTML = renderPreTestModule(plan, state.language === 'en');
+  }
+}
+window.removePreTestModule = removePreTestModule;
+
+function removePostTestModule() {
+  const plan = state.generatedPlanData || state.currentPlan;
+  if (plan) {
+    plan.postTestMCQ = null;
+    const wrapper = document.getElementById('postTestModuleWrapper');
+    if (wrapper) wrapper.innerHTML = renderPostTestModule(plan, state.language === 'en');
+  }
+}
+window.removePostTestModule = removePostTestModule;
+
+function renderPreTestModule(data, isEn = false) {
+  const hasQuestions = data.preTestQCM && Array.isArray(data.preTestQCM) && data.preTestQCM.length > 0;
+  if (!hasQuestions) {
+    return `
+      <div class="test-cta-box" style="background: #f8fafc; border: 1.5px dashed #6366f1; border-radius: 10px; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+        <div style="flex: 1; min-width: 260px;">
+          <div style="font-size: 11pt; font-weight: 700; color: #3730a3; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-wand-magic-sparkles" style="color: #6366f1;"></i>
+            <span>${isEn ? 'Pre-Test Diagnostic QCM (5 Questions)' : 'វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test QCM ៥ សំណួរ)'}</span>
+          </div>
+          <div style="font-size: 9.5pt; color: #64748b; margin-top: 4px;">
+            ${isEn ? "Diagnostic questions testing prerequisite knowledge (Bloom's 3 Easy, 1 Medium, 1 Hard). Click to generate on-demand." : "កម្រងសំណួរស្ទង់ចំណេះដឹងបុរេលក្ខខណ្ឌ តាម Bloom's Taxonomy (៣ ងាយ | ១ មធ្យម | ១ ពិបាក)។ ចុចបង្កើតដើម្បីឱ្យ Gemini AI រៀបចំកម្រងសំណួរដោយស្វ័យប្រវត្ត។"}
+          </div>
+        </div>
+        <button type="button" class="btn-create-test" onclick="generatePreTestOnDemand()" style="padding: 9px 18px; font-weight: 700; font-size: 0.95rem; border-radius: 8px; background: linear-gradient(135deg, #4f46e5, #6366f1); color: white; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> <span>${isEn ? '📝 Generate Pre-Test QCM' : '📝 បង្កើតបុរេតេស្ត (Pre-Test QCM)'}</span>
+        </button>
+      </div>
+    `;
+  }
+  return renderPreTestHtmlBlock(data);
+}
+
+function renderPostTestModule(data, isEn = false) {
+  const hasQuestions = data.postTestMCQ && Array.isArray(data.postTestMCQ) && data.postTestMCQ.length > 0;
+  if (!hasQuestions) {
+    return `
+      <div class="test-cta-box" style="background: #f0fdf4; border: 1.5px dashed #22c55e; border-radius: 10px; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; box-shadow: 0 1px 3px rgba(0,0,0,0.03);">
+        <div style="flex: 1; min-width: 260px;">
+          <div style="font-size: 11pt; font-weight: 700; color: #166534; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-graduation-cap" style="color: #16a34a;"></i>
+            <span>${isEn ? 'Post-Test Mastery MCQ (5 Questions)' : 'វិញ្ញាសាវាយតម្លៃបញ្ចប់ (Post-Test MCQ ៥ សំណួរ)'}</span>
+          </div>
+          <div style="font-size: 9.5pt; color: #475569; margin-top: 4px;">
+            ${isEn ? "Mastery assessment measuring learning outcomes (Bloom's: Remember, Apply, Analyze). Click to generate on-demand." : "កម្រងសំណួរវាស់ស្ទង់សមត្ថភាពក្រោយរៀនចប់ តាមវត្ថុបំណងមេរៀន (Bloom's Taxonomy)។ ចុចបង្កើតដើម្បីឱ្យ Gemini AI រៀបចំកម្រងសំណួរដោយស្វ័យប្រវត្ត។"}
+          </div>
+        </div>
+        <button type="button" class="btn-create-test" onclick="generatePostTestOnDemand()" style="padding: 9px 18px; font-weight: 700; font-size: 0.95rem; border-radius: 8px; background: linear-gradient(135deg, #16a34a, #22c55e); color: white; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);">
+          <i class="fa-solid fa-graduation-cap"></i> <span>${isEn ? '🎓 Generate Post-Test MCQ' : '🎓 បង្កើតបច្ឆិមតេស្ត (Post-Test MCQ)'}</span>
+        </button>
+      </div>
+    `;
+  }
+  return renderPostTestHtmlBlock(data);
+}
+
+
 function renderLessonPlanToA4(data) {
   const doc = document.getElementById('printableDoc');
   if (!doc) return;
+
+  data = normalizeLessonPlanData(data, data);
+  state.currentPlan = data;
+  state.generatedPlanData = data;
 
   const isFlipped = isFlippedLearningRequest(data) || data.templateType === 'flipped_learning';
   const isBd = !isFlipped && (isBackwardDesignRequest(data) || data.templateType === 'backward_design' || Boolean(data.stage1));
@@ -4799,14 +5324,11 @@ function renderLessonPlanToA4(data) {
       <!-- Section 3: Method -->
       <div class="doc-section-title">៣. វិធីសាស្រ្ដបង្រៀន</div>
       <div style="margin-left: 10px; margin-bottom: 12px; font-size: 10pt;">
-        <div>- ការរៀនបែបត្រឡប់ (Flipped Learning)</div>
+        <div>- ការរៀនបែបត្រឡប់ (Flipped Learning ៥ ជំហាន: ៥% - ១០% - ១០% - ៧០% - ៥%)</div>
       </div>
 
-      <!-- Pre-Test QCM -->
-      ${renderPreTestHtmlBlock(data)}
-
       <!-- Section 4: In-Class Process (3 Columns) -->
-      <div class="doc-section-title">៤. ដំណើរការបង្រៀន (${escapeHtml(data.duration || '១៨០ នាទី')})</div>
+      <div class="doc-section-title">៤. ដំណើរការបង្រៀនក្នុងថ្នាក់ (${escapeHtml(data.duration || '១៨០ នាទី')})</div>
       <table class="doc-table">
         <thead>
           <tr>
@@ -4820,8 +5342,14 @@ function renderLessonPlanToA4(data) {
         </tbody>
       </table>
 
-      <!-- Post-Test MCQ -->
-      ${renderPostTestHtmlBlock(data)}
+      <!-- Section 5: Assessment & Diagnostic Testing (On-Demand Pre-Test & Post-Test) -->
+      <div class="doc-section-title flex justify-between items-center" style="margin-top: 22px;">
+        <span>៥. តេស្តវាស់ស្ទង់សមត្ថភាព & កម្រងសំណួរ (Diagnostic & Mastery Assessments)</span>
+      </div>
+      <div class="test-modules-container" style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px; margin-bottom: 18px;">
+        <div id="preTestModuleWrapper">${renderPreTestModule(data, false)}</div>
+        <div id="postTestModuleWrapper">${renderPostTestModule(data, false)}</div>
+      </div>
 
       <!-- Signatures -->
       <div class="doc-footer-signatures" style="margin-top: 24px;">
@@ -4907,9 +5435,6 @@ function renderLessonPlanToA4(data) {
         ${stage2.criteria && stage2.criteria.length > 0 ? `<div style="font-size: 9.5pt; color: #334155; margin-left: 12px;"><em>លក្ខណៈវិនិច្ឆ័យវាយតម្លៃ៖</em> ${escapeHtml(stage2.criteria.join(' | '))}</div>` : ''}
       </div>
 
-      <!-- Pre-Test QCM -->
-      ${renderPreTestHtmlBlock(data)}
-
       <!-- Stage 3: Learning Plan -->
       <div class="doc-section-title" style="margin-top: 16px;">III. ដំណាក់កាលទី ៣ : ផែនការរៀបចំការបង្រៀន និងរៀន (Stage 3: Learning Plan)</div>
       <div style="margin-left: 10px; margin-bottom: 8px;">
@@ -4930,8 +5455,14 @@ function renderLessonPlanToA4(data) {
         </tbody>
       </table>
 
-      <!-- Post-Test MCQ -->
-      ${renderPostTestHtmlBlock(data)}
+      <!-- Section IV: Assessment & Diagnostic Testing (On-Demand Pre-Test & Post-Test) -->
+      <div class="doc-section-title flex justify-between items-center" style="margin-top: 22px;">
+        <span>${isEn ? 'IV. Diagnostic & Mastery Assessments' : 'IV. តេស្តវាស់ស្ទង់សមត្ថភាព & កម្រងសំណួរ (Diagnostic & Mastery Assessments)'}</span>
+      </div>
+      <div class="test-modules-container" style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px; margin-bottom: 18px;">
+        <div id="preTestModuleWrapper">${renderPreTestModule(data, isEn)}</div>
+        <div id="postTestModuleWrapper">${renderPostTestModule(data, isEn)}</div>
+      </div>
 
       <!-- Learning Gain & Reflection Block -->
       ${renderLearningGainReflectionBlock(data)}
@@ -4991,9 +5522,6 @@ function renderLessonPlanToA4(data) {
       ${renderTeachingMethodContent(data.method)}
     </div>` : ''}
 
-    <!-- Pre-Test QCM -->
-    ${renderPreTestHtmlBlock(data)}
-
     <!-- Section IV: In-Class Process -->
     <div class="doc-section-title">IV. ដំណើរការបង្រៀន និងរៀនក្នុងថ្នាក់ (In-Class Teaching Process)</div>
     <table class="doc-table">
@@ -5010,8 +5538,14 @@ function renderLessonPlanToA4(data) {
       </tbody>
     </table>
 
-    <!-- Post-Test MCQ -->
-    ${renderPostTestHtmlBlock(data)}
+    <!-- Section V: Assessment & Diagnostic Testing (On-Demand Pre-Test & Post-Test) -->
+    <div class="doc-section-title flex justify-between items-center" style="margin-top: 22px;">
+      <span>${isEn ? 'V. Diagnostic & Mastery Assessments' : 'V. តេស្តវាស់ស្ទង់សមត្ថភាព & កម្រងសំណួរ (Diagnostic & Mastery Assessments)'}</span>
+    </div>
+    <div class="test-modules-container" style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px; margin-bottom: 18px;">
+      <div id="preTestModuleWrapper">${renderPreTestModule(data, isEn)}</div>
+      <div id="postTestModuleWrapper">${renderPostTestModule(data, isEn)}</div>
+    </div>
 
     <!-- Learning Gain & Reflection Block -->
     ${renderLearningGainReflectionBlock(data)}
@@ -5550,9 +6084,6 @@ async function handleExportWord() {
         new Paragraph({ text: "" })
       );
 
-      // Pre-Test QCM 5 Questions
-      docChildren.push(...buildDocxPreTest());
-
       // Section 4: In-Class Process (3 Columns)
       let flippedDocxRows = [
         new TableRow({
@@ -5596,8 +6127,13 @@ async function handleExportWord() {
         new Paragraph({ text: "" })
       );
 
-      // Post-Test MCQ 5 Questions
-      docChildren.push(...buildDocxPostTest());
+      // Append Pre-Test & Post-Test at bottom if generated
+      if (data.preTestQCM && data.preTestQCM.length > 0) {
+        docChildren.push(...buildDocxPreTest());
+      }
+      if (data.postTestMCQ && data.postTestMCQ.length > 0) {
+        docChildren.push(...buildDocxPostTest());
+      }
 
       // Signatures
       docChildren.push(
@@ -5692,9 +6228,6 @@ async function handleExportWord() {
       }
       docChildren.push(new Paragraph({ text: "" }));
 
-      // Pre-Test
-      docChildren.push(...buildDocxPreTest());
-
       // Stage 3
       docChildren.push(
         new Paragraph({ children: [new TextRun({ text: "III. ដំណាក់កាលទី ៣ : ផែនការរៀបចំការបង្រៀន និងរៀន (Stage 3: Learning Plan)", bold: true, size: 24 })] }),
@@ -5726,8 +6259,12 @@ async function handleExportWord() {
         new Paragraph({ text: "" })
       );
 
-      // Post-Test
-      docChildren.push(...buildDocxPostTest());
+      if (data.preTestQCM && data.preTestQCM.length > 0) {
+        docChildren.push(...buildDocxPreTest());
+      }
+      if (data.postTestMCQ && data.postTestMCQ.length > 0) {
+        docChildren.push(...buildDocxPostTest());
+      }
 
     } else {
       // 5-Step Process (MoEYS Standard, Flipped Learning, Primary School, STEM/5E)
@@ -5752,9 +6289,6 @@ async function handleExportWord() {
         new Paragraph({ children: [new TextRun({ text: `• សម្រាប់សិស្ស៖ ${(data.materials?.student || []).join(', ')}`, size: 22 })] }),
         new Paragraph({ text: "" })
       );
-
-      // Pre-Test
-      docChildren.push(...buildDocxPreTest());
 
       // Section IV: 5-Step Process Table
       docChildren.push(
@@ -5785,8 +6319,12 @@ async function handleExportWord() {
         new Paragraph({ text: "" })
       );
 
-      // Post-Test
-      docChildren.push(...buildDocxPostTest());
+      if (data.preTestQCM && data.preTestQCM.length > 0) {
+        docChildren.push(...buildDocxPreTest());
+      }
+      if (data.postTestMCQ && data.postTestMCQ.length > 0) {
+        docChildren.push(...buildDocxPostTest());
+      }
     }
 
     // Signatures Table
