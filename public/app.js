@@ -6160,7 +6160,19 @@ async function handleExportWord() {
       );
 
       // Done for flipped learning export
-      const blob = await Packer.toBlob(new Document({ sections: [{ children: docChildren }] }));
+      const blob = await Packer.toBlob(new Document({
+        styles: {
+          default: {
+            document: {
+              run: {
+                font: "Kantumruy Pro",
+                size: 22
+              }
+            }
+          }
+        },
+        sections: [{ children: docChildren }]
+      }));
       const filename = `កិច្ចតែងការបង្រៀនតាមបែបត្រឡប់_${(data.subject || 'មេរៀន')}_${(data.teacher || 'កែម_បូរី')}.docx`.replace(/\s+/g, '_');
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
@@ -6353,7 +6365,7 @@ async function handleExportWord() {
         default: {
           document: {
             run: {
-              font: "Khmer OS Siemreap",
+              font: "Kantumruy Pro",
               size: 22
             }
           }
