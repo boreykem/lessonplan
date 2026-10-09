@@ -42,6 +42,25 @@
     .lesson-choice-group .radio-cards {
       display: none !important;
     }
+
+    @keyframes magicBlink {
+      0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); }
+      50% { box-shadow: 0 0 12px 4px rgba(139, 92, 246, 0.2); background-color: #f5f3ff; }
+      100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+    }
+    .btn-magic-blink {
+      animation: magicBlink 2s infinite !important;
+      border: 1.5px solid #8b5cf6 !important;
+      color: #8b5cf6 !important;
+    }
+    .btn-magic-blink i {
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); color: #7c3aed; }
+      100% { transform: scale(1); }
+    }
   </style>
   <script>
     try {
@@ -99,7 +118,7 @@
         </button>
 
                 <!-- Game Integration Button -->
-        <button class="btn-secondary" style="border-color: #8b5cf6;" onclick="openGameModal()" title="Play AC Kahoot Cloud Game for Study Enhancement">
+        <button class="btn-secondary btn-magic-blink" onclick="openGameModal()" title="Play AC Kahoot Cloud Game for Study Enhancement">
           <i class="fa-solid fa-gamepad" style="color: #8b5cf6;"></i>
           <span class="btn-text">AC Game</span>
         </button>
