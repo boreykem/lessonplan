@@ -1,0 +1,20 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+build/
+dist/
+*.spec
+_installer_gen.py
+_customer_payload.zip
+.trial_record.json
+scratch/
+uploads/
+*.log
+.vercel
+.env
+.env.local
+
+# Private Seller / Keygen Tools (Protected from public git)
+keygen*
+telegram_keygen_bot.py

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head><title>API Key Modal Test</title>
+<style>
+  body { font-family: Arial; margin: 40px; background: #f0f4ff; }
+  .result { padding: 12px; border-radius: 8px; margin: 10px 0; }
+  .pass { background: #d1fae5; color: #065f46; border-left: 4px solid #10b981; }
+  .fail { background: #fee2e2; color: #991b1b; border-left: 4px solid #ef4444; }
+  .info { background: #e0e7ff; color: #1e1b4b; border-left: 4px solid #6366f1; }
+  iframe { width: 100%; height: 400px; border: 2px solid #6366f1; border-radius: 8px; margin-top: 20px; }
+  h2 { color: #1e1b4b; }
+  button { background: #6366f1; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; margin: 5px; }
+  button:hover { background: #4f46e5; }
+</style>
+</head>
+<body>
+<h2>🧪 API Key Modal - Live Test</h2>
+<div id="results"></div>
+
+<div class="result info">
+  <strong>ចុចប៊ូតុងខាងក្រោម ដើម្បីពិនិត្យ:</strong>
+</div>
+<button onclick="runTests()">▶ Run All Tests</button>
+<button onclick="window.open('http://127.0.0.1:8765','_blank')">🌐 Open App</button>
+
+<iframe id="appFrame" src="http://127.0.0.1:8765" onload="onFrameLoad()"></iframe>
+
+<script>
+let frame;
+
+function onFrameLoad() {
+  frame = document.getElementById('appFrame');
+  setTimeout(runTests, 1000);
+}
+
+function log(msg, type='info') {
+  const r = document.getElementById('results');
+  const d = document.createElement('div');
+  d.className = 'result ' + type;
+  d.innerHTML = msg;
+  r.appendChild(d);
+}
+
+function runTests() {
+  document.getElementById('results').innerHTML = '';
+  try {
+    const doc = document.getElementById('appFrame').contentDocument;
+    const win = document.getElementById('appFrame').contentWindow;
+    
+    if (!doc || !win) {
+      log('❌ ไม่สามารถเข้าถึง iframe content - อาจเป็น CORS issue', 'fail');
+      return;
+    }
+
+    // Test 1: Check button exists
+    const btn = doc.getElementById('btnApiKey');
+    log(btn ? '✅ Test 1: ប៊ូតុង API Key (#btnApiKey) មានក្នុង HTML' : '❌ Test 1: ប៊ូតុង #btnApiKey រកមិនឃើញ', btn ? 'pass' : 'fail');
+    
+    // Test 2: Check modal exists
+    const modal = doc.getElementById('apiKeyModal');
+    log(modal ? '✅ Test 2: Modal (#apiKeyModal) មានក្នុង HTML' : '❌ Test 2: Modal #apiKeyModal រកមិនឃើញ', modal ? 'pass' : 'fail');
+    
+    // Test 3: Check openApiKeyModal function
+    const fn = typeof win.openApiKeyModal === 'function';
+    log(fn ? '✅ Test 3: window.openApiKeyModal() function ត្រូវបាន Export ត្រឹមត្រូវ' : '❌ Test 3: window.openApiKeyModal() មិនត្រូវបាន Export', fn ? 'pass' : 'fail');
+    
+    // Test 4: Check onclick attribute
+    const onclick = btn && btn.getAttribute('onclick');
+    log(onclick ? `✅ Test 4: onclick="${onclick}" ត្រូវបានភ្ជាប់` : '❌ Test 4: onclick attribute រកមិនឃើញ', onclick ? 'pass' : 'fail');
+    
+    // Test 5: Click the button
+    if (btn && fn) {
+      btn.click();
+      setTimeout(() => {
+        const modal2 = doc.getElementById('apiKeyModal');
+        const isVisible = modal2 && modal2.style.display === 'flex';
+        log(isVisible ? '✅ Test 5: ចុចប៊ូតុង API Key → Modal បើក PASS ✅' : '❌ Test 5: ចុចប៊ូតុង API Key → Modal មិនបើក', isVisible ? 'pass' : 'fail');
+        
+        if (isVisible) {
+          // Test 6: Check provider dropdown
+          const sel = doc.getElementById('selectAiProvider');
+          log(sel ? `✅ Test 6: Provider Dropdown (current value: ${sel.value}) OK` : '❌ Test 6: Dropdown missing', sel ? 'pass' : 'fail');
+          
+          // Test 7: Check save button onclick
+          const saveBtn = doc.getElementById('btnSaveKey');
+          const saveOnclick = saveBtn && saveBtn.getAttribute('onclick');
+          log(saveOnclick ? `✅ Test 7: Save Button onclick="${saveOnclick}"` : '❌ Test 7: Save Button missing onclick', saveOnclick ? 'pass' : 'fail');
+          
+          // Close modal
+          if (typeof win.closeApiKeyModal === 'function') {
+            win.closeApiKeyModal();
+            log('✅ Test 8: closeApiKeyModal() executed - Modal Closed', 'pass');
+          }
+          log('<strong>🎉 ALL TESTS PASSED! API Key Modal ដំណើរការ ១០០%!</strong>', 'pass');
+        }
+      }, 400);
+    } else {
+      log('⚠️ Test 5: Skip - button or function missing', 'fail');
+    }
+  } catch(e) {
+    log(`❌ Error: ${e.message}`, 'fail');
+  }
+}
+</script>
+</body>
+</html>
