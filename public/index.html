@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ប្រព័ន្ធបង្កើតកិច្ចតែងការបង្រៀនស្វ័យប្រវត្តិ - AI Lesson Plan Generator</title>
+  
+  <!-- Google Fonts: Kantumruy Pro, Battambang, Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Kantumruy+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Moul&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  
+  <!-- Docx & PDF & Mammoth & JSZip (PowerPoint) Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  
+  <link rel="stylesheet" href="style.css?v=20260905_fixed">
+</head>
+<body class="theme-light">
+
+  <!-- Top Navigation Bar -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="logo-area">
+        <div class="logo-icon">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div class="logo-text">
+          <h1>AI Lesson Plan Studio</h1>
+          <span class="sub-title">ប្រព័ន្ធបង្កើតកិច្ចតែងការបង្រៀនស្វ័យប្រវត្តិឆ្លាតវៃ</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Quick Sample Selector -->
+        <div class="sample-picker-wrapper">
+          <label for="samplePicker" class="picker-label"><i class="fa-solid fa-wand-magic-sparkles"></i> គំរូរហ័ស:</label>
+          <select id="samplePicker" class="custom-select">
+            <option value="">-- ជ្រើសរើសមេរៀនគំរូសាកល្បង --</option>
+            <option value="0">⚡ ថ្នាក់រៀនត្រឡប់ Flipped Learning (ជីវវិទ្យា ថ្នាក់ទី ១០ + QCM ១០)</option>
+            <option value="1">រូបវិទ្យា ថ្នាក់ទី ៨ (ច្បាប់រក្សាថាមពល)</option>
+            <option value="2">ភាសាខ្មែរ ថ្នាក់ទី ៧ (សម្ព័ន្ធនាម និងគុណនាម)</option>
+            <option value="3">គណិតវិទ្យា ថ្នាក់ទី ៩ (សមីការដឺក្រេទី ២)</option>
+            <option value="4">ចិត្តវិទ្យាអប់រំ (ទ្រឹស្តី Piaget)</option>
+            <option value="5">ព័ត៌មានវិទ្យា (Algorithm & Flowchart)</option>
+          </select>
+        </div>
+
+        <!-- Saved Plans Library Button -->
+        <button id="btnOpenSavedPlans" class="btn-secondary" title="បើកបណ្ណាល័យកិច្ចតែងការដែលបានរក្សាទុក">
+          <i class="fa-solid fa-folder-open"></i>
+          <span class="btn-text">បណ្ណាល័យ</span>
+          <span id="savedPlansCountBadge" class="count-badge">០</span>
+        </button>
+
+        <!-- Cloud Auto-Update Button -->
+        <button id="btnCheckUpdate" class="btn-secondary" style="border-color: #10b981;" onclick="openUpdateModal()" title="ពិនិត្យមើលកំណែអាប់ដេតថ្មី (Cloud Auto-Updater)">
+          <i class="fa-solid fa-arrows-rotate" style="color: #10b981;"></i>
+          <span class="btn-text" id="headerVersionLabel">v2.5.0</span>
+          <span id="updateAvailableDot" class="status-dot" style="display: none; background: #10b981;"></span>
+        </button>
+
+        <!-- License Key Modal Trigger -->
+        <button id="btnOpenLicenseModal" class="btn-secondary" style="border-color: #f59e0b;" onclick="openLicenseModal()" title="ព័ត៌មានអាជ្ញាបណ្ណ និងការ Activate កម្មវិធី">
+          <i class="fa-solid fa-shield-halved" style="color: #f59e0b;"></i>
+          <span class="btn-text" id="headerLicenseLabel">អាជ្ញាបណ្ណ</span>
+          <span id="headerLicenseBadge" class="status-dot online"></span>
+        </button>
+
+        <!-- API Key Modal Trigger -->
+        <button id="btnApiKey" class="btn-secondary" onclick="openApiKeyModal()" title="កំណត់ Gemini API Key (ស្រេចចិត្ត)">
+          <i class="fa-solid fa-key"></i>
+          <span class="btn-text">API Key</span>
+          <span id="apiKeyBadge" class="status-dot"></span>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button id="btnThemeToggle" class="btn-icon" title="ប្តូរពណ៌ Theme">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Application Workspace -->
+  <main class="app-workspace">
+    
+    <!-- LEFT PANEL: Input & Upload Studio -->
+    <aside class="sidebar-panel">
+      <div class="sidebar-content">
+        
+        <!-- STEP 1: Upload / Select Template -->
+        <section class="config-card">
+          <div class="card-header">
+            <div class="step-badge">១</div>
+            <div class="card-title-group">
+              <h3>ទម្រង់កិច្ចតែងការ (Template)</h3>
+              <p>ជ្រើសរើសទម្រង់ស្តង់ដារ ឬ Upload ទម្រង់ផ្ទាល់ខ្លួនរបស់អ្នក</p>
+            </div>
+          </div>
+          
+          <div class="template-choice-group">
+            <div class="radio-cards">
+              <label class="radio-card active" id="radioCardPreset">
+                <input type="radio" name="templateMode" value="preset" checked>
+                <div class="radio-card-body">
+                  <i class="fa-solid fa-award"></i>
+                  <span class="label-title">ទម្រង់ MoEYS</span>
+                  <span class="label-sub">ស្តង់ដារផ្លូវការ</span>
+                </div>
+              </label>
+              <label class="radio-card" id="radioCardSaved">
+                <input type="radio" name="templateMode" value="saved">
+                <div class="radio-card-body">
+                  <i class="fa-solid fa-folder-bookmark"></i>
+                  <span class="label-title">Template បានរក្សាទុក</span>
+                  <span class="label-sub" id="savedTemplatesCountBadge">០ Template</span>
+                </div>
+              </label>
+              <label class="radio-card" id="radioCardCustom">
+                <input type="radio" name="templateMode" value="custom">
+                <div class="radio-card-body">
+                  <i class="fa-solid fa-cloud-arrow-up"></i>
+                  <span class="label-title">Upload ថ្មី</span>
+                  <span class="label-sub">.docx, .pdf, .txt</span>
+                </div>
+              </label>
+            </div>
+
+            <!-- 1. Preset Selector Dropdown -->
+            <div id="presetTemplateWrapper" class="control-group mt-3">
+              <label for="presetTemplateSelect">ជ្រើសរើសប្រភេទកិច្ចតែងការ MoEYS៖</label>
+              <select id="presetTemplateSelect" class="form-control">
+                <option value="moeys_standard_5step">កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)</option>
+                <option value="flipped_learning_5step">⚡ កិច្ចតែងការតាមបែបថ្នាក់រៀនត្រឡប់ (Flipped Learning ៥ ជំហាន: ៥%-១០%-១០%-៧០%-៥% + Pre-test QCM)</option>
+                <option value="backward_design_ubd">កិច្ចតែងការតាមបែបត្រឡប់ (Backward Design / UbD ៣ ដំណាក់កាល)</option>
+                <option value="moeys_primary">កិច្ចតែងការបឋមសិក្សា (ថ្នាក់ទី ១-៦)</option>
+                <option value="moeys_stem_inquiry">កិច្ចតែងការបែប STEM / 5E (វិទ្យាសាស្ត្រ និងពិសោធន៍)</option>
+              </select>
+            </div>
+
+            <!-- 2. Saved Templates Library Wrapper -->
+            <div id="savedTemplateWrapper" class="control-group mt-3" style="display: none;">
+              <div class="saved-templates-header flex justify-between items-center mb-2">
+                <label for="savedTemplateSelect" class="font-semibold text-sm">📁 បណ្ណាល័យ Template ផ្ទាល់ខ្លួន៖</label>
+                <button type="button" class="btn-xs btn-outline" id="btnUploadNewTemplateShortcut">
+                  <i class="fa-solid fa-plus"></i> Upload បន្ថែម
+                </button>
+              </div>
+              
+              <div id="savedTemplatesContent">
+                <!-- Dropdown selector for saved templates -->
+                <select id="savedTemplateSelect" class="form-control mb-2">
+                  <!-- Populated dynamically via JS -->
+                </select>
+
+                <!-- Selected Saved Template Info Card -->
+                <div id="savedTemplateDetailsCard" class="saved-template-preview-card" style="display: none;">
+                  <div class="saved-card-header">
+                    <div class="saved-template-info">
+                      <span class="saved-template-name" id="selectedSavedTemplateName"></span>
+                      <span class="saved-template-date" id="selectedSavedTemplateDate"></span>
+                    </div>
+                    <div class="saved-template-actions">
+                      <button type="button" id="btnDeleteSavedTemplate" class="btn-icon-danger" title="លុប Template នេះ">
+                        <i class="fa-solid fa-trash-can"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="saved-template-snippet" id="selectedSavedTemplateSnippet"></div>
+                </div>
+
+                <!-- Empty State when no templates are saved -->
+                <div id="savedTemplatesEmptyState" class="empty-saved-templates" style="display: none;">
+                  <i class="fa-regular fa-folder-open empty-icon"></i>
+                  <p>មិនទាន់មាន Template ផ្ទាល់ខ្លួនដែលបានរក្សាទុកនៅឡើយទេ</p>
+                  <button type="button" class="btn btn-sm btn-primary mt-2" id="btnGoToUploadTemplate">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload & រក្សាទុកឥឡូវនេះ
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Custom Template Upload Dropzone -->
+            <div id="customTemplateWrapper" class="control-group mt-3" style="display: none;">
+              <div class="dropzone" id="templateDropzone">
+                <input type="file" id="templateFileInput" accept=".docx,.pdf,.txt,.doc,.pptx,.ppt" class="file-input-hidden">
+                <div class="dropzone-content">
+                  <div class="drop-icon"><i class="fa-solid fa-file-word"></i></div>
+                  <p class="drop-primary">ទម្លាក់ឯកសារ Template នៅទីនេះ ឬ <span class="browse-link">ចុចដើម្បីរើសឯកសារ</span></p>
+                  <p class="drop-hint">គាំទ្រឯកសារ Word (.docx), PDF (.pdf), PowerPoint (.pptx), ឬ Text (.txt)</p>
+                </div>
+                <!-- File Status Pill -->
+                <div id="templateFileStatus" class="file-status-pill" style="display: none;">
+                  <i class="fa-solid fa-circle-check"></i>
+                  <span class="file-name">template.docx</span>
+                  <button type="button" class="btn-remove-file" id="btnRemoveTemplateFile"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <!-- Save Template Action Bar (Triggered when template is loaded or typed) -->
+              <div id="saveCustomTemplateActionWrap" class="save-template-bar mt-2" style="display: none;">
+                <div class="input-icon-wrap" style="flex: 1;">
+                  <i class="fa-solid fa-bookmark"></i>
+                  <input type="text" id="inputCustomTemplateName" class="form-control form-control-sm" placeholder="ដាក់ឈ្មោះ Template សម្រាប់រក្សាទុក (ឧ. ទម្រង់តាមបែបត្រឡប់)...">
+                </div>
+                <button type="button" id="btnSaveCustomTemplate" class="btn btn-sm btn-success" title="រក្សាទុក Template នេះក្នុងបណ្ណាល័យ">
+                  <i class="fa-solid fa-floppy-disk"></i> រក្សាទុក Template
+                </button>
+              </div>
+
+              <div class="textarea-fallback mt-2">
+                <div class="flex justify-between items-center mb-1">
+                  <label for="customTemplateText" class="sub-label">ឬបិទភ្ជាប់រចនាសម្ព័ន្ធ Template ជាអត្ថបទ៖</label>
+                  <button type="button" id="btnSaveTextTemplate" class="btn-link-save" style="display: none;">
+                    <i class="fa-solid fa-floppy-disk"></i> រក្សាទុកអត្ថបទនេះ
+                  </button>
+                </div>
+                <textarea id="customTemplateText" class="form-control" rows="2" placeholder="ឧទាហរណ៍៖ I. វត្ថុបំណង, II. សម្ភារឧបទេស, III. ដំណើរការបង្រៀន..."></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 2: Upload Lesson Content & Documents -->
+        <section class="config-card">
+          <div class="card-header">
+            <div class="step-badge">២</div>
+            <div class="card-title-group">
+              <h3>ឯកសារ និងខ្លឹមសារមេរៀន (Lesson Material)</h3>
+              <p>Upload មេរៀន ឬជ្រើសរើសពីមេរៀនដែលបានរក្សាទុក</p>
+            </div>
+          </div>
+
+          <!-- Lesson Mode Switcher -->
+          <div class="lesson-choice-group">
+            <div class="radio-cards">
+              <label class="radio-card active" id="radioCardLessonUpload">
+                <input type="radio" name="lessonSourceMode" value="upload" checked>
+                <div class="radio-card-body">
+                  <i class="fa-solid fa-file-circle-plus"></i>
+                  <span class="label-title">Upload / បញ្ចូលថ្មី</span>
+                  <span class="label-sub">ឯកសារ ឬអត្ថបទ</span>
+                </div>
+              </label>
+              <label class="radio-card" id="radioCardLessonSaved">
+                <input type="radio" name="lessonSourceMode" value="saved">
+                <div class="radio-card-body">
+                  <i class="fa-solid fa-book-bookmark"></i>
+                  <span class="label-title">មេរៀនបានរក្សាទុក</span>
+                  <span class="label-sub" id="savedLessonsCountBadge">០ មេរៀន</span>
+                </div>
+              </label>
+            </div>
+
+            <!-- 1. Saved Lessons Selector & Memory Manager Container -->
+            <div id="savedLessonsWrapper" class="control-group mt-3" style="display: none;">
+              <div class="saved-templates-container" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 14px;">
+                
+                <!-- Library Header & Search Bar -->
+                <div style="display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
+                  <div>
+                    <span style="font-weight: 700; font-size: 0.95rem; color: var(--primary);"><i class="fa-solid fa-layer-group"></i> បណ្ណាល័យមេរៀនដែលបានចងចាំ (Lesson Memory Vault)</span>
+                    <span class="badge-tag" id="savedLessonsMemoryPill" style="margin-left: 6px; background: rgba(99,102,241,0.15); color: var(--primary);">២៤ មេរៀនក្នុងឃ្លាំង</span>
+                  </div>
+                  <div style="display: flex; gap: 6px;">
+                    <button type="button" id="btnExportSavedLessons" class="btn btn-sm btn-outline" style="font-size: 0.78rem; padding: 4px 8px;" title="ទាញយកមេរៀនទាំងអស់ទុកជាឯកសារបម្រុង (.json)">
+                      <i class="fa-solid fa-file-export"></i> Export JSON
+                    </button>
+                    <button type="button" id="btnImportSavedLessonsTrigger" class="btn btn-sm btn-outline" style="font-size: 0.78rem; padding: 4px 8px;" title="បញ្ចូលមេរៀនពីឯកសារ (.json)">
+                      <i class="fa-solid fa-file-import"></i> Import JSON
+                    </button>
+                    <input type="file" id="importSavedLessonsFile" accept=".json" style="display: none;">
+                  </div>
+                </div>
+
+                <!-- Search Input & Quick Filter -->
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                  <div class="input-icon-wrap" style="flex: 1;">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchSavedLessonsInput" class="form-control form-control-sm" placeholder="ស្វែងរកមេរៀនតាមចំណងជើង ឬមុខវិជ្ជា...">
+                  </div>
+                  <button type="button" id="btnAddNewLessonShortcut" class="btn btn-sm btn-primary" style="white-space: nowrap; font-size: 0.8rem;">
+                    <i class="fa-solid fa-plus"></i> បញ្ចូលមេរៀនថ្មី
+                  </button>
+                </div>
+
+                <!-- Scrollable Saved Lessons List (Holds 20+ lessons easily) -->
+                <div id="savedLessonsCardsList" style="max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
+                  <!-- Dynamically populated via JS -->
+                </div>
+
+                <!-- Empty State for Lessons -->
+                <div id="savedLessonsEmptyState" class="empty-saved-templates" style="display: none; padding: 20px; text-align: center;">
+                  <i class="fa-regular fa-folder-open empty-icon" style="font-size: 2rem; opacity: 0.5;"></i>
+                  <p class="mt-2" style="font-size: 0.88rem;">មិនទាន់មានមេរៀនដែលបានរក្សាទុកនៅឡើយទេ</p>
+                  <button type="button" class="btn btn-sm btn-primary mt-2" id="btnGoToUploadLesson">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> បញ្ចូល & រក្សាទុកមេរៀនដំបូង
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- 2. Upload / Input Lesson Material Container -->
+            <div id="uploadLessonWrapper">
+              <!-- Lesson Material Dropzone -->
+              <div class="dropzone mt-3" id="lessonDropzone">
+                <input type="file" id="lessonFileInput" accept=".docx,.pdf,.txt,.doc,.pptx,.ppt,.png,.jpg,.jpeg,.webp" class="file-input-hidden">
+                <div class="dropzone-content">
+                  <div class="drop-icon"><i class="fa-solid fa-file-shield"></i></div>
+                  <p class="drop-primary">ទម្លាក់ឯកសារមេរៀន/ស្លាយ/រូបភាព នៅទីនេះ ឬ <span class="browse-link">ចុចដើម្បីរើសឯកសារ</span></p>
+                  <p class="drop-hint">គាំទ្រ PowerPoint (.pptx), Word (.docx), PDF (.pdf), រូបភាពថតសៀវភៅ (.png, .jpg), TXT</p>
+                </div>
+                <!-- File Status Pill -->
+                <div id="lessonFileStatus" class="file-status-pill" style="display: none;">
+                  <i class="fa-solid fa-circle-check"></i>
+                  <span class="file-name">lesson_chapter.pdf</span>
+                  <button type="button" class="btn-remove-file" id="btnRemoveLessonFile"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <!-- Lesson Text Box -->
+              <div class="control-group mt-3">
+                <div class="label-with-action">
+                  <label for="lessonContentText">ខ្លឹមសារមេរៀន / ចំណុចសំខាន់ៗ <span class="req">*</span></label>
+                  <span class="badge-tag" id="charCount">0 ពាក្យ</span>
+                </div>
+                <textarea id="lessonContentText" class="form-control" rows="6" placeholder="បញ្ចូល ឬបិទភ្ជាប់ខ្លឹមសារមេរៀន និយមន័យ រូបមន្ត លំហាត់ ឧទាហរណ៍ ឬអត្ថបទដកស្រង់ពីសៀវភៅពុម្ពនៅទីនេះ..."></textarea>
+              </div>
+
+              <!-- Remember / Auto-Save Lesson Bar -->
+              <div class="remember-profile-bar mt-2">
+                <label class="remember-checkbox-label">
+                  <input type="checkbox" id="chkAutoRememberLesson" checked>
+                  <span>ចងចាំ និងរក្សាទុកខ្លឹមសារមេរៀននេះដោយស្វ័យប្រវត្តិ (Auto-remember Lesson)</span>
+                </label>
+                <span id="savedLessonBadge" class="saved-profile-pill" style="display: none;">
+                  <i class="fa-solid fa-check"></i> បានចងចាំ
+                </span>
+              </div>
+
+              <!-- Save Lesson Action Bar (Always Accessible) -->
+              <div id="saveLessonActionBar" class="save-template-bar mt-3" style="display: flex; gap: 8px; align-items: center;">
+                <div class="input-icon-wrap" style="flex: 1;">
+                  <i class="fa-solid fa-bookmark"></i>
+                  <input type="text" id="inputSaveLessonName" class="form-control form-control-sm" placeholder="ដាក់ឈ្មោះសម្គាល់មេរៀន (ឧ. រូបវិទ្យា ថ្នាក់ទី៨ - ច្បាប់ញូតុន)...">
+                </div>
+                <button type="button" id="btnSaveLessonMaterial" class="btn btn-sm btn-success" style="white-space: nowrap;" title="រក្សាទុកមេរៀននេះទៅក្នុងបណ្ណាល័យ">
+                  <i class="fa-solid fa-floppy-disk"></i> រក្សាទុកមេរៀនទៅក្នុងបណ្ណាល័យ
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- STEP 3: Lesson Metadata & Parameters -->
+        <section class="config-card">
+          <div class="card-header flex-between">
+            <div class="header-step-title">
+              <div class="step-badge">៣</div>
+              <div class="card-title-group">
+                <h3>ព័ត៌មានរដ្ឋបាល និងវិធីសាស្ត្របង្រៀន</h3>
+                <p>កំណត់ព័ត៌មានលម្អិតសម្រាប់ក្បាលកិច្ចតែងការ</p>
+              </div>
+            </div>
+            <div class="admin-quick-actions">
+              <button type="button" id="btnSaveAdminInfo" class="btn-pill-action" title="ចុចដើម្បីរក្សាទុកព័ត៌មានរដ្ឋបាលនេះទុកប្រើលើកក្រោយ">
+                <i class="fa-solid fa-floppy-disk"></i> <span>រក្សាទុក</span>
+              </button>
+              <button type="button" id="btnClearAdminInfo" class="btn-pill-ghost" title="លុបព័ត៌មានដែលបានចងចាំ" style="display: none;">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="control-group">
+              <label for="inputSchool">ឈ្មោះសាលារៀន</label>
+              <div class="input-icon-wrap">
+                <i class="fa-solid fa-school"></i>
+                <input type="text" id="inputSchool" class="form-control" list="schoolSuggestions" placeholder="ឧ. វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម / វិទ្យាល័យ...">
+                <datalist id="schoolSuggestions">
+                  <option value="វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម">
+                  <option value="វិទ្យាស្ថានគរុកោសល្យរាជធានីភ្នំពេញ">
+                  <option value="វិទ្យាស្ថានគរុកោសល្យបាត់ដំបង">
+                  <option value="វិទ្យាស្ថានជាតិអប់រំ (NIE)">
+                  <option value="វិទ្យាល័យ ហ៊ុន សែន ភ្នំពេញ">
+                </datalist>
+              </div>
+            </div>
+
+            <div class="control-group">
+              <label for="inputTeacher">ឈ្មោះគ្រូបង្រៀន</label>
+              <div class="input-icon-wrap">
+                <i class="fa-solid fa-user-tie"></i>
+                <input type="text" id="inputTeacher" class="form-control" placeholder="ឧ. លោកគ្រូ / អ្នកគ្រូ...">
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 2: Study Degree & Grade (Separated side-by-side) -->
+          <div class="form-grid-2 mt-2">
+            <div class="control-group">
+              <label for="inputDegree">កម្រិតសិក្សា / ស្ថាប័នអប់រំ (Study Degree / Institute) <span class="req">*</span></label>
+              <select id="inputDegree" class="form-control">
+                <option value="lower_sec" selected>🏫 អនុវិទ្យាល័យ (Lower Secondary: ថ្នាក់ទី ៧-៩)</option>
+                <option value="upper_sec">🎓 វិទ្យាល័យ (Upper Secondary: ថ្នាក់ទី ១០-១២)</option>
+                <option value="primary">📚 បឋមសិក្សា (Primary: ថ្នាក់ទី ១-៦)</option>
+                <option value="kindergarten">🌱 មត្តេយ្យសិក្សា (Kindergarten)</option>
+                <option value="tec_kampongcham">🏛️ វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម (TEC Kampong Cham)</option>
+                <option value="teacher_training">👨‍🏫 គរុកោសល្យ និង NIE (Teacher Training)</option>
+                <option value="higher_ed">🏛️ ឧត្តមសិក្សា / បរិញ្ញាបត្រ (Higher Education)</option>
+                <option value="tvet">🛠️ បណ្តុះបណ្តាលវិជ្ជាជីវៈ (TVET / Vocational)</option>
+                <option value="custom">✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <label for="inputGrade">កម្រិតថ្នាក់ / ឆ្នាំសិក្សា (Grade / Class) <span class="req">*</span></label>
+              <select id="inputGrade" class="form-control">
+                <option value="ថ្នាក់ទី ៧">ថ្នាក់ទី ៧</option>
+                <option value="ថ្នាក់ទី ៨" selected>ថ្នាក់ទី ៨</option>
+                <option value="ថ្នាក់ទី ៩">ថ្នាក់ទី ៩</option>
+                <option value="custom">✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)</option>
+              </select>
+
+              <!-- Custom Grade Text Input (Hidden by default) -->
+              <div id="customGradeInputWrap" class="custom-sub-input-wrap" style="display: none;">
+                <div class="input-icon-wrap">
+                  <i class="fa-solid fa-pen"></i>
+                  <input type="text" id="inputCustomGradeText" class="form-control" placeholder="ឧ. ថ្នាក់ទី ៨ ក / ថ្នាក់ទី ១២A1 / ជំនាន់ទី ១៥...">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Row 3: Subject & Duration -->
+          <div class="form-grid-2 mt-2">
+            <div class="control-group">
+              <label for="inputSubject">មុខវិជ្ជា <span class="req">*</span></label>
+              <select id="inputSubject" class="form-control">
+                <option value="រូបវិទ្យា">រូបវិទ្យា</option>
+                <option value="គណិតវិទ្យា">គណិតវិទ្យា</option>
+                <option value="ភាសាខ្មែរ">ភាសាខ្មែរ</option>
+                <option value="ចិត្តវិទ្យាអប់រំ">ចិត្តវិទ្យាអប់រំ</option>
+                <option value="ព័ត៌មានវិទ្យា">ព័ត៌មានវិទ្យា (ICT / Computer)</option>
+                <option value="គីមីវិទ្យា">គីមីវិទ្យា</option>
+                <option value="ជីវវិទ្យា">ជីវវិទ្យា</option>
+                <option value="ប្រវត្តិវិទ្យា">ប្រវត្តិវិទ្យា</option>
+                <option value="ភូមិវិទ្យា">ភូមិវិទ្យា</option>
+                <option value="ពលរដ្ឋវិជ្ជា">ពលរដ្ឋវិជ្ជា</option>
+                <option value="ភាសាអង់គ្លេស">ភាសាអង់គ្លេស</option>
+                <option value="ផែនដីវិទ្យា">ផែនដីវិទ្យា</option>
+              </select>
+            </div>
+
+            <div class="control-group">
+              <label for="inputDurationSelect">រយៈពេលបង្រៀន (Teaching Duration) <span class="req">*</span></label>
+              <select id="inputDurationSelect" class="form-control">
+                <option value="៥០ នាទី (១ ម៉ោងសិក្សា)" selected>៥០ នាទី (១ ម៉ោងសិក្សា)</option>
+                <option value="៤៥ នាទី (១ ម៉ោងសិក្សា)">៤៥ នាទី (១ ម៉ោងសិក្សា)</option>
+                <option value="៩០ នាទី (២ ម៉ោងសិក្សា)">៩០ នាទី (២ ម៉ោងសិក្សា)</option>
+                <option value="១០០ នាទី (២ ម៉ោងសិក្សា)">១០០ នាទី (២ ម៉ោងសិក្សា)</option>
+                <option value="១៣៥ នាទី (៣ ម៉ោងសិក្សា)">១៣៥ នាទី (៣ ម៉ោងសិក្សា)</option>
+                <option value="១៥០ នាទី (៣ ម៉ោងសិក្សា)">១៥០ នាទី (៣ ម៉ោងសិក្សា)</option>
+                <option value="១៨០ នាទី (៤ ម៉ោងសិក្សា / សិក្ខាសាលា)">១៨០ នាទី (៤ ម៉ោងសិក្សា / សិក្ខាសាលា)</option>
+                <option value="២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)">២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)</option>
+                <option value="custom">✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)</option>
+              </select>
+
+              <!-- Custom Duration Text Input (Hidden by default) -->
+              <div id="customDurationWrap" class="custom-sub-input-wrap" style="display: none;">
+                <div class="input-icon-wrap">
+                  <i class="fa-solid fa-clock"></i>
+                  <input type="text" id="inputCustomDurationText" class="form-control" placeholder="ឧ. ៦០ នាទី / ៣ ម៉ោង / ២ សប្តាហ៍...">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="control-group mt-2">
+            <label for="inputMethod">វិធីសាស្ត្របង្រៀនចម្បង</label>
+            <select id="inputMethod" class="form-control">
+              <option value="ថ្នាក់រៀនត្រឡប់ (Flipped Learning) ៥ ជំហាន (៥% - ១០% - ១០% - ៧០% - ៥%) ជាមួយ Pre-test QCM ១០ សំណួរ">ថ្នាក់រៀនត្រឡប់ (Flipped Learning ៥ ជំហាន: ៥%-១០%-១០%-៧០%-៥% + QCM)</option>
+              <option value="សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)">សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)</option>
+              <option value="ការរិះរក និងពិសោធន៍ (Inquiry-based / STEM)">ការរិះរក និងពិសោធន៍ (Inquiry-based / STEM)</option>
+              <option value="វិធីសាស្ត្រ 5E (Engage, Explore, Explain, Elaborate, Evaluate)">វិធីសាស្ត្រ 5E (Engage, Explore, Explain, Elaborate, Evaluate)</option>
+              <option value="ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា">ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា</option>
+              <option value="ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង">ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង</option>
+            </select>
+          </div>
+
+          <!-- Remember Profile Bar -->
+          <div class="remember-profile-bar">
+            <label class="remember-checkbox-label">
+              <input type="checkbox" id="chkAutoRememberAdmin" checked>
+              <span>ចងចាំព័ត៌មានរដ្ឋបាលនេះសម្រាប់លើកក្រោយ (Remember for next time)</span>
+            </label>
+            <span id="savedProfileBadge" class="saved-profile-pill" style="display: none;">
+              <i class="fa-solid fa-check"></i> បានចងចាំ
+            </span>
+          </div>
+
+          <div class="form-grid-2 mt-3">
+            <div class="control-group">
+              <label for="inputChapter">ជំពូក</label>
+              <input type="text" id="inputChapter" class="form-control" placeholder="ឧ. ជំពូកទី ៣: ការងារ និងថាមពល">
+            </div>
+
+            <div class="control-group">
+              <label for="inputLessonTitle">ចំណងជើងមេរៀន <span class="req">*</span></label>
+              <input type="text" id="inputLessonTitle" class="form-control" placeholder="ឧ. មេរៀនទី ២: ថាមពលមេកានិច">
+            </div>
+          </div>
+
+          <div class="control-group mt-2">
+            <label for="inputCustomNotes">ចំណាំ ឬសំណូមពរបន្ថែម (Prompt Customization)</label>
+            <input type="text" id="inputCustomNotes" class="form-control" placeholder="ឧ. សុំផ្ដោតលើការពិសោធន៍ជាក់ស្ដែង និងមានល្បែងពង្រឹងពុទ្ធិ...">
+          </div>
+        </section>
+
+        <!-- Generate Action Button -->
+        <div class="action-dock">
+          <button id="btnGenerate" class="btn-primary-glow">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>បង្កើតកិច្ចតែងការស្វ័យប្រវត្តិ (Generate)</span>
+          </button>
+          
+          <button id="btnReset" class="btn-ghost" title="កំណត់ទិន្នន័យឡើងវិញ">
+            <i class="fa-solid fa-rotate-right"></i> សម្អាត
+          </button>
+        </div>
+
+        <!-- Intellectual Property & Copyright Footer -->
+        <footer class="app-ip-footer">
+          <div class="ip-badge"><i class="fa-solid fa-shield-halved"></i> កម្មសិទ្ធិបញ្ញាត្រូវបានការពារស្របច្បាប់</div>
+          <div class="ip-copyright">© 2026 <strong>AI Lesson Plan Studio™</strong> - រក្សាសិទ្ធិគ្រប់យ៉ាង</div>
+          <div class="ip-subtext">បច្ចេកវិទ្យា និងទម្រង់គរុកោសល្យត្រូវបានការពារដោយច្បាប់ស្ដីពីកម្មសិទ្ធិបញ្ញានៃព្រះរាជាណាចក្រកម្ពុជា</div>
+        </footer>
+
+      </div>
+    </aside>
+
+    <!-- RIGHT PANEL: Live A4 Document Canvas & Studio -->
+    <section class="preview-panel">
+      
+      <!-- Preview Studio Toolbar -->
+      <div class="preview-toolbar">
+        <div class="toolbar-left">
+          <span class="preview-badge"><i class="fa-solid fa-file-circle-check"></i> <span class="badge-title">សន្លឹកកិច្ចតែងការ</span> <span class="preview-badge-sub">(Live A4)</span></span>
+          <span class="editable-indicator" title="អ្នកអាចចុច Edit កែប្រែផ្ទាល់លើសន្លឹកកិច្ចតែងការបាន"><i class="fa-solid fa-pen-to-square"></i> <span class="edit-hint-text">Edit ផ្ទាល់លើសន្លឹកបាន</span></span>
+        </div>
+
+        <div class="toolbar-right">
+          <!-- Zoom Controls -->
+          <div class="zoom-controls">
+            <button id="btnZoomOut" class="btn-tool" title="បង្រួម"><i class="fa-solid fa-magnifying-glass-minus"></i></button>
+            <span id="zoomLevel">100%</span>
+            <button id="btnZoomIn" class="btn-tool" title="ពង្រីក"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+            <button id="btnZoomFit" class="btn-tool" title="សមនឹងអេក្រង់"><i class="fa-solid fa-expand"></i></button>
+          </div>
+
+          <div class="toolbar-divider"></div>
+
+          <!-- Save Plan Button -->
+          <button id="btnSaveGeneratedPlan" class="btn-tool-action btn-save-plan" title="រក្សាទុកកិច្ចតែងការនេះទៅក្នុងបណ្ណាល័យ">
+            <i class="fa-solid fa-floppy-disk"></i> រក្សាទុក
+          </button>
+
+          <!-- Learning Gain Calculator -->
+          <button id="btnOpenLearningGainModal" class="btn-tool-action" style="background: #4f46e5; color: white; border: none;" onclick="openLearningGainModal()" title="គណនាអត្រាកំណើននៃការរៀនសូត្រ (Hake's Normalized Learning Gain)">
+            <i class="fa-solid fa-calculator"></i> Learning Gain
+          </button>
+
+          <!-- In-App Video Micro-Lecture Studio -->
+          <button id="btnOpenVideoStudio" class="btn-tool-action btn-video-studio" onclick="openVideoStudioModal()" title="មើល និងចាក់វីដេអូបង្រៀន (In-App Video Micro-Lecture Studio)">
+            <i class="fa-solid fa-film"></i> 🎬 វីដេអូ Micro-Lecture
+          </button>
+
+          <!-- NotebookLM Quick Access -->
+          <button id="btnOpenNotebookLM" class="btn-tool-action" style="background: #16a34a; color: white; border: none;" onclick="openNotebookLM()" title="បើក Google NotebookLM (notebooklm.google.com) ដើម្បីបង្កើត AI Audio Overview / Video">
+            <i class="fa-brands fa-google"></i> NotebookLM
+          </button>
+
+          <!-- Export Buttons -->
+          <button id="btnExportWord" class="btn-tool-action btn-word" title="ទាញយកជាឯកសារ Microsoft Word (.docx)">
+            <i class="fa-solid fa-file-word"></i> Word
+          </button>
+
+          <button id="btnPrintPdf" class="btn-tool-action btn-pdf" title="បោះពុម្ព ឬរក្សាទុកជា PDF">
+            <i class="fa-solid fa-print"></i> PDF
+          </button>
+
+          <button id="btnCopyText" class="btn-tool-action btn-copy" title="ចម្លងអត្ថបទទាំងអស់">
+            <i class="fa-regular fa-copy"></i> ចម្លង
+          </button>
+        </div>
+      </div>
+
+      <!-- A4 Document Scroll Area -->
+      <div class="canvas-scroll-container" id="canvasContainer">
+        
+        <!-- Loading State Overlay -->
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+          <div class="loading-card">
+            <div class="ai-orb">
+              <i class="fa-solid fa-brain"></i>
+            </div>
+            <h4 class="loading-title" id="loadingTitleText">AI កំពុងវិភាគឯកសារ និងរៀបចំកិច្ចតែងការ...</h4>
+            <p class="loading-desc" id="loadingDescText">កំពុងបង្កើតវត្ថុបំណង ៣ ផ្នែក សម្ភារឧបទេស និងដំណើរការបង្រៀន ៥ ជំហាន</p>
+            <div class="progress-bar-wrap">
+              <div class="progress-bar-fill" id="progressBarFill"></div>
+            </div>
+            <div id="loadingSubStatus" style="font-size: 0.82rem; color: var(--primary); margin-top: 10px; font-weight: 600;"></div>
+          </div>
+        </div>
+
+        <!-- Initial Placeholder State (Shown before generate) -->
+        <div id="emptyState" class="empty-state">
+          <div class="empty-icon-wrap">
+            <i class="fa-solid fa-book-open-reader"></i>
+          </div>
+          <p>សូមជ្រើសរើសទម្រង់ Upload ឯកសារមេរៀន ឬជ្រើសរើស <strong>គំរូរហ័ស</strong> នៅខាងលើ ហើយចុចប៊ូតុង <strong>បង្កើតកិច្ចតែងការស្វ័យប្រវត្តិ</strong>។</p>
+          <div class="flex gap-2 justify-center mt-3" style="flex-wrap: wrap;">
+            <button id="btnEmptyQuickDemo" class="btn-secondary">
+              <i class="fa-solid fa-play"></i> សាកល្បងជាមួយមេរៀនគំរូភ្លាមៗ
+            </button>
+            <button type="button" id="btnEmptyOpenVideo" class="btn-primary" onclick="openVideoStudioWithDemo()" style="background: linear-gradient(135deg, #0284c7, #4f46e5); border: none; font-weight: 700;">
+              <i class="fa-solid fa-film"></i> 🎬 សាកល្បងមើល Video Micro-Lecture ភ្លាមៗ
+            </button>
+          </div>
+        </div>
+
+        <!-- Printable A4 Paper Sheet -->
+        <div id="printableDoc" class="a4-sheet" style="display: none;" contenteditable="true" spellcheck="false">
+          <!-- Content will be injected dynamically -->
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Saved Lesson Plans Library Modal -->
+  <div id="savedPlansModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card modal-lg">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i class="fa-solid fa-book-bookmark text-primary"></i>
+          <h4>បណ្ណាល័យកិច្ចតែងការដែលបានរក្សាទុក (Saved Lesson Plans)</h4>
+          <span class="badge-count" id="modalSavedPlansBadge">០</span>
+        </div>
+        <button id="btnCloseSavedPlansModal" class="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Search & Filter Bar -->
+        <div class="plans-filter-bar">
+          <div class="input-icon-wrap" style="flex: 1;">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchSavedPlansInput" class="form-control" placeholder="ស្វែងរកតាមចំណងជើងមេរៀន មុខវិជ្ជា ថ្នាក់ ឬកាលបរិច្ឆេទ...">
+          </div>
+          <select id="filterSavedPlansSubject" class="custom-select" style="min-width: 150px;">
+            <option value="">-- គ្រប់មុខវិជ្ជា --</option>
+            <option value="រូបវិទ្យា">រូបវិទ្យា</option>
+            <option value="គណិតវិទ្យា">គណិតវិទ្យា</option>
+            <option value="ភាសាខ្មែរ">ភាសាខ្មែរ</option>
+            <option value="ចិត្តវិទ្យាអប់រំ">ចិត្តវិទ្យាអប់រំ</option>
+            <option value="ព័ត៌មានវិទ្យា">ព័ត៌មានវិទ្យា</option>
+            <option value="គីមីវិទ្យា">គីមីវិទ្យា</option>
+            <option value="ជីវវិទ្យា">ជីវវិទ្យា</option>
+          </select>
+        </div>
+
+        <!-- Plans Grid -->
+        <div id="savedPlansGrid" class="saved-plans-grid mt-3">
+          <!-- Populated dynamically -->
+        </div>
+
+        <!-- Empty State for Plans -->
+        <div id="savedPlansEmptyState" class="empty-saved-templates" style="display: none; padding: 40px 20px;">
+          <i class="fa-regular fa-folder-open empty-icon"></i>
+          <p style="font-size: 1.05rem; font-weight: 600;">មិនទាន់មានកិច្ចតែងការដែលបានរក្សាទុកនៅឡើយទេ</p>
+          <p style="color: var(--text-muted); font-size: 0.85rem;">នៅពេលលោកអ្នកបង្កើតកិច្ចតែងការរួចរាល់ សូមចុចប៊ូតុង «💾 រក្សាទុកកិច្ចតែងការ» នោះកិច្ចតែងការនឹងត្រូវបានរក្សាទុកនៅទីនេះ។</p>
+        </div>
+      </div>
+
+      <div class="modal-footer flex-between">
+        <div class="footer-backup-actions">
+          <button type="button" id="btnExportAllPlansJson" class="btn-ghost btn-sm" title="ទាញយក Backup កិច្ចតែងការទាំងអស់ជាឯកសារ JSON">
+            <i class="fa-solid fa-download"></i> Backup JSON
+          </button>
+          <button type="button" id="btnImportPlansJsonTrigger" class="btn-ghost btn-sm" title="ស្តារកិច្ចតែងការពីឯកសារ JSON">
+            <i class="fa-solid fa-upload"></i> Restore JSON
+          </button>
+          <input type="file" id="importPlansJsonInput" accept=".json" style="display: none;">
+        </div>
+        <button id="btnCloseSavedPlansModalBottom" class="btn-secondary">បិទ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Learning Gain Calculator Modal (Hake's Normalized Gain) -->
+  <div id="learningGainModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 580px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i class="fa-solid fa-chart-line text-primary"></i>
+          <h4>ម៉ាស៊ីនគណនា Learning Gain (Hake's Normalized Gain)</h4>
+        </div>
+        <button id="btnCloseGainModal" class="btn-close-modal" onclick="closeLearningGainModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="gain-modal-body">
+        <p class="modal-desc">
+          រូបមន្តស្តង់ដារអន្តរជាតិ (Richard Hake): $g = \\frac{\\text{Post} - \\text{Pre}}{100 - \\text{Pre}}$ សម្រាប់វាស់ស្ទង់ **អត្រាកំណើននៃការរៀនសូត្រ** របស់សិស្សបន្ទាប់ពីឆ្លងកាត់ការបង្រៀន ៧០% ក្នុងថ្នាក់។
+        </p>
+
+        <div class="gain-calc-grid mt-3">
+          <div class="control-group">
+            <label for="inputPreTestScore">ពិន្ទុមធ្យម Pre-Test (% ឬពិន្ទុ)</label>
+            <div class="input-icon-wrap">
+              <i class="fa-solid fa-clipboard-check"></i>
+              <input type="number" id="inputPreTestScore" class="form-control" placeholder="ឧ. 35" min="0" max="100" value="35" oninput="calculateLearningGain()">
+            </div>
+          </div>
+
+          <div class="control-group">
+            <label for="inputPostTestScore">ពិន្ទុមធ្យម Post-Test (% ឬពិន្ទុ)</label>
+            <div class="input-icon-wrap">
+              <i class="fa-solid fa-trophy"></i>
+              <input type="number" id="inputPostTestScore" class="form-control" placeholder="ឧ. 82" min="0" max="100" value="82" oninput="calculateLearningGain()">
+            </div>
+          </div>
+        </div>
+
+        <div class="gain-result-card" id="gainResultCard">
+          <div style="font-size: 10pt; color: #475569; font-weight: 600;">អត្រាកំណើននៃការរៀនសូត្រ (Normalized Gain - g)</div>
+          <div class="gain-score-display text-primary" id="gainScoreText">0.72 (72.3%)</div>
+          <div id="gainBadgeContainer">
+            <span class="gain-badge-high"><i class="fa-solid fa-circle-check"></i> High Gain (ប្រសិទ្ធភាពបង្រៀនខ្ពស់ខ្លាំង: g ≥ 0.70)</span>
+          </div>
+          <p id="gainAdviceText" style="font-size: 9pt; color: #334155; margin-top: 8px;">
+            សកម្មភាពអនុវត្តជាក្រុម និងបេសកកម្ម ៧០% ក្នុងថ្នាក់រៀន មានប្រសិទ្ធភាពខ្ពស់ខ្លាំងក្នុងការជួយឱ្យសិស្សយល់ដឹងស៊ីជម្រៅ។
+          </p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeLearningGainModal()">បិទ</button>
+        <button type="button" class="btn-primary" onclick="applyLearningGainToReflection()">
+          <i class="fa-solid fa-file-pen"></i> បញ្ចូលក្នុងកិច្ចតែងការ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Multi-AI Engine API Key Modal -->
+  <div id="apiKeyModal" class="modal-overlay" style="display: none; z-index: 10010;">
+    <div class="modal-card" style="max-width: 540px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i class="fa-solid fa-brain text-primary"></i>
+          <h4>កំណត់ប្រព័ន្ធ AI Engine (Multi-AI Provider)</h4>
+        </div>
+        <button id="btnCloseModal" class="btn-close-modal" onclick="closeApiKeyModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <div style="background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;">
+          <div style="font-weight: 700; color: #4338ca; display: flex; align-items: center; gap: 6px; font-size: 0.95rem;">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> ជម្រើស Offline៖ ប្រើ Smart MoEYS Engine
+          </div>
+          <p style="font-size: 0.85rem; color: #334155; margin: 6px 0 0 0; line-height: 1.5;">
+            💡 <strong>មិនបាច់ប្រើ API Key ឬ Internet ក៏បាន!</strong> ប្រព័ន្ធ Smart Engine បង្កើតកិច្ចតែងការ MoEYS ៥ ជំហាន, Flipped Learning, វិញ្ញាសា Pre/Post Test ១០ សំណួរ បានក្នុងរយៈពេលតែ ១ វិនាទី!
+          </p>
+          <button type="button" class="btn-secondary mt-2" onclick="resetToSmartEngineDefault()" style="background: white; border: 1px solid #818cf8; color: #4338ca; font-weight: 600; width: 100%; justify-content: center;">
+            <i class="fa-solid fa-rotate-left"></i> 🔄 កំណត់ប្រើ Smart Engine លំនាំដើម (លុប Key & ដំណើរការ Offline)
+          </button>
+        </div>
+
+        <div class="control-group">
+          <label for="selectAiProvider"><strong>ជ្រើសរើសប្រព័ន្ធ AI Provider៖</strong></label>
+          <select id="selectAiProvider" class="form-control" style="font-weight: 600;" onchange="handleAiProviderChange()">
+            <option value="gemini" selected>🤖 Google Gemini (Google AI Studio - Pro & Flash)</option>
+            <option value="groq">⚡ Groq Cloud (Free & Ultra Fast - Llama 3.3 70B & DeepSeek)</option>
+            <option value="openrouter">🌐 OpenRouter (Universal - DeepSeek R1, Llama, Claude)</option>
+          </select>
+        </div>
+
+        <div class="control-group mt-3">
+          <label for="inputGeminiKey" id="lblApiKeyInput">Google Gemini API Key (ពី aistudio.google.com)</label>
+          <div class="input-icon-wrap">
+            <i class="fa-solid fa-key"></i>
+            <input type="password" id="inputGeminiKey" class="form-control" placeholder="AIzaSy..." oninput="autoDetectApiKeyProvider(this.value)">
+          </div>
+        </div>
+
+        <div id="apiKeyTestStatus" style="display: none; margin-top: 10px; padding: 10px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 500;"></div>
+
+        <!-- Help links dynamically updated by JS -->
+        <div id="aiProviderHelpLink" class="key-help-links mt-2">
+          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" id="linkGetApiKey" style="color: #4f46e5; font-weight: 600;">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i> យក Gemini API Key ពី Google AI Studio (aistudio.google.com/app/apikey)
+          </a>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btnRemoveKey" type="button" class="btn-ghost" onclick="removeApiKeyFromModal()">លុប Key</button>
+        <button id="btnTestKey" type="button" class="btn-secondary" onclick="testCurrentAiProviderKey()"><i class="fa-solid fa-bolt"></i> សាកល្បងតភ្ជាប់ (Test)</button>
+        <button id="btnSaveKey" type="button" class="btn-primary" onclick="saveApiKeyFromModal()">រក្សាទុក</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Software License & Commercial Activation Modal -->
+  <div id="licenseModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 580px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i class="fa-solid fa-shield-halved text-warning"></i>
+          <h4>គ្រប់គ្រងអាជ្ញាបណ្ណកម្មសិទ្ធិបញ្ញា (License Activation)</h4>
+        </div>
+        <button id="btnCloseLicenseModal" class="btn-close-modal" onclick="closeLicenseModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- License Status Box -->
+        <div id="licenseStatusBox" class="license-status-card activated">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span id="licenseStatusIcon"><i class="fa-solid fa-circle-check text-success"></i></span>
+              <strong id="licenseStatusTitle">អាជ្ញាបណ្ណស្របច្បាប់ (Activated)</strong>
+            </div>
+            <span class="plan-tag plan-tag-template" id="licenseTypeBadge">LIFETIME</span>
+          </div>
+          <div style="font-size: 8.5pt; color: #475569; margin-top: 6px;" id="licenseStatusDesc">
+            កម្មវិធីនេះត្រូវបានចុះឈ្មោះ និងការពារកម្មសិទ្ធិបញ្ញាស្របច្បាប់។
+          </div>
+        </div>
+
+        <!-- Customer Machine ID Card -->
+        <div class="control-group mt-3">
+          <label>កូដសម្គាល់កុំព្យូទ័ររបស់អ្នក (Customer Machine ID)</label>
+          <div class="flex gap-2" style="flex-wrap: wrap;">
+            <input type="text" id="displayMachineId" class="form-control" readonly value="ALPS-XXXX-XXXX" style="font-family: monospace; font-weight: bold; background: #f1f5f9; letter-spacing: 1px; flex: 1; min-width: 180px;">
+            <button type="button" class="btn-secondary" onclick="copyMachineId()" title="ចម្លង Machine ID">
+              <i class="fa-regular fa-copy"></i> ចម្លង
+            </button>
+            <button type="button" class="btn-primary" onclick="sendMachineIdToTelegram()" style="background: #0284c7; border: none; font-weight: 600;" title="ផ្ញើ Machine ID នេះតាម Telegram ដោយស្វ័យប្រវត្ត">
+              <i class="fa-brands fa-telegram"></i> ✈️ ផ្ញើតាម Telegram
+            </button>
+          </div>
+          <small style="color: #64748b; font-size: 8pt; margin-top: 4px; display: block;">
+            💡 ចុចប៊ូតុង <strong>«✈️ ផ្ញើតាម Telegram»</strong> ដើម្បីផ្ញើ Machine ID នេះទៅកាន់អ្នកលក់ភ្លាមៗ ដើម្បីទទួលបានលេខកូដ License Key។
+          </small>
+        </div>
+
+        <!-- Enter License Key -->
+        <div class="control-group mt-3">
+          <label for="inputLicenseKey">បញ្ចូលលេខកូដអាជ្ញាបណ្ណ (Enter License Key)</label>
+          <div class="input-icon-wrap">
+            <i class="fa-solid fa-key text-primary"></i>
+            <input type="text" id="inputLicenseKey" class="form-control" placeholder="ALPS-XXXX-XXXX-XXXX-XXXX" style="font-family: monospace; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;">
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeLicenseModal()">បិទ</button>
+        <button type="button" class="btn-primary" onclick="submitLicenseActivation()">
+          <i class="fa-solid fa-unlock-keyhole"></i> ធ្វើឱ្យសកម្ម (Activate)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🤖 AI Troubleshooting & Error Notification Modal -->
+  <div id="aiErrorModal" class="modal-overlay" style="display: none; z-index: 10005;">
+    <div class="modal-card" style="max-width: 620px; border-top: 5px solid #ef4444;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i class="fa-solid fa-triangle-exclamation" style="color: #ef4444; font-size: 1.4rem;"></i>
+          <h4 id="aiErrorModalTitle" style="color: #991b1b; font-weight: 700;">មិនអាចបង្កើតកិច្ចតែងការតាម Google Gemini AI</h4>
+        </div>
+        <button type="button" class="btn-close-modal" onclick="closeAiErrorModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body" style="padding: 16px 20px;">
+        <!-- Polite Apology Card -->
+        <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 16px; margin-bottom: 14px;">
+          <div style="color: #b91c1c; font-weight: 700; font-size: 0.95rem; margin-bottom: 4px;">
+            🙏 យើងខ្ញុំសូមអភ័យទោសយ៉ាងជ្រាលជ្រៅ!
+          </div>
+          <p style="font-size: 0.88rem; color: #7f1d1d; margin: 0; line-height: 1.6;">
+            ដើម្បីការពារគុណតម្លៃ និងស្តង់ដារបច្ចេកទេសនៃកម្មវិធី ប្រព័ន្ធ<strong>មិនបានបង្កើតជា Template សាមញ្ញជំនួសដោយស្វ័យប្រវត្តិនោះឡើយ</strong>។ ជំនួសមកវិញ យើងសូមបង្ហាញមូលហេតុជាក់លាក់ និងជម្រើសដោះស្រាយជូនលោកគ្រូ អ្នកគ្រូដូចខាងក្រោម៖
+          </p>
+        </div>
+
+        <!-- Diagnostic / Cause Box -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; margin-bottom: 14px;">
+          <div style="font-weight: 700; color: #1e293b; font-size: 0.9rem; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-circle-info" style="color: #3b82f6;"></i> មូលហេតុ និងដំណោះស្រាយដែលត្រូវធ្វើ៖
+          </div>
+          <div id="aiErrorReasonText" style="font-size: 0.9rem; color: #334155; line-height: 1.6;">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+        <!-- Technical Raw Error (Collapsible) -->
+        <details style="margin-bottom: 14px; background: #f1f5f9; border-radius: 6px; padding: 8px 12px; font-size: 0.8rem;">
+          <summary style="cursor: pointer; color: #64748b; font-weight: 600;">
+            <i class="fa-solid fa-code"></i> ពត៌មានបច្ចេកទេសលម្អិត (Technical Error Log)
+          </summary>
+          <pre id="aiErrorTechnicalLog" style="white-space: pre-wrap; word-break: break-all; margin: 8px 0 0 0; color: #dc2626; font-family: monospace; font-size: 0.78rem; max-height: 120px; overflow-y: auto; background: white; padding: 8px; border-radius: 4px; border: 1px solid #cbd5e1;"></pre>
+        </details>
+
+        <!-- Solutions / Choices Selection -->
+        <div style="font-weight: 700; color: #1e293b; font-size: 0.9rem; margin-bottom: 10px;">
+          សូមជ្រើសរើសជម្រើសមួយខាងក្រោម៖
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Choice 1: Retry Gemini -->
+          <button type="button" id="btnAiErrorRetry" class="btn-primary" onclick="retryAiGeneration()" style="background: #2563eb; justify-content: center; padding: 10px; font-weight: 600; font-size: 0.92rem;">
+            <i class="fa-solid fa-rotate-right"></i> 🔄 ព្យាយាមបង្កើតម្តងទៀត (Retry Gemini AI)
+          </button>
+
+          <!-- Choice 2: Open API Key Settings -->
+          <button type="button" id="btnAiErrorKey" class="btn-secondary" onclick="openKeyFromAiErrorModal()" style="border-color: #3b82f6; color: #1d4ed8; justify-content: center; padding: 10px; font-weight: 600; font-size: 0.92rem;">
+            <i class="fa-solid fa-key"></i> 🔑 ពិនិត្យ / បញ្ចូល Gemini API Key ថ្មី (aistudio.google.com)
+          </button>
+
+          <!-- Choice 3: Deliberate Offline Fallback (Secondary optional) -->
+          <button type="button" id="btnAiErrorOffline" class="btn-secondary" onclick="proceedOfflineDeliberately()" style="border-color: #cbd5e1; color: #475569; justify-content: center; padding: 9px; font-weight: 500; font-size: 0.85rem; background: #f8fafc;">
+            <i class="fa-solid fa-file-pen"></i> ⚙️ យល់ព្រមបង្កើតតាម Smart Offline Engine (បម្រុង - មិនប្រើ Internet)
+          </button>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="padding: 10px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: flex-end;">
+        <button type="button" class="btn-ghost" onclick="closeAiErrorModal()">បិទ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📝 Google Form & Instant Digital Quiz Modal -->
+  <div id="googleFormModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i class="fa-solid fa-square-poll-vertical" style="color: #7c3aed;"></i>
+          <h4 id="googleFormModalTitle">📝 ផ្ទាំងធ្វើតេស្តឌីជីថល (Digital Quiz & Google Form)</h4>
+        </div>
+        <button class="btn-close-modal" onclick="closeGoogleFormModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <!-- 🌟 Option 1: 1-Click Instant Digital Quiz (No Code, Instant 1-Second) -->
+        <div style="background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%); border: 1.5px solid #a78bfa; border-radius: 10px; padding: 14px 16px; margin-bottom: 14px;">
+          <div style="font-weight: 700; color: #5b21b6; display: flex; align-items: center; gap: 8px; font-size: 1.05rem;">
+            <i class="fa-solid fa-bolt-lightning text-warning"></i> ជម្រើសទី ១ (ងាយស្រួលបំផុត & ស្វ័យប្រវត្ត ១០០%): ធ្វើតេស្ត Online ភ្លាមៗ
+          </div>
+          <p style="font-size: 0.88rem; color: #334155; margin: 6px 0 12px 0; line-height: 1.5;">
+            💡 <strong>មិនបាច់សរសេរកូដ ឬកំណត់ស្មុគស្មាញឡើយ!</strong> ចុចតែ ១ ឃ្លីក វានឹងបើកផ្ទាំងកម្រងសំណួរឌីជីថលស្អាតដូច Google Forms ភ្លាមៗ ឬអាចទាញយកផ្ញើតាម <strong>Telegram</strong> ឱ្យសិស្ស/គរុនិស្សិតធ្វើលើទូរស័ព្ទដៃបានភ្លាម!
+          </p>
+          <div class="flex gap-2" style="flex-wrap: wrap;">
+            <button type="button" class="btn btn-primary" onclick="openInteractiveHtmlQuiz()" style="background: #7c3aed; border: none; font-weight: 700; font-size: 0.95rem; padding: 10px 18px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> 🚀 បើកផ្ទាំងធ្វើតេស្ត Online ភ្លាមៗ (Instant Quiz)
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="downloadInteractiveHtmlQuiz()" style="background: white; border: 1.5px solid #7c3aed; color: #6d28d9; font-weight: 600;">
+              <i class="fa-solid fa-file-arrow-down"></i> 📥 ទាញយក File Quiz (.html) ផ្ញើតាម Telegram
+            </button>
+          </div>
+        </div>
+
+        <!-- 📋 Option 2: Copy Text / CSV for Google Forms & Classroom -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px; margin-bottom: 12px;">
+          <div style="font-weight: 600; font-size: 0.9rem; color: #1e293b; margin-bottom: 6px;">
+            <i class="fa-solid fa-clipboard-list text-primary"></i> ជម្រើសទី ២: ចម្លងសំណួរ ឬទាញយកជា CSV (សម្រាប់ Google Classroom / Quizziz)
+          </div>
+          <div class="flex gap-2" style="flex-wrap: wrap;">
+            <button type="button" class="btn btn-sm btn-secondary" onclick="copyFormattedQuizText()">
+              <i class="fa-regular fa-copy"></i> 📋 ចម្លងសំណួរទាំង ១០ ជា Text
+            </button>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="exportCurrentQuizToCSV()">
+              <i class="fa-solid fa-file-csv"></i> 📊 ទាញយកជា Excel/CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- ⚙️ Option 3: Advanced Google Apps Script (Collapsible) -->
+        <div style="border: 1px dashed #cbd5e1; border-radius: 8px; padding: 10px 14px; background: #fafafa;">
+          <div class="flex justify-between items-center">
+            <span style="font-size: 0.85rem; color: #64748b; font-weight: 600;">
+              <i class="fa-brands fa-google text-primary"></i> ជម្រើសទី ៣: បង្កើតចូលក្នុង Google Drive តាម Apps Script (កម្រិតខ្ពស់)
+            </span>
+            <button type="button" class="btn-xs btn-ghost" onclick="toggleScriptPreview()" id="btnToggleScript" style="color: #7c3aed; font-weight: 600;">
+              👁️ បង្ហាញកូដ
+            </button>
+          </div>
+          
+          <div id="boxAppsScriptAdvance" style="display: none; margin-top: 10px;">
+            <div class="flex gap-2 mb-2">
+              <button type="button" class="btn btn-sm btn-secondary" onclick="copyAndOpenGoogleScript()" style="color: #7c3aed; font-weight: 600;">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> ចម្លងកូដ & បើក script.new
+              </button>
+              <button type="button" class="btn btn-sm btn-ghost" onclick="copyGoogleAppsScriptOnly()">
+                <i class="fa-regular fa-copy"></i> ចម្លងតែកូដ
+              </button>
+            </div>
+            <textarea id="googleAppsScriptCode" class="form-control" rows="4" readonly style="font-family: monospace; font-size: 8pt; background: white;"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeGoogleFormModal()">បិទ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🔄 Cloud Auto-Updater Modal -->
+  <div id="updateModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 560px;">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <i class="fa-solid fa-cloud-arrow-down" style="color: #10b981;"></i>
+          <h4>ប្រព័ន្ធអាប់ដេតស្វ័យប្រវត្ត (Cloud Auto-Updater)</h4>
+        </div>
+        <button class="btn-close-modal" onclick="closeUpdateModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg mb-3" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;">
+          <div>
+            <div style="font-size: 0.85rem; color: #64748b;">កំណែកម្មវិធីបច្ចុប្បន្ន (Installed Version):</div>
+            <div style="font-size: 1.15rem; font-weight: 700; color: #1e293b;" id="lblCurrentAppVersion">v2.5.0</div>
+          </div>
+          <button type="button" class="btn btn-sm btn-secondary" onclick="checkAppUpdates(true)">
+            <i class="fa-solid fa-rotate"></i> ពិនិត្យមើលឥឡូវនេះ
+          </button>
+        </div>
+
+        <div id="updateStatusBox" style="padding: 12px 14px; border-radius: 8px; font-size: 0.9rem; line-height: 1.5; background: #f0fdf4; border: 1px solid #86efac; color: #166534;">
+          <div class="flex items-center gap-2 font-bold" id="updateStatusTitle" style="display: flex; align-items: center; gap: 8px; font-weight: bold;">
+            <i class="fa-solid fa-circle-check"></i> កម្មវិធីរបស់អ្នកជាកំណែថ្មីបំផុតហើយ!
+          </div>
+          <div id="updateStatusDesc" style="font-size: 0.85rem; margin-top: 6px; color: #334155;">
+            មិនមានកំណែអាប់ដេតថ្មីនៅឡើយទេ។ កម្មវិធីដំណើរការបានយ៉ាងពេញលេញ។
+          </div>
+        </div>
+
+        <!-- Update Progress Bar (shown when updating) -->
+        <div id="updateProgressBarWrap" style="display: none; margin-top: 14px;">
+          <div style="display: flex; justify-content: space-between; font-size: 8.5pt; color: #475569; margin-bottom: 4px; font-weight: 600;">
+            <span id="updateProgressLabel">កំពុងទាញយកឯកសារអាប់ដេត...</span>
+            <span id="updateProgressPercent">0%</span>
+          </div>
+          <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+            <div id="updateProgressBar" style="width: 0%; height: 100%; background: #10b981; transition: width 0.3s;"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeUpdateModal()">បិទ</button>
+        <button type="button" class="btn-primary" id="btnApplyUpdate" onclick="applyAppUpdate()" style="display: none; background: #10b981; border: none; font-weight: 600;">
+          <i class="fa-solid fa-cloud-arrow-down"></i> ⚡ អាប់ដេតឥឡូវនេះ (Update Now)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🎬 In-App Video Micro-Lecture Studio Modal -->
+  <div id="videoStudioModal" class="modal-overlay" style="display: none; z-index: 10002;">
+    <div class="modal-card" style="max-width: 900px; width: 95vw; background: #0f172a; color: #f8fafc; border: 1px solid #1e293b; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);">
+      <div class="modal-header" style="border-bottom: 1px solid #334155; padding: 14px 18px;">
+        <div class="modal-title-wrap">
+          <i class="fa-solid fa-film" style="color: #38bdf8; font-size: 1.25rem;"></i>
+          <div>
+            <h4 style="color: #f8fafc; margin: 0; font-size: 1.15rem; font-family: 'Kantumruy Pro', sans-serif;">In-App Video Micro-Lecture Studio</h4>
+            <div style="font-size: 0.8rem; color: #94a3b8;" id="videoStudioSubtitle">វីដេអូបង្រៀន Micro-Lecture កម្រិត HD 16:9 • Font: Kantumruy Pro</div>
+          </div>
+        </div>
+        <button class="btn-close-modal" onclick="closeVideoStudioModal()" style="color: #94a3b8;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body" style="padding: 16px 18px; max-height: 80vh; overflow-y: auto;">
+        <!-- Active Lesson Status & Selector Bar -->
+        <div style="margin-bottom: 10px; background: rgba(15, 23, 42, 0.95); padding: 8px 14px; border-radius: 8px; border: 1.5px solid #0284c7; display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <span style="font-size: 0.78rem; background: #0284c7; color: white; padding: 2px 8px; border-radius: 12px; font-weight: bold; display: flex; align-items: center; gap: 4px;">
+              <i class="fa-solid fa-link"></i> មេរៀនដែលកំពុងភ្ជាប់៖
+            </span>
+            <span id="studioActiveLessonName" style="font-weight: bold; color: #38bdf8; font-size: 0.88rem; font-family: 'Kantumruy Pro', sans-serif;">
+              ជីវវិទ្យា ថ្នាក់ទី ១០ • ការបំប្លែងថាមពលក្នុងកោសិកា
+            </span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <label style="font-size: 0.8rem; color: #94a3b8;"><i class="fa-solid fa-book-open"></i> ប្រភពមេរៀន៖</label>
+            <select id="studioLessonDropdown" onchange="selectStudioLessonOption(this.value)" style="background: #1e293b; color: #f8fafc; border: 1px solid #475569; border-radius: 6px; padding: 4px 8px; font-size: 0.8rem; font-family: 'Kantumruy Pro', sans-serif; cursor: pointer;">
+              <option value="current_active" selected>📑 កិច្ចតែងការបច្ចុប្បន្ន (Active Lesson Plan)</option>
+              <option value="form_inputs">📝 ទិន្នន័យលើទម្រង់ (Form Inputs & Upload)</option>
+              <option value="sample_0">🌿 គំរូ៖ ជីវវិទ្យា ថ្នាក់ទី១០ (Cellular Respiration)</option>
+              <option value="sample_1">⚡ គំរូ៖ រូបវិទ្យា ថ្នាក់ទី១២ (AC Current & Induction)</option>
+              <option value="sample_2">🧪 គំរូ៖ គីមីវិទ្យា ថ្នាក់ទី៩ (Acids & Bases)</option>
+              <option value="sample_3">🇰HM គំរូ៖ ភាសាខ្មែរ ថ្នាក់ទី៧ (តែងសេចក្តីពិពណ៌នា)</option>
+              <option value="sample_4">🏛️ គំរូ៖ ប្រវត្តិវិទ្យា ថ្នាក់ទី១១ (សម័យអង្គរដ៏រុងរឿង)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Top Persona & AI Synthesis Controls Bar -->
+        <div style="margin-bottom: 14px; background: #1e293b; padding: 10px 14px; border-radius: 10px; border: 1px solid #334155; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
+          <!-- Persona & Speed Selector -->
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <label style="font-size: 0.86rem; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 5px;">
+                <i class="fa-solid fa-microphone-lines"></i> សំឡេងតួអង្គ (Voice):
+              </label>
+              <select id="selectVoicePersona" onchange="changeVoicePersona(this.value)" style="background: #0f172a; color: #f8fafc; border: 1.5px solid #0284c7; border-radius: 6px; padding: 6px 12px; font-size: 0.85rem; font-family: 'Kantumruy Pro', sans-serif; cursor: pointer; font-weight: 600;">
+                <option value="piseth" selected>👨‍🏫 លោកគ្រូ ពិសិដ្ឋ (Piseth Neural - សំឡេងមនុស្សពិត ធម្មជាតិ)</option>
+                <option value="sreymom">👩‍🏫 អ្នកគ្រូ ស្រីមុំ (Sreymom Neural - សំឡេងស្រទន់ ពិរោះរណ្តំ)</option>
+                <option value="young_student">🧑‍🎓 យុវជន / សិស្ស (Young Student - ស្វាហាប់ & រស់រវើក)</option>
+                <option value="elder_scholar">👴 មនុស្សចាស់ / លោកតា (Elder Scholar - ធ្ងន់ & មានបទពិសោធ)</option>
+                <option value="commercial_pro">🎙️ អ្នកអត្ថាធិប្បាយ / វិទ្យុ (Commercial Broadcaster)</option>
+                <option value="storyteller">📖 អ្នកនិទានរឿង (Expressive Storyteller)</option>
+              </select>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <label style="font-size: 0.82rem; font-weight: 600; color: #94a3b8; display: flex; align-items: center; gap: 4px;">
+                <i class="fa-solid fa-gauge-high"></i> ល្បឿននិយាយ៖
+              </label>
+              <select id="selectVoiceRate" onchange="changeSpeechRate(this.value)" style="background: #0f172a; color: #f8fafc; border: 1px solid #475569; border-radius: 6px; padding: 5px 8px; font-size: 0.82rem; font-family: 'Kantumruy Pro', sans-serif; cursor: pointer;">
+                <option value="+0%">ធម្មតា (1.0x)</option>
+                <option value="+12%" selected>រហ័សបែបធម្មជាតិ (1.15x - ណែនាំ)</option>
+                <option value="+20%">លឿនរស់រវើក (1.25x)</option>
+                <option value="-10%">មួយៗច្បាស់ៗ (0.9x)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- AI Gemini Synthesizer & Edit Actions -->
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button type="button" onclick="openApiKeyModal()" style="background: #0f172a; color: #facc15; border: 1.5px solid #facc15; border-radius: 6px; padding: 6px 12px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px;" title="ពិនិត្យ ឬបញ្ចូល Google Gemini API Key">
+              <i class="fa-solid fa-key"></i> <span>🔑 Gemini Key</span>
+            </button>
+            <button type="button" onclick="generateVideoScriptWithGemini()" id="btnStudioGeminiAI" style="background: linear-gradient(135deg, #7c3aed, #4f46e5); color: white; border: none; border-radius: 6px; padding: 6px 14px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 10px rgba(124, 58, 237, 0.4);" title="ប្រើប្រាស់ Google Gemini AI ដើម្បីសង្ខេប និងបង្កើតស្គ្រីបវីដេអូ ១០ ឈុតយ៉ាងស៊ីជម្រៅ">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> <span id="labelStudioGemini">✨ បង្កើតស្គ្រីបដោយ AI Gemini</span>
+            </button>
+            <button type="button" onclick="syncCurrentLessonToStudio()" style="background: linear-gradient(135deg, #0284c7, #2563eb); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;" title="ទាញយកខ្លឹមសារមេរៀនដែលបានបង្កើត ឬ Upload ចូលក្នុងវីដេអូ">
+              <i class="fa-solid fa-arrows-rotate"></i> 🔄 ភ្ជាប់មេរៀន (Sync)
+            </button>
+            <button type="button" onclick="toggleScriptEditDrawer()" id="btnToggleScriptEdit" style="background: #0f172a; color: #38bdf8; border: 1px solid #38bdf8; border-radius: 6px; padding: 6px 12px; font-size: 0.82rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-pen-to-square"></i> ✏️ កែស្គ្រីប (Edit)
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Script Editor Drawer (Collapsible) -->
+        <div id="studioScriptEditDrawer" style="display: none; margin-bottom: 14px; background: #0f172a; border: 1.5px solid #0284c7; border-radius: 10px; padding: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.4);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #334155; padding-bottom: 6px;">
+            <span style="font-weight: bold; color: #38bdf8; font-size: 0.95rem;">
+              <i class="fa-solid fa-sliders"></i> ✏️ កែសម្រួលអត្ថបទ និងស្គ្រីបឈុតឆាកបច្ចុប្បន្ន (Live Scene Editor)
+            </span>
+            <button type="button" onclick="toggleScriptEditDrawer()" style="background: transparent; border: none; color: #94a3b8; cursor: pointer; font-size: 1rem;"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+            <div>
+              <label style="font-size: 0.8rem; color: #94a3b8; display: block; margin-bottom: 3px;">ចំណងជើងឈុតឆាក (Scene Title):</label>
+              <input type="text" id="editSceneTitle" style="width: 100%; background: #1e293b; color: white; border: 1px solid #475569; border-radius: 6px; padding: 6px 10px; font-size: 0.88rem; font-family: 'Kantumruy Pro', sans-serif;">
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; color: #94a3b8; display: block; margin-bottom: 3px;">ចំណុចគោលទាំង ៣ (Bullet Points - មួយជួរមួយចំណុច):</label>
+              <textarea id="editSceneBullets" rows="3" style="width: 100%; background: #1e293b; color: white; border: 1px solid #475569; border-radius: 6px; padding: 6px 10px; font-size: 0.85rem; font-family: 'Kantumruy Pro', sans-serif; resize: vertical;"></textarea>
+            </div>
+            <div>
+              <label style="font-size: 0.8rem; color: #facc15; font-weight: bold; display: block; margin-bottom: 3px;">🎙️ អត្ថបទនិយាយជាភាសាខ្មែរ (Khmer Spoken Narration):</label>
+              <textarea id="editSceneNarration" rows="3" style="width: 100%; background: #1e293b; color: white; border: 1px solid #facc15; border-radius: 6px; padding: 6px 10px; font-size: 0.85rem; font-family: 'Kantumruy Pro', sans-serif; resize: vertical;"></textarea>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 8px;">
+              <button type="button" onclick="saveActiveSceneEdit()" style="background: #10b981; color: white; border: none; border-radius: 6px; padding: 6px 16px; font-weight: bold; font-size: 0.85rem; cursor: pointer;">
+                <i class="fa-solid fa-floppy-disk"></i> រក្សាទុក & បង្ហាញលើវីដេអូ
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- Canvas Video Stage -->
+        <div style="position: relative; border-radius: 12px; overflow: hidden; box-shadow: 0 12px 30px rgba(0,0,0,0.5); border: 2px solid #0284c7; background: #060d1f; aspect-ratio: 16/9;">
+          <canvas id="studioVideoCanvas" width="1280" height="720" style="width: 100%; height: 100%; display: block;"></canvas>
+          
+          <!-- Overlay Controls Bar -->
+          <div id="videoOverlayControls" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(15, 23, 42, 0.95)); padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+            <div class="flex items-center gap-2">
+              <button type="button" id="btnStudioPlay" onclick="toggleVideoPlayback()" style="background: #0284c7; color: white; border: none; border-radius: 20px; padding: 6px 16px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.9rem;">
+                <i class="fa-solid fa-play" id="iconStudioPlay"></i> <span id="labelStudioPlay">ចាក់វីដេអូ</span>
+              </button>
+              <button type="button" onclick="restartVideoPlayback()" style="background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.25); border-radius: 20px; padding: 6px 12px; font-size: 0.85rem; cursor: pointer;">
+                <i class="fa-solid fa-rotate-left"></i> ឡើងវិញ
+              </button>
+            </div>
+            
+            <div style="font-size: 0.85rem; color: #cbd5e1; font-family: monospace;" id="studioTimeDisplay">
+              ⏱️ ឈុតទី 1 / 10
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="downloadVideoAsWebM()" id="btnStudioDownload" style="background: #10b981; color: white; border: none; border-radius: 20px; padding: 6px 14px; font-weight: 700; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+                <i class="fa-solid fa-file-video"></i> <span id="labelStudioDownload">📥 ទាញយក File វីដេអូ (.webm)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scene Navigation Pills -->
+        <div style="margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap;" id="studioScenePills">
+          <!-- Injected dynamically -->
+        </div>
+
+        <!-- Progress Indicator -->
+        <div id="videoProgressWrap" style="margin-top: 12px; display: none;">
+          <div style="display: flex; justify-content: space-between; font-size: 8pt; color: #94a3b8; margin-bottom: 4px;">
+            <span id="videoProgressLabel">កំពុង Render & Record វីដេអូ...</span>
+            <span id="videoProgressPercent">0%</span>
+          </div>
+          <div style="width: 100%; height: 6px; background: #334155; border-radius: 3px; overflow: hidden;">
+            <div id="videoProgressBar" style="width: 0%; height: 100%; background: #38bdf8; transition: width 0.2s;"></div>
+          </div>
+        </div>
+
+        <!-- Script Details Accordion/Card -->
+        <div style="margin-top: 16px; background: #1e293b; border-radius: 10px; padding: 12px 14px; border: 1px solid #334155;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
+            <div style="font-weight: 700; color: #38bdf8; font-size: 0.95rem;">
+              🎬 ស្គ្រីបវីដេអូ & អក្សររត់ Font Kantumruy Pro ទាំង ១០ ឈុត (៥ ទៅ ៦ នាទី)៖
+            </div>
+            <button type="button" onclick="toggleScriptEditDrawer()" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid #38bdf8; border-radius: 6px; padding: 3px 10px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+              <i class="fa-solid fa-pen-to-square"></i> ✏️ បើកផ្ទាំងកែប្រែស្គ្រីប (Edit Script)
+            </button>
+          </div>
+          <div id="studioScriptScenes" style="display: flex; flex-direction: column; gap: 8px;">
+            <!-- Injected dynamically -->
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="border-top: 1px solid #334155; padding: 12px 18px; justify-content: space-between;">
+        <button type="button" class="btn-secondary" onclick="autoOpenNotebookLMWithPrompt()" style="background: #16a34a; color: white; border: none;">
+          <i class="fa-brands fa-google"></i> 🚀 បើក NotebookLM Web
+        </button>
+        <button type="button" class="btn-secondary" onclick="closeVideoStudioModal()" style="background: #334155; color: white; border: none;">
+          បិទ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Scripts with automatic cache busting -->
+  <script src="app.js?v=20260906_v29_e2e_verified"></script>
+</body>
+</html>

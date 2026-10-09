@@ -31,8 +31,16 @@ from docx.oxml.ns import nsdecls, qn
 import pypdf
 
 app = Flask(__name__, static_folder=None)
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+import tempfile
+try:
+    UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+except Exception:
+    UPLOAD_FOLDER = os.path.join(tempfile.gettempdir(), "alps_uploads")
+    try:
+        os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    except Exception:
+        UPLOAD_FOLDER = tempfile.gettempdir()
 
 # Preset Templates Data
 PRESET_TEMPLATES = {
