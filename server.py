@@ -1277,16 +1277,6 @@ def serve_index():
     return resp
 
 
-@app.route("/<path:filename>", methods=["GET"])
-def serve_static_files(filename):
-    if filename.startswith("api/") or filename == "api":
-        return jsonify({"error": "Endpoint not found"}), 404
-    resp = send_from_directory(".", filename)
-    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-    resp.headers["Pragma"] = "no-cache"
-    resp.headers["Expires"] = "0"
-    return resp
-
 
 APP_VERSION = "2.5.0"
 APP_RELEASE_DATE = "2026-08-20"
@@ -2402,6 +2392,17 @@ def export_docx():
         download_name=filename,
         mimetype="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     )
+
+
+@app.route("/<path:filename>", methods=["GET"])
+def serve_static_files(filename):
+    if filename.startswith("api/") or filename == "api":
+        return jsonify({"error": "Endpoint not found"}), 404
+    resp = send_from_directory(".", filename)
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 
 
