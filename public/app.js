@@ -9622,10 +9622,134 @@ function clearHistory() {
 
 
 // ==========================================================================
-// 📊 PPTX Attachment & AI Image Utilities
+// 📊 PPTX Attachment & Reliable Image Helpers
 // ==========================================================================
 
-async function fetchImageAsBase64(url, timeoutMs = 8000) {
+function generateEducationalCardDataUrl(title, keyword, subject, theme, slideIndex = 1) {
+  try {
+    const canvas = document.createElement('canvas');
+    canvas.width = 1024;
+    canvas.height = 768;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return null;
+
+    // Theme Color Schemes
+    let c1 = '#1e3a8a', c2 = '#2563eb', c3 = '#38bdf8';
+    if (theme === 'eco_green') {
+      c1 = '#064e3b'; c2 = '#059669'; c3 = '#34d399';
+    } else if (theme === 'dark_mode') {
+      c1 = '#0f172a'; c2 = '#1e293b'; c3 = '#64748b';
+    } else if (theme === 'simple_light') {
+      c1 = '#334155'; c2 = '#475569'; c3 = '#94a3b8';
+    }
+
+    // 1. Background Gradient
+    const bgGrad = ctx.createLinearGradient(0, 0, 1024, 768);
+    bgGrad.addColorStop(0, c1);
+    bgGrad.addColorStop(1, c2);
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, 1024, 768);
+
+    // 2. Decorative geometric accents
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+    ctx.beginPath();
+    ctx.arc(880, 120, 260, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(140, 680, 220, 0, Math.PI * 2);
+    ctx.fill();
+
+    // 3. Central Modern Educational Card
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(60, 60, 904, 648, 24);
+    } else {
+      ctx.rect(60, 60, 904, 648);
+    }
+    ctx.fill();
+    ctx.stroke();
+
+    // 4. Header Badges
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+    ctx.beginPath();
+    if (ctx.roundRect) {
+      ctx.roundRect(90, 95, 360, 48, 12);
+      ctx.roundRect(750, 95, 180, 48, 12);
+    } else {
+      ctx.rect(90, 95, 360, 48);
+      ctx.rect(750, 95, 180, 48);
+    }
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 22px "Kantumruy Pro", sans-serif';
+    ctx.fillText(`📚 មុខវិជ្ជា៖ ${subject || 'ទូទៅ'}`, 110, 128);
+    ctx.fillText(`ស្លាយទី #${slideIndex}`, 785, 128);
+
+    // 5. Main Title & Concept
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 34px "Kantumruy Pro", sans-serif';
+    const displayTitle = (title || 'ខ្លឹមសារមេរៀន').substring(0, 45);
+    ctx.fillText(displayTitle, 90, 215);
+
+    // 6. Pedagogical Concept Diagram (3 Visual Pillars)
+    const pillars = [
+      { num: '១', label: 'ស្វែងយល់', desc: 'ចំណេះដឹងគន្លឹះ' },
+      { num: '២', label: 'ពិភាក្សា', desc: 'ការគិតពិចារណា' },
+      { num: '៣', label: 'អនុវត្ត', desc: 'បំណិន និងសមត្ថភាព' }
+    ];
+
+    const pw = 250, ph = 260, gap = 45, sx = 100, sy = 265;
+    pillars.forEach((p, idx) => {
+      const px = sx + idx * (pw + gap);
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      if (ctx.roundRect) {
+        ctx.roundRect(px, sy, pw, ph, 16);
+      } else {
+        ctx.rect(px, sy, pw, ph);
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      // Number badge
+      ctx.fillStyle = '#fbbf24';
+      ctx.beginPath();
+      ctx.arc(px + 45, sy + 50, 24, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#1e293b';
+      ctx.font = 'bold 22px "Kantumruy Pro", sans-serif';
+      ctx.fillText(p.num, px + 38, sy + 58);
+
+      // Label
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 26px "Kantumruy Pro", sans-serif';
+      ctx.fillText(p.label, px + 30, sy + 130);
+
+      // Description
+      ctx.fillStyle = '#cbd5e1';
+      ctx.font = '19px "Kantumruy Pro", sans-serif';
+      ctx.fillText(p.desc, px + 30, sy + 180);
+    });
+
+    // 7. Footer MoEYS Pedagogical Tag
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.font = '18px "Kantumruy Pro", sans-serif';
+    ctx.fillText('🎓 គរុកោសល្យ និងវិធីសាស្ត្របង្រៀនស្តង់ដារ MoEYS Cambodia', 95, 660);
+
+    return canvas.toDataURL('image/png');
+  } catch (err) {
+    console.error('Canvas illustration error:', err);
+    return null;
+  }
+}
+
+async function fetchImageAsBase64(url, timeoutMs = 4000) {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -9635,7 +9759,14 @@ async function fetchImageAsBase64(url, timeoutMs = 8000) {
     const blob = await resp.blob();
     return new Promise((resolve) => {
       const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result);
+      reader.onloadend = () => {
+        const res = reader.result;
+        if (typeof res === 'string' && res.startsWith('data:image')) {
+          resolve(res);
+        } else {
+          resolve(null);
+        }
+      };
       reader.onerror = () => resolve(null);
       reader.readAsDataURL(blob);
     });
@@ -9644,35 +9775,28 @@ async function fetchImageAsBase64(url, timeoutMs = 8000) {
   }
 }
 
-async function getSlideImage(slideDef, data, imageMode) {
+async function getSlideImage(slideDef, data, imageMode, theme, slideIndex) {
   if (imageMode === 'no') return null;
 
   const keyword = slideDef.imageSearchKeyword || slideDef.title || data.lessonTitle || 'education';
-  
-  if (imageMode === 'ai') {
-    // Generate authentic educational illustration with AI
-    const subject = data.subject || 'general science';
-    const cleanKeyword = keyword.replace(/[^\w\s]/gi, ' ').trim() || 'classroom';
-    const aiPrompt = `educational classroom illustration about ${cleanKeyword}, subject of ${subject}, clear pedagogical concept diagram, high resolution, clean presentation artwork, 4k`;
-    const aiUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(aiPrompt)}?width=1024&height=768&nologo=true&seed=${Math.floor(Math.random() * 999999)}`;
-    
-    // Attempt download to embed as Base64 in PowerPoint
-    try {
-      const base64 = await fetchImageAsBase64(aiUrl, 8000);
-      if (base64) return { data: base64 };
-    } catch (e) {
-      console.warn('AI image Base64 conversion fallback to URL:', e);
+  const cleanKeyword = keyword.replace(/[^\\w\\s]/gi, ' ').trim() || 'classroom';
+
+  // 1. Try fetching real JPEG from picsum.photos with .jpg extension
+  const webUrl = `https://picsum.photos/seed/${encodeURIComponent(cleanKeyword)}/1024/768.jpg`;
+  try {
+    const base64 = await fetchImageAsBase64(webUrl, 3000);
+    if (base64 && base64.startsWith('data:image')) {
+      return { data: base64 };
     }
-    return { path: aiUrl };
-  } else {
-    // Web stock photo fallback
-    const webUrl = `https://picsum.photos/seed/${encodeURIComponent(keyword)}/800/600`;
-    try {
-      const base64 = await fetchImageAsBase64(webUrl, 5000);
-      if (base64) return { data: base64 };
-    } catch (e) {}
-    return { path: webUrl };
+  } catch (e) {}
+
+  // 2. Guaranteed zero-failure offline Canvas Educational Diagram Card
+  const canvasBase64 = generateEducationalCardDataUrl(slideDef.title, cleanKeyword, data.subject, theme, slideIndex);
+  if (canvasBase64) {
+    return { data: canvasBase64 };
   }
+
+  return null;
 }
 
 function updatePptxAttachmentOptions() {
@@ -10043,42 +10167,39 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
 
       let picObj = null;
       if (imageMode !== 'no') {
-        picObj = await getSlideImage(slideDef, data, imageMode);
+        picObj = await getSlideImage(slideDef, data, imageMode, theme, idx + 1);
       }
 
       if (slideDef.type === 'title') {
-        if (picObj) {
-          if (picObj.data) {
-            slide.addImage({ x: 0, y: 0, w: '100%', h: '100%', data: picObj.data });
-          } else if (picObj.path) {
-            slide.addImage({ x: 0, y: 0, w: '100%', h: '100%', path: picObj.path });
-          }
-          slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: '100%', h: '100%', fill: { color: '000000', transparency: 45 } });
-          slide.addText(slideDef.title, { x: 1, y: 2.2, w: '80%', h: 1.6, fontSize: 42, bold: true, color: 'FFFFFF', align: 'center', fontFace: 'Kantumruy Pro' });
-          slide.addText(slideDef.subtitle || '', { x: 1, y: 4.1, w: '80%', h: 1, fontSize: 24, color: 'E2E8F0', align: 'center', fontFace: 'Kantumruy Pro' });
+        if (picObj && picObj.data) {
+          slide.addImage({ x: 0, y: 0, w: 10, h: 5.625, data: picObj.data, sizing: { type: 'cover', w: 10, h: 5.625 } });
+          slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 10, h: 5.625, fill: { color: '000000', transparency: 45 } });
+          slide.addText(slideDef.title, { x: 1, y: 2.0, w: 8, h: 1.8, fontSize: 40, bold: true, color: 'FFFFFF', align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addText(slideDef.subtitle || '', { x: 1, y: 4.0, w: 8, h: 1.0, fontSize: 22, color: 'E2E8F0', align: 'center', fontFace: 'Kantumruy Pro' });
         } else {
-          slide.addText(slideDef.title, { x: 1, y: 2.5, w: '80%', h: 1.5, fontSize: 44, bold: true, color: titleColor, align: 'center', fontFace: 'Kantumruy Pro' });
-          slide.addText(slideDef.subtitle || '', { x: 1, y: 4, w: '80%', h: 1, fontSize: 24, color: bodyColor, align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addText(slideDef.title, { x: 1, y: 2.2, w: 8, h: 1.8, fontSize: 42, bold: true, color: titleColor, align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addText(slideDef.subtitle || '', { x: 1, y: 4.1, w: 8, h: 1.0, fontSize: 24, color: bodyColor, align: 'center', fontFace: 'Kantumruy Pro' });
         }
       } else {
-        slide.addText(slideDef.title || 'ខ្លឹមសារមេរៀន', { x: 0.5, y: 0.5, w: '90%', h: 0.8, fontSize: 32, bold: true, color: titleColor, fontFace: 'Kantumruy Pro' });
+        slide.addText(slideDef.title || 'ខ្លឹមសារមេរៀន', { x: 0.5, y: 0.4, w: 9.0, h: 0.8, fontSize: 30, bold: true, color: titleColor, fontFace: 'Kantumruy Pro' });
         const bullets = Array.isArray(slideDef.bullets) ? slideDef.bullets : [String(slideDef.bullets || '')];
-        if (picObj) {
+        if (picObj && picObj.data) {
           slide.addText(bullets.map(b => ({ text: b, options: { bullet: true, breakLine: true } })), 
-            { x: 0.5, y: 1.5, w: '45%', h: 3.5, fontSize: 20, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 35 });
-          if (picObj.data) {
-            slide.addImage({ x: '52%', y: 1.5, w: '43%', h: 3.5, data: picObj.data, sizing: { type: 'cover', w: '43%', h: 3.5 } });
-          } else if (picObj.path) {
-            slide.addImage({ x: '52%', y: 1.5, w: '43%', h: 3.5, path: picObj.path, sizing: { type: 'cover', w: '43%', h: 3.5 } });
-          }
+            { x: 0.5, y: 1.3, w: 4.7, h: 3.8, fontSize: 18, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 32 });
+          slide.addImage({ x: 5.4, y: 1.3, w: 4.2, h: 3.6, data: picObj.data, sizing: { type: 'cover', w: 4.2, h: 3.6 } });
         } else {
           slide.addText(bullets.map(b => ({ text: b, options: { bullet: true, breakLine: true } })), 
-            { x: 0.5, y: 1.5, w: '90%', h: 3.5, fontSize: 22, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 40 });
+            { x: 0.5, y: 1.4, w: 9.0, h: 3.8, fontSize: 22, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 40 });
         }
       }
     }
 
-    const fileName = `PPT_${data.lessonTitle || 'Lesson'}.pptx`;
+    // Clean lesson title to avoid double extension .docx.pptx and illegal filename characters
+    let cleanTitle = (data.lessonTitle || 'Lesson')
+      .replace(/\.(docx|pdf|pptx|txt|doc)$/gi, '')
+      .replace(/[\\/:*?"<>|]/g, '_')
+      .trim();
+    const fileName = `PPT_${cleanTitle || 'Lesson'}.pptx`;
     await pptx.writeFile({ fileName: fileName });
     showToast(`✅ បានទាញយកស្លាយ ${fileName} ជោគជ័យ!`, 'success');
 
