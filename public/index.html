@@ -47,8 +47,8 @@
       </div>
 
       <div class="header-actions">
-        <!-- Quick Sample Selector -->
-        <div class="sample-picker-wrapper">
+        <!-- Quick Sample Selector (Hidden) -->
+        <div class="sample-picker-wrapper" style="display: none;">
           <label for="samplePicker" class="picker-label"><i class="fa-solid fa-wand-magic-sparkles"></i> គំរូរហ័ស:</label>
           <select id="samplePicker" class="custom-select">
             <option value="">-- ជ្រើសរើសមេរៀនគំរូសាកល្បង --</option>
@@ -116,12 +116,12 @@
             <div class="step-badge">១</div>
             <div class="card-title-group">
               <h3>ទម្រង់កិច្ចតែងការ (Template)</h3>
-              <p>ជ្រើសរើសទម្រង់ស្តង់ដារ ឬ Upload ទម្រង់ផ្ទាល់ខ្លួនរបស់អ្នក</p>
+              <p>ជ្រើសរើសប្រភេទកិច្ចតែងការស្តង់ដារ MoEYS</p>
             </div>
           </div>
           
           <div class="template-choice-group">
-            <div class="radio-cards">
+            <div class="radio-cards" style="display: none;">
               <label class="radio-card active" id="radioCardPreset">
                 <input type="radio" name="templateMode" value="preset" checked>
                 <div class="radio-card-body">
@@ -149,7 +149,7 @@
             </div>
 
             <!-- 1. Preset Selector Dropdown -->
-            <div id="presetTemplateWrapper" class="control-group mt-3">
+            <div id="presetTemplateWrapper" class="control-group">
               <label for="presetTemplateSelect">ជ្រើសរើសប្រភេទកិច្ចតែងការ MoEYS៖</label>
               <select id="presetTemplateSelect" class="form-control">
                 <option value="moeys_standard_5step">កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)</option>
@@ -249,13 +249,13 @@
             <div class="step-badge">២</div>
             <div class="card-title-group">
               <h3>ឯកសារ និងខ្លឹមសារមេរៀន (Lesson Material)</h3>
-              <p>Upload មេរៀន ឬជ្រើសរើសពីមេរៀនដែលបានរក្សាទុក</p>
+              <p>Upload ឬបញ្ចូលឯកសារមេរៀន ស្លាយ ឬអត្ថបទ</p>
             </div>
           </div>
 
-          <!-- Lesson Mode Switcher -->
+          <!-- Lesson Mode Switcher (Hidden) -->
           <div class="lesson-choice-group">
-            <div class="radio-cards">
+            <div class="radio-cards" style="display: none;">
               <label class="radio-card active" id="radioCardLessonUpload">
                 <input type="radio" name="lessonSourceMode" value="upload" checked>
                 <div class="radio-card-body">
@@ -326,7 +326,7 @@
             <!-- 2. Upload / Input Lesson Material Container -->
             <div id="uploadLessonWrapper">
               <!-- Lesson Material Dropzone -->
-              <div class="dropzone mt-3" id="lessonDropzone">
+              <div class="dropzone mt-1" id="lessonDropzone">
                 <input type="file" id="lessonFileInput" accept=".docx,.pdf,.txt,.doc,.pptx,.ppt,.png,.jpg,.jpeg,.webp" class="file-input-hidden">
                 <div class="dropzone-content">
                   <div class="drop-icon"><i class="fa-solid fa-file-shield"></i></div>
