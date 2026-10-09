@@ -63,6 +63,25 @@
     .btn-magic-blink i {
       animation: pulseIcon 1.5s ease-in-out infinite;
     }
+    @keyframes wheelBlink {
+      0% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); background-color: transparent; }
+      50% { box-shadow: 0 0 14px 4px rgba(245, 158, 11, 0.4); background-color: rgba(245, 158, 11, 0.15); }
+      100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); background-color: transparent; }
+    }
+    .btn-wheel-blink {
+      animation: wheelBlink 2s ease-in-out infinite;
+      border: 1.5px solid #f59e0b !important;
+      color: #d97706 !important;
+      transition: none !important;
+    }
+    @keyframes spinPulseIcon {
+      0% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.2) rotate(180deg); }
+      100% { transform: scale(1) rotate(360deg); }
+    }
+    .btn-wheel-blink i {
+      animation: spinPulseIcon 4s linear infinite;
+    }
   </style>
   <script>
     try {
@@ -120,7 +139,7 @@
         </button>
 
                 <!-- Spinner and Group Generator -->
-        <button class="btn-secondary" onclick="window.open('https://wheelofnames.com/', '_blank')" title="បង្វិលកងចៃដន្យ (Random Spinner Wheel)">
+        <button class="btn-secondary btn-wheel-blink" onclick="window.open('https://wheelofnames.com/', '_blank')" title="បង្វិលកងចៃដន្យ (Random Spinner Wheel)">
           <i class="fa-solid fa-dharmachakra" style="color: #f59e0b;"></i>
           <span class="btn-text">បង្វិលកង</span>
         </button>
