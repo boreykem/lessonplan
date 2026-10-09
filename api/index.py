@@ -1,5 +1,6 @@
 import sys
 import os
+from urllib.parse import parse_qs
 
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if root_dir not in sys.path:
@@ -7,29 +8,35 @@ if root_dir not in sys.path:
 
 from server import app
 
-# Debug route to see exact Vercel environ headers
+# Add root /api handler
 @app.route("/api", methods=["GET", "POST"])
 @app.route("/api/", methods=["GET", "POST"])
-def debug_environ():
-    from flask import request, jsonify
+def api_root_endpoint():
+    from flask import jsonify
     return jsonify({
-        "path": request.path,
-        "query": request.query_string.decode('utf-8', errors='ignore'),
-        "x_matched_path": request.headers.get("X-Matched-Path"),
-        "x_now_route_matches": request.headers.get("X-Now-Route-Matches"),
-        "x_vercel_path": request.headers.get("X-Vercel-Forwarded-For"),
-        "environ_path_info": request.environ.get("PATH_INFO"),
-        "environ_request_uri": request.environ.get("REQUEST_URI"),
-        "environ_interesting": {k: str(v) for k, v in request.environ.items() if any(w in k.upper() for w in ['PATH', 'URI', 'URL', 'VERCEL', 'MATCH', 'ROUTE'])}
+        "status": "ok",
+        "service": "AI Lesson Plan Studio (Python/Flask)",
+        "version": "2.5.0"
     })
 
-# Also register routes without /api prefix as aliases
-# (e.g. /health -> /api/health, /license/info -> /api/license/info)
-try:
-    for rule in list(app.url_map.iter_rules()):
-        if rule.rule.startswith("/api/"):
-            alt_rule = rule.rule[4:] # remove /api
-            if alt_rule not in [r.rule for r in app.url_map.iter_rules()]:
-                app.add_url_rule(alt_rule, endpoint=f"alt_{rule.endpoint}", view_func=app.view_functions[rule.endpoint], methods=rule.methods)
-except Exception as e:
-    print("Route alias notice:", e)
+# WSGI Middleware to restore PATH_INFO from __vercel_path query param or request headers
+class VercelPathMiddleware:
+    def __init__(self, wsgi_app):
+        self.wsgi_app = wsgi_app
+
+    def __call__(self, environ, start_response):
+        qs = parse_qs(environ.get("QUERY_STRING", ""))
+        v_path = qs.get("__vercel_path", [None])[0]
+        
+        if v_path:
+            v_clean = v_path.strip("/")
+            environ["PATH_INFO"] = f"/api/{v_clean}" if v_clean else "/api"
+        else:
+            matched = environ.get("HTTP_X_MATCHED_PATH") or environ.get("REQUEST_URI") or environ.get("PATH_INFO", "")
+            clean = matched.split("?")[0] if matched else ""
+            if clean and clean.startswith("/api"):
+                environ["PATH_INFO"] = clean
+
+        return self.wsgi_app(environ, start_response)
+
+app.wsgi_app = VercelPathMiddleware(app.wsgi_app)

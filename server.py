@@ -1279,6 +1279,8 @@ def serve_index():
 
 @app.route("/<path:filename>", methods=["GET"])
 def serve_static_files(filename):
+    if filename.startswith("api/") or filename == "api":
+        return jsonify({"error": "Endpoint not found"}), 404
     resp = send_from_directory(".", filename)
     resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     resp.headers["Pragma"] = "no-cache"
