@@ -7079,7 +7079,7 @@ async function autoOpenNotebookLMWithPrompt() {
     await navigator.clipboard.writeText(prompt);
   } catch (e) {}
 
-  window.open('https://notebooklm.google.com', '_blank');
+  window.open('https://notebook.google.com/notebook/104a40ae-6850-4e52-b0cf-e66a5deee7bd', '_blank');
   showToast('🚀 បានបើក Google NotebookLM និងចម្លង Video Prompt (Font: Kantumruy Pro) ចូល Clipboard! សូមចុច Ctrl+V (Paste)។', 'success');
 }
 
