@@ -594,6 +594,22 @@ const I18N_DICTIONARY = {
     langLabel: "🇬🇧 English",
     langTooltip: "Switch to Khmer / ប្តូរជាភាសាខ្មែរ",
 
+    stepBadge1: "1",
+    stepBadge2: "2",
+    stepBadge3: "3",
+
+    templateDropPrimary: 'Drop template file here or <span class="browse-link">browse files</span>',
+    templateDropHint: "Supports Word (.docx), PDF (.pdf), PowerPoint (.pptx), or TXT (.txt)",
+
+    dropPrimary: 'Drop lesson files/slides/images here or <span class="browse-link">browse files</span>',
+    dropHint: "Supports PowerPoint (.pptx), Word (.docx), PDF (.pdf), Book photos (.png, .jpg), TXT",
+
+    emptyStateDesc: "Select a lesson format, upload lesson materials or excerpts, and click <strong>Generate Lesson Plan</strong>.",
+    btnEmptyQuickDemo: "Try with Demo Lesson Now",
+
+    loadingTitle: "AI is analyzing materials and structuring lesson plan...",
+    loadingDesc: "Formulating 3-domain learning objectives, teaching aids, and 5-step active pedagogy",
+
     // Step 1
     step1Title: "Lesson Plan Template",
     step1Desc: "Select MoEYS Standard Official Template",
@@ -819,6 +835,41 @@ function setLanguage(lang, showNotification = false) {
   // Recalculate learning gain for current language
   if (typeof calculateLearningGain === 'function') {
     calculateLearningGain();
+  }
+
+  // Update word counter
+  updateWordCount();
+
+  // Translate tooltips and titles
+  const isEn = (lang === 'en');
+  const btnZoomOut = document.getElementById('btnZoomOut');
+  const btnZoomIn = document.getElementById('btnZoomIn');
+  const btnZoomFit = document.getElementById('btnZoomFit');
+  const btnWord = document.getElementById('btnExportWord');
+  const btnPdf = document.getElementById('btnPrintPdf');
+  const btnCopy = document.getElementById('btnCopyText');
+  const btnNblm = document.getElementById('btnOpenNotebookLM');
+  const btnGain = document.getElementById('btnOpenLearningGainModal');
+  const btnInstall = document.getElementById('btnInstallApp');
+  const btnReset = document.getElementById('btnReset');
+  const btnTheme = document.getElementById('btnThemeToggle');
+
+  if (btnZoomOut) btnZoomOut.title = isEn ? "Zoom Out" : "បង្រួម";
+  if (btnZoomIn) btnZoomIn.title = isEn ? "Zoom In" : "ពង្រីក";
+  if (btnZoomFit) btnZoomFit.title = isEn ? "Fit to Screen" : "សមនឹងអេក្រង់";
+  if (btnWord) btnWord.title = isEn ? "Download Microsoft Word (.docx)" : "ទាញយកជាឯកសារ Microsoft Word (.docx)";
+  if (btnPdf) btnPdf.title = isEn ? "Print or Save as PDF" : "បោះពុម្ព ឬរក្សាទុកជា PDF";
+  if (btnCopy) btnCopy.title = isEn ? "Copy All Text" : "ចម្លងអត្ថបទទាំងអស់";
+  if (btnNblm) btnNblm.title = isEn ? "Open Google NotebookLM for AI Audio/Video" : "បើក Google NotebookLM ដើម្បីបង្កើត AI Audio Overview / Video";
+  if (btnGain) btnGain.title = isEn ? "Calculate Hake's Normalized Learning Gain" : "គណនាអត្រាកំណើននៃការរៀនសូត្រ (Hake's Normalized Learning Gain)";
+  if (btnInstall) btnInstall.title = isEn ? "Install Application on Screen (PWA)" : "ដំឡើងកម្មវិធីលើអេក្រង់កុំព្យូទ័រ ឬទូរស័ព្ទ (Install App)";
+  if (btnReset) btnReset.title = isEn ? "Reset Form Inputs" : "កំណត់ទិន្នន័យឡើងវិញ";
+  if (btnTheme) btnTheme.title = isEn ? "Toggle Light / Dark Theme" : "ប្តូរពណ៌ Theme";
+
+  // If a document is currently active on screen, re-render headers with new language
+  const printDoc = document.getElementById('printableDoc');
+  if (printDoc && printDoc.style.display !== 'none' && state.generatedPlanData) {
+    renderLessonPlanToA4(state.generatedPlanData);
   }
 
   if (showNotification && typeof showToast === 'function') {
@@ -2040,9 +2091,13 @@ function loadSampleLesson(index) {
 
 // Update Word Count Indicator
 function updateWordCount() {
-  const text = document.getElementById('lessonContentText').value.trim();
+  const input = document.getElementById('lessonContentText');
+  const badge = document.getElementById('charCount');
+  if (!badge) return;
+  const text = input ? input.value.trim() : '';
   const words = text ? text.split(/\s+/).length : 0;
-  document.getElementById('charCount').textContent = `${words} ពាក្យ`;
+  const unit = (state.language === 'en') ? 'words' : 'ពាក្យ';
+  badge.textContent = `${words} ${unit}`;
 }
 
 // Check API Key Status Indicator
@@ -4602,35 +4657,37 @@ function renderLessonPlanToA4(data) {
   const isFlipped = isFlippedLearningRequest(data) || data.templateType === 'flipped_learning';
   const isBd = !isFlipped && (isBackwardDesignRequest(data) || data.templateType === 'backward_design' || Boolean(data.stage1));
 
+  const isEn = (state.language === 'en');
+
   // Common Header HTML
   const headerHtml = `
     <!-- Top Emblem & Motto -->
     <div class="doc-header-top">
-      <div class="doc-motto-kh">ព្រះរាជាណាចក្រកម្ពុជា</div>
-      <div class="doc-motto-sub">ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
+      <div class="doc-motto-kh">${isEn ? 'KINGDOM OF CAMBODIA' : 'ព្រះរាជាណាចក្រកម្ពុជា'}</div>
+      <div class="doc-motto-sub">${isEn ? 'NATION RELIGION KING' : 'ជាតិ សាសនា ព្រះមហាក្សត្រ'}</div>
       <div style="font-size: 14pt; letter-spacing: 2px;">***</div>
     </div>
 
     <!-- Meta School & Date Row -->
     <div class="doc-meta-row">
       <div class="doc-school-info">
-        <div><strong>គ្រឹះស្ថានសិក្សា៖</strong> ${escapeHtml(data.school || '')}</div>
-        <div><strong>ឈ្មោះគ្រូបង្រៀន៖</strong> ${escapeHtml(data.teacher || '')}</div>
-        <div><strong>មុខវិជ្ជា៖</strong> ${escapeHtml(data.subject || '')} | <strong>កម្រិត៖</strong> ${escapeHtml(data.grade || '')}</div>
+        <div><strong>${isEn ? 'School / Institution:' : 'គ្រឹះស្ថានសិក្សា៖'}</strong> ${escapeHtml(data.school || '')}</div>
+        <div><strong>${isEn ? 'Teacher:' : 'ឈ្មោះគ្រូបង្រៀន៖'}</strong> ${escapeHtml(data.teacher || '')}</div>
+        <div><strong>${isEn ? 'Subject:' : 'មុខវិជ្ជា៖'}</strong> ${escapeHtml(data.subject || '')} | <strong>${isEn ? 'Grade:' : 'កម្រិត៖'}</strong> ${escapeHtml(data.grade || '')}</div>
       </div>
       <div class="doc-date-info">
         <div>${escapeHtml(data.dateStr || '')}</div>
-        <div><strong>រយៈពេល៖</strong> ${escapeHtml(data.duration || '')}</div>
+        <div><strong>${isEn ? 'Duration:' : 'រយៈពេល៖'}</strong> ${escapeHtml(data.duration || '')}</div>
       </div>
     </div>
 
     <!-- Main Title Banner -->
-    <div class="doc-main-title">${escapeHtml(data.templateTitle || (isFlipped ? 'កិច្ចតែងការបង្រៀនតាមបែបថ្នាក់រៀនត្រឡប់' : (isBd ? 'កិច្ចតែងការបង្រៀន (តាមបែបត្រឡប់ - Backward Design / UbD)' : 'កិច្ចតែងការបង្រៀន')))}</div>
+    <div class="doc-main-title">${escapeHtml(data.templateTitle || (isFlipped ? (isEn ? 'FLIPPED LEARNING LESSON PLAN' : 'កិច្ចតែងការបង្រៀនតាមបែបថ្នាក់រៀនត្រឡប់') : (isBd ? (isEn ? 'BACKWARD DESIGN (UbD) LESSON PLAN' : 'កិច្ចតែងការបង្រៀន (តាមបែបត្រឡប់ - Backward Design / UbD)') : (isEn ? 'LESSON PLAN' : 'កិច្ចតែងការបង្រៀន'))))}</div>
     
     <div class="doc-lesson-banner">
       ${data.chapter ? `<div><strong>${escapeHtml(data.chapter)}</strong></div>` : ''}
       <div style="font-size: 11.5pt; font-weight: bold; color: #1e293b;">${escapeHtml(data.lessonTitle || '')}</div>
-      ${data.method ? `<div style="font-size: 9.5pt; color: #475569; margin-top: 2px;"><strong>វិធីសាស្ត្របង្រៀន៖</strong> ${escapeHtml(data.method)}</div>` : ''}
+      ${data.method ? `<div style="font-size: 9.5pt; color: #475569; margin-top: 2px;"><strong>${isEn ? 'Teaching Method:' : 'វិធីសាស្ត្របង្រៀន៖'}</strong> ${escapeHtml(data.method)}</div>` : ''}
     </div>
   `;
 
@@ -4639,13 +4696,13 @@ function renderLessonPlanToA4(data) {
     <!-- Signatures -->
     <div class="doc-footer-signatures">
       <div class="sig-box">
-        <div>បានឃើញ និងឯកភាព</div>
-        <div style="font-weight: bold; margin-top: 2px;">នាយក/នាយិកាសាលា</div>
+        <div>${isEn ? 'Seen and Approved' : 'បានឃើញ និងឯកភាព'}</div>
+        <div style="font-weight: bold; margin-top: 2px;">${isEn ? 'School Principal / Director' : 'នាយក/នាយិកាសាលា'}</div>
         <div class="sig-space"></div>
       </div>
       <div class="sig-box">
         <div>${escapeHtml(data.dateStr || '')}</div>
-        <div style="font-weight: bold; margin-top: 2px;">ហត្ថលេខាគ្រូបង្រៀន</div>
+        <div style="font-weight: bold; margin-top: 2px;">${isEn ? "Teacher's Signature" : 'ហត្ថលេខាគ្រូបង្រៀន'}</div>
         <div class="sig-space"></div>
         <div style="font-weight: bold;">${escapeHtml(data.teacher || '')}</div>
       </div>
@@ -4929,10 +4986,10 @@ function renderLessonPlanToA4(data) {
     <table class="doc-table">
       <thead>
         <tr>
-          <th style="width: 16%;">ជំហាន និងពេលវេលា</th>
-          <th style="width: 30%;">សកម្មភាពគ្រូ</th>
-          <th style="width: 25%;">ខ្លឹមសារមេរៀន</th>
-          <th style="width: 29%;">សកម្មភាពសិស្ស</th>
+          <th style="width: 16%;">${isEn ? 'Step & Timing' : 'ជំហាន និងពេលវេលា'}</th>
+          <th style="width: 30%;">${isEn ? "Teacher's Activity" : 'សកម្មភាពគ្រូ'}</th>
+          <th style="width: 25%;">${isEn ? 'Lesson Content' : 'ខ្លឹមសារមេរៀន'}</th>
+          <th style="width: 29%;">${isEn ? "Students' Activity" : 'សកម្មភាពសិស្ស'}</th>
         </tr>
       </thead>
       <tbody>

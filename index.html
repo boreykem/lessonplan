@@ -20,7 +20,7 @@
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
-  <link rel="stylesheet" href="style.css?v=20261009_v9">
+  <link rel="stylesheet" href="style.css?v=20261009_v10">
   
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="/manifest.json">
@@ -122,7 +122,7 @@
         <!-- Install App / Add to Screen Button -->
         <button id="btnInstallApp" class="btn-primary" style="display: inline-flex; align-items: center; gap: 7px; padding: 7px 15px; font-size: 0.88rem; font-weight: 700; border-radius: 8px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; border: none; cursor: pointer; box-shadow: 0 2px 10px rgba(79, 70, 229, 0.35);" onclick="handleInstallPwaClick()" title="ដំឡើងកម្មវិធីលើអេក្រង់កុំព្យូទ័រ ឬទូរស័ព្ទ (Install App / Add to Screen)">
           <i class="fa-solid fa-download"></i>
-          <span class="btn-text">ដំឡើងលើអេក្រង់</span>
+          <span class="btn-text" data-i18n="btnInstall">ដំឡើងលើអេក្រង់</span>
         </button>
 
                 <!-- Language Switcher Button (Khmer / English) -->
@@ -149,7 +149,7 @@
         <!-- STEP 1: Upload / Select Template -->
         <section class="config-card">
           <div class="card-header">
-            <div class="step-badge">១</div>
+            <div class="step-badge" data-i18n="stepBadge1">១</div>
             <div class="card-title-group">
               <h3 data-i18n="step1Title">ទម្រង់កិច្ចតែងការ (Template)</h3>
               <p data-i18n="step1Desc">ជ្រើសរើសប្រភេទកិច្ចតែងការស្តង់ដារ MoEYS</p>
@@ -244,8 +244,8 @@
                 <input type="file" id="templateFileInput" accept=".docx,.pdf,.txt,.doc,.pptx,.ppt" class="file-input-hidden">
                 <div class="dropzone-content">
                   <div class="drop-icon"><i class="fa-solid fa-file-word"></i></div>
-                  <p class="drop-primary">ទម្លាក់ឯកសារ Template នៅទីនេះ ឬ <span class="browse-link">ចុចដើម្បីរើសឯកសារ</span></p>
-                  <p class="drop-hint">គាំទ្រឯកសារ Word (.docx), PDF (.pdf), PowerPoint (.pptx), ឬ Text (.txt)</p>
+                  <p class="drop-primary" id="templateDropPrimaryText" data-i18n="templateDropPrimary">ទម្លាក់ឯកសារ Template នៅទីនេះ ឬ <span class="browse-link">ចុចដើម្បីរើសឯកសារ</span></p>
+                  <p class="drop-hint" id="templateDropHintText" data-i18n="templateDropHint">គាំទ្រឯកសារ Word (.docx), PDF (.pdf), PowerPoint (.pptx), ឬ Text (.txt)</p>
                 </div>
                 <!-- File Status Pill -->
                 <div id="templateFileStatus" class="file-status-pill" style="display: none;">
@@ -282,7 +282,7 @@
         <!-- STEP 2: Upload Lesson Content & Documents -->
         <section class="config-card">
           <div class="card-header">
-            <div class="step-badge">២</div>
+            <div class="step-badge" data-i18n="stepBadge2">២</div>
             <div class="card-title-group">
               <h3 data-i18n="step2Title">ឯកសារ និងខ្លឹមសារមេរៀន (Lesson Material)</h3>
               <p data-i18n="step2Desc">Upload ឬបញ្ចូលឯកសារមេរៀន ស្លាយ ឬអត្ថបទ</p>
@@ -366,8 +366,8 @@
                 <input type="file" id="lessonFileInput" accept=".docx,.pdf,.txt,.doc,.pptx,.ppt,.png,.jpg,.jpeg,.webp" class="file-input-hidden">
                 <div class="dropzone-content">
                   <div class="drop-icon"><i class="fa-solid fa-file-shield"></i></div>
-                  <p class="drop-primary">ទម្លាក់ឯកសារមេរៀន/ស្លាយ/រូបភាព នៅទីនេះ ឬ <span class="browse-link">ចុចដើម្បីរើសឯកសារ</span></p>
-                  <p class="drop-hint">គាំទ្រ PowerPoint (.pptx), Word (.docx), PDF (.pdf), រូបភាពថតសៀវភៅ (.png, .jpg), TXT</p>
+                  <p class="drop-primary" id="dropPrimaryText" data-i18n="dropPrimary">ទម្លាក់ឯកសារមេរៀន/ស្លាយ/រូបភាព នៅទីនេះ ឬ <span class="browse-link">ចុចដើម្បីរើសឯកសារ</span></p>
+                  <p class="drop-hint" id="dropHintText" data-i18n="dropHint">គាំទ្រ PowerPoint (.pptx), Word (.docx), PDF (.pdf), រូបភាពថតសៀវភៅ (.png, .jpg), TXT</p>
                 </div>
                 <!-- File Status Pill -->
                 <div id="lessonFileStatus" class="file-status-pill" style="display: none;">
@@ -416,7 +416,7 @@
         <section class="config-card">
           <div class="card-header flex-between">
             <div class="header-step-title">
-              <div class="step-badge">៣</div>
+              <div class="step-badge" data-i18n="stepBadge3">៣</div>
               <div class="card-title-group">
                 <h3 data-i18n="step3Title">ព័ត៌មានរដ្ឋបាល និងវិធីសាស្ត្របង្រៀន</h3>
                 <p data-i18n="step3Desc">កំណត់ព័ត៌មានលម្អិតសម្រាប់ក្បាលកិច្ចតែងការ</p>
@@ -682,10 +682,10 @@
           <div class="empty-icon-wrap">
             <i class="fa-solid fa-book-open-reader"></i>
           </div>
-          <p>សូមជ្រើសរើសទម្រង់ Upload ឯកសារមេរៀន ឬជ្រើសរើស <strong>គំរូរហ័ស</strong> នៅខាងលើ ហើយចុចប៊ូតុង <strong>បង្កើតកិច្ចតែងការស្វ័យប្រវត្តិ</strong>។</p>
+          <p id="emptyStateText" data-i18n="emptyStateDesc">សូមជ្រើសរើសទម្រង់ Upload ឯកសារមេរៀន ឬជ្រើសរើស <strong>គំរូរហ័ស</strong> នៅខាងលើ ហើយចុចប៊ូតុង <strong>បង្កើតកិច្ចតែងការស្វ័យប្រវត្តិ</strong>។</p>
           <div class="flex gap-2 justify-center mt-3" style="flex-wrap: wrap;">
             <button id="btnEmptyQuickDemo" class="btn-secondary">
-              <i class="fa-solid fa-play"></i> សាកល្បងជាមួយមេរៀនគំរូភ្លាមៗ
+              <i class="fa-solid fa-play"></i> <span data-i18n="btnEmptyQuickDemo">សាកល្បងជាមួយមេរៀនគំរូភ្លាមៗ</span>
             </button>
           </div>
         </div>
@@ -1380,6 +1380,6 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261009_v9"></script>
+  <script src="app.js?v=20261009_v10"></script>
 </body>
 </html>
