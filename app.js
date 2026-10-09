@@ -3710,6 +3710,16 @@ function setLoadingOverlayStatus(title, desc, subStatus) {
 }
 
 // Smart Built-in Synthesizer Engine (Authentic MoEYS Curriculum Logic & Backward Design UbD)
+function hideLoadingOverlay() {
+  const el = document.getElementById('loadingOverlay');
+  if (el) el.style.display = 'none';
+}
+
+function showLoadingOverlay() {
+  const el = document.getElementById('loadingOverlay');
+  if (el) el.style.display = 'flex';
+}
+
 function synthesizeLessonPlanOffline(params) {
   const lessonTitle = params.lessonTitle || (params.chapter ? params.chapter : 'មេរៀនទូទៅ');
   const subject = params.subject;
@@ -4912,29 +4922,35 @@ function renderLearningGainReflectionBlock(data) {
 // ==========================================================================
 
 async function callAiForSingleTest(testType, plan, numQuestions = 10, scale = null) {
-  const apiKey = state.geminiApiKey;
-  const isPre = testType === 'pre';
-  const isEn = (state.language === 'en');
-  
-  let e = isPre ? 6 : 2;
-  let m = isPre ? 3 : 6;
-  let h = isPre ? 1 : 2;
-  
-  if (scale) {
-    e = scale.e;
-    m = scale.m;
-    h = scale.h;
-  } else if (numQuestions === 5) {
-    e = isPre ? 3 : 1;
-    m = isPre ? 1 : 3;
-    h = 1;
-  }
+  showLoadingOverlay();
+  setLoadingOverlayStatus(
+    testType === 'pre' ? '📝 AI កំពុងបង្កើតកម្រងសំណួរ Pre-Test...' : '📝 AI កំពុងបង្កើតកម្រងសំណួរ Post-Test...',
+    `Gemini AI កំពុងបង្កើតសំណួរ ${numQuestions} ចំណុច...`
+  );
+  try {
+    const apiKey = state.geminiApiKey || getActiveGeminiApiKey();
+    const isPre = testType === 'pre';
+    const isEn = (state.language === 'en');
+    
+    let e = isPre ? 6 : 2;
+    let m = isPre ? 3 : 6;
+    let h = isPre ? 1 : 2;
+    
+    if (scale) {
+      e = scale.e;
+      m = scale.m;
+      h = scale.h;
+    } else if (numQuestions === 5) {
+      e = isPre ? 3 : 1;
+      m = isPre ? 1 : 3;
+      h = 1;
+    }
 
-  const diffPrompt = isPre ? 
-    `Difficulty level: ${e} Easy (Remember), ${m} Medium (Apply), ${h} Hard (Analyze).` :
-    `Bloom's Taxonomy / Difficulty: ${e} Easy (Remember/Understand), ${m} Medium (Apply/Analyze), ${h} Hard (Evaluate/Create).`;
+    const diffPrompt = isPre ? 
+      `Difficulty level: ${e} Easy (Remember), ${m} Medium (Apply), ${h} Hard (Analyze).` :
+      `Bloom's Taxonomy / Difficulty: ${e} Easy (Remember/Understand), ${m} Medium (Apply/Analyze), ${h} Hard (Evaluate/Create).`;
 
-  const prompt = isPre ? `You are Google Gemini AI expert pedagogical educator for Cambodia MoEYS.
+    const prompt = isPre ? `You are Google Gemini AI expert pedagogical educator for Cambodia MoEYS.
 Generate EXACTLY ${numQuestions} specific Pre-Test Multiple-Choice Diagnostic Questions (QCM) in ${isEn ? 'English' : 'Khmer'} testing prerequisite knowledge for this lesson:
 Topic: "${plan.lessonTitle}"
 Subject: "${plan.subject}"
@@ -4963,9 +4979,8 @@ Return ONLY valid JSON array with ${numQuestions} objects matching this schema:
 [
   {
     "number": 1,
-    "bloom": "Remember & Understand",
-    "difficulty": "ងាយ (Easy)",
-    "difficultyLevel": "easy",
+    "difficulty": "មធ្យម (Medium)",
+    "difficultyLevel": "medium",
     "question": "...",
     "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
     "correctAnswer": "A",
@@ -4973,107 +4988,109 @@ Return ONLY valid JSON array with ${numQuestions} objects matching this schema:
   }
 ]`;
 
-  if (!apiKey) {
+    if (apiKey) {
+      // Try gemini-2.5-flash / gemini-2.0-flash / gemini-1.5-flash
+      for (const model of ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro']) {
+        try {
+          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: [{ text: prompt }] }],
+              generationConfig: {
+                response_mime_type: 'application/json',
+                temperature: 0.25,
+                maxOutputTokens: 3500
+              }
+            })
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            const txt = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            const parsed = extractAndParseJson(txt);
+            const list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || []);
+            if (list && list.length > 0) return list;
+          }
+        } catch (e) {
+          console.warn(`Model ${model} test generator error:`, e);
+        }
+      }
+    }
+
+    // Reliable offline generation fallback
     return isPre 
       ? generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, [])
       : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []);
+  } finally {
+    hideLoadingOverlay();
   }
-
-  const directUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-  try {
-    const resp = await fetch(directUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: {
-          response_mime_type: 'application/json',
-          temperature: 0.3,
-          maxOutputTokens: 2500
-        }
-      })
-    });
-
-    if (resp.ok) {
-      const data = await resp.json();
-      const txt = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      const parsed = extractAndParseJson(txt);
-      const list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || []);
-      if (list && list.length > 0) return list;
-    }
-  } catch (e) {
-    console.warn('Primary Gemini test generator failed, attempting fallback...', e);
-  }
-
-  // Fallback to gemini-2.0-flash
-  try {
-    const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-    const fbResp = await fetch(fallbackUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: {
-          response_mime_type: 'application/json',
-          temperature: 0.3,
-          maxOutputTokens: 2500
-        }
-      })
-    });
-    if (fbResp.ok) {
-      const fbData = await fbResp.json();
-      const txt = fbData.candidates?.[0]?.content?.parts?.[0]?.text;
-      const parsed = extractAndParseJson(txt);
-      const list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || []);
-      if (list && list.length > 0) return list;
-    }
-  } catch (err2) {
-    console.warn('Fallback Gemini test generator failed:', err2);
-  }
-
-  // Reliable offline generation if API encounters quota or network error
-  return isPre 
-    ? generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, [])
-    : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []);
 }
 
 async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
-  const plan = state.generatedPlanData || state.currentPlan;
+  let plan = state.generatedPlanData || state.currentPlan;
   if (!plan) {
-    showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
-    return;
+    const title = (document.getElementById('lessonTitleInput')?.value || '').trim();
+    const subject = (document.getElementById('subjectSelect')?.value || '').trim();
+    const grade = (document.getElementById('gradeSelect')?.value || '').trim();
+    if (title || subject) {
+      plan = {
+        lessonTitle: title || 'មេរៀនទូទៅ',
+        subject: subject || 'ចំណេះដឹងទូទៅ',
+        grade: grade || 'ថ្នាក់ទូទៅ',
+        objectives: { knowledge: ['ស្វែងយល់ខ្លឹមសារមេរៀន'], skills: ['អនុវត្តលំហាត់'], attitudes: ['សហការ'] }
+      };
+      state.currentPlan = plan;
+      state.generatedPlanData = plan;
+      renderLessonPlanToA4(plan);
+      const empty = document.getElementById('emptyState');
+      if (empty) empty.style.display = 'none';
+    } else {
+      showToast('សូមបង្កើតកិច្ចតែងការ ឬបញ្ចូលចំណងជើងមេរៀនជាមុនសិន!', 'warning');
+      return;
+    }
   }
 
   const isEn = (state.language === 'en');
-  const wrapper = document.getElementById('preTestModuleWrapper');
+  let wrapper = document.getElementById('preTestModuleWrapper');
   const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');
   titleWrapper.forEach(el => el.style.display = 'flex');
+
+  if (!wrapper) {
+    renderLessonPlanToA4(plan);
+    const empty = document.getElementById('emptyState');
+    if (empty) empty.style.display = 'none';
+    wrapper = document.getElementById('preTestModuleWrapper');
+  }
+
   if (wrapper) {
+    wrapper.style.display = 'block';
     wrapper.innerHTML = `
       <div style="background: #f8fafc; border: 1.5px solid #c7d2fe; border-radius: 10px; padding: 22px; text-align: center;">
         <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: #6366f1; margin-bottom: 10px;"></i>
         <div style="font-weight: 700; font-size: 11pt; color: #3730a3;">
-          ${isEn ? 'AI is generating Pre-Test Diagnostic QCM (${numQuestions} Questions)...' : 'AI កំពុងបង្កើតកម្រងសំណួរ Pre-Test (${numQuestions} សំណួរ QCM)...'}
+          ${isEn ? `AI is generating Pre-Test Diagnostic QCM (${numQuestions} Questions)...` : `AI កំពុងបង្កើតកម្រងសំណួរ Pre-Test (${numQuestions} សំណួរ QCM)...`}
         </div>
         <div style="font-size: 9.5pt; color: #64748b; margin-top: 5px;">
-          ${isEn ? `Analyzing "${plan.lessonTitle}" according to Bloom's Taxonomy (Easy, Medium, Hard)...` : `កំពុងវិភាគមេរៀន «${plan.lessonTitle}» តាម Bloom's Taxonomy (៣ ងាយ, ១ មធ្យម, ១ ពិបាក)...`}
+          ${isEn ? `Analyzing "${plan.lessonTitle}" according to Bloom's Taxonomy...` : `កំពុងវិភាគមេរៀន «${plan.lessonTitle}» តាម Bloom's Taxonomy...`}
         </div>
       </div>
     `;
+    wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   showToast(isEn ? 'Generating Pre-Test QCM with AI...' : '🤖 កំពុងបង្កើតបុរេតេស្ត (Pre-Test QCM) តាម AI...', 'info');
 
   try {
-    const qList = await callAiForSingleTest('pre', plan, numQuestions);
+    const qList = await callAiForSingleTest('pre', plan, numQuestions, scale);
     plan.preTestQCM = qList;
     state.currentPlan = plan;
     state.generatedPlanData = plan;
 
     if (wrapper) {
       wrapper.innerHTML = renderPreTestModule(plan, isEn);
+      wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-    showToast(isEn ? '✨ Pre-Test QCM generated successfully!' : '✨ បានបង្កើតបុរេតេស្ត (Pre-Test QCM ៥ សំណួរ) ដោយជោគជ័យ!', 'success');
+    showToast(isEn ? '✨ Pre-Test QCM generated successfully!' : `✨ បានបង្កើតបុរេតេស្ត (${qList.length} សំណួរ) ដោយជោគជ័យ!`, 'success');
   } catch (err) {
     console.error('Pre-Test generation error:', err);
     plan.preTestQCM = generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, []);
@@ -5081,49 +5098,80 @@ async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
     state.generatedPlanData = plan;
     if (wrapper) {
       wrapper.innerHTML = renderPreTestModule(plan, isEn);
+      wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
     showToast(isEn ? '✨ Pre-Test generated (Standard MoEYS Bank)' : '✨ បានរៀបចំបុរេតេស្តស្តង់ដារ MoEYS រួចរាល់!', 'success');
+  } finally {
+    hideLoadingOverlay();
   }
 }
 window.generatePreTestOnDemand = generatePreTestOnDemand;
 
 async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
-  const plan = state.generatedPlanData || state.currentPlan;
+  let plan = state.generatedPlanData || state.currentPlan;
   if (!plan) {
-    showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
-    return;
+    const title = (document.getElementById('lessonTitleInput')?.value || '').trim();
+    const subject = (document.getElementById('subjectSelect')?.value || '').trim();
+    const grade = (document.getElementById('gradeSelect')?.value || '').trim();
+    if (title || subject) {
+      plan = {
+        lessonTitle: title || 'មេរៀនទូទៅ',
+        subject: subject || 'ចំណេះដឹងទូទៅ',
+        grade: grade || 'ថ្នាក់ទូទៅ',
+        objectives: { knowledge: ['ស្វែងយល់ខ្លឹមសារមេរៀន'], skills: ['អនុវត្តលំហាត់'], attitudes: ['សហការ'] }
+      };
+      state.currentPlan = plan;
+      state.generatedPlanData = plan;
+      renderLessonPlanToA4(plan);
+      const empty = document.getElementById('emptyState');
+      if (empty) empty.style.display = 'none';
+    } else {
+      showToast('សូមបង្កើតកិច្ចតែងការ ឬបញ្ចូលចំណងជើងមេរៀនជាមុនសិន!', 'warning');
+      return;
+    }
   }
 
   const isEn = (state.language === 'en');
-  const wrapper = document.getElementById('postTestModuleWrapper');
+  let wrapper = document.getElementById('postTestModuleWrapper');
   const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');
   titleWrapper.forEach(el => el.style.display = 'flex');
+
+  if (!wrapper) {
+    renderLessonPlanToA4(plan);
+    const empty = document.getElementById('emptyState');
+    if (empty) empty.style.display = 'none';
+    wrapper = document.getElementById('postTestModuleWrapper');
+  }
+
   if (wrapper) {
+    wrapper.style.display = 'block';
     wrapper.innerHTML = `
       <div style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; padding: 22px; text-align: center;">
         <i class="fa-solid fa-spinner fa-spin" style="font-size: 2rem; color: #16a34a; margin-bottom: 10px;"></i>
         <div style="font-weight: 700; font-size: 11pt; color: #166534;">
-          ${isEn ? 'AI is generating Post-Test Diagnostic MCQ (${numQuestions} Questions)...' : 'AI កំពុងបង្កើតកម្រងសំណួរ Post-Test (៥ សំណួរ MCQ)...'}
+          ${isEn ? `AI is generating Post-Test Diagnostic MCQ (${numQuestions} Questions)...` : `AI កំពុងបង្កើតកម្រងសំណួរ Post-Test (${numQuestions} សំណួរ MCQ)...`}
         </div>
         <div style="font-size: 9.5pt; color: #475569; margin-top: 5px;">
-          ${isEn ? `Measuring mastery of "${plan.lessonTitle}" (Bloom's: Remember, Apply, Analyze)...` : `កំពុងវិភាគវាស់ស្ទង់សមត្ថភាពសម្រេចបាននៃ «${plan.lessonTitle}» (Bloom's Taxonomy)...`}
+          ${isEn ? `Measuring mastery of "${plan.lessonTitle}" (Bloom's Taxonomy)...` : `កំពុងវិភាគវាស់ស្ទង់សមត្ថភាពសម្រេចបាននៃ «${plan.lessonTitle}» (Bloom's Taxonomy)...`}
         </div>
       </div>
     `;
+    wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   showToast(isEn ? 'Generating Post-Test MCQ with AI...' : '🎓 កំពុងបង្កើតបច្ឆិមតេស្ត (Post-Test MCQ) តាម AI...', 'info');
 
   try {
-    const qList = await callAiForSingleTest('post', plan, numQuestions);
+    const qList = await callAiForSingleTest('post', plan, numQuestions, scale);
     plan.postTestMCQ = qList;
     state.currentPlan = plan;
     state.generatedPlanData = plan;
 
     if (wrapper) {
       wrapper.innerHTML = renderPostTestModule(plan, isEn);
+      wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-    showToast(isEn ? '✨ Post-Test MCQ generated successfully!' : '✨ បានបង្កើតបច្ឆិមតេស្ត (Post-Test MCQ ៥ សំណួរ) ដោយជោគជ័យ!', 'success');
+    showToast(isEn ? '✨ Post-Test MCQ generated successfully!' : `✨ បានបង្កើតបច្ឆិមតេស្ត (${qList.length} សំណួរ) ដោយជោគជ័យ!`, 'success');
   } catch (err) {
     console.error('Post-Test generation error:', err);
     plan.postTestMCQ = generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []);
@@ -5131,8 +5179,11 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
     state.generatedPlanData = plan;
     if (wrapper) {
       wrapper.innerHTML = renderPostTestModule(plan, isEn);
+      wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
     showToast(isEn ? '✨ Post-Test generated (Standard MoEYS Bank)' : '✨ បានរៀបចំបច្ឆិមតេស្តស្តង់ដារ MoEYS រួចរាល់!', 'success');
+  } finally {
+    hideLoadingOverlay();
   }
 }
 window.generatePostTestOnDemand = generatePostTestOnDemand;
@@ -9302,46 +9353,50 @@ window.promptGenerateTest = async function(type) {
   const defMed = isPre ? 3 : 6;
   const defHard = isPre ? 1 : 2;
 
+  // Clean any old open config modals
+  document.querySelectorAll('.test-config-modal-overlay').forEach(el => el.remove());
+
   const overlay = document.createElement('div');
-  overlay.className = 'modal-backdrop active';
-  overlay.style.zIndex = '9999';
+  overlay.className = 'modal-backdrop modal-overlay test-config-modal-overlay active';
+  overlay.style.cssText = 'position: fixed; inset: 0; background: rgba(15,23,42,0.75); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 10005;';
   
   const title = isPre ? (isEn ? 'Pre-Test Configuration' : 'ការកំណត់បុរេតេស្ត (Pre-Test)') : (isEn ? 'Post-Test Configuration' : 'ការកំណត់បច្ឆិមតេស្ត (Post-Test)');
   
   overlay.innerHTML = `
-    <div class="modal active" style="max-width: 420px; width: 95%;">
-      <div class="modal-header">
-        <div class="modal-title" style="color: ${isPre ? '#4338ca' : '#166534'};">
-          <i class="fa-solid ${isPre ? 'fa-wand-magic-sparkles' : 'fa-graduation-cap'}"></i> ${title}
+    <div class="modal modal-card active" style="max-width: 440px; width: 95%; background: #ffffff; border-radius: 14px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); overflow: hidden; animation: modalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);">
+      <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+        <div class="modal-title" style="color: ${isPre ? '#4338ca' : '#166534'}; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid ${isPre ? 'fa-wand-magic-sparkles' : 'fa-graduation-cap'}"></i> <span>${title}</span>
         </div>
+        <button class="modal-close" onclick="this.closest('.test-config-modal-overlay').remove()" style="font-size: 1.3rem; background: none; border: none; cursor: pointer; color: #64748b;"><i class="fa-solid fa-times"></i></button>
       </div>
       <div class="modal-body" style="padding: 20px;">
         <div class="form-group">
-          <label>${isEn ? 'Total Questions:' : 'ចំនួនសំណួរសរុប៖'}</label>
+          <label style="font-weight: 600; color: #334155; margin-bottom: 6px; display: block;">${isEn ? 'Total Questions:' : 'ចំនួនសំណួរសរុប៖'}</label>
           <input type="number" id="testTotalQ" class="form-control" value="10" min="1" max="25" oninput="window.updateScaleInputs()">
         </div>
-        <div style="font-weight: 600; font-size: 10pt; margin-top: 20px; margin-bottom: 12px; color: #475569; padding-bottom: 5px; border-bottom: 2px solid #e2e8f0;">
+        <div style="font-weight: 600; font-size: 10pt; margin-top: 18px; margin-bottom: 10px; color: #475569; padding-bottom: 5px; border-bottom: 2px solid #e2e8f0;">
           ${isEn ? 'Difficulty Scale (Sum must equal total)' : 'កម្រិតលំបាកសំណួរ (ផលបូកត្រូវស្មើចំនួនសរុប)'}:
         </div>
-        <div style="display: flex; gap: 12px;">
+        <div style="display: flex; gap: 10px;">
           <div class="form-group" style="flex: 1;">
-            <label style="color: #15803d; font-size: 9.5pt;">${isEn ? 'Easy' : 'ងាយ'}</label>
+            <label style="color: #15803d; font-size: 9.5pt; font-weight: 600;">${isEn ? 'Easy' : 'ងាយ'}</label>
             <input type="number" id="testEasyQ" class="form-control" style="border: 1.5px solid #86efac; background: #f0fdf4; font-weight: 700; color: #166534;" value="${defEasy}" min="0">
           </div>
           <div class="form-group" style="flex: 1;">
-            <label style="color: #a16207; font-size: 9.5pt;">${isEn ? 'Medium' : 'មធ្យម'}</label>
+            <label style="color: #a16207; font-size: 9.5pt; font-weight: 600;">${isEn ? 'Medium' : 'មធ្យម'}</label>
             <input type="number" id="testMedQ" class="form-control" style="border: 1.5px solid #fde047; background: #fefce8; font-weight: 700; color: #854d0e;" value="${defMed}" min="0">
           </div>
           <div class="form-group" style="flex: 1;">
-            <label style="color: #b91c1c; font-size: 9.5pt;">${isEn ? 'Hard' : 'ពិបាក'}</label>
+            <label style="color: #b91c1c; font-size: 9.5pt; font-weight: 600;">${isEn ? 'Hard' : 'ពិបាក'}</label>
             <input type="number" id="testHardQ" class="form-control" style="border: 1.5px solid #fca5a5; background: #fef2f2; font-weight: 700; color: #991b1b;" value="${defHard}" min="0">
           </div>
         </div>
         <div id="testScaleError" style="color: #ef4444; font-size: 9.5pt; margin-top: 12px; display: none; background: #fee2e2; padding: 8px; border-radius: 6px; border: 1px solid #fca5a5;"></div>
       </div>
-      <div class="modal-footer" style="justify-content: flex-end; background: #f8fafc;">
-        <button class="btn-secondary" onclick="this.closest('.modal-backdrop').remove()">${isEn ? 'Cancel' : 'បោះបង់'}</button>
-        <button class="btn-primary" id="btnConfirmTestGen" style="background: ${isPre ? '#4f46e5' : '#10b981'}; box-shadow: none;">
+      <div class="modal-footer" style="justify-content: flex-end; background: #f8fafc; padding: 14px 20px; border-top: 1px solid #e2e8f0; display: flex; gap: 10px;">
+        <button class="btn-secondary" onclick="this.closest('.test-config-modal-overlay').remove()">${isEn ? 'Cancel' : 'បោះបង់'}</button>
+        <button class="btn-primary" id="btnConfirmTestGen" style="background: ${isPre ? '#4f46e5' : '#10b981'}; box-shadow: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; color: white; border: none; cursor: pointer;">
           <i class="fa-solid fa-bolt"></i> ${isEn ? 'Generate Test' : 'បង្កើតកម្រងសំណួរ'}
         </button>
       </div>
@@ -9351,8 +9406,7 @@ window.promptGenerateTest = async function(type) {
 
   window.updateScaleInputs = function() {
     const total = parseInt(document.getElementById('testTotalQ').value) || 0;
-    // We won't auto-calculate here to give users freedom, but we validate on click.
-  }
+  };
 
   document.getElementById('btnConfirmTestGen').onclick = async function() {
     const total = parseInt(document.getElementById('testTotalQ').value) || 0;
@@ -9566,39 +9620,119 @@ function clearHistory() {
 // 📊 PPTX Generation (PowerPoint) via PptxGenJS + Gemini
 // ==========================================================================
 
-window.openPptxModal = function() {
-  const data = state.generatedPlanData || state.currentPlan;
-  if (!data) {
-    showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
-    return;
+
+function synthesizeOfflineSlides(data, numSlides) {
+  const slides = [];
+  slides.push({
+    type: 'title',
+    title: data.lessonTitle || 'កិច្ចតែងការបង្រៀន',
+    subtitle: `${data.subject || 'មុខវិជ្ជាទូទៅ'} - ${data.grade || 'ថ្នាក់ទូទៅ'}`,
+    imageSearchKeyword: 'education'
+  });
+  
+  slides.push({
+    type: 'content',
+    title: 'វត្ថុបំណងមេរៀន (Lesson Objectives)',
+    bullets: [
+      `ចំណេះដឹង: ${(data.objectives?.knowledge || ['ស្វែងយល់ខ្លឹមសារមេរៀន']).slice(0, 2).join(', ')}`,
+      `បំណិន: ${(data.objectives?.skills || ['អនុវត្តលំហាត់ជាក់ស្តែង']).slice(0, 2).join(', ')}`,
+      `ឥរិយាបថ: ${(data.objectives?.attitudes || ['ចូលរួមយ៉ាងសកម្ម']).slice(0, 2).join(', ')}`
+    ],
+    speakerNotes: 'សូមជម្រាបជូនសិស្សអំពីគោលបំណងចម្បងនៃមេរៀននេះ។',
+    imageSearchKeyword: 'classroom'
+  });
+
+  const steps = data.steps || data.stage3?.steps || [];
+  if (steps.length > 0) {
+    for (let i = 0; i < steps.length && slides.length < numSlides; i++) {
+      const s = steps[i];
+      slides.push({
+        type: 'content',
+        title: s.stepTitle || `ផ្នែកទី ${i + 1}`,
+        bullets: [
+          s.contentSummary || s.teacherActivity || 'ខ្លឹមសារសំខាន់នៃមេរៀន',
+          s.studentActivity ? `សកម្មភាពសិស្ស: ${s.studentActivity}` : 'ពិភាក្សា និងអនុវត្តជាក្រុម'
+        ].filter(Boolean),
+        speakerNotes: `ណែនាំសិស្សអំពី ${s.stepTitle || 'ខ្លឹមសារមេរៀន'}`,
+        imageSearchKeyword: 'students'
+      });
+    }
   }
-  document.getElementById('pptxModal').style.display = 'flex';
+
+  while (slides.length < numSlides) {
+    slides.push({
+      type: 'content',
+      title: `សង្ខេប និងពង្រឹងចំណេះដឹង (${slides.length})`,
+      bullets: [
+        'រំលឹកឡើងវិញនូវចំណុចគន្លឹះនៃមេរៀន',
+        'សំនួរចម្លើយ និងការវាយតម្លៃលទ្ធផលសិក្សា',
+        'កិច្ចការផ្ទះ និងការស្រាវជ្រាវបន្ថែម'
+      ],
+      speakerNotes: 'សង្ខេបខ្លឹមសារមេរៀនជាមួយសិស្ស។',
+      imageSearchKeyword: 'presentation'
+    });
+  }
+
+  return slides.slice(0, numSlides);
+}
+
+window.openPptxModal = function() {
+  const m = document.getElementById('pptxModal');
+  if (m) {
+    m.style.display = 'flex';
+    m.classList.add('active');
+  }
 };
 
 window.closePptxModal = function() {
-  document.getElementById('pptxModal').style.display = 'none';
+  const m = document.getElementById('pptxModal');
+  if (m) {
+    m.style.display = 'none';
+    m.classList.remove('active');
+  }
 };
 
 window.generatePptxSlides = async function() {
-  const data = state.generatedPlanData || state.currentPlan;
-  if (!data) return;
-
-  if (!state.geminiApiKey) {
-    showToast('សូមបញ្ចូល Google Gemini API Key ជាមុនសិន!', 'error');
-    openSettingsModal();
-    return;
+  let data = state.generatedPlanData || state.currentPlan;
+  if (!data) {
+    const title = (document.getElementById('lessonTitleInput')?.value || '').trim();
+    const subject = (document.getElementById('subjectSelect')?.value || '').trim();
+    const grade = (document.getElementById('gradeSelect')?.value || '').trim();
+    if (title || subject) {
+      data = {
+        lessonTitle: title || 'មេរៀនសង្ខេប',
+        subject: subject || 'ចំណេះដឹងទូទៅ',
+        grade: grade || 'ថ្នាក់ទូទៅ',
+        objectives: { knowledge: ['ស្វែងយល់ខ្លឹមសារ'], skills: ['អនុវត្តលំហាត់'], attitudes: ['ការចូលរួម'] },
+        steps: [
+          { stepTitle: 'ជំហានទី១: រដ្ឋបាលថ្នាក់', contentSummary: 'ពិនិត្យអវត្តមាន និងវិន័យ' },
+          { stepTitle: 'ជំហានទី២: រំលឹកមេរៀនចាស់', contentSummary: 'សំណួរចម្លើយលើមេរៀនមុន' },
+          { stepTitle: 'ជំហានទី៣: មេរៀនថ្មី', contentSummary: title || 'ខ្លឹមសារមេរៀនចម្បង' },
+          { stepTitle: 'ជំហានទី៤: ពង្រឹងចំណេះដឹង', contentSummary: 'លំហាត់អនុវត្ត និងសំណួរត្រួតពិនិត្យ' },
+          { stepTitle: 'ជំហានទី៥: បណ្តាំផ្ញើ', contentSummary: 'កិច្ចការផ្ទះ និងការស្រាវជ្រាវបន្ថែម' }
+        ]
+      };
+      state.currentPlan = data;
+    } else {
+      showToast('សូមបញ្ចូលចំណងជើងមេរៀន ឬបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
+      return;
+    }
   }
 
-  const numSlides = document.getElementById('pptxNumSlides').value;
-  const includeImages = document.getElementById('pptxIncludeImages').value === 'yes';
-  const theme = document.getElementById('pptxTheme').value;
+  const numSlides = parseInt(document.getElementById('pptxNumSlides')?.value || '8');
+  const includeImages = document.getElementById('pptxIncludeImages')?.value === 'yes';
+  const theme = document.getElementById('pptxTheme')?.value || 'modern_blue';
   
   closePptxModal();
-  setLoadingOverlayStatus('🎬 កំពុងបង្កើតកូដបញ្ជាស្លាយ...', 'Gemini AI កំពុងអានកិច្ចតែងការនិងសង្ខេបជាស្លាយ...');
+  showLoadingOverlay();
+  setLoadingOverlayStatus('🎬 កំពុងរៀបចំស្លាយ PowerPoint...', 'Gemini AI កំពុងអានកិច្ចតែងការនិងសង្ខេបជាស្លាយ...');
   
   try {
-    const isEn = (state.language === 'en');
-    const prompt = `You are an expert educational presenter.
+    let slidesData = null;
+    const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || '').trim();
+
+    if (apiKey) {
+      const prompt = `You are an expert educational presenter.
 Convert the following Cambodian MoEYS Lesson Plan into an engaging PowerPoint presentation outline.
 Number of slides requested (including Title slide): ${numSlides}
 Rules:
@@ -9618,46 +9752,62 @@ Rules:
     "title": "Slide title in Khmer",
     "bullets": ["Bullet 1", "Bullet 2", "Max 4 short bullets"],
     "speakerNotes": "Script for the teacher to read while presenting this slide (in Khmer).",
-    "imageSearchKeyword": "1 or 2 english words describing the slide for stock photo search (e.g. 'mathematics', 'cambodia', 'biology', 'teamwork')."
+    "imageSearchKeyword": "1 or 2 english words describing the slide for stock photo search."
   }
 ]
 Ensure the content perfectly matches the lesson plan below:
-
 Title: ${data.lessonTitle}
 Subject: ${data.subject}
 Grade: ${data.grade}
-
 Objectives:
 Knowledge: ${data.objectives?.knowledge?.join(', ')}
 Skills: ${data.objectives?.skills?.join(', ')}
 Attitudes: ${data.objectives?.attitudes?.join(', ')}
-
 Content Summary:
-${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('\n') : (data.stage3?.steps ? data.stage3.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('\n') : '')}
+${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('\\n') : (data.stage3?.steps ? data.stage3.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('\\n') : '')}
 `;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${state.geminiApiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.2,
-          response_mime_type: "application/json"
+      for (const model of ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro']) {
+        try {
+          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ role: 'user', parts: [{ text: prompt }] }],
+              generationConfig: {
+                temperature: 0.2,
+                response_mime_type: "application/json"
+              }
+            })
+          });
+          if (resp.ok) {
+            const result = await resp.json();
+            const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (textResponse) {
+              const cleaned = textResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
+              const parsed = JSON.parse(cleaned);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                slidesData = parsed;
+                break;
+              }
+            }
+          }
+        } catch (e) {
+          console.warn(`Gemini PPTX model ${model} error:`, e);
         }
-      })
-    });
+      }
+    }
 
-    const result = await response.json();
-    if (result.error) throw new Error(result.error.message);
-
-    let textResponse = result.candidates[0].content.parts[0].text;
-    textResponse = textResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
-    let slidesData = JSON.parse(textResponse);
+    if (!slidesData || !Array.isArray(slidesData) || slidesData.length === 0) {
+      slidesData = synthesizeOfflineSlides(data, numSlides);
+    }
 
     setLoadingOverlayStatus('🎬 កំពុងផ្គុំឯកសារ PPTX...', 'កំពុងរចនាស្លាយមេរៀន...');
 
-    // Initialize PptxGenJS
+    if (typeof PptxGenJS === 'undefined') {
+      throw new Error('បណ្ណាល័យ PPTXGenJS មិនទាន់ដំណើរការ។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត!');
+    }
+
     let pptx = new PptxGenJS();
     pptx.layout = 'LAYOUT_16x9';
 
@@ -9666,12 +9816,11 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
     if (theme === 'modern_blue') {
       bg = 'F4F6F9'; titleColor = '003366'; bodyColor = '333333'; accent = '0055A4';
     } else if (theme === 'eco_green') {
-      bg = 'F0Fdf4'; titleColor = '14532D'; bodyColor = '166534'; accent = '15803D';
+      bg = 'F0FDF4'; titleColor = '14532D'; bodyColor = '166534'; accent = '15803D';
     } else if (theme === 'dark_mode') {
       bg = '1E293B'; titleColor = 'F8FAFC'; bodyColor = 'CBD5E1'; accent = '38BDF8';
     }
 
-    // Default master slides setup (optional, but we can just do inline styling for simplicity)
     pptx.defineSlideMaster({
       title: 'MASTER_SLIDE',
       background: { color: bg },
@@ -9680,62 +9829,65 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
 
     for (const slideDef of slidesData) {
       let slide = pptx.addSlide({ masterName: 'MASTER_SLIDE' });
-      slide.addNotes(slideDef.speakerNotes || '');
+      if (slideDef.speakerNotes) slide.addNotes(slideDef.speakerNotes);
 
       let picUrl = '';
       if (includeImages && slideDef.imageSearchKeyword) {
-        // use picsum photos for placeholders
         picUrl = `https://picsum.photos/seed/${encodeURIComponent(slideDef.imageSearchKeyword)}/800/600`;
       }
 
       if (slideDef.type === 'title') {
         if (picUrl) {
           slide.addImage({ x: 0, y: 0, w: '100%', h: '100%', path: picUrl });
-          // Add overlay to make text readable
           slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: '100%', h: '100%', fill: { color: '000000', transparency: 50 } });
           slide.addText(slideDef.title, { x: 1, y: 2.5, w: '80%', h: 1.5, fontSize: 44, bold: true, color: 'FFFFFF', align: 'center', fontFace: 'Kantumruy Pro' });
-          slide.addText(slideDef.subtitle, { x: 1, y: 4, w: '80%', h: 1, fontSize: 24, color: 'E2E8F0', align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addText(slideDef.subtitle || '', { x: 1, y: 4, w: '80%', h: 1, fontSize: 24, color: 'E2E8F0', align: 'center', fontFace: 'Kantumruy Pro' });
         } else {
           slide.addText(slideDef.title, { x: 1, y: 2.5, w: '80%', h: 1.5, fontSize: 44, bold: true, color: titleColor, align: 'center', fontFace: 'Kantumruy Pro' });
-          slide.addText(slideDef.subtitle, { x: 1, y: 4, w: '80%', h: 1, fontSize: 24, color: bodyColor, align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addText(slideDef.subtitle || '', { x: 1, y: 4, w: '80%', h: 1, fontSize: 24, color: bodyColor, align: 'center', fontFace: 'Kantumruy Pro' });
         }
       } else {
-        // Content Slide
-        slide.addText(slideDef.title, { x: 0.5, y: 0.5, w: '90%', h: 0.8, fontSize: 32, bold: true, color: titleColor, fontFace: 'Kantumruy Pro' });
-        
+        slide.addText(slideDef.title || 'ខ្លឹមសារមេរៀន', { x: 0.5, y: 0.5, w: '90%', h: 0.8, fontSize: 32, bold: true, color: titleColor, fontFace: 'Kantumruy Pro' });
+        const bullets = Array.isArray(slideDef.bullets) ? slideDef.bullets : [String(slideDef.bullets || '')];
         if (picUrl) {
-          // Half layout
-          slide.addText(slideDef.bullets.map(b => ({ text: b, options: { bullet: true, breakLine: true } })), 
-            { x: 0.5, y: 1.5, w: '45%', h: 3.5, fontSize: 22, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 35 });
-          
+          slide.addText(bullets.map(b => ({ text: b, options: { bullet: true, breakLine: true } })), 
+            { x: 0.5, y: 1.5, w: '45%', h: 3.5, fontSize: 20, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 35 });
           slide.addImage({ x: '52%', y: 1.5, w: '43%', h: 3.5, path: picUrl, sizing: { type: 'cover', w: '43%', h: 3.5 } });
         } else {
-          // Full layout
-          slide.addText(slideDef.bullets.map(b => ({ text: b, options: { bullet: true, breakLine: true } })), 
-            { x: 0.5, y: 1.5, w: '90%', h: 3.5, fontSize: 24, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 40 });
+          slide.addText(bullets.map(b => ({ text: b, options: { bullet: true, breakLine: true } })), 
+            { x: 0.5, y: 1.5, w: '90%', h: 3.5, fontSize: 22, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 40 });
         }
       }
     }
 
     const fileName = `PPT_${data.lessonTitle || 'Lesson'}.pptx`;
     await pptx.writeFile({ fileName: fileName });
-    hideLoadingOverlay();
     showToast(`✅ បានទាញយកស្លាយ ${fileName} ជោគជ័យ!`, 'success');
 
   } catch (error) {
-    console.error(error);
-    hideLoadingOverlay();
+    console.error('PPTX error:', error);
     showToast('❌ បរាជ័យក្នុងការបង្កើតស្លាយ: ' + error.message, 'error');
+  } finally {
+    hideLoadingOverlay();
   }
 };
-
 
 // ==========================================================================
 // 🎮 AC Kahoot Game Integration
 // ==========================================================================
 window.openGameModal = function() {
-  document.getElementById('gameModal').style.display = 'flex';
+  const m = document.getElementById('gameModal');
+  if (m) {
+    m.style.display = 'flex';
+    m.classList.add('active');
+  }
 };
+
 window.closeGameModal = function() {
-  document.getElementById('gameModal').style.display = 'none';
+  const m = document.getElementById('gameModal');
+  if (m) {
+    m.style.display = 'none';
+    m.classList.remove('active');
+  }
 };
+
