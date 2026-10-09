@@ -9897,24 +9897,50 @@ window.handlePptxSourceChanged = function(val) {
   }
 };
 
+function extractAndParseSlidesJson(text) {
+  if (!text) return null;
+  let clean = text.trim();
+  clean = clean.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/, '').trim();
+  
+  // 1. Bracket array extraction [ ... ]
+  const firstBracket = clean.indexOf('[');
+  const lastBracket = clean.lastIndexOf(']');
+  if (firstBracket !== -1 && lastBracket > firstBracket) {
+    try {
+      const arr = JSON.parse(clean.substring(firstBracket, lastBracket + 1));
+      if (Array.isArray(arr) && arr.length > 0) return arr;
+    } catch (e) {}
+  }
+
+  // 2. Direct JSON parse
+  try {
+    const res = JSON.parse(clean);
+    if (Array.isArray(res) && res.length > 0) return res;
+    if (res && Array.isArray(res.slides) && res.slides.length > 0) return res.slides;
+  } catch (e) {}
+
+  return null;
+}
+
 function synthesizeOfflineSlides(data, numSlides) {
   const slides = [];
   slides.push({
     type: 'title',
     title: data.lessonTitle || 'កិច្ចតែងការបង្រៀន',
     subtitle: `${data.subject || 'មុខវិជ្ជាទូទៅ'} - ${data.grade || 'ថ្នាក់ទូទៅ'}`,
-    imageSearchKeyword: 'education'
+    speakerNotes: `ស្វាគមន៍សិស្សានុសិស្សមកកាន់មេរៀន៖ ${data.lessonTitle || ''}`,
+    imageSearchKeyword: 'education presentation'
   });
   
   slides.push({
     type: 'content',
     title: 'វត្ថុបំណងមេរៀន (Lesson Objectives)',
     bullets: [
-      `ចំណេះដឹង: ${(data.objectives?.knowledge || ['ស្វែងយល់ខ្លឹមសារមេរៀន']).slice(0, 2).join(', ')}`,
-      `បំណិន: ${(data.objectives?.skills || ['អនុវត្តលំហាត់ជាក់ស្តែង']).slice(0, 2).join(', ')}`,
-      `ឥរិយាបថ: ${(data.objectives?.attitudes || ['ចូលរួមយ៉ាងសកម្ម']).slice(0, 2).join(', ')}`
+      `ចំណេះដឹង៖ ${(data.objectives?.knowledge || ['ស្វែងយល់ខ្លឹមសារមេរៀនយ៉ាងស៊ីជម្រៅ']).slice(0, 2).join(' និង ')}`,
+      `បំណិន៖ ${(data.objectives?.skills || ['អនុវត្តលំហាត់ជាក់ស្តែង និងដោះស្រាយបញ្ហា']).slice(0, 2).join(' និង ')}`,
+      `ឥរិយាបថ៖ ${(data.objectives?.attitudes || ['ចូលរួមយ៉ាងសកម្ម និងមានស្មារតីសហការ']).slice(0, 2).join(' និង ')}`
     ],
-    speakerNotes: 'សូមជម្រាបជូនសិស្សអំពីគោលបំណងចម្បងនៃមេរៀននេះ។',
+    speakerNotes: 'សូមជម្រាបជូនសិស្សអំពីគោលបំណងចម្បងនៃមេរៀននេះដើម្បីកំណត់ទិសដៅសិក្សា។',
     imageSearchKeyword: 'classroom goals'
   });
 
@@ -9922,29 +9948,35 @@ function synthesizeOfflineSlides(data, numSlides) {
   if (steps.length > 0) {
     for (let i = 0; i < steps.length && slides.length < numSlides; i++) {
       const s = steps[i];
+      const bullets = [];
+      if (s.contentSummary) bullets.push(s.contentSummary);
+      if (s.teacherActivity) bullets.push(`សកម្មភាពគ្រូ៖ ${s.teacherActivity}`);
+      if (s.studentActivity) bullets.push(`សកម្មភាពសិស្ស៖ ${s.studentActivity}`);
+      if (bullets.length === 0) bullets.push('ខ្លឹមសារ និងសកម្មភាពគន្លឹះក្នុងថ្នាក់រៀន');
+
       slides.push({
         type: 'content',
         title: s.stepTitle || `ផ្នែកទី ${i + 1}`,
-        bullets: [
-          s.contentSummary || s.teacherActivity || 'ខ្លឹមសារសំខាន់នៃមេរៀន',
-          s.studentActivity ? `សកម្មភាពសិស្ស: ${s.studentActivity}` : 'ពិភាក្សា និងអនុវត្តជាក្រុម'
-        ].filter(Boolean),
-        speakerNotes: `ណែនាំសិស្សអំពី ${s.stepTitle || 'ខ្លឹមសារមេរៀន'}`,
-        imageSearchKeyword: 'student activity'
+        bullets: bullets.slice(0, 3),
+        speakerNotes: `ណែនាំសិស្សអំពី ${s.stepTitle || 'ខ្លឹមសារមេរៀន'} និងសម្របសម្រួលសកម្មភាព។`,
+        imageSearchKeyword: 'classroom teaching'
       });
     }
   }
 
   // If source document text exists, construct slides from it
   if (data.sourceDocumentText && slides.length < numSlides) {
-    const paragraphs = data.sourceDocumentText.split(/\\n\\s*\\n|\\r\\n\\s*\\r\\n/).map(p => p.trim()).filter(p => p.length > 30);
+    const paragraphs = data.sourceDocumentText
+      .split(/\n\s*\n|\r\n\s*\r\n/)
+      .map(p => p.trim())
+      .filter(p => p.length > 30);
     for (let i = 0; i < paragraphs.length && slides.length < numSlides; i++) {
       slides.push({
         type: 'content',
-        title: `ខ្លឹមសារសំខាន់ទី ${i + 1}`,
+        title: `ខ្លឹមសារគន្លឹះបន្ថែម (${i + 1})`,
         bullets: [
           paragraphs[i].substring(0, 160) + (paragraphs[i].length > 160 ? '...' : ''),
-          'សង្ខេប និងពិភាក្សាលើចំណុចគន្លឹះ'
+          'ការវិភាគ និងទាញសេចក្តីសន្និដ្ឋានលើខ្លឹមសារ'
         ],
         speakerNotes: 'ពន្យល់លម្អិតអំពីខ្លឹមសារក្នុងស្លាយនេះ។',
         imageSearchKeyword: 'study concept'
@@ -9952,18 +9984,64 @@ function synthesizeOfflineSlides(data, numSlides) {
     }
   }
 
-  while (slides.length < numSlides) {
-    slides.push({
-      type: 'content',
-      title: `សង្ខេប និងពង្រឹងចំណេះដឹង (${slides.length})`,
+  // Distinct rich pedagogical topics if user requested more slides
+  const extraPedagogy = [
+    {
+      title: 'សំណួរគន្លឹះត្រិះរិះពិចារណា (Inquiry Questions)',
       bullets: [
-        'រំលឹកឡើងវិញនូវចំណុចគន្លឹះនៃមេរៀន',
-        'សំនួរចម្លើយ និងការវាយតម្លៃលទ្ធផលសិក្សា',
-        'កិច្ចការផ្ទះ និងការស្រាវជ្រាវបន្ថែម'
+        'តើមេរៀននេះមានសារៈសំខាន់យ៉ាងណាខ្លះចំពោះជីវិតប្រចាំថ្ងៃ?',
+        'ការវិភាគ និងប្រៀបធៀបគំនិតសំខាន់ៗក្នុងមេរៀន',
+        'ការលើកឡើងនូវឧទាហរណ៍ជាក់ស្តែងជុំវិញខ្លួន'
       ],
-      speakerNotes: 'សង្ខេបខ្លឹមសារមេរៀនជាមួយសិស្ស។',
-      imageSearchKeyword: 'presentation summary'
-    });
+      speakerNotes: 'ជំរុញសិស្សឱ្យឆ្លើយ និងពិភាក្សាសំណួរគន្លឹះ។',
+      imageSearchKeyword: 'critical thinking'
+    },
+    {
+      title: 'សកម្មភាពការងារជាក្រុម និងការអនុវត្ត (Collaborative Work)',
+      bullets: [
+        'បែងចែកក្រុម និងប្រគល់ប្រធានបទពិភាក្សាជាក់លាក់',
+        'សិស្សផ្លាស់ប្តូរយោបល់ និងកត់ត្រាលទ្ធផលពិភាក្សា',
+        'តំណាងក្រុមឡើងធ្វើបទបង្ហាញពីលទ្ធផលការងារ'
+      ],
+      speakerNotes: 'ដើរសម្របសម្រួល និងជួយគាំទ្រសកម្មភាពក្រុម។',
+      imageSearchKeyword: 'group collaboration'
+    },
+    {
+      title: 'ការវាយតម្លៃលទ្ធផលសិក្សា (Formative Assessment)',
+      bullets: [
+        'សំណួរត្រួតពិនិត្យការយល់ដឹងរហ័ស (Quick Check)',
+        'ការវាយតម្លៃខ្លួនឯង និងមិត្តភក្តិរួមថ្នាក់ (Peer Assessment)',
+        'កម្រិតនៃការសម្រេចបាននូវវត្ថុបំណងមេរៀន'
+      ],
+      speakerNotes: 'វាយតម្លៃកម្រិតយល់ដឹងរបស់សិស្សម្នាក់ៗ។',
+      imageSearchKeyword: 'formative evaluation'
+    },
+    {
+      title: 'បំណិនសតវត្សរ៍ទី២១ និងការអនុវត្ត (21st Century Skills)',
+      bullets: [
+        'ការគិតពិចារណា និងការដោះស្រាយបញ្ហាជាក់ស្តែង',
+        'បំណិនទំនាក់ទំនង និងកិច្ចសហការក្នុងថ្នាក់',
+        'ភាពច្នៃប្រឌិត និងការស្វែងយល់ដោយស្វ័យប្រវត្ត'
+      ],
+      speakerNotes: 'បញ្ជាក់អំពីបំណិនជីវិតដែលទទួលបានពីមេរៀន។',
+      imageSearchKeyword: 'skills development'
+    },
+    {
+      title: 'កិច្ចការស្រាវជ្រាវ និងការរៀនបន្ត (Extension & Practice)',
+      bullets: [
+        'កិច្ចការស្វ័យសិក្សា និងស្រាវជ្រាវបន្ថែមនៅផ្ទះ',
+        'ការអនុវត្តលំហាត់ពង្រឹងសមត្ថភាពក្នុងសៀវភៅ',
+        'ការត្រៀមលក្ខណៈសម្រាប់មេរៀនបន្ទាប់'
+      ],
+      speakerNotes: 'ណែនាំកិច្ចការផ្ទះ និងការរៀនបន្ត។',
+      imageSearchKeyword: 'homework research'
+    }
+  ];
+
+  let pIdx = 0;
+  while (slides.length < numSlides && pIdx < extraPedagogy.length) {
+    slides.push(extraPedagogy[pIdx]);
+    pIdx++;
   }
 
   return slides.slice(0, numSlides);
@@ -9994,10 +10072,10 @@ window.generatePptxSlides = async function() {
 
   if (sourceChoice === 'custom_file' && state.pptxCustomSource) {
     sourceDocText = state.pptxCustomSource.content;
-    sourceDocTitle = state.pptxCustomSource.fileName.replace(/\\.[^/.]+$/, "");
+    sourceDocTitle = state.pptxCustomSource.fileName.replace(/\.[^/.]+$/, "");
   } else if (sourceChoice === 'uploaded_lesson_file' && state.lessonContent) {
     sourceDocText = state.lessonContent;
-    sourceDocTitle = state.lessonFileName ? state.lessonFileName.replace(/\\.[^/.]+$/, "") : '';
+    sourceDocTitle = state.lessonFileName ? state.lessonFileName.replace(/\.[^/.]+$/, "") : '';
   } else if (sourceChoice === 'history_plan') {
     try {
       const history = JSON.parse(localStorage.getItem('alps_plan_history') || '[]');
@@ -10055,82 +10133,214 @@ window.generatePptxSlides = async function() {
   
   closePptxModal();
   showLoadingOverlay();
-  setLoadingOverlayStatus('🎬 កំពុងរៀបចំស្លាយ PowerPoint...', 'Gemini AI កំពុងវិភាគឯកសារ និងរៀបចំកូដស្លាយ...');
+  setLoadingOverlayStatus('🎬 កំពុងរៀបចំស្លាយ PowerPoint...', 'Gemini AI កំពុងវិភាគឯកសារ និងរៀបចំខ្លឹមសារស្លាយកម្រិតខ្ពស់... (សូមរង់ចាំបន្តិច)');
   
   try {
     let slidesData = null;
+    let lastError = null;
     const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || '').trim();
+    const activeProvider = state.aiProvider || (apiKey.startsWith('gsk_') ? 'groq' : 'gemini');
 
-    if (apiKey) {
-      const prompt = `You are an expert educational presenter.
-Convert the following Cambodian MoEYS Lesson Plan / Attached Educational Material into an engaging PowerPoint presentation outline.
+    if (!apiKey) {
+      hideLoadingOverlay();
+      if (typeof openAiErrorModal === 'function') openAiErrorModal('NO_KEY');
+      return;
+    }
+
+    const prompt = `You are an expert Cambodian MoEYS instructional designer and master PowerPoint presenter.
+Convert the following Cambodian MoEYS lesson and educational reference material into an engaging, comprehensive, high-quality PowerPoint presentation outline.
 Number of slides requested (including Title slide): ${numSlides}
-Rules:
-1. Output MUST be a valid JSON array of objects, with NO markdown formatting, NO code blocks. JUST RAW JSON.
-2. Language MUST be exclusively Khmer for titles and content (except for imageSearchKeyword which MUST be in English).
-3. First object must be the Title Slide.
-4. Each object must have this schema:
+
+STRICT CRITICAL RULES:
+1. Output MUST be ONLY a raw valid JSON array of objects. Do NOT include markdown code blocks (\`\`\`json) or explanatory text. Output ONLY the raw JSON array.
+2. Language MUST be 100% Khmer for all titles, subtitles, bullet points, and speaker notes. Only "imageSearchKeyword" must be in English (1-3 keywords).
+3. Every single slide MUST contain distinct, authentic, in-depth educational content strictly reflecting the lesson details.
+4. ABSOLUTELY NEVER repeat the same generic bullet points across slides. Every slide must explain a unique sub-topic, step, or activity.
+5. First item must be "type": "title". Subsequent items must be "type": "content".
+6. JSON Schema:
 [
   {
     "type": "title",
-    "title": "Slide title (Lesson Title)",
-    "subtitle": "Subject - Grade",
-    "imageSearchKeyword": "one english keyword"
+    "title": "ចំណងជើងមេរៀនជាភាសាខ្មែរ",
+    "subtitle": "មុខវិជ្ជា - ថ្នាក់",
+    "speakerNotes": "ការណែនាំផ្តើមមេរៀនសម្រាប់គ្រូ",
+    "imageSearchKeyword": "education concept"
   },
   {
     "type": "content",
-    "title": "Slide title in Khmer",
-    "bullets": ["Bullet 1", "Bullet 2", "Max 4 short bullets"],
-    "speakerNotes": "Script for the teacher to read while presenting this slide (in Khmer).",
-    "imageSearchKeyword": "1 or 2 english words describing the slide for illustration search."
+    "title": "ចំណងជើងស្លាយជាក់លាក់",
+    "bullets": [
+      "ចំណុចជាក់លាក់ទី ១ នៃខ្លឹមសារមេរៀន (ស៊ីជម្រៅ)",
+      "ចំណុចជាក់លាក់ទី ២",
+      "ចំណុចជាក់លាក់ទី ៣"
+    ],
+    "speakerNotes": "ការពន្យល់លម្អិតរបស់គ្រូពេលបង្រៀនស្លាយនេះជាភាសាខ្មែរ",
+    "imageSearchKeyword": "learning activity"
   }
 ]
-Ensure the content perfectly matches the lesson plan and attached document below:
-Title: ${data.lessonTitle}
-Subject: ${data.subject}
-Grade: ${data.grade}
-${data.sourceDocumentText ? `\\nAttached Source Material / Context:\\n${data.sourceDocumentText.substring(0, 3500)}\\n` : ''}
-Objectives:
-Knowledge: ${data.objectives?.knowledge?.join(', ')}
-Skills: ${data.objectives?.skills?.join(', ')}
-Attitudes: ${data.objectives?.attitudes?.join(', ')}
-Content Summary:
-${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('\\n') : (data.stage3?.steps ? data.stage3.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('\\n') : '')}
+
+Lesson Plan Details:
+ចំណងជើង: ${data.lessonTitle}
+មុខវិជ្ជា: ${data.subject}
+កម្រិតថ្នាក់: ${data.grade}
+${data.sourceDocumentText ? `\nAttached Reference Material:\n${data.sourceDocumentText.substring(0, 4000)}\n` : ''}
+វត្ថុបំណង:
+- ចំណេះដឹង: ${data.objectives?.knowledge?.join(', ') || ''}
+- បំណិន: ${data.objectives?.skills?.join(', ') || ''}
+- ឥរិយាបថ: ${data.objectives?.attitudes?.join(', ') || ''}
+Teaching Steps:
+${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('\n') : (data.stage3?.steps ? data.stage3.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('\n') : '')}
 `;
 
-      for (const model of ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro']) {
-        try {
-          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ role: 'user', parts: [{ text: prompt }] }],
-              generationConfig: {
-                temperature: 0.2,
-                response_mime_type: "application/json"
-              }
-            })
-          });
-          if (resp.ok) {
-            const result = await resp.json();
-            const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (textResponse) {
-              const cleaned = textResponse.replace(/```json/gi, '').replace(/```/g, '').trim();
-              const parsed = JSON.parse(cleaned);
-              if (Array.isArray(parsed) && parsed.length > 0) {
-                slidesData = parsed;
-                break;
-              }
-            }
+    // ⚡ Case A: Groq Provider (if configured)
+    if (activeProvider === 'groq' && apiKey.startsWith('gsk_')) {
+      try {
+        setLoadingOverlayStatus('⚡ Groq AI កំពុងបង្កើតស្លាយ...', 'កំពុងដំណើរការតាមរយៈ Groq Llama 3.3 70B...');
+        const groqResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages: [
+              { role: 'system', content: 'You are an expert Cambodian MoEYS educational presenter. Always respond strictly in valid raw JSON array format.' },
+              { role: 'user', content: prompt }
+            ],
+            temperature: 0.2,
+            max_tokens: 4096
+          })
+        });
+        if (groqResp.ok) {
+          const resJson = await groqResp.json();
+          const content = resJson.choices?.[0]?.message?.content;
+          if (content) {
+            const parsed = extractAndParseSlidesJson(content);
+            if (parsed && Array.isArray(parsed) && parsed.length > 0) slidesData = parsed;
           }
-        } catch (e) {
-          console.warn(`Gemini PPTX model ${model} error:`, e);
+        }
+      } catch (ge) {
+        lastError = ge;
+      }
+    }
+
+    // 🧠 Case B: Google Gemini AI (Dynamic discovery, 90s timeout, up to 3 retries with backoff)
+    if (!slidesData) {
+      let candidateModels = [];
+      if (typeof discoverGeminiModels === 'function') {
+        try {
+          const disc = await discoverGeminiModels(apiKey);
+          if (disc && disc.length > 0) {
+            disc.sort((a, b) => {
+              const sc = (m) => {
+                const n = (m.name || '').toLowerCase();
+                if (n.includes('flash-latest')) return 100;
+                if (n.includes('pro-latest')) return 95;
+                if (n.includes('2.5-flash')) return 90;
+                if (n.includes('2.0-flash')) return 85;
+                if (n.includes('flash')) return 70;
+                return 50;
+              };
+              return sc(b) - sc(a);
+            });
+            candidateModels = disc;
+          }
+        } catch (de) {}
+      }
+
+      if (candidateModels.length === 0) {
+        candidateModels = [
+          { ver: 'v1beta', name: 'gemini-flash-latest' },
+          { ver: 'v1beta', name: 'gemini-pro-latest' },
+          { ver: 'v1beta', name: 'gemini-2.5-flash' },
+          { ver: 'v1beta', name: 'gemini-2.0-flash' }
+        ];
+      }
+
+      const MAX_ATTEMPTS = 3;
+      for (let attempt = 0; attempt < MAX_ATTEMPTS && !slidesData; attempt++) {
+        if (attempt > 0) {
+          const waitSec = attempt * 3;
+          setLoadingOverlayStatus(
+            '🔄 Gemini AI កំពុងព្យាយាមម្តងទៀត...',
+            `ម៉ាស៊ីនបម្រើកំពុងរវល់... កំពុងរៀបចំជុំទី ${attempt + 1}/${MAX_ATTEMPTS} (រង់ចាំ ${waitSec} វិនាទី)...`
+          );
+          await new Promise(r => setTimeout(r, waitSec * 1000));
+        }
+
+        for (const item of candidateModels) {
+          try {
+            setLoadingOverlayStatus(
+              '🧠 Gemini AI កំពុងវិភាគ និងបង្កើតខ្លឹមសារស្លាយ...',
+              `កំពុងដំណើរការម៉ូដែល ${item.name} (ជុំទី ${attempt + 1}/${MAX_ATTEMPTS})... សូមរង់ចាំបន្តិច!`
+            );
+
+            const controller = new AbortController();
+            // Generous 90 seconds timeout so Gemini AI has ample time to generate detailed, authentic slides
+            const timeoutMs = 90000;
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+            const resp = await fetch(`https://generativelanguage.googleapis.com/${item.ver}/models/${item.name}:generateContent?key=${apiKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              signal: controller.signal,
+              body: JSON.stringify({
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                generationConfig: {
+                  temperature: 0.3,
+                  response_mime_type: 'application/json'
+                }
+              })
+            });
+            clearTimeout(timer);
+
+            if (resp.ok) {
+              const result = await resp.json();
+              const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (textResponse) {
+                const parsed = extractAndParseSlidesJson(textResponse);
+                if (parsed && Array.isArray(parsed) && parsed.length > 0) {
+                  slidesData = parsed;
+                  break; // Success! Break out of model loop
+                }
+              }
+            } else {
+              const errBody = await resp.json().catch(() => ({}));
+              const msg = errBody.error?.message || `HTTP ${resp.status}`;
+              lastError = new Error(`${item.name}: ${msg}`);
+              console.warn(`[PPTX Gemini] Model ${item.name} error:`, msg);
+            }
+          } catch (e) {
+            lastError = e;
+            console.warn(`[PPTX Gemini] Request error on ${item.name}:`, e);
+          }
         }
       }
     }
 
+    // STRICT USER REQUIREMENT:
+    // If Gemini still failed after all retries, DO NOT output repetitive dummy slides!
+    // Instead, inform the user honestly with instructions to try again.
     if (!slidesData || !Array.isArray(slidesData) || slidesData.length === 0) {
-      slidesData = synthesizeOfflineSlides(data, numSlides);
+      hideLoadingOverlay();
+      const errStr = lastError ? (lastError.message || String(lastError)) : '';
+      const isQuota = /429|quota|resource_exhausted|too many requests/i.test(errStr);
+      const isBusy = /503|overloaded|unavailable|busy/i.test(errStr);
+      const isTimeout = /timeout|timed out|abort/i.test(errStr);
+
+      let alertMessage = '⚠️ Google Gemini AI កំពុងរវល់ខ្លាំង (Server Busy / 429 Rate Limit)។ សូមមេត្តារង់ចាំប្រមាណ ២០ ទៅ ៣០ វិនាទី រួចចុច «បង្កើតស្លាយឥឡូវនេះ» ម្ដងទៀត!';
+      if (isTimeout) {
+        alertMessage = '⚠️ ការបង្កើតស្លាយលើសរយៈពេលកំណត់ (Timeout) ដោយសារខ្លឹមសារវែង ឬបណ្តាញយឺត។ សូមពិនិត្យអ៊ីនធឺណិត រួចចុចបង្កើតម្ដងទៀត!';
+      } else if (isBusy) {
+        alertMessage = '⚠️ ម៉ាស៊ីនបម្រើ Google Gemini កំពុងផ្ទុកទិន្នន័យច្រើន (503 Server Unavailable)។ សូមរង់ចាំបន្តិច រួចព្យាយាមម្ដងទៀត!';
+      }
+
+      showToast(alertMessage, 'warning', 9000);
+      if (typeof openAiErrorModal === 'function') {
+        openAiErrorModal(lastError || new Error(alertMessage));
+      }
+      return; // Exit cleanly without creating fake/repetitive dummy presentation!
     }
 
     setLoadingOverlayStatus('🎬 កំពុងផ្គុំឯកសារ PPTX & រូបភាព AI...', `កំពុងរចនា ${slidesData.length} ស្លាយ...`);
