@@ -9738,3 +9738,14 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
     showToast('❌ បរាជ័យក្នុងការបង្កើតស្លាយ: ' + error.message, 'error');
   }
 };
+
+
+// ==========================================================================
+// 🎮 AC Kahoot Game Integration
+// ==========================================================================
+window.openGameModal = function() {
+  document.getElementById('gameModal').style.display = 'flex';
+};
+window.closeGameModal = function() {
+  document.getElementById('gameModal').style.display = 'none';
+};

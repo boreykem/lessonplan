@@ -98,6 +98,12 @@
           <span id="savedPlansCountBadge" class="count-badge">០</span>
         </button>
 
+                <!-- Game Integration Button -->
+        <button class="btn-secondary" style="border-color: #8b5cf6;" onclick="openGameModal()" title="Play AC Kahoot Cloud Game for Study Enhancement">
+          <i class="fa-solid fa-gamepad" style="color: #8b5cf6;"></i>
+          <span class="btn-text">AC Game</span>
+        </button>
+
         <!-- Cloud Auto-Update Button -->
         <button id="btnCheckUpdate" class="btn-secondary" style="border-color: #10b981;" onclick="openUpdateModal()" title="ពិនិត្យមើលកំណែអាប់ដេតថ្មី (Cloud Auto-Updater)">
           <i class="fa-solid fa-arrows-rotate" style="color: #10b981;"></i>
@@ -1427,6 +1433,22 @@
     </div>
   </div>
 
+
+  
+  <!-- AC Kahoot Game Modal -->
+  <div id="gameModal" class="modal-backdrop">
+    <div class="modal" style="max-width: 1000px; width: 95%; height: 85vh; display: flex; flex-direction: column;">
+      <div class="modal-header">
+        <div class="modal-title" style="color: #8b5cf6;">
+          <i class="fa-solid fa-gamepad"></i> AC Kahoot Cloud (Study Enhancement)
+        </div>
+        <button class="modal-close" onclick="closeGameModal()"><i class="fa-solid fa-times"></i></button>
+      </div>
+      <div class="modal-body" style="flex: 1; padding: 0; background: #000; overflow: hidden; border-radius: 0 0 10px 10px;">
+        <iframe src="https://ac-kahoot-cloud.onrender.com/" style="width: 100%; height: 100%; border: none;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
 
   <!-- PPTX Generator Modal -->
   <div id="pptxModal" class="modal-backdrop">
