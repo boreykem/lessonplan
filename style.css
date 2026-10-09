@@ -2288,3 +2288,174 @@ textarea.form-control {
   background: #fee2e2 !important;
   color: #ef4444 !important;
 }
+
+/* ==========================================================================
+   🎬 PPTX Floating Background Task Widget
+   ========================================================================== */
+.pptx-floating-widget {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  animation: slideUpWidget 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 16px 40px -8px rgba(15, 23, 42, 0.3), 0 0 0 1px rgba(225, 29, 72, 0.15);
+  border-radius: 14px;
+  overflow: hidden;
+  font-family: inherit;
+}
+
+@keyframes slideUpWidget {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.pptx-widget-card {
+  background: #ffffff;
+  color: #1e293b;
+  border-left: 4px solid #e11d48;
+}
+
+[data-theme="dark"] .pptx-widget-card {
+  background: #1e293b;
+  color: #f8fafc;
+  border: 1px solid #334155;
+  border-left: 4px solid #f43f5e;
+}
+
+.pptx-widget-header {
+  padding: 12px 16px;
+  background: #fff1f2;
+  border-bottom: 1px solid #ffe4e6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+[data-theme="dark"] .pptx-widget-header {
+  background: #271a24;
+  border-bottom: 1px solid #4c1d2c;
+}
+
+.pptx-widget-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #e11d48;
+}
+
+[data-theme="dark"] .pptx-widget-title {
+  color: #fb7185;
+}
+
+.pptx-widget-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #e11d48;
+}
+
+.pptx-widget-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pptx-widget-timer {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 2px 7px;
+  border-radius: 12px;
+}
+
+[data-theme="dark"] .pptx-widget-timer {
+  background: rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+}
+
+.pptx-widget-btn-close {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.pptx-widget-btn-close:hover {
+  color: #e11d48;
+  background: rgba(225, 29, 72, 0.1);
+}
+
+.pptx-widget-body {
+  padding: 14px 16px;
+}
+
+.pptx-widget-status {
+  font-size: 0.86rem;
+  line-height: 1.4;
+  color: #334155;
+  margin-bottom: 10px;
+  min-height: 38px;
+}
+
+[data-theme="dark"] .pptx-widget-status {
+  color: #e2e8f0;
+}
+
+.pptx-widget-progress-bg {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 10px;
+}
+
+[data-theme="dark"] .pptx-widget-progress-bg {
+  background: #334155;
+}
+
+.pptx-widget-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #e11d48, #f43f5e);
+  transition: width 0.4s ease;
+  border-radius: 4px;
+}
+
+.pptx-widget-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+[data-theme="dark"] .pptx-widget-footer {
+  color: #94a3b8;
+}
+
+.pptx-widget-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #059669;
+  font-weight: 600;
+}
