@@ -2159,9 +2159,6 @@ def export_docx():
         doc.add_paragraph("     - ការរៀនបែបត្រឡប់")
         doc.add_paragraph()
 
-        # Pre-Test QCM
-        _add_docx_pretest()
-
         # Section 4: In-Class Process (3 Columns)
         p_proc_h = doc.add_paragraph()
         p_proc_h.add_run(f"៤. ដំណើរការបង្រៀន ({data.get('duration', '១៨០ នាទី')})").bold = True
@@ -2199,8 +2196,10 @@ def export_docx():
 
         doc.add_paragraph()
 
-        # Post-Test MCQ
-        _add_docx_posttest()
+        if data.get("preTestQCM"):
+            _add_docx_pretest()
+        if data.get("postTestMCQ"):
+            _add_docx_posttest()
 
         # Signatures
         sig_table = doc.add_table(rows=1, cols=2)
@@ -2246,9 +2245,6 @@ def export_docx():
         p_s2.runs[0].font.size = Pt(12)
         for pt in stage2.get("performanceTasks", []):
             doc.add_paragraph(f"  • {pt}")
-
-        # Pre-Test
-        _add_docx_pretest()
 
         # Stage 3
         p_s3 = doc.add_paragraph()
@@ -2319,10 +2315,6 @@ def export_docx():
         doc.add_paragraph(f"• សម្រាប់គ្រូ៖ {', '.join(mats.get('teacher', []))}")
         doc.add_paragraph(f"• សម្រាប់សិស្ស៖ {', '.join(mats.get('student', []))}")
 
-        # Pre-Test
-        doc.add_paragraph()
-        _add_docx_pretest()
-
         # In-Class Process Table
         p_steps_h = doc.add_paragraph()
         p_steps_h.add_run("IV. ដំណើរការបង្រៀន និងរៀនក្នុងថ្នាក់ (Teaching Process)").bold = True
@@ -2356,8 +2348,10 @@ def export_docx():
             c3.text = step.get("studentActivity", "")
 
         doc.add_paragraph()
-        # Post-Test
-        _add_docx_posttest()
+        if data.get("preTestQCM"):
+            _add_docx_pretest()
+        if data.get("postTestMCQ"):
+            _add_docx_posttest()
 
     if not is_flipped:
         # Signatures Table
