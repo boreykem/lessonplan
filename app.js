@@ -2650,13 +2650,16 @@ ${isLongSession ? `• This is an EXTENDED ${totalMin}-minute block (Multi-hour 
 3. CONTENT-SPECIFIC: All activities, questions, explanations, and objectives MUST be directly tied to the exact lesson topic and subject matter provided. Do NOT generate generic content.
 4. TEACHER-READY: Write as if this plan will be printed and handed to a teacher tomorrow morning. Every teacher activity, student activity, and explanation must be clear, specific, and actionable.
 5. REAL QUESTIONS: Pre-test and Post-test questions MUST be actual, answerable multiple-choice questions about this specific lesson — not examples or placeholders.
-7. MANDATORY INSTRUCTIONAL OBJECTIVE FORMULA (ក្បួនតែងវត្ថុបំណងបង្រៀនស្តង់ដារ MoEYS / គរុកោសល្យ A-C-S / ABCD):
+6. TTT 30% / STT 70% RULE: In Step 4, explicitly design activities so the Teacher Talking Time is max 30%, and Student Talking Time is 70% (Student-Centered).
+7. 21st CENTURY SKILLS (4Cs): At the end of student activities (especially in Step 4), tag the exact 4Cs skill being developed in brackets (e.g., [ជំនាញសហការ និងការគិតស៊ីជម្រៅ]).
+8. EXIT TICKET 3-2-1: In Step 5 (teacherActivity & studentActivity), you MUST include an "Exit Ticket 3-2-1" formative assessment (e.g., សរសេរ ៣ចំណុចដែលបានរៀន, ២ចំណុចដែលចាប់អារម្មណ៍, ១ចំណុចដែលឆ្ងល់).
+9. MANDATORY INSTRUCTIONAL OBJECTIVE FORMULA (ក្បួនតែងវត្ថុបំណងបង្រៀនស្តង់ដារ MoEYS / គរុកោសល្យ A-C-S / ABCD):
    រាល់ចំណុចវត្ថុបំណងនីមួយៗទាំង ៣ ផ្នែក (វិជ្ជាសម្បទា បំណិនសម្បទា ចរិយាសម្បទា) ត្រូវតែមានសមាសភាគពេញលេញទាំង ៣ យ៉ាងម៉ឺងម៉ាត់៖
    - [A - Action / សកម្មភាព ឬ របៀបធ្វើសកម្មភាព]: ប្រើកិរិយាស័ព្ទសកម្មដែលអាចវាស់វែងបាន (ឧ. កំណត់, ពន្យល់, រៀបរាប់, គណនា, វិភាគ, ដោះស្រាយ, រៀបចំ, បង្ហាញ, ប្ដេជ្ញាចិត្ត...)
    - [C - Condition / លក្ខខណ្ឌ]: មធ្យោបាយ ឬវិធីសាស្ត្ររៀន (ឧ. «តាមរយៈការពន្យល់របស់គ្រូ និងការសង្កេតស្លាយ/វីដេអូ», «តាមរយៈការអានឯកសារគោល», «តាមរយៈការអនុវត្តលំហាត់ជាក់ស្តែង និងការពិភាក្សាជាក្រុម», «តាមរយៈការឆ្លុះបញ្ចាំងលើ Exit Ticket»...)
    - [S / D - Standard / ស្ដង់ដារ ឬ កម្រិតកំណត់]: កម្រិតកំណត់នៃការសម្រេចបាន (ឧ. «បានត្រឹមត្រូវ និងក្បោះក្បាយ», «បានយ៉ាងហោចណាស់ ៨០% ត្រឹមត្រូវ», «បានច្បាស់លាស់ឥតខុសឆ្គង», «ប្រកបដោយភាពជឿជាក់ និងស្ទាត់ជំនាញ», «ប្រកបដោយស្មារតីទទួលខុសត្រូវខ្ពស់»)
    ⚠️ ហាមដាច់ខាតសរសេរតែសកម្មភាពកាត់ៗ (ឧ. «ពន្យល់បានពី...») ដោយគ្មានលក្ខខណ្ឌ (Condition: តាមរយៈ...) និងគ្មានស្ដង់ដារ (Standard: បានត្រឹមត្រូវ...)!
-8. INTEGRATION OF PRIMARY TEACHING METHOD (${params.method || '5E'}):
+10. INTEGRATION OF PRIMARY TEACHING METHOD (${params.method || '5E'}):
    - វិធីសាស្ត្របង្រៀនចម្បងដែលលោកគ្រូ/អ្នកគ្រូបានជ្រើសរើសគឺ៖ «${params.method}»។
    - ត្រូវបញ្ចូលវិធីសាស្ត្រនេះចូលក្នុងដំណើរការបង្រៀន ៥ ជំហាន (steps) ជាពិសេសជំហានទី ៣ និងទី ៤ ឱ្យស៊ីជម្រៅបំផុត។
    ${(params.method || '').toLowerCase().includes('5e') ? `
@@ -2671,7 +2674,7 @@ CRITICAL INSTRUCTIONS FOR AI GENERATION:
 1. Deep Content Analysis: Thoroughly examine the provided lesson content. Extract real definitions, terms, rules, formulas, and examples. Use them everywhere in the plan.
 2. Objectives: Strictly format every single objective statement using the 3 components: [Action] + [Content] + [Condition: តាមរយៈ...] + [Standard: បានត្រឹមត្រូវ/ច្បាស់លាស់...]!
 3. Core Focus: Focus 100% of your pedagogical output on Objectives, Materials, and the 5-Step Teaching Process (5%-10%-10%-70%-5%). Do NOT generate pre-test or post-test question arrays in this JSON (they are generated separately on-demand).
-4. Step 4 (Active Learning Core 70%): Must describe a SPECIFIC, RICH group activity or problem-solving task directly based on the lesson content with clear progressive phases.
+4. Step 4 (Active Learning Core 70%): You MUST dynamically choose and apply ONE of these 4 advanced pedagogies: (1) Jigsaw Cooperative Learning (ក្រុមអ្នកជំនាញ), (2) Concept Mapping (ការគូសផែនទីគំនិត), (3) Role-Play/Phenomenon-Based Simulation (ការដើរតួដោះស្រាយវិបត្តិ), or (4) Metacognitive Reflection/Advanced Exit Tickets (ការត្រិះរិះពិចារណាពីការគិត). Describe a SPECIFIC, RICH group activity applying this chosen pedagogy directly based on the lesson content with clear progressive phases.
 
 Return ONLY valid JSON matching this schema:
 {
@@ -2736,9 +2739,9 @@ Return ONLY valid JSON matching this schema:
       "stepNumber": 4,
       "stepTitle": "ជំហានទី៤៖ ពង្រឹងចំណេះដឹង",
       "duration": "${stepTimeHints.step4}",
-      "teacherActivity": "បែងចែកក្រុម ដាក់សន្លឹកកិច្ចការករណីសិក្សាលើ Flipchart និងសម្របសម្រួល Gallery Walk",
-      "contentSummary": "ដំណោះស្រាយករណីសិក្សាជាក់ស្តែង និងការការពារទស្សនៈ",
-      "studentActivity": "ធ្វើការជាក្រុម សរសេរលើ Flipchart ឡើងការពារ និងឆ្លើយសំណួរដេញដោល"
+      "teacherActivity": "[ពិពណ៌នាសកម្មភាពគ្រូដោយប្រើវិធីសាស្ត្រមួយក្នុងចំណោម៖ Jigsaw, Concept Mapping, Role-Play, ឬ Metacognition]...",
+      "contentSummary": "[សង្ខេបខ្លឹមសារសកម្មភាព និងទ្រឹស្តីគន្លឹះ]...",
+      "studentActivity": "[សកម្មភាពសិស្សឆ្លើយតបទៅនឹងវិធីសាស្ត្រដែលបានជ្រើសរើស]..."
     },
     {
       "stepNumber": 5,
@@ -2906,6 +2909,11 @@ STEP DURATION ALLOCATION (${totalMin} MINUTES TOTAL):
          • សំណួរទី៣៖ «[សង្ខេបចម្លើយរបស់សិស្សចេញពីខ្លឹមសារមេរៀន]»
          • សំណួរទី៤៖ «[សង្ខេបចម្លើយរបស់សិស្សចេញពីខ្លឹមសារមេរៀន]»
      • សិស្សកត់ត្រាខ្លឹមសារសំខាន់ៗលើផ្ទាំង Flipchart និងចូលរួមធ្វើបទបង្ហាញការពារលទ្ធផល។
+
+៤. វិធានគរុកោសល្យកម្រិតខ្ពស់ (Advanced Pedagogical Rules):
+   - ច្បាប់ TTT 30% / STT 70%: នៅក្នុងជំហានទី៤ ត្រូវរៀបចំសកម្មភាពយ៉ាងណាឱ្យគ្រូនិយាយត្រឹមតែ ៣០% និងសិស្សអនុវត្ត/ពិភាក្សា ៧០%។
+   - ជំនាញសតវត្សទី២១ (4Cs): ត្រូវដាក់រង្វង់ក្រចកបញ្ជាក់ពីជំនាញ 4Cs នៅចុងសកម្មភាពសិស្ស (ឧ. [ជំនាញសហការ និងការគិតស៊ីជម្រៅ])។
+   - Exit Ticket 3-2-1: នៅក្នុងជំហានទី៥ ត្រូវដាក់សកម្មភាពវាយតម្លៃចុងម៉ោង (Exit Ticket 3-2-1: ៣ចំណុចដែលបានរៀន ២ចំណុចដែលចាប់អារម្មណ៍ ១ចំណុចដែលឆ្ងល់)។
 
 ⛔ ABSOLUTE PROHIBITIONS:
 - NEVER write "...", "...", or any ellipsis as content
