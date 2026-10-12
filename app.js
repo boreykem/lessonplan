@@ -8375,7 +8375,7 @@ async function checkLicenseStatus() {
 // ==========================================
 // 🔄 CLOUD AUTO-UPDATER SYSTEM
 // ==========================================
-const CURRENT_APP_VERSION = '2.5.0';
+const CURRENT_APP_VERSION = '2.5.1';
 
 function openUpdateModal() {
   const modal = document.getElementById('updateModal');
@@ -8406,8 +8406,39 @@ async function checkAppUpdates(isManual = false) {
   }
 
   try {
-    const res = await fetch('/api/system/check_update');
-    const data = await res.json();
+    let data = null;
+    try {
+      const res = await fetch('/api/system/check_update');
+      if (res.ok) data = await res.json();
+    } catch (_) {}
+
+    // Fallback: Check GitHub directly (for Vercel / Static hosting)
+    if (!data || !data.latestVersion) {
+      const ghRes = await fetch('https://raw.githubusercontent.com/boreykem/lessonplan/main/version_manifest.json?t=' + Date.now());
+      if (ghRes.ok) {
+        const ghData = await ghRes.json();
+        const parseV = (v) => (String(v).match(/\d+/g) || []).map(Number);
+        const curV = parseV(CURRENT_APP_VERSION);
+        const remV = parseV(ghData.version || '');
+        let hasUp = false;
+        for (let i = 0; i < Math.max(curV.length, remV.length); i++) {
+          const c = curV[i] || 0;
+          const r = remV[i] || 0;
+          if (r > c) { hasUp = true; break; }
+          if (r < c) { break; }
+        }
+        data = {
+          hasUpdate: hasUp,
+          currentVersion: CURRENT_APP_VERSION,
+          latestVersion: ghData.version || CURRENT_APP_VERSION,
+          releaseDate: ghData.releaseDate || '',
+          releaseNotes: ghData.releaseNotes || ['កែលម្អប្រព័ន្ធ និងបន្ថែមមុខងារថ្មីៗ'],
+          updateUrl: ghData.updateUrl || 'https://github.com/boreykem/lessonplan'
+        };
+      }
+    }
+
+    if (!data) throw new Error('Cannot reach update server');
 
     if (data.hasUpdate) {
       if (updateDot) updateDot.style.display = 'inline-block';

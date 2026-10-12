@@ -1,0 +1,10 @@
+{
+  "version": "2.5.1",
+  "releaseDate": "2026-10-12",
+  "releaseNotes": [
+    "កែសម្រួលតំណភ្ជាប់ AC Game ទៅ https://ac-kahoot.onrender.com",
+    "ដកផ្ទាំងជូនដំណឹងរង់ចាំក្នុង AC Game ចេញ (Fast Server)",
+    "កែលម្អប្រព័ន្ធ Cloud Auto-Updater តាមរយៈ GitHub ផ្លូវការ (boreykem/lessonplan)"
+  ],
+  "updateUrl": "https://github.com/boreykem/lessonplan"
+}
