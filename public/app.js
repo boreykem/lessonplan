@@ -9879,7 +9879,75 @@ function updatePptxAttachmentOptions() {
     if (optCustom) optCustom.style.display = 'none';
     if (badge) badge.style.display = 'none';
   }
+
+  // 4. Update in-modal warning / confirmation alert
+  refreshPptxSourceAlert();
 }
+
+function refreshPptxSourceAlert() {
+  const select = document.getElementById('pptxSourceSelect');
+  const alertEl = document.getElementById('pptxSourceAlert');
+  const alertText = document.getElementById('pptxSourceAlertText');
+  const alertIcon = document.getElementById('pptxSourceAlertIcon');
+  if (!alertEl || !select) return;
+
+  const currentVal = select.value;
+  const hasPlan = !!(state.generatedPlanData || state.currentPlan || (document.getElementById('lessonTitleInput')?.value || '').trim());
+  const hasUploadedLesson = !!(state.lessonFileName && state.lessonContent);
+  const hasCustom = !!(state.pptxCustomSource && state.pptxCustomSource.fileName);
+
+  if (currentVal === 'current_plan') {
+    if (!hasPlan) {
+      alertEl.style.display = 'block';
+      alertEl.style.background = '#fffbeb';
+      alertEl.style.borderColor = '#fde68a';
+      alertEl.style.color = '#b45309';
+      if (alertIcon) alertIcon.className = 'fa-solid fa-triangle-exclamation';
+      if (alertIcon) alertIcon.style.color = '#f59e0b';
+      if (alertText) {
+        alertText.innerHTML = '<b>⚠️ មិនទាន់មានកិច្ចតែងការបង្រៀននៅឡើយទេ!</b><br>សូមចុចប៊ូតុង <a href="javascript:void(0)" onclick="triggerPptxSourceUpload()" style="color: #e11d48; font-weight: 700; text-decoration: underline;">«បង្ហោះឯកសារថ្មី»</a> ដើម្បីជ្រើសឯកសារ Word/PDF មេរៀន ឬត្រឡប់ទៅបង្កើតកិច្ចតែងការជាមុនសិន។';
+      }
+    } else {
+      alertEl.style.display = 'block';
+      alertEl.style.background = '#f0fdf4';
+      alertEl.style.borderColor = '#bbf7d0';
+      alertEl.style.color = '#166534';
+      if (alertIcon) alertIcon.className = 'fa-solid fa-circle-check';
+      if (alertIcon) alertIcon.style.color = '#10b981';
+      const planTitle = (state.generatedPlanData?.lessonTitle || state.currentPlan?.lessonTitle || document.getElementById('lessonTitleInput')?.value || 'កិច្ចតែងការបច្ចុប្បន្ន');
+      if (alertText) {
+        alertText.innerHTML = `<b>✅ រកឃើញកិច្ចតែងការបច្ចុប្បន្ន៖</b> <i>${escapeHtml(planTitle)}</i> (រួចរាល់សម្រាប់បង្កើតស្លាយ)`;
+      }
+    }
+  } else if (currentVal === 'uploaded_lesson_file') {
+    if (hasUploadedLesson) {
+      alertEl.style.display = 'block';
+      alertEl.style.background = '#f0fdf4';
+      alertEl.style.borderColor = '#bbf7d0';
+      alertEl.style.color = '#166534';
+      if (alertIcon) alertIcon.className = 'fa-solid fa-circle-check';
+      if (alertIcon) alertIcon.style.color = '#10b981';
+      if (alertText) alertText.innerHTML = `<b>✅ ឯកសារមេរៀនយោង៖</b> <i>${escapeHtml(state.lessonFileName)}</i> (រួចរាល់សម្រាប់បង្កើតស្លាយ)`;
+    } else {
+      alertEl.style.display = 'none';
+    }
+  } else if (currentVal === 'custom_file') {
+    if (hasCustom) {
+      alertEl.style.display = 'none';
+    } else {
+      alertEl.style.display = 'block';
+      alertEl.style.background = '#fffbeb';
+      alertEl.style.borderColor = '#fde68a';
+      alertEl.style.color = '#b45309';
+      if (alertIcon) alertIcon.className = 'fa-solid fa-cloud-arrow-up';
+      if (alertIcon) alertIcon.style.color = '#f59e0b';
+      if (alertText) alertText.innerHTML = '<b>សូមជ្រើសរើសឯកសារ Word/PDF</b> ដោយចុចប៊ូតុង «បង្ហោះឯកសារថ្មី» ខាងលើ។';
+    }
+  } else {
+    alertEl.style.display = 'none';
+  }
+}
+window.refreshPptxSourceAlert = refreshPptxSourceAlert;
 
 window.triggerPptxSourceUpload = function() {
   const input = document.getElementById('pptxSourceFileInput');
@@ -9905,6 +9973,7 @@ window.handlePptxSourceFileUploaded = async function(event) {
     updatePptxAttachmentOptions();
     const select = document.getElementById('pptxSourceSelect');
     if (select) select.value = 'custom_file';
+    refreshPptxSourceAlert();
     showToast(`✅ បានភ្ជាប់ឯកសារ ${file.name} (${text.trim().length} តួអក្សរ) សម្រាប់បង្កើតស្លាយ!`, 'success');
   } catch (err) {
     console.error('Error reading pptx attachment file:', err);
@@ -9919,6 +9988,7 @@ window.clearPptxCustomSource = function() {
   updatePptxAttachmentOptions();
   const select = document.getElementById('pptxSourceSelect');
   if (select) select.value = 'current_plan';
+  refreshPptxSourceAlert();
   showToast('បានដកឯកសារភ្ជាប់ចេញរួចរាល់', 'info');
 };
 
@@ -9926,6 +9996,7 @@ window.handlePptxSourceChanged = function(val) {
   if (val === 'custom_file' && !state.pptxCustomSource) {
     triggerPptxSourceUpload();
   }
+  refreshPptxSourceAlert();
 };
 
 function extractAndParseSlidesJson(text) {
@@ -10294,7 +10365,24 @@ window.generatePptxSlides = async function() {
       };
       state.currentPlan = data;
     } else {
-      showToast('សូមបញ្ចូលចំណងជើងមេរៀន បង្កើតកិច្ចតែងការ ឬបង្ហោះឯកសារយោងជាមុនសិន!', 'warning');
+      const alertEl = document.getElementById('pptxSourceAlert');
+      const alertText = document.getElementById('pptxSourceAlertText');
+      const alertIcon = document.getElementById('pptxSourceAlertIcon');
+      if (alertEl) {
+        alertEl.style.display = 'block';
+        alertEl.style.background = '#fef2f2';
+        alertEl.style.borderColor = '#fca5a5';
+        alertEl.style.color = '#991b1b';
+        if (alertIcon) {
+          alertIcon.className = 'fa-solid fa-circle-exclamation';
+          alertIcon.style.color = '#ef4444';
+        }
+        if (alertText) {
+          alertText.innerHTML = '<b>❌ មិនអាចបង្កើតស្លាយបានទេ៖ មិនទាន់មានកិច្ចតែងការបង្រៀននៅឡើយ!</b><br>សូមចុចប៊ូតុង <a href="javascript:void(0)" onclick="triggerPptxSourceUpload()" style="color: #e11d48; font-weight: 700; text-decoration: underline;">«បង្ហោះឯកសារថ្មី»</a> ដើម្បីជ្រើសឯកសារ Word/PDF មេរៀន ឬត្រឡប់ទៅបង្កើតកិច្ចតែងការជាមុនសិន។';
+        }
+        try { alertEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (_) {}
+      }
+      showToast('⚠️ សូមបញ្ចូលចំណងជើងមេរៀន បង្កើតកិច្ចតែងការ ឬបង្ហោះឯកសារយោងជាមុនសិន!', 'warning', 6000);
       return;
     }
   }
