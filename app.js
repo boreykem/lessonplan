@@ -10005,11 +10005,11 @@ function generateEducationalCardDataUrl(title, keyword, subject, theme, slideInd
   }
 }
 
-async function fetchImageAsBase64(url, timeoutMs = 4000) {
+async function fetchImageAsBase64(url, timeoutMs = 9000) {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
-    const resp = await fetch(url, { signal: controller.signal });
+    const resp = await fetch(url, { signal: controller.signal, mode: 'cors' });
     clearTimeout(timer);
     if (!resp.ok) return null;
     const blob = await resp.blob();
@@ -10027,27 +10027,93 @@ async function fetchImageAsBase64(url, timeoutMs = 4000) {
       reader.readAsDataURL(blob);
     });
   } catch (err) {
+    console.warn('[PPTX Image] fetchImageAsBase64 warning/timeout:', err);
     return null;
   }
+}
+
+function buildPptxBullets(bullets, bodyColor, accent) {
+  const runs = [];
+  const bulletList = Array.isArray(bullets) ? bullets : [String(bullets || '')];
+  bulletList.forEach((item) => {
+    const raw = String(item || '').trim();
+    if (!raw) return;
+    
+    // Check if item contains markdown bold **bold**
+    const parts = [];
+    const regex = /\*\*(.*?)\*\*/g;
+    let lastIndex = 0;
+    let match;
+    while ((match = regex.exec(raw)) !== null) {
+      if (match.index > lastIndex) {
+        parts.push({ text: raw.substring(lastIndex, match.index), bold: false });
+      }
+      parts.push({ text: match[1], bold: true });
+      lastIndex = regex.lastIndex;
+    }
+    if (lastIndex < raw.length) {
+      parts.push({ text: raw.substring(lastIndex), bold: false });
+    }
+    if (parts.length === 0) {
+      parts.push({ text: raw, bold: false });
+    }
+
+    parts.forEach((p, pIdx) => {
+      const opt = {
+        bold: p.bold,
+        color: p.bold ? (accent || '0055A4') : (bodyColor || '333333'),
+        fontFace: 'Kantumruy Pro'
+      };
+      if (pIdx === 0) {
+        opt.bullet = true;
+      }
+      if (pIdx === parts.length - 1) {
+        opt.breakLine = true;
+      }
+      runs.push({ text: p.text, options: opt });
+    });
+  });
+  return runs;
 }
 
 async function getSlideImage(slideDef, data, imageMode, theme, slideIndex) {
   if (imageMode === 'no') return null;
 
-  const keyword = slideDef.imageSearchKeyword || slideDef.title || data.lessonTitle || 'education';
-  const cleanKeyword = keyword.replace(/[^\\w\\s]/gi, ' ').trim() || 'classroom';
+  // 1. Build authentic, topic-matched visual prompt for AI Image Generator (Pollinations AI)
+  let visualPrompt = (slideDef.imagePrompt || '').trim();
+  if (!visualPrompt) {
+    const kw = (slideDef.imageSearchKeyword || '').trim();
+    const subj = (data.subject || 'Education').trim();
+    const title = (slideDef.title || data.lessonTitle || 'Classroom Learning').replace(/[^\w\s]/gi, ' ').trim();
+    visualPrompt = `Educational scene of ${subj}, ${title}${kw ? ', ' + kw : ''}, Cambodian classroom setting, educational illustration, warm lighting, highly detailed`;
+  }
 
-  // 1. Try fetching real JPEG from picsum.photos with .jpg extension
-  const webUrl = `https://picsum.photos/seed/${encodeURIComponent(cleanKeyword)}/1024/768.jpg`;
+  // Ensure prompt contains strong educational context
+  if (!/education|classroom|school|learning|pedagogy|students|teacher|diagram|concept/i.test(visualPrompt)) {
+    visualPrompt += ', educational concept, modern classroom';
+  }
+
+  const cleanPrompt = visualPrompt.replace(/[\n\r\t]/g, ' ').trim().substring(0, 280);
+  const styleKeywords = (imageMode === 'web') 
+    ? 'authentic professional classroom photography, documentary style, realistic educational lighting'
+    : 'digital educational illustration, vibrant pedagogical art, detailed, high resolution';
+
+  const fullPrompt = `${cleanPrompt}, ${styleKeywords}`;
+  const seed = Math.floor(Math.random() * 900000) + 100000;
+  const aiUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=1024&height=768&nologo=true&seed=${seed}`;
+
   try {
-    const base64 = await fetchImageAsBase64(webUrl, 3000);
+    const base64 = await fetchImageAsBase64(aiUrl, 8500);
     if (base64 && base64.startsWith('data:image')) {
       return { data: base64 };
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn('[PPTX Image] Pollinations AI fetch error:', e);
+  }
 
   // 2. Guaranteed zero-failure offline Canvas Educational Diagram Card
-  const canvasBase64 = generateEducationalCardDataUrl(slideDef.title, cleanKeyword, data.subject, theme, slideIndex);
+  // Custom rendered with authentic slide title, 3 pedagogical pillars, and MoEYS badge (NO random clouds/photos!)
+  const canvasBase64 = generateEducationalCardDataUrl(slideDef.title, visualPrompt, data.subject, theme, slideIndex);
   if (canvasBase64) {
     return { data: canvasBase64 };
   }
@@ -10564,16 +10630,30 @@ window.generatePptxSlides = async function() {
   }
 
   const sourceChoice = document.getElementById('pptxSourceSelect')?.value || 'current_plan';
-  let data = state.generatedPlanData || state.currentPlan;
+  let data = null;
   let sourceDocText = '';
   let sourceDocTitle = '';
 
   if (sourceChoice === 'custom_file' && state.pptxCustomSource) {
     sourceDocText = state.pptxCustomSource.content;
     sourceDocTitle = state.pptxCustomSource.fileName.replace(/\.[^/.]+$/, "");
+    data = {
+      lessonTitle: sourceDocTitle,
+      subject: (document.getElementById('subjectSelect')?.value || 'ទូទៅ').trim(),
+      grade: (document.getElementById('gradeSelect')?.value || 'ទូទៅ').trim(),
+      sourceDocumentText: sourceDocText,
+      isDocumentBased: true
+    };
   } else if (sourceChoice === 'uploaded_lesson_file' && state.lessonContent) {
     sourceDocText = state.lessonContent;
     sourceDocTitle = state.lessonFileName ? state.lessonFileName.replace(/\.[^/.]+$/, "") : '';
+    data = {
+      lessonTitle: sourceDocTitle || 'ឯកសារមេរៀន',
+      subject: (document.getElementById('subjectSelect')?.value || 'ទូទៅ').trim(),
+      grade: (document.getElementById('gradeSelect')?.value || 'ទូទៅ').trim(),
+      sourceDocumentText: sourceDocText,
+      isDocumentBased: true
+    };
   } else if (sourceChoice === 'history_plan') {
     try {
       const history = JSON.parse(localStorage.getItem('alps_plan_history') || '[]');
@@ -10582,6 +10662,8 @@ window.generatePptxSlides = async function() {
         sourceDocTitle = history[0].title;
       }
     } catch (e) {}
+  } else {
+    data = state.generatedPlanData || state.currentPlan;
   }
 
   if (!data && !sourceDocText) {
@@ -10637,7 +10719,7 @@ window.generatePptxSlides = async function() {
 
   if (sourceDocText) {
     data.sourceDocumentText = sourceDocText;
-    if (sourceDocTitle && (!data.lessonTitle || data.lessonTitle === 'មេរៀនទូទៅ')) {
+    if (sourceDocTitle) {
       data.lessonTitle = sourceDocTitle;
     }
   }
@@ -10669,49 +10751,58 @@ window.generatePptxSlides = async function() {
       return;
     }
 
-    const prompt = `You are an expert Cambodian MoEYS instructional designer and master PowerPoint presenter.
-Convert the following Cambodian MoEYS lesson and educational reference material into an engaging, comprehensive, high-quality PowerPoint presentation outline.
+    const prompt = `You are an expert Cambodian MoEYS instructional designer, curriculum specialist, and master PowerPoint presenter.
+Convert the following Cambodian educational material into an engaging, comprehensive, high-quality, professional PowerPoint presentation outline.
 Number of slides requested (including Title slide): ${numSlides}
 
 STRICT CRITICAL RULES:
-1. Output MUST be ONLY a raw valid JSON array of objects. Do NOT include markdown code blocks (\`\`\`json) or explanatory text. Output ONLY the raw JSON array.
-2. Language MUST be 100% Khmer for all titles, subtitles, bullet points, and speaker notes. Only "imageSearchKeyword" must be in English (1-3 keywords).
-3. Every single slide MUST contain distinct, authentic, in-depth educational content strictly reflecting the lesson details.
-4. ABSOLUTELY NEVER repeat the same generic bullet points across slides. Every slide must explain a unique sub-topic, step, or activity.
-5. First item must be "type": "title". Subsequent items must be "type": "content".
-6. JSON Schema:
+1. Output MUST be ONLY a raw valid JSON array of objects. Do NOT include markdown code blocks (\`\`\`json) or any conversational text. Output ONLY the raw JSON array.
+2. Language: If the input reference material is in Khmer, all titles, subtitles, bullet points, and speaker notes MUST be in 100% natural, grammatically rich, formal educational Khmer. "imagePrompt" and "imageSearchKeyword" MUST be in English.
+3. REAL AI CONTENT & COMPREHENSIVE DEPTH (NEVER generic or placeholder text):
+   - Synthesize the attached material comprehensively across all ${numSlides} slides.
+   - Slide 1: "type": "title" (Main lesson title, subject/grade subtitle, introductory notes).
+   - Subsequent slides: "type": "content". Each content slide must cover a distinct, meaningful section or concept from the material (e.g. Fundamental Definitions -> Core Theoretical Principles -> Practical Classroom Strategies -> Student Activities & Exercises -> Review & Assessment).
+   - EVERY content slide MUST have 3 to 4 detailed, substantive bullet points.
+   - Use bold markdown lead-ins for key terms in bullets, e.g. "**ពាក្យគន្លឹះ/គោលការណ៍៖** ការពន្យល់លម្អិត...".
+   - ABSOLUTELY NEVER output repetitive, vague, or 1-line surface summaries. Every bullet point must offer concrete value, pedagogical depth, and accurate facts from the reference text.
+4. DETAILED SPEAKER NOTES:
+   - Provide 2 to 4 sentences of rich teaching advice in Khmer per slide, explaining what the teacher should elaborate, what probing questions to ask students, and how to conduct the learning activity.
+5. AI IMAGE GENERATION PROMPT ("imagePrompt"):
+   - For EACH slide, provide a dedicated, highly descriptive English visual prompt for an AI image generator (e.g. "Cambodian teacher explaining educational psychology to attentive high school students in a modern bright classroom, educational illustration, pedagogical atmosphere, warm lighting, high detail").
+   - Match the specific topic of that exact slide (e.g. if the slide is about cognitive development, describe a cognitive thought process or student active learning scene).
+
+JSON Schema:
 [
   {
     "type": "title",
     "title": "ចំណងជើងមេរៀនជាភាសាខ្មែរ",
-    "subtitle": "មុខវិជ្ជា - ថ្នាក់",
-    "speakerNotes": "ការណែនាំផ្តើមមេរៀនសម្រាប់គ្រូ",
-    "imageSearchKeyword": "education concept"
+    "subtitle": "មុខវិជ្ជា - កម្រិតថ្នាក់",
+    "speakerNotes": "ការណែនាំផ្តើមមេរៀនសម្រាប់គ្រូបង្រៀន",
+    "imageSearchKeyword": "educational psychology",
+    "imagePrompt": "Educational psychology title slide concept, modern classroom with teacher and students, educational illustration, warm lighting, highly detailed"
   },
   {
     "type": "content",
-    "title": "ចំណងជើងស្លាយជាក់លាក់",
+    "title": "ចំណងជើងរងនៃស្លាយជាក់លាក់",
     "bullets": [
-      "ចំណុចជាក់លាក់ទី ១ នៃខ្លឹមសារមេរៀន (ស៊ីជម្រៅ)",
-      "ចំណុចជាក់លាក់ទី ២",
-      "ចំណុចជាក់លាក់ទី ៣"
+      "**ចំណុចគន្លឹះទី១៖** ការពន្យល់លម្អិត ស៊ីជម្រៅ ស្របតាមខ្លឹមសារមេរៀនពិតប្រាកដ",
+      "**ចំណុចគន្លឹះទី២៖** ការពន្យល់ពីគោលការណ៍ វិធីសាស្ត្រ ឬទ្រឹស្តីសំខាន់ៗ",
+      "**ចំណុចគន្លឹះទី៣៖** ឧទាហរណ៍ជាក់ស្តែង ឬការអនុវត្តក្នុងថ្នាក់រៀន",
+      "**ចំណុចគន្លឹះទី៤៖** សកម្មភាពសិស្ស ឬចំណុចកត់សម្គាល់សំខាន់"
     ],
-    "speakerNotes": "ការពន្យល់លម្អិតរបស់គ្រូពេលបង្រៀនស្លាយនេះជាភាសាខ្មែរ",
-    "imageSearchKeyword": "learning activity"
+    "speakerNotes": "ការណែនាំលម្អិតសម្រាប់គ្រូ៖ របៀបពន្យល់សិស្ស សំណួរបំផុសគំនិត និងការដឹកនាំសកម្មភាពក្នុងស្លាយនេះ",
+    "imageSearchKeyword": "learning concept",
+    "imagePrompt": "Detailed English prompt for AI image generator depicting this slide concept, classroom education, high quality"
   }
 ]
 
-Lesson Plan Details:
+Lesson & Source Details:
 ចំណងជើង: ${data.lessonTitle}
 មុខវិជ្ជា: ${data.subject}
 កម្រិតថ្នាក់: ${data.grade}
-${data.sourceDocumentText ? `\nAttached Reference Material:\n${data.sourceDocumentText.substring(0, 4000)}\n` : ''}
-វត្ថុបំណង:
-- ចំណេះដឹង: ${data.objectives?.knowledge?.join(', ') || ''}
-- បំណិន: ${data.objectives?.skills?.join(', ') || ''}
-- ឥរិយាបថ: ${data.objectives?.attitudes?.join(', ') || ''}
-Teaching Steps:
-${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('\n') : (data.stage3?.steps ? data.stage3.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('\n') : '')}
+${data.sourceDocumentText ? `\nAttached Reference Document (${data.sourceDocumentText.length} characters):\n${data.sourceDocumentText.substring(0, 35000)}\n` : ''}
+${data.objectives?.knowledge ? `\nវត្ថុបំណង:\n- ចំណេះដឹង: ${data.objectives.knowledge.join(', ')}\n- បំណិន: ${data.objectives.skills?.join(', ') || ''}\n- ឥរិយាបថ: ${data.objectives.attitudes?.join(', ') || ''}` : ''}
+${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('\n')}` : ''}
 `;
 
     // ⚡ Case A: Groq Provider (if configured)
@@ -10909,23 +11000,23 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
       if (slideDef.type === 'title') {
         if (picObj && picObj.data) {
           slide.addImage({ x: 0, y: 0, w: 10, h: 5.625, data: picObj.data, sizing: { type: 'cover', w: 10, h: 5.625 } });
-          slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 10, h: 5.625, fill: { color: '000000', transparency: 45 } });
-          slide.addText(slideDef.title, { x: 1, y: 2.0, w: 8, h: 1.8, fontSize: 40, bold: true, color: 'FFFFFF', align: 'center', fontFace: 'Kantumruy Pro' });
-          slide.addText(slideDef.subtitle || '', { x: 1, y: 4.0, w: 8, h: 1.0, fontSize: 22, color: 'E2E8F0', align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 10, h: 5.625, fill: { color: '000000', transparency: 50 } });
+          slide.addText(slideDef.title, { x: 0.8, y: 1.8, w: 8.4, h: 2.0, fontSize: 36, bold: true, color: 'FFFFFF', align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addText(slideDef.subtitle || '', { x: 1, y: 3.9, w: 8, h: 1.0, fontSize: 20, color: 'E2E8F0', align: 'center', fontFace: 'Kantumruy Pro' });
         } else {
-          slide.addText(slideDef.title, { x: 1, y: 2.2, w: 8, h: 1.8, fontSize: 42, bold: true, color: titleColor, align: 'center', fontFace: 'Kantumruy Pro' });
-          slide.addText(slideDef.subtitle || '', { x: 1, y: 4.1, w: 8, h: 1.0, fontSize: 24, color: bodyColor, align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addText(slideDef.title, { x: 0.8, y: 1.9, w: 8.4, h: 2.0, fontSize: 38, bold: true, color: titleColor, align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addText(slideDef.subtitle || '', { x: 1, y: 4.0, w: 8, h: 1.0, fontSize: 22, color: bodyColor, align: 'center', fontFace: 'Kantumruy Pro' });
         }
       } else {
-        slide.addText(slideDef.title || 'ខ្លឹមសារមេរៀន', { x: 0.5, y: 0.4, w: 9.0, h: 0.8, fontSize: 30, bold: true, color: titleColor, fontFace: 'Kantumruy Pro' });
-        const bullets = Array.isArray(slideDef.bullets) ? slideDef.bullets : [String(slideDef.bullets || '')];
+        slide.addText(slideDef.title || 'ខ្លឹមសារមេរៀន', { x: 0.5, y: 0.35, w: 9.0, h: 0.7, fontSize: 25, bold: true, color: titleColor, fontFace: 'Kantumruy Pro' });
+        const formattedBullets = buildPptxBullets(slideDef.bullets, bodyColor, accent);
         if (picObj && picObj.data) {
-          slide.addText(bullets.map(b => ({ text: b, options: { bullet: true, breakLine: true } })), 
-            { x: 0.5, y: 1.3, w: 4.7, h: 3.8, fontSize: 18, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 32 });
-          slide.addImage({ x: 5.4, y: 1.3, w: 4.2, h: 3.6, data: picObj.data, sizing: { type: 'cover', w: 4.2, h: 3.6 } });
+          slide.addText(formattedBullets, 
+            { x: 0.5, y: 1.2, w: 4.9, h: 4.1, fontSize: 15, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 23 });
+          slide.addImage({ x: 5.6, y: 1.2, w: 4.0, h: 3.8, data: picObj.data, sizing: { type: 'cover', w: 4.0, h: 3.8 } });
         } else {
-          slide.addText(bullets.map(b => ({ text: b, options: { bullet: true, breakLine: true } })), 
-            { x: 0.5, y: 1.4, w: 9.0, h: 3.8, fontSize: 22, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 40 });
+          slide.addText(formattedBullets, 
+            { x: 0.6, y: 1.2, w: 8.8, h: 4.1, fontSize: 18, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 30 });
         }
       }
     }
@@ -10952,7 +11043,6 @@ ${data.steps ? data.steps.map(s => s.stepTitle + ': ' + s.contentSummary).join('
     document.title = originalDocTitle;
   }
 };
-
 // ==========================================================================
 // 🎮 AC Kahoot Game Integration
 // ==========================================================================
