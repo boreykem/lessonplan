@@ -10005,7 +10005,7 @@ function generateEducationalCardDataUrl(title, keyword, subject, theme, slideInd
   }
 }
 
-async function fetchImageAsBase64(url, timeoutMs = 9000) {
+async function fetchImageAsBase64(url, timeoutMs = 12000) {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -10027,93 +10027,71 @@ async function fetchImageAsBase64(url, timeoutMs = 9000) {
       reader.readAsDataURL(blob);
     });
   } catch (err) {
-    console.warn('[PPTX Image] fetchImageAsBase64 warning/timeout:', err);
+    console.warn('[PPTX Image] fetchImageAsBase64 error:', err);
     return null;
   }
 }
 
-function buildPptxBullets(bullets, bodyColor, accent) {
-  const runs = [];
-  const bulletList = Array.isArray(bullets) ? bullets : [String(bullets || '')];
-  bulletList.forEach((item) => {
-    const raw = String(item || '').trim();
-    if (!raw) return;
-    
-    // Check if item contains markdown bold **bold**
-    const parts = [];
-    const regex = /\*\*(.*?)\*\*/g;
-    let lastIndex = 0;
-    let match;
-    while ((match = regex.exec(raw)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push({ text: raw.substring(lastIndex, match.index), bold: false });
-      }
-      parts.push({ text: match[1], bold: true });
-      lastIndex = regex.lastIndex;
-    }
-    if (lastIndex < raw.length) {
-      parts.push({ text: raw.substring(lastIndex), bold: false });
-    }
-    if (parts.length === 0) {
-      parts.push({ text: raw, bold: false });
-    }
-
-    parts.forEach((p, pIdx) => {
-      const opt = {
-        bold: p.bold,
-        color: p.bold ? (accent || '0055A4') : (bodyColor || '333333'),
-        fontFace: 'Kantumruy Pro'
-      };
-      if (pIdx === 0) {
-        opt.bullet = true;
-      }
-      if (pIdx === parts.length - 1) {
-        opt.breakLine = true;
-      }
-      runs.push({ text: p.text, options: opt });
-    });
-  });
-  return runs;
+function sanitizeEnglishPrompt(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/[^\x00-\x7F]/g, ' ')
+    .replace(/[^\w\s,-]/gi, ' ')
+    .replace(/[\n\r\t]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 async function getSlideImage(slideDef, data, imageMode, theme, slideIndex) {
   if (imageMode === 'no') return null;
 
-  // 1. Build authentic, topic-matched visual prompt for AI Image Generator (Pollinations AI)
-  let visualPrompt = (slideDef.imagePrompt || '').trim();
-  if (!visualPrompt) {
-    const kw = (slideDef.imageSearchKeyword || '').trim();
-    const subj = (data.subject || 'Education').trim();
-    const title = (slideDef.title || data.lessonTitle || 'Classroom Learning').replace(/[^\w\s]/gi, ' ').trim();
-    visualPrompt = `Educational scene of ${subj}, ${title}${kw ? ', ' + kw : ''}, Cambodian classroom setting, educational illustration, warm lighting, highly detailed`;
+  // 1. Extract and sanitize pure English prompt (Pollinations AI requires English only!)
+  let cleanPrompt = sanitizeEnglishPrompt(slideDef.imagePrompt);
+
+  if (!cleanPrompt || cleanPrompt.length < 8) {
+    const kw = sanitizeEnglishPrompt(slideDef.imageSearchKeyword);
+    const titleEng = sanitizeEnglishPrompt(slideDef.title);
+    if (kw && kw.length >= 4) {
+      cleanPrompt = `${kw}, educational classroom setting, pedagogical concept`;
+    } else if (titleEng && titleEng.length >= 4) {
+      cleanPrompt = `${titleEng}, educational illustration, classroom learning`;
+    } else {
+      const subjStr = String(data.subject || '').toLowerCase();
+      let subjEng = 'educational psychology, pedagogy, classroom learning';
+      if (subjStr.includes('គណិត')) subjEng = 'mathematics, geometry, algebra classroom';
+      else if (subjStr.includes('រូប')) subjEng = 'physics science experiment classroom';
+      else if (subjStr.includes('គីមី')) subjEng = 'chemistry laboratory science experiment';
+      else if (subjStr.includes('ជីវ')) subjEng = 'biology nature science education';
+      else if (subjStr.includes('ប្រវត្តិ')) subjEng = 'history ancient culture education';
+      else if (subjStr.includes('ភូមិ')) subjEng = 'geography earth globe classroom';
+      else if (subjStr.includes('អង់គ្លេស')) subjEng = 'english language learning communication';
+      cleanPrompt = `teacher and students exploring ${subjEng}, modern educational illustration`;
+    }
   }
 
-  // Ensure prompt contains strong educational context
-  if (!/education|classroom|school|learning|pedagogy|students|teacher|diagram|concept/i.test(visualPrompt)) {
-    visualPrompt += ', educational concept, modern classroom';
+  if (!/education|classroom|school|learning|pedagogy|teacher|students/i.test(cleanPrompt)) {
+    cleanPrompt += ', educational classroom setting';
   }
 
-  const cleanPrompt = visualPrompt.replace(/[\n\r\t]/g, ' ').trim().substring(0, 280);
-  const styleKeywords = (imageMode === 'web') 
-    ? 'authentic professional classroom photography, documentary style, realistic educational lighting'
-    : 'digital educational illustration, vibrant pedagogical art, detailed, high resolution';
+  const styleKeywords = (imageMode === 'web')
+    ? 'authentic educational documentary photography, realistic classroom lighting'
+    : 'digital educational illustration, warm pedagogical art, bright lighting, high quality';
 
-  const fullPrompt = `${cleanPrompt}, ${styleKeywords}`;
+  const fullPrompt = `${cleanPrompt.substring(0, 180)}, ${styleKeywords}`;
   const seed = Math.floor(Math.random() * 900000) + 100000;
   const aiUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=1024&height=768&nologo=true&seed=${seed}`;
 
   try {
-    const base64 = await fetchImageAsBase64(aiUrl, 8500);
+    const base64 = await fetchImageAsBase64(aiUrl, 12000);
     if (base64 && base64.startsWith('data:image')) {
       return { data: base64 };
     }
   } catch (e) {
-    console.warn('[PPTX Image] Pollinations AI fetch error:', e);
+    console.warn(`[PPTX Image ${slideIndex}] Pollinations AI fetch error:`, e);
   }
 
   // 2. Guaranteed zero-failure offline Canvas Educational Diagram Card
-  // Custom rendered with authentic slide title, 3 pedagogical pillars, and MoEYS badge (NO random clouds/photos!)
-  const canvasBase64 = generateEducationalCardDataUrl(slideDef.title, visualPrompt, data.subject, theme, slideIndex);
+  const canvasBase64 = generateEducationalCardDataUrl(slideDef.title, cleanPrompt, data.subject, theme, slideIndex);
   if (canvasBase64) {
     return { data: canvasBase64 };
   }
@@ -10981,42 +10959,101 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
       slideNumber: { x: 0.3, y: '92%', color: bodyColor, fontSize: 10 }
     });
 
+    // 🚀 Parallel Image Fetching (Fetches all images simultaneously in ~4-5s total!)
+    let slideImages = [];
+    if (imageMode !== 'no') {
+      updatePptxWidgetStatus(`🎨 កំពុងបង្កើតរូបភាព AI ស្របតាមខ្លឹមសារស្លាយទាំង ${slidesData.length} ក្នុងពេលតែមួយ...`, 60);
+      const imagePromises = slidesData.map((sDef, sIdx) => getSlideImage(sDef, data, imageMode, theme, sIdx + 1));
+      slideImages = await Promise.all(imagePromises);
+    }
+
     for (let idx = 0; idx < slidesData.length; idx++) {
       const slideDef = slidesData[idx];
       let slide = pptx.addSlide({ masterName: 'MASTER_SLIDE' });
       if (slideDef.speakerNotes) slide.addNotes(slideDef.speakerNotes);
 
-      const slideProgress = 55 + Math.round(((idx + 1) / slidesData.length) * 38);
+      const slideProgress = 65 + Math.round(((idx + 1) / slidesData.length) * 30);
       updatePptxWidgetStatus(
-        `🎨 កំពុងរៀបចំស្លាយទី ${idx + 1}/${slidesData.length}: <b>${escapeHtml((slideDef.title || 'ខ្លឹមសារ').substring(0, 35))}</b>`,
+        `🎬 កំពុងរៀបចំស្លាយទី ${idx + 1}/${slidesData.length}: <b>${escapeHtml((slideDef.title || 'ខ្លឹមសារ').substring(0, 35))}</b>`,
         slideProgress
       );
 
-      let picObj = null;
-      if (imageMode !== 'no') {
-        picObj = await getSlideImage(slideDef, data, imageMode, theme, idx + 1);
-      }
+      const picObj = slideImages[idx] || null;
 
       if (slideDef.type === 'title') {
         if (picObj && picObj.data) {
           slide.addImage({ x: 0, y: 0, w: 10, h: 5.625, data: picObj.data, sizing: { type: 'cover', w: 10, h: 5.625 } });
           slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 10, h: 5.625, fill: { color: '000000', transparency: 50 } });
-          slide.addText(slideDef.title, { x: 0.8, y: 1.8, w: 8.4, h: 2.0, fontSize: 36, bold: true, color: 'FFFFFF', align: 'center', fontFace: 'Kantumruy Pro' });
-          slide.addText(slideDef.subtitle || '', { x: 1, y: 3.9, w: 8, h: 1.0, fontSize: 20, color: 'E2E8F0', align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addText(slideDef.title, { x: 0.8, y: 1.8, w: 8.4, h: 1.8, fontSize: 34, bold: true, color: 'FFFFFF', align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addText(slideDef.subtitle || '', { x: 1, y: 3.8, w: 8, h: 0.9, fontSize: 20, color: 'E2E8F0', align: 'center', fontFace: 'Kantumruy Pro' });
         } else {
-          slide.addText(slideDef.title, { x: 0.8, y: 1.9, w: 8.4, h: 2.0, fontSize: 38, bold: true, color: titleColor, align: 'center', fontFace: 'Kantumruy Pro' });
-          slide.addText(slideDef.subtitle || '', { x: 1, y: 4.0, w: 8, h: 1.0, fontSize: 22, color: bodyColor, align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addText(slideDef.title, { x: 0.8, y: 1.8, w: 8.4, h: 1.8, fontSize: 36, bold: true, color: titleColor, align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addText(slideDef.subtitle || '', { x: 1, y: 3.8, w: 8, h: 0.9, fontSize: 22, color: bodyColor, align: 'center', fontFace: 'Kantumruy Pro' });
         }
       } else {
-        slide.addText(slideDef.title || 'ខ្លឹមសារមេរៀន', { x: 0.5, y: 0.35, w: 9.0, h: 0.7, fontSize: 25, bold: true, color: titleColor, fontFace: 'Kantumruy Pro' });
-        const formattedBullets = buildPptxBullets(slideDef.bullets, bodyColor, accent);
+        // Content Slide
+        // Title: clean vertical room at top
+        slide.addText(slideDef.title || 'ខ្លឹមសារមេរៀន', {
+          x: 0.6,
+          y: 0.35,
+          w: 8.8,
+          h: 0.85,
+          fontSize: 22,
+          bold: true,
+          color: titleColor,
+          fontFace: 'Kantumruy Pro'
+        });
+
+        const rawBullets = Array.isArray(slideDef.bullets) ? slideDef.bullets : [String(slideDef.bullets || '')];
+        const cleanBullets = rawBullets
+          .map(b => String(b || '').replace(/\*\*/g, '').trim())
+          .filter(b => b.length > 0);
+
         if (picObj && picObj.data) {
-          slide.addText(formattedBullets, 
-            { x: 0.5, y: 1.2, w: 4.9, h: 4.1, fontSize: 15, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 23 });
-          slide.addImage({ x: 5.6, y: 1.2, w: 4.0, h: 3.8, data: picObj.data, sizing: { type: 'cover', w: 4.0, h: 3.8 } });
+          // Left: Native clean PowerPoint bullet points with paragraph spacing (ZERO overlapping!)
+          slide.addText(
+            cleanBullets.map(b => ({
+              text: b,
+              options: { bullet: true, paraSpaceAfter: 8 }
+            })),
+            {
+              x: 0.6,
+              y: 1.35,
+              w: 4.8,
+              h: 3.8,
+              fontSize: 14,
+              color: bodyColor,
+              align: 'left',
+              fontFace: 'Kantumruy Pro'
+            }
+          );
+          // Right: AI Image
+          slide.addImage({
+            x: 5.6,
+            y: 1.35,
+            w: 4.0,
+            h: 3.7,
+            data: picObj.data,
+            sizing: { type: 'cover', w: 4.0, h: 3.7 }
+          });
         } else {
-          slide.addText(formattedBullets, 
-            { x: 0.6, y: 1.2, w: 8.8, h: 4.1, fontSize: 18, color: bodyColor, align: 'left', fontFace: 'Kantumruy Pro', lineSpacing: 30 });
+          // Full width bullets when no image
+          slide.addText(
+            cleanBullets.map(b => ({
+              text: b,
+              options: { bullet: true, paraSpaceAfter: 10 }
+            })),
+            {
+              x: 0.6,
+              y: 1.35,
+              w: 8.8,
+              h: 3.8,
+              fontSize: 16,
+              color: bodyColor,
+              align: 'left',
+              fontFace: 'Kantumruy Pro'
+            }
+          );
         }
       }
     }
