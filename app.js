@@ -515,6 +515,17 @@ const I18N_DICTIONARY = {
     langLabel: "🇰🇭 ខ្មែរ",
     langTooltip: "ប្តូរទៅជាភាសាអង់គ្លេស / Switch to English",
 
+    // Header buttons
+    headerWheel: "បង្វិលកង",
+    headerWheelTitle: "បង្វិលកងចៃដន្យ (Lucky Wheel & Group Maker)",
+    headerHistory: "ប្រវត្តិ",
+    headerHistoryTitle: "ប្រវត្តិកិច្ចតែងការ (History Dashboard)",
+    headerLicense: "អាជ្ញាបណ្ណ",
+    headerLicenseTitle: "ព័ត៌មានអាជ្ញាបណ្ណ និងការ Activate កម្មវិធី",
+    headerUpdateTitle: "ពិនិត្យមើលកំណែអាប់ដេតថ្មី (Cloud Auto-Updater)",
+    headerThemeTitle: "ប្តូរពណ៌ Theme",
+    demoSelectDefault: "✨ ជ្រើសរើសមេរៀនគំរូ (Quick Demos)...",
+
     stepBadge1: "១",
     stepBadge2: "២",
     stepBadge3: "៣",
@@ -588,7 +599,41 @@ const I18N_DICTIONARY = {
     ipCopyright: "© 2026 <strong>AI Lesson Plan Studio™</strong> & <strong>AC Mart</strong> - រក្សាសិទ្ធិគ្រប់យ៉ាង",
     ipSubtext: "បច្ចេកវិទ្យា និងទម្រង់គរុកោសល្យត្រូវបានការពារដោយច្បាប់ស្ដីពីកម្មសិទ្ធិបញ្ញានៃព្រះរាជាណាចក្រកម្ពុជា",
 
-    // Alerts
+    // Modals
+    modalHistoryTitle: "ប្រវត្តិកិច្ចតែងការ និងស្ថិតិ (Local History Dashboard)",
+    modalHistoryTotalPlans: "កិច្ចតែងការសរុប",
+    modalHistoryAvgGain: "មធ្យមភាគ Learning Gain (g)",
+    modalHistoryRecentList: "បញ្ជីកិច្ចតែងការចុងក្រោយ (រក្សាទុកក្នុងកុំព្យូទ័រនេះ)",
+    modalHistoryClearAll: "លុបប្រវត្តិទាំងអស់",
+
+    modalPptxTitle: "បង្កើតស្លាយ PowerPoint (AI Generator)",
+    modalPptxDesc: "ប្រព័ន្ធ AI នឹងអានកិច្ចតែងការ ឬឯកសារយោង រួចសង្ខេបនិងរៀបចំជាស្លាយ PowerPoint (.pptx) ស្វ័យប្រវត្តិតាមស្តង់ដារ MoEYS។",
+    modalPptxSourceLabel: "ជ្រើសរើសឯកសារយោង (Source / Attachment):",
+    modalPptxBtnUpload: "បង្ហោះឯកសារថ្មី",
+    modalPptxNumSlidesLabel: "ចំនួនស្លាយ (Number of Slides):",
+    modalPptxImagesLabel: "បញ្ចូលរូបភាពស្វ័យប្រវត្តិ? (Auto-Pictures):",
+    modalPptxImagesHint: 'ជម្រើស "បង្កើតរូបភាពដោយ AI" នឹងបង្កើតរូបគំនូរអប់រំ និងដ្យាក្រាមស្របតាមខ្លឹមសារស្លាយនីមួយៗដោយស្វ័យប្រវត្តិ។',
+    modalPptxThemeLabel: "រចនាបទពណ៌ (Theme Color):",
+    modalPptxBtnCancel: "បោះបង់",
+    modalPptxBtnGenerate: "បង្កើតស្លាយឥឡូវនេះ",
+
+    modalUpdateTitle: "ប្រព័ន្ធអាប់ដេតស្វ័យប្រវត្ត (Cloud Auto-Updater)",
+    modalUpdateInstalledVersion: "កំណែកម្មវិធីបច្ចុប្បន្ន (Installed Version):",
+    modalUpdateBtnCheckNow: "ពិនិត្យមើលឥឡូវនេះ",
+    modalUpdateBtnApply: "⚡ អាប់ដេតឥឡូវនេះ (Update Now)",
+
+    modalLicenseTitle: "គ្រប់គ្រងអាជ្ញាបណ្ណកម្មសិទ្ធិបញ្ញា (License Activation)",
+    modalLicenseMachineIdLabel: "កូដសម្គាល់កុំព្យូទ័ររបស់អ្នក (Customer Machine ID)",
+    modalLicenseBtnCopyId: "ចម្លង",
+    modalLicenseBtnSendTg: "✈️ ផ្ញើតាម Telegram",
+    modalLicenseTgHelp: '💡 ចុចប៊ូតុង <strong>«✈️ ផ្ញើតាម Telegram»</strong> ដើម្បីផ្ញើ Machine ID នេះទៅកាន់អ្នកលក់ភ្លាមៗ ដើម្បីទទួលបានលេខកូដ License Key។',
+    modalLicenseKeyLabel: "បញ្ចូលលេខកូដអាជ្ញាបណ្ណ (Enter License Key)",
+    modalLicenseBtnActivate: "ធ្វើឱ្យសកម្ម (Activate)",
+
+    modalSavedPlansTitle: "បណ្ណាល័យកិច្ចតែងការដែលបានរក្សាទុក (Saved Lesson Plans)",
+    modalSavedPlansSearchPlaceholder: "ស្វែងរកតាមចំណងជើងមេរៀន មុខវិជ្ជា ថ្នាក់ ឬកាលបរិច្ឆេទ...",
+    modalSavedPlansFilterAll: "-- គ្រប់មុខវិជ្ជា --",
+
     // Learning Gain Modal
     modalLearningGainTitle: "ម៉ាស៊ីនគណនា Learning Gain (Hake's Normalized Gain)",
     gainPreTestLabel: "ពិន្ទុមធ្យម Pre-Test (% ឬពិន្ទុ)",
@@ -606,6 +651,17 @@ const I18N_DICTIONARY = {
     btnInstall: "Install App",
     langLabel: "🇬🇧 English",
     langTooltip: "Switch to Khmer / ប្តូរជាភាសាខ្មែរ",
+
+    // Header buttons
+    headerWheel: "Lucky Wheel",
+    headerWheelTitle: "Lucky Wheel & Random Selector",
+    headerHistory: "History",
+    headerHistoryTitle: "Lesson Plan History Dashboard",
+    headerLicense: "License",
+    headerLicenseTitle: "License Information & App Activation",
+    headerUpdateTitle: "Check for Updates (Cloud Auto-Updater)",
+    headerThemeTitle: "Toggle Light / Dark Theme",
+    demoSelectDefault: "✨ Select Demo Lesson (Quick Demos)...",
 
     stepBadge1: "1",
     stepBadge2: "2",
@@ -683,6 +739,49 @@ const I18N_DICTIONARY = {
     ipCopyright: "© 2026 <strong>AI Lesson Plan Studio™</strong> & <strong>AC Mart</strong> - All Rights Reserved",
     ipSubtext: "Educational technology & pedagogical structure protected by Intellectual Property law of Cambodia",
 
+    // Modals
+    modalHistoryTitle: "Lesson Plan History & Statistics (Local Dashboard)",
+    modalHistoryTotalPlans: "Total Lesson Plans",
+    modalHistoryAvgGain: "Average Learning Gain (g)",
+    modalHistoryRecentList: "Recent Lesson Plans (Saved on this device)",
+    modalHistoryClearAll: "Clear All History",
+
+    modalPptxTitle: "PowerPoint Slides Generator (AI Studio)",
+    modalPptxDesc: "AI analyzes your lesson plan or attached documents to craft professional PowerPoint (.pptx) slides following MoEYS pedagogical standards.",
+    modalPptxSourceLabel: "Select Reference Source / Attachment:",
+    modalPptxBtnUpload: "Upload New File",
+    modalPptxNumSlidesLabel: "Number of Slides:",
+    modalPptxImagesLabel: "Auto-Include Visuals? (Auto-Pictures):",
+    modalPptxImagesHint: 'The "AI Generated Images" option will automatically generate educational diagrams and illustrations aligned with each slide topic.',
+    modalPptxThemeLabel: "Theme Color:",
+    modalPptxBtnCancel: "Cancel",
+    modalPptxBtnGenerate: "Generate Slides Now",
+
+    modalUpdateTitle: "Cloud Auto-Updater System",
+    modalUpdateInstalledVersion: "Installed App Version:",
+    modalUpdateBtnCheckNow: "Check Now",
+    modalUpdateBtnApply: "⚡ Update Now",
+
+    modalLicenseTitle: "License & Commercial Activation",
+    modalLicenseMachineIdLabel: "Your Customer Machine ID",
+    modalLicenseBtnCopyId: "Copy",
+    modalLicenseBtnSendTg: "✈️ Send via Telegram",
+    modalLicenseTgHelp: '💡 Click <strong>"✈️ Send via Telegram"</strong> to send this Machine ID to vendor immediately to receive your License Key.',
+    modalLicenseKeyLabel: "Enter License Key",
+    modalLicenseBtnActivate: "Activate License",
+
+    modalSavedPlansTitle: "Saved Lesson Plans Library",
+    modalSavedPlansSearchPlaceholder: "Search by lesson title, subject, grade, or date...",
+    modalSavedPlansFilterAll: "-- All Subjects --",
+
+    // Learning Gain Modal
+    modalLearningGainTitle: "Learning Gain Calculator (Hake's Normalized Gain)",
+    gainPreTestLabel: "Average Pre-Test Score (% or points)",
+    gainPostTestLabel: "Average Post-Test Score (% or points)",
+    gainResultLabel: "Normalized Learning Gain (g)",
+    btnApplyGain: "Insert into Lesson Plan",
+    btnClose: "Close",
+
     // Alerts
     msgMissingInfo: "Please enter a lesson title or lesson content first!",
     msgLangSwitched: "Switched to English language 🇬🇧"
@@ -698,6 +797,7 @@ function setLanguage(lang, showNotification = false) {
 
   document.documentElement.lang = (lang === 'en') ? 'en' : 'km';
   const dict = I18N_DICTIONARY[lang] || I18N_DICTIONARY.km;
+  const isEn = (lang === 'en');
 
   // 1. Update Language Switcher Button Label & Title
   const langLabel = document.getElementById('langSwitchLabel');
@@ -713,7 +813,34 @@ function setLanguage(lang, showNotification = false) {
     }
   });
 
-  // 3. Translate placeholders
+  // 3. Header Buttons (Lucky Wheel, History, License, Updates, Demos)
+  const btnWheel = document.getElementById('btnWheel');
+  const headerWheelLabel = document.getElementById('headerWheelLabel');
+  if (btnWheel) btnWheel.title = dict.headerWheelTitle;
+  if (headerWheelLabel) headerWheelLabel.textContent = dict.headerWheel;
+
+  const btnHeaderHist = document.getElementById('btnHeaderHistory');
+  const headerHistLabel = document.getElementById('headerHistoryLabel');
+  if (btnHeaderHist) btnHeaderHist.title = dict.headerHistoryTitle;
+  if (headerHistLabel) headerHistLabel.textContent = dict.headerHistory;
+
+  const btnLicense = document.getElementById('btnOpenLicenseModal');
+  const headerLicenseLabel = document.getElementById('headerLicenseLabel');
+  if (btnLicense) btnLicense.title = dict.headerLicenseTitle;
+  if (headerLicenseLabel) headerLicenseLabel.textContent = dict.headerLicense;
+
+  const btnCheckUpdate = document.getElementById('btnCheckUpdate');
+  if (btnCheckUpdate) btnCheckUpdate.title = dict.headerUpdateTitle;
+
+  const btnTheme = document.getElementById('btnThemeToggle');
+  if (btnTheme) btnTheme.title = dict.headerThemeTitle;
+
+  const sampleLessonsSelect = document.getElementById('sampleLessonsSelect');
+  if (sampleLessonsSelect && sampleLessonsSelect.options.length > 0) {
+    sampleLessonsSelect.options[0].text = dict.demoSelectDefault;
+  }
+
+  // 4. Translate placeholders
   const placeholderMap = {
     inputSchool: dict.schoolPlaceholder,
     inputTeacher: dict.teacherPlaceholder,
@@ -729,23 +856,25 @@ function setLanguage(lang, showNotification = false) {
     if (el && placeholderMap[id]) el.placeholder = placeholderMap[id];
   });
 
-  // 4. Translate Dropzone Text
+  // 5. Translate Dropzone Text
   const dropPrimary = document.getElementById('dropPrimaryText');
   const dropHint = document.getElementById('dropHintText');
   if (dropPrimary) dropPrimary.innerHTML = dict.dropPrimary;
   if (dropHint) dropHint.textContent = dict.dropHint;
 
-  // 5. Translate Preset Template Select
+  // 6. Translate Preset Template Select
   const presetSelect = document.getElementById('presetTemplateSelect');
-  if (presetSelect && presetSelect.options.length >= 5) {
+  if (presetSelect && presetSelect.options.length >= 2) {
     presetSelect.options[0].text = dict.optPresetStandard;
     presetSelect.options[1].text = dict.optPresetFlipped;
-    presetSelect.options[2].text = dict.optPresetUbD;
-    presetSelect.options[3].text = dict.optPresetPrimary;
-    presetSelect.options[4].text = dict.optPresetStem;
+    if (presetSelect.options.length >= 5) {
+      presetSelect.options[2].text = dict.optPresetUbD;
+      presetSelect.options[3].text = dict.optPresetPrimary;
+      presetSelect.options[4].text = dict.optPresetStem;
+    }
   }
 
-  // 6. Translate Degree Select
+  // 7. Translate Degree Select
   const degreeSelect = document.getElementById('inputDegree');
   if (degreeSelect && degreeSelect.options.length >= 9) {
     const degreesEn = [
@@ -770,13 +899,13 @@ function setLanguage(lang, showNotification = false) {
       "🛠️ បណ្តុះបណ្តាលវិជ្ជាជីវៈ (TVET / Vocational)",
       "✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)"
     ];
-    const targetDegrees = (lang === 'en') ? degreesEn : degreesKm;
+    const targetDegrees = isEn ? degreesEn : degreesKm;
     for (let i = 0; i < targetDegrees.length; i++) {
       if (degreeSelect.options[i]) degreeSelect.options[i].text = targetDegrees[i];
     }
   }
 
-  // 7. Translate Subjects
+  // 8. Translate Subjects
   const subjectSelect = document.getElementById('inputSubject');
   if (subjectSelect && subjectSelect.options.length >= 12) {
     const subjectsEn = [
@@ -789,13 +918,13 @@ function setLanguage(lang, showNotification = false) {
       "ព័ត៌មានវិទ្យា (ICT / Computer)", "គីមីវិទ្យា", "ជីវវិទ្យា", "ប្រវត្តិវិទ្យា",
       "ភូមិវិទ្យា", "ពលរដ្ឋវិជ្ជា", "ភាសាអង់គ្លេស", "ផែនដីវិទ្យា"
     ];
-    const targetSubjects = (lang === 'en') ? subjectsEn : subjectsKm;
+    const targetSubjects = isEn ? subjectsEn : subjectsKm;
     for (let i = 0; i < targetSubjects.length; i++) {
       if (subjectSelect.options[i]) subjectSelect.options[i].text = targetSubjects[i];
     }
   }
 
-  // 8. Translate Duration
+  // 9. Translate Duration
   const durSelect = document.getElementById('inputDurationSelect');
   if (durSelect && durSelect.options.length >= 9) {
     const durEn = [
@@ -808,41 +937,114 @@ function setLanguage(lang, showNotification = false) {
       "១០០ នាទី (២ ម៉ោងសិក្សា)", "១៣៥ នាទី (៣ ម៉ោងសិក្សា)", "១៥០ នាទី (៣ ម៉ោងសិក្សា)",
       "១៨០ នាទី (៤ ម៉ោងសិក្សា / សិក្ខាសាលា)", "២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)", "✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)"
     ];
-    const targetDur = (lang === 'en') ? durEn : durKm;
+    const targetDur = isEn ? durEn : durKm;
     for (let i = 0; i < targetDur.length; i++) {
       if (durSelect.options[i]) durSelect.options[i].text = targetDur[i];
     }
   }
 
-  // 9. Translate Methods
+  // 10. Translate Methods
   const methodSelect = document.getElementById('inputMethod');
-  if (methodSelect && methodSelect.options.length >= 6) {
+  if (methodSelect && methodSelect.options.length >= 5) {
     const methodsEn = [
-      "Flipped Learning (5-Step: 5%-10%-10%-70%-5% + Pre-test QCM)",
       "Student-Centered Active Learning Approach",
-      "Inquiry-Based & STEM Experimentation",
-      "5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)",
-      "Collaborative Group Discussion & Problem Solving",
-      "Direct Instruction, Demonstration & Practical Application"
+      "Advanced Collaborative Methods (Jigsaw, Concept Mapping, Role-Play)",
+      "Inquiry-Based & 5E STEM Model",
+      "Group Discussion & Problem-Based Learning",
+      "Direct Instruction & Practical Demonstration"
     ];
     const methodsKm = [
-      "ថ្នាក់រៀនត្រឡប់ (Flipped Learning ៥ ជំហាន: ៥%-១០%-១០%-៧០%-៥% + QCM)",
       "សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)",
-      "ការរិះរក និងពិសោធន៍ (Inquiry-based / STEM)",
-      "វិធីសាស្ត្រ 5E (Engage, Explore, Explain, Elaborate, Evaluate)",
-      "ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា",
-      "ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង"
+      "វិធីសាស្ត្រសហការកម្រិតខ្ពស់ (Jigsaw, Concept Mapping, Role-Play)",
+      "ការរិះរក និងពិសោធន៍ តាមបែប 5E (Inquiry-based / STEM)",
+      "ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា (Problem-Based)",
+      "ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង (Direct Instruction)"
     ];
-    const targetMethods = (lang === 'en') ? methodsEn : methodsKm;
+    const targetMethods = isEn ? methodsEn : methodsKm;
     for (let i = 0; i < targetMethods.length; i++) {
       if (methodSelect.options[i]) methodSelect.options[i].text = targetMethods[i];
     }
   }
 
-  // 10. Re-populate localized grades based on current degree
+  // 11. Saved Profile Badge
+  const savedProfileBadge = document.getElementById('savedProfileBadge');
+  if (savedProfileBadge) {
+    savedProfileBadge.innerHTML = `<i class="fa-solid fa-check"></i> ${isEn ? 'Saved' : 'បានចងចាំ'}`;
+  }
+
+  // 12. Re-populate localized grades based on current degree
   if (degreeSelect) {
     const currentGrade = document.getElementById('inputGrade') ? document.getElementById('inputGrade').value : null;
     updateGradeOptions(degreeSelect.value, currentGrade);
+  }
+
+  // 13. PPTX Modal Controls & Options
+  const pptxSrc = document.getElementById('pptxSourceSelect');
+  if (pptxSrc && pptxSrc.options.length >= 4) {
+    pptxSrc.options[0].text = isEn ? "📄 Current Lesson Plan" : "📄 កិច្ចតែងការបច្ចុប្បន្ន (Current Lesson Plan)";
+    pptxSrc.options[1].text = isEn ? "📂 Uploaded Lesson File" : "📂 ឯកសារមេរៀនដែលបានផ្ទុកឡើង (Uploaded Lesson File)";
+    pptxSrc.options[2].text = isEn ? "📋 Saved Plan from History" : "📋 កិច្ចតែងការពីប្រវត្តិ (Saved Plan from History)";
+    pptxSrc.options[3].text = isEn ? "📤 Newly Attached File" : "📤 ឯកសារដែលទើបបង្ហោះ (Newly Attached File)";
+  }
+
+  const pptxUploadLabel = document.getElementById('pptxUploadedFileLabel');
+  if (pptxUploadLabel) pptxUploadLabel.textContent = isEn ? "Attached File" : "ឯកសារភ្ជាប់";
+
+  const pptxSlides = document.getElementById('pptxNumSlides');
+  if (pptxSlides && pptxSlides.options.length >= 7) {
+    const slidesEn = [
+      "4 Slides (Quick Summary)",
+      "6 Slides (Short Overview)",
+      "8 Slides (Standard 45-50 mins / MoEYS)",
+      "10 Slides (Comprehensive Lesson)",
+      "12 Slides (Detailed Multi-Section)",
+      "15 Slides (Deep Dive Workshop)",
+      "20 Slides (Full Master Lecture)"
+    ];
+    const slidesKm = [
+      "៤ ស្លាយ (សង្ខេបខ្លីបំផុត / Quick Summary)",
+      "៦ ស្លាយ (ខ្លីល្មម / Short Overview)",
+      "៨ ស្លាយ (ស្តង់ដារ ៤៥-៥០ នាទី / Standard MoEYS)",
+      "១០ ស្លាយ (ទូទៅទូលំទូលាយ / Comprehensive Lesson)",
+      "១២ ស្លាយ (វែង និងលម្អិត / Detailed Multi-Section)",
+      "១៥ ស្លាយ (កម្រិតខ្ពស់ / Deep Dive Workshop)",
+      "២០ ស្លាយ (មេរៀនធំទូលាយពេញលេញ / Full Master Lecture)"
+    ];
+    const targetSlides = isEn ? slidesEn : slidesKm;
+    for (let i = 0; i < targetSlides.length; i++) {
+      if (pptxSlides.options[i]) pptxSlides.options[i].text = targetSlides[i];
+    }
+  }
+
+  const pptxImg = document.getElementById('pptxIncludeImages');
+  if (pptxImg && pptxImg.options.length >= 3) {
+    pptxImg.options[0].text = isEn ? "🎨 AI Generated Images (Educational AI / Pollinations)" : "🎨 បង្កើតរូបភាពដោយ AI (AI Image Generator - Pollinations / Educational AI)";
+    pptxImg.options[1].text = isEn ? "🌐 Web Stock Photos" : "🌐 ទាញយករូបភាពពីអ៊ីនធឺណិត (Web Stock Photos)";
+    pptxImg.options[2].text = isEn ? "📄 Text Only (No Images)" : "📄 ទេ (ស្លាយអក្សរសុទ្ធ / Text Only)";
+  }
+
+  const pptxTheme = document.getElementById('pptxTheme');
+  if (pptxTheme && pptxTheme.options.length >= 4) {
+    pptxTheme.options[0].text = isEn ? "Modern Blue (MoEYS Standard)" : "Modern Blue (ខៀវទំនើប - ស្តង់ដារ MoEYS)";
+    pptxTheme.options[1].text = isEn ? "Eco Green (Nature / Biology)" : "Eco Green (បៃតងធម្មជាតិ - ជីវវិទ្យា/បរិស្ថាន)";
+    pptxTheme.options[2].text = isEn ? "Dark Mode (Modern High-Tech)" : "Dark Mode (ស្រមោលងងឹត - ទំនើប/បច្ចេកវិទ្យា)";
+    pptxTheme.options[3].text = isEn ? "Simple Light (Clean Print)" : "Simple Light (ស/ស្អាត - ងាយស្រួលបោះពុម្ព)";
+  }
+
+  if (typeof refreshPptxSourceAlert === 'function') {
+    refreshPptxSourceAlert();
+  }
+
+  // 14. Saved Plans Modal Filters & Search
+  const searchPlans = document.getElementById('searchSavedPlansInput');
+  const filterSubj = document.getElementById('filterSavedPlansSubject');
+  if (searchPlans) searchPlans.placeholder = dict.modalSavedPlansSearchPlaceholder;
+  if (filterSubj && filterSubj.options.length > 0) filterSubj.options[0].text = dict.modalSavedPlansFilterAll;
+
+  // 15. History Modal if active
+  const histModal = document.getElementById('historyModal');
+  if (histModal && histModal.classList.contains('active') && typeof renderHistoryList === 'function') {
+    renderHistoryList();
   }
 
   // Recalculate learning gain for current language
@@ -853,8 +1055,7 @@ function setLanguage(lang, showNotification = false) {
   // Update word counter
   updateWordCount();
 
-  // Translate tooltips and titles
-  const isEn = (lang === 'en');
+  // 16. Translate tooltips and action buttons
   const btnWord = document.getElementById('btnExportWord');
   const btnPdf = document.getElementById('btnPrintPdf');
   const btnCopy = document.getElementById('btnCopyText');
@@ -862,7 +1063,9 @@ function setLanguage(lang, showNotification = false) {
   const btnGain = document.getElementById('btnOpenLearningGainModal');
   const btnInstall = document.getElementById('btnInstallApp');
   const btnReset = document.getElementById('btnReset');
-  const btnTheme = document.getElementById('btnThemeToggle');
+  const btnPptx = document.getElementById('btnExportPptx');
+  const btnPre = document.getElementById('btnToolbarPreTest');
+  const btnPost = document.getElementById('btnToolbarPostTest');
 
   if (btnWord) btnWord.title = isEn ? "Download Microsoft Word (.docx)" : "ទាញយកជាឯកសារ Microsoft Word (.docx)";
   if (btnPdf) btnPdf.title = isEn ? "Print or Save as PDF" : "បោះពុម្ព ឬរក្សាទុកជា PDF";
@@ -871,7 +1074,9 @@ function setLanguage(lang, showNotification = false) {
   if (btnGain) btnGain.title = isEn ? "Calculate Hake's Normalized Learning Gain" : "គណនាអត្រាកំណើននៃការរៀនសូត្រ (Hake's Normalized Learning Gain)";
   if (btnInstall) btnInstall.title = isEn ? "Install Application on Screen (PWA)" : "ដំឡើងកម្មវិធីលើអេក្រង់កុំព្យូទ័រ ឬទូរស័ព្ទ (Install App)";
   if (btnReset) btnReset.title = isEn ? "Reset Form Inputs" : "កំណត់ទិន្នន័យឡើងវិញ";
-  if (btnTheme) btnTheme.title = isEn ? "Toggle Light / Dark Theme" : "ប្តូរពណ៌ Theme";
+  if (btnPptx) btnPptx.title = isEn ? "Generate & Download PowerPoint (.pptx)" : "បង្កើត និងទាញយកស្លាយ PowerPoint (.pptx)";
+  if (btnPre) btnPre.title = isEn ? "Generate Diagnostic Pre-Test (QCM)" : "បង្កើតបុរេតេស្ត (Pre-Test QCM)";
+  if (btnPost) btnPost.title = isEn ? "Generate Mastery Post-Test (MCQ)" : "បង្កើតបច្ឆាតេស្ត (Post-Test MCQ)";
 
   // If a document is currently active on screen, re-render headers with new language
   const printDoc = document.getElementById('printableDoc');
@@ -8538,11 +8743,12 @@ async function openLicenseModal() {
   const statusDesc = document.getElementById('licenseStatusDesc');
   const typeBadge = document.getElementById('licenseTypeBadge');
   const keyInput = document.getElementById('inputLicenseKey');
+  const isEn = (state.language === 'en');
 
   await checkLicenseStatus();
 
   if (machineInput) {
-    machineInput.value = state.machineId || 'កំពុងទាញយក...';
+    machineInput.value = state.machineId || (isEn ? 'Fetching...' : 'កំពុងទាញយក...');
   }
 
   if (modal) modal.style.display = 'flex';
@@ -8552,13 +8758,17 @@ async function openLicenseModal() {
       statusBox.className = 'license-status-card activated';
     }
     if (statusTitle) {
-      statusTitle.innerHTML = '<span style="color: #15803d;"><i class="fa-solid fa-circle-check"></i> អាជ្ញាបណ្ណស្របច្បាប់ (Activated)</span>';
+      statusTitle.innerHTML = isEn
+        ? '<span style="color: #15803d;"><i class="fa-solid fa-circle-check"></i> Activated License</span>'
+        : '<span style="color: #15803d;"><i class="fa-solid fa-circle-check"></i> អាជ្ញាបណ្ណស្របច្បាប់ (Activated)</span>';
     }
     if (typeBadge) {
       typeBadge.textContent = state.licenseDetails?.type || 'LIFETIME';
     }
     if (statusDesc) {
-      statusDesc.innerHTML = `ម្ចាស់អាជ្ញាបណ្ណ៖ <strong>${escapeHtml(state.licenseDetails?.licensee || 'Valued Customer')}</strong> | Key: <code>${escapeHtml(state.licenseDetails?.licenseKey || 'ALPS-****')}</code>`;
+      statusDesc.innerHTML = isEn
+        ? `Licensee: <strong>${escapeHtml(state.licenseDetails?.licensee || 'Valued Customer')}</strong> | Key: <code>${escapeHtml(state.licenseDetails?.licenseKey || 'ALPS-****')}</code>`
+        : `ម្ចាស់អាជ្ញាបណ្ណ៖ <strong>${escapeHtml(state.licenseDetails?.licensee || 'Valued Customer')}</strong> | Key: <code>${escapeHtml(state.licenseDetails?.licenseKey || 'ALPS-****')}</code>`;
     }
     if (keyInput && state.licenseDetails?.licenseKey) {
       keyInput.value = state.licenseDetails.licenseKey;
@@ -8568,13 +8778,17 @@ async function openLicenseModal() {
       statusBox.className = 'license-status-card trial';
     }
     if (statusTitle) {
-      statusTitle.innerHTML = `<span style="color: #0284c7;"><i class="fa-solid fa-hourglass-half"></i> កំពុងស្ថិតក្នុងការសាកល្បងឥតគិតថ្លៃ (Free Trial)</span>`;
+      statusTitle.innerHTML = isEn
+        ? `<span style="color: #0284c7;"><i class="fa-solid fa-hourglass-half"></i> Free Trial Active</span>`
+        : `<span style="color: #0284c7;"><i class="fa-solid fa-hourglass-half"></i> កំពុងស្ថិតក្នុងការសាកល្បងឥតគិតថ្លៃ (Free Trial)</span>`;
     }
     if (typeBadge) {
-      typeBadge.textContent = `សល់ ${state.trial.daysLeft} ថ្ងៃ`;
+      typeBadge.textContent = isEn ? `${state.trial.daysLeft} Days Left` : `សល់ ${state.trial.daysLeft} ថ្ងៃ`;
     }
     if (statusDesc) {
-      statusDesc.innerHTML = `លោកអ្នកអាចប្រើប្រាស់មុខងារទាំងអស់ដោយសេរីក្នុងរយៈពេល <strong>១០ ថ្ងៃ</strong> (នៅសល់៖ <strong>${state.trial.daysLeft} ថ្ងៃ ${state.trial.hoursLeft} ម៉ោង</strong>)។ ដើម្បីប្រើប្រាស់អចិន្ត្រៃយ៍ សូមទាក់ទងទិញ License Key។`;
+      statusDesc.innerHTML = isEn
+        ? `You can use all features freely during the <strong>10-day</strong> trial (${state.trial.daysLeft} days ${state.trial.hoursLeft} hours remaining). Contact us to activate permanently.`
+        : `លោកអ្នកអាចប្រើប្រាស់មុខងារទាំងអស់ដោយសេរីក្នុងរយៈពេល <strong>១០ ថ្ងៃ</strong> (នៅសល់៖ <strong>${state.trial.daysLeft} ថ្ងៃ ${state.trial.hoursLeft} ម៉ោង</strong>)។ ដើម្បីប្រើប្រាស់អចិន្ត្រៃយ៍ សូមទាក់ទងទិញ License Key។`;
     }
   } else {
     if (statusBox) {
@@ -8583,13 +8797,17 @@ async function openLicenseModal() {
       statusBox.style.background = '#fef2f2';
     }
     if (statusTitle) {
-      statusTitle.innerHTML = '<span style="color: #dc2626;"><i class="fa-solid fa-lock"></i> សុពលភាពសាកល្បង ១០ ថ្ងៃបានផុតកំណត់ហើយ!</span>';
+      statusTitle.innerHTML = isEn
+        ? '<span style="color: #dc2626;"><i class="fa-solid fa-lock"></i> 10-Day Free Trial Expired</span>'
+        : '<span style="color: #dc2626;"><i class="fa-solid fa-lock"></i> សុពលភាពសាកល្បង ១០ ថ្ងៃបានផុតកំណត់ហើយ!</span>';
     }
     if (typeBadge) {
       typeBadge.textContent = 'EXPIRED';
     }
     if (statusDesc) {
-      statusDesc.innerHTML = 'រយៈពេលសាកល្បងឥតគិតថ្លៃបានបញ្ចប់។ សូមចម្លង Machine ID ខាងក្រោមផ្ញើទៅកាន់អ្នកផ្គត់ផ្គង់ ដើម្បីទិញ License Key ធ្វើឱ្យកម្មវិធីដំណើរការឡើងវិញ។';
+      statusDesc.innerHTML = isEn
+        ? 'Your free trial has ended. Please copy your Machine ID below and contact support to purchase a license key.'
+        : 'រយៈពេលសាកល្បងឥតគិតថ្លៃបានបញ្ចប់។ សូមចម្លង Machine ID ខាងក្រោមផ្ញើទៅកាន់អ្នកផ្គត់ផ្គង់ ដើម្បីទិញ License Key ធ្វើឱ្យកម្មវិធីដំណើរការឡើងវិញ។';
     }
   }
 }
@@ -9542,6 +9760,7 @@ function renderHistoryList() {
   const container = document.getElementById('historyListContainer');
   const statTotal = document.getElementById('statTotalPlans');
   const statAvgGain = document.getElementById('statAvgGain');
+  const isEn = (state.language === 'en');
   
   if (!container || !statTotal || !statAvgGain) return;
   
@@ -9571,7 +9790,7 @@ function renderHistoryList() {
   if (history.length === 0) {
     container.innerHTML = `<div style="text-align: center; padding: 40px 20px; color: #64748b;">
       <i class="fa-solid fa-folder-open" style="font-size: 3rem; margin-bottom: 12px; opacity: 0.5;"></i>
-      <div>មិនទាន់មានប្រវត្តិកិច្ចតែងការនៅឡើយទេ។<br>រាល់កិច្ចតែងការដែលលោកគ្រូបង្កើត វានឹងត្រូវរក្សាទុកនៅទីនេះដោយស្វ័យប្រវត្តិ។</div>
+      <div>${isEn ? 'No lesson plans saved in history yet.<br>Every lesson plan you generate will be automatically saved here.' : 'មិនទាន់មានប្រវត្តិកិច្ចតែងការនៅឡើយទេ។<br>រាល់កិច្ចតែងការដែលលោកគ្រូបង្កើត វានឹងត្រូវរក្សាទុកនៅទីនេះដោយស្វ័យប្រវត្តិ។'}</div>
     </div>`;
     return;
   }
@@ -9579,7 +9798,9 @@ function renderHistoryList() {
   let html = '';
   history.forEach((item, index) => {
     const d = new Date(item.date);
-    const dateStr = d.toLocaleDateString('km-KH') + ' ' + d.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
+    const dateStr = isEn
+      ? d.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'}) + ' ' + d.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'})
+      : d.toLocaleDateString('km-KH') + ' ' + d.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
     
     let gainBadge = '';
     if (item.gNum !== null && item.gNum !== undefined) {
@@ -9590,17 +9811,21 @@ function renderHistoryList() {
       gainBadge = `<span style="display: inline-block; background: ${gColor}15; color: ${gColor}; padding: 2px 8px; border-radius: 4px; font-size: 8.5pt; font-weight: 700; margin-top: 4px;">Gain: ${item.gNum.toFixed(2)}</span>`;
     }
     
+    const gradeLabel = isEn ? 'Grade: ' : 'កម្រិត៖ ';
+    const openBtnText = isEn ? 'Open Plan' : 'បើកមើល';
+    const deleteBtnText = isEn ? 'Delete' : 'លុប';
+
     html += `
       <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s;">
         <div style="flex: 1; padding-right: 12px;">
           <div style="font-size: 11pt; font-weight: 700; color: #0f172a; margin-bottom: 4px;">${escapeHtml(item.title)}</div>
-          <div style="font-size: 9pt; color: #64748b;">${escapeHtml(item.subject)} | កម្រិត៖ ${escapeHtml(item.grade)}</div>
+          <div style="font-size: 9pt; color: #64748b;">${escapeHtml(item.subject)} | ${gradeLabel}${escapeHtml(item.grade)}</div>
           <div style="font-size: 8.5pt; color: #94a3b8; margin-top: 4px;"><i class="fa-regular fa-clock"></i> ${dateStr}</div>
           ${gainBadge}
         </div>
         <div style="display: flex; gap: 8px; flex-direction: column;">
-          <button onclick="loadPlanFromHistory(${index})" style="background: #4f46e5; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 9pt; font-weight: 600;"><i class="fa-solid fa-folder-open"></i> បើកមើល</button>
-          <button onclick="deleteHistoryItem(${index})" style="background: #f8fafc; color: #ef4444; border: 1px solid #fca5a5; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 9pt;"><i class="fa-solid fa-trash-can"></i> លុប</button>
+          <button onclick="loadPlanFromHistory(${index})" style="background: #4f46e5; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 9pt; font-weight: 600;"><i class="fa-solid fa-folder-open"></i> ${openBtnText}</button>
+          <button onclick="deleteHistoryItem(${index})" style="background: #f8fafc; color: #ef4444; border: 1px solid #fca5a5; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 9pt;"><i class="fa-solid fa-trash-can"></i> ${deleteBtnText}</button>
         </div>
       </div>
     `;
@@ -9891,6 +10116,7 @@ function refreshPptxSourceAlert() {
   const alertIcon = document.getElementById('pptxSourceAlertIcon');
   if (!alertEl || !select) return;
 
+  const isEn = (state.language === 'en');
   const currentVal = select.value;
   const hasPlan = !!(state.generatedPlanData || state.currentPlan || (document.getElementById('lessonTitleInput')?.value || '').trim());
   const hasUploadedLesson = !!(state.lessonFileName && state.lessonContent);
@@ -9905,7 +10131,9 @@ function refreshPptxSourceAlert() {
       if (alertIcon) alertIcon.className = 'fa-solid fa-triangle-exclamation';
       if (alertIcon) alertIcon.style.color = '#f59e0b';
       if (alertText) {
-        alertText.innerHTML = '<b>⚠️ មិនទាន់មានកិច្ចតែងការបង្រៀននៅឡើយទេ!</b><br>សូមចុចប៊ូតុង <a href="javascript:void(0)" onclick="triggerPptxSourceUpload()" style="color: #e11d48; font-weight: 700; text-decoration: underline;">«បង្ហោះឯកសារថ្មី»</a> ដើម្បីជ្រើសឯកសារ Word/PDF មេរៀន ឬត្រឡប់ទៅបង្កើតកិច្ចតែងការជាមុនសិន។';
+        alertText.innerHTML = isEn
+          ? '<b>⚠️ No lesson plan available yet!</b><br>Please click <a href="javascript:void(0)" onclick="triggerPptxSourceUpload()" style="color: #e11d48; font-weight: 700; text-decoration: underline;">"Upload New File"</a> above to select a Word/PDF file, or generate a lesson plan first.'
+          : '<b>⚠️ មិនទាន់មានកិច្ចតែងការបង្រៀននៅឡើយទេ!</b><br>សូមចុចប៊ូតុង <a href="javascript:void(0)" onclick="triggerPptxSourceUpload()" style="color: #e11d48; font-weight: 700; text-decoration: underline;">«បង្ហោះឯកសារថ្មី»</a> ដើម្បីជ្រើសឯកសារ Word/PDF មេរៀន ឬត្រឡប់ទៅបង្កើតកិច្ចតែងការជាមុនសិន។';
       }
     } else {
       alertEl.style.display = 'block';
@@ -9914,9 +10142,12 @@ function refreshPptxSourceAlert() {
       alertEl.style.color = '#166534';
       if (alertIcon) alertIcon.className = 'fa-solid fa-circle-check';
       if (alertIcon) alertIcon.style.color = '#10b981';
-      const planTitle = (state.generatedPlanData?.lessonTitle || state.currentPlan?.lessonTitle || document.getElementById('lessonTitleInput')?.value || 'កិច្ចតែងការបច្ចុប្បន្ន');
+      const defaultPlanTitle = isEn ? 'Current Lesson Plan' : 'កិច្ចតែងការបច្ចុប្បន្ន';
+      const planTitle = (state.generatedPlanData?.lessonTitle || state.currentPlan?.lessonTitle || document.getElementById('lessonTitleInput')?.value || defaultPlanTitle);
       if (alertText) {
-        alertText.innerHTML = `<b>✅ រកឃើញកិច្ចតែងការបច្ចុប្បន្ន៖</b> <i>${escapeHtml(planTitle)}</i> (រួចរាល់សម្រាប់បង្កើតស្លាយ)`;
+        alertText.innerHTML = isEn
+          ? `<b>✅ Current lesson plan detected:</b> <i>${escapeHtml(planTitle)}</i> (Ready to generate slides)`
+          : `<b>✅ រកឃើញកិច្ចតែងការបច្ចុប្បន្ន៖</b> <i>${escapeHtml(planTitle)}</i> (រួចរាល់សម្រាប់បង្កើតស្លាយ)`;
       }
     }
   } else if (currentVal === 'uploaded_lesson_file') {
@@ -9927,7 +10158,11 @@ function refreshPptxSourceAlert() {
       alertEl.style.color = '#166534';
       if (alertIcon) alertIcon.className = 'fa-solid fa-circle-check';
       if (alertIcon) alertIcon.style.color = '#10b981';
-      if (alertText) alertText.innerHTML = `<b>✅ ឯកសារមេរៀនយោង៖</b> <i>${escapeHtml(state.lessonFileName)}</i> (រួចរាល់សម្រាប់បង្កើតស្លាយ)`;
+      if (alertText) {
+        alertText.innerHTML = isEn
+          ? `<b>✅ Attached lesson reference:</b> <i>${escapeHtml(state.lessonFileName)}</i> (Ready to generate slides)`
+          : `<b>✅ ឯកសារមេរៀនយោង៖</b> <i>${escapeHtml(state.lessonFileName)}</i> (រួចរាល់សម្រាប់បង្កើតស្លាយ)`;
+      }
     } else {
       alertEl.style.display = 'none';
     }
@@ -9941,7 +10176,11 @@ function refreshPptxSourceAlert() {
       alertEl.style.color = '#b45309';
       if (alertIcon) alertIcon.className = 'fa-solid fa-cloud-arrow-up';
       if (alertIcon) alertIcon.style.color = '#f59e0b';
-      if (alertText) alertText.innerHTML = '<b>សូមជ្រើសរើសឯកសារ Word/PDF</b> ដោយចុចប៊ូតុង «បង្ហោះឯកសារថ្មី» ខាងលើ។';
+      if (alertText) {
+        alertText.innerHTML = isEn
+          ? '<b>Please select a Word/PDF document</b> by clicking "Upload New File" above.'
+          : '<b>សូមជ្រើសរើសឯកសារ Word/PDF</b> ដោយចុចប៊ូតុង «បង្ហោះឯកសារថ្មី» ខាងលើ។';
+      }
     }
   } else {
     alertEl.style.display = 'none';

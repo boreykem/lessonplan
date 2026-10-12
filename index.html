@@ -139,14 +139,14 @@
         </button>
 
                 <!-- Spinner and Group Generator -->
-        <button class="btn-secondary btn-wheel-blink" onclick="window.open('https://luckywheel-ac.vercel.app/', '_blank')" title="បង្វិលកងចៃដន្យ (Lucky Wheel & Group Maker)">
+        <button id="btnWheel" class="btn-secondary btn-wheel-blink" onclick="window.open('https://luckywheel-ac.vercel.app/', '_blank')" title="បង្វិលកងចៃដន្យ (Lucky Wheel & Group Maker)">
           <i class="fa-solid fa-dharmachakra" style="color: #f59e0b;"></i>
-          <span class="btn-text">បង្វិលកង</span>
+          <span class="btn-text" id="headerWheelLabel" data-i18n="headerWheel">បង្វិលកង</span>
         </button>
 
 
         <!-- Game Integration Button -->
-        <button class="btn-secondary btn-magic-blink" onclick="window.open('https://ac-kahoot.onrender.com', '_blank')" title="លេងហ្គេម AC Kahoot (Play AC Kahoot Cloud Game)">
+        <button id="btnAcGame" class="btn-secondary btn-magic-blink" onclick="window.open('https://ac-kahoot.onrender.com', '_blank')" title="លេងហ្គេម AC Kahoot (Play AC Kahoot Cloud Game)">
           <i class="fa-solid fa-gamepad" style="color: #8b5cf6;"></i>
           <span class="btn-text">AC Game</span>
         </button>
@@ -161,7 +161,7 @@
         <!-- License Key Modal Trigger (Hidden) -->
         <button id="btnOpenLicenseModal" class="btn-secondary" style="display: none; border-color: #f59e0b;" onclick="openLicenseModal()" title="ព័ត៌មានអាជ្ញាបណ្ណ និងការ Activate កម្មវិធី">
           <i class="fa-solid fa-shield-halved" style="color: #f59e0b;"></i>
-          <span class="btn-text" id="headerLicenseLabel">អាជ្ញាបណ្ណ</span>
+          <span class="btn-text" id="headerLicenseLabel" data-i18n="headerLicense">អាជ្ញាបណ្ណ</span>
           <span id="headerLicenseBadge" class="status-dot online"></span>
         </button>
 
@@ -173,9 +173,9 @@
         </button>
 
         <!-- History Button -->
-        <button class="btn-secondary" onclick="openHistoryModal()" title="ប្រវត្តិកិច្ចតែងការ (History Dashboard)">
+        <button id="btnHeaderHistory" class="btn-secondary" onclick="openHistoryModal()" title="ប្រវត្តិកិច្ចតែងការ (History Dashboard)">
           <i class="fa-solid fa-clock-rotate-left"></i>
-          <span class="btn-text">ប្រវត្តិ</span>
+          <span class="btn-text" id="headerHistoryLabel" data-i18n="headerHistory">ប្រវត្តិ</span>
         </button>
 
         <!-- Install App / Add to Screen Button -->
@@ -768,7 +768,7 @@
       <div class="modal-header">
         <div class="modal-title-wrap">
           <i class="fa-solid fa-book-bookmark text-primary"></i>
-          <h4>បណ្ណាល័យកិច្ចតែងការដែលបានរក្សាទុក (Saved Lesson Plans)</h4>
+          <h4 data-i18n="modalSavedPlansTitle">បណ្ណាល័យកិច្ចតែងការដែលបានរក្សាទុក (Saved Lesson Plans)</h4>
           <span class="badge-count" id="modalSavedPlansBadge">០</span>
         </div>
         <button id="btnCloseSavedPlansModal" class="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
@@ -816,7 +816,7 @@
           </button>
           <input type="file" id="importPlansJsonInput" accept=".json" style="display: none;">
         </div>
-        <button id="btnCloseSavedPlansModalBottom" class="btn-secondary">បិទ</button>
+        <button id="btnCloseSavedPlansModalBottom" class="btn-secondary" data-i18n="btnClose">បិទ</button>
       </div>
     </div>
   </div>
@@ -999,7 +999,7 @@
       <div class="modal-header">
         <div class="modal-title-wrap">
           <i class="fa-solid fa-shield-halved text-warning"></i>
-          <h4>គ្រប់គ្រងអាជ្ញាបណ្ណកម្មសិទ្ធិបញ្ញា (License Activation)</h4>
+          <h4 data-i18n="modalLicenseTitle">គ្រប់គ្រងអាជ្ញាបណ្ណកម្មសិទ្ធិបញ្ញា (License Activation)</h4>
         </div>
         <button id="btnCloseLicenseModal" class="btn-close-modal" onclick="closeLicenseModal()"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -1021,24 +1021,24 @@
 
         <!-- Customer Machine ID Card -->
         <div class="control-group mt-3">
-          <label>កូដសម្គាល់កុំព្យូទ័ររបស់អ្នក (Customer Machine ID)</label>
+          <label data-i18n="modalLicenseMachineIdLabel">កូដសម្គាល់កុំព្យូទ័ររបស់អ្នក (Customer Machine ID)</label>
           <div class="flex gap-2" style="flex-wrap: wrap;">
             <input type="text" id="displayMachineId" class="form-control" readonly value="ALPS-XXXX-XXXX" style="font-family: monospace; font-weight: bold; background: #f1f5f9; letter-spacing: 1px; flex: 1; min-width: 180px;">
             <button type="button" class="btn-secondary" onclick="copyMachineId()" title="ចម្លង Machine ID">
-              <i class="fa-regular fa-copy"></i> ចម្លង
+              <i class="fa-regular fa-copy"></i> <span data-i18n="modalLicenseBtnCopyId">ចម្លង</span>
             </button>
             <button type="button" class="btn-primary" onclick="sendMachineIdToTelegram()" style="background: #0284c7; border: none; font-weight: 600;" title="ផ្ញើ Machine ID នេះតាម Telegram ដោយស្វ័យប្រវត្ត">
-              <i class="fa-brands fa-telegram"></i> ✈️ ផ្ញើតាម Telegram
+              <i class="fa-brands fa-telegram"></i> <span data-i18n="modalLicenseBtnSendTg">✈️ ផ្ញើតាម Telegram</span>
             </button>
           </div>
-          <small style="color: #64748b; font-size: 8pt; margin-top: 4px; display: block;">
+          <small style="color: #64748b; font-size: 8pt; margin-top: 4px; display: block;" id="licenseTgHelpText" data-i18n="modalLicenseTgHelp">
             💡 ចុចប៊ូតុង <strong>«✈️ ផ្ញើតាម Telegram»</strong> ដើម្បីផ្ញើ Machine ID នេះទៅកាន់អ្នកលក់ភ្លាមៗ ដើម្បីទទួលបានលេខកូដ License Key។
           </small>
         </div>
 
         <!-- Enter License Key -->
         <div class="control-group mt-3">
-          <label for="inputLicenseKey">បញ្ចូលលេខកូដអាជ្ញាបណ្ណ (Enter License Key)</label>
+          <label for="inputLicenseKey" data-i18n="modalLicenseKeyLabel">បញ្ចូលលេខកូដអាជ្ញាបណ្ណ (Enter License Key)</label>
           <div class="input-icon-wrap">
             <i class="fa-solid fa-key text-primary"></i>
             <input type="text" id="inputLicenseKey" class="form-control" placeholder="ALPS-XXXX-XXXX-XXXX-XXXX" style="font-family: monospace; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;">
@@ -1047,9 +1047,9 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn-secondary" onclick="closeLicenseModal()">បិទ</button>
+        <button type="button" class="btn-secondary" onclick="closeLicenseModal()" data-i18n="btnClose">បិទ</button>
         <button type="button" class="btn-primary" onclick="submitLicenseActivation()">
-          <i class="fa-solid fa-unlock-keyhole"></i> ធ្វើឱ្យសកម្ម (Activate)
+          <i class="fa-solid fa-unlock-keyhole"></i> <span data-i18n="modalLicenseBtnActivate">ធ្វើឱ្យសកម្ម (Activate)</span>
         </button>
       </div>
     </div>
@@ -1206,7 +1206,7 @@
       <div class="modal-header">
         <div class="modal-title-wrap">
           <i class="fa-solid fa-cloud-arrow-down" style="color: #10b981;"></i>
-          <h4>ប្រព័ន្ធអាប់ដេតស្វ័យប្រវត្ត (Cloud Auto-Updater)</h4>
+          <h4 data-i18n="modalUpdateTitle">ប្រព័ន្ធអាប់ដេតស្វ័យប្រវត្ត (Cloud Auto-Updater)</h4>
         </div>
         <button class="btn-close-modal" onclick="closeUpdateModal()"><i class="fa-solid fa-xmark"></i></button>
       </div>
@@ -1214,11 +1214,11 @@
       <div class="modal-body">
         <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg mb-3" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px 14px;">
           <div>
-            <div style="font-size: 0.85rem; color: #64748b;">កំណែកម្មវិធីបច្ចុប្បន្ន (Installed Version):</div>
+            <div style="font-size: 0.85rem; color: #64748b;" data-i18n="modalUpdateInstalledVersion">កំណែកម្មវិធីបច្ចុប្បន្ន (Installed Version):</div>
             <div style="font-size: 1.15rem; font-weight: 700; color: #1e293b;" id="lblCurrentAppVersion">v2.5.1</div>
           </div>
           <button type="button" class="btn btn-sm btn-secondary" onclick="checkAppUpdates(true)">
-            <i class="fa-solid fa-rotate"></i> ពិនិត្យមើលឥឡូវនេះ
+            <i class="fa-solid fa-rotate"></i> <span data-i18n="modalUpdateBtnCheckNow">ពិនិត្យមើលឥឡូវនេះ</span>
           </button>
         </div>
 
@@ -1244,9 +1244,9 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn-secondary" onclick="closeUpdateModal()">បិទ</button>
+        <button type="button" class="btn-secondary" onclick="closeUpdateModal()" data-i18n="btnClose">បិទ</button>
         <button type="button" class="btn-primary" id="btnApplyUpdate" onclick="applyAppUpdate()" style="display: none; background: #10b981; border: none; font-weight: 600;">
-          <i class="fa-solid fa-cloud-arrow-down"></i> ⚡ អាប់ដេតឥឡូវនេះ (Update Now)
+          <i class="fa-solid fa-cloud-arrow-down"></i> <span data-i18n="modalUpdateBtnApply">⚡ អាប់ដេតឥឡូវនេះ (Update Now)</span>
         </button>
       </div>
     </div>
@@ -1442,7 +1442,7 @@
     <div class="modal" style="max-width: 800px; width: 95%;">
       <div class="modal-header">
         <div class="modal-title">
-          <i class="fa-solid fa-clock-rotate-left"></i> <span>ប្រវត្តិកិច្ចតែងការ និងស្ថិតិ (Local History Dashboard)</span>
+          <i class="fa-solid fa-clock-rotate-left"></i> <span data-i18n="modalHistoryTitle">ប្រវត្តិកិច្ចតែងការ និងស្ថិតិ (Local History Dashboard)</span>
         </div>
         <button class="modal-close" onclick="closeHistoryModal()"><i class="fa-solid fa-times"></i></button>
       </div>
@@ -1450,16 +1450,16 @@
         <div id="historyStatsContainer" style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
           <div style="flex: 1; min-width: 150px; background: white; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
             <div style="font-size: 24pt; font-weight: 800; color: #4f46e5;" id="statTotalPlans">0</div>
-            <div style="font-size: 10pt; color: #64748b; font-weight: 600;">កិច្ចតែងការសរុប</div>
+            <div style="font-size: 10pt; color: #64748b; font-weight: 600;" data-i18n="modalHistoryTotalPlans">កិច្ចតែងការសរុប</div>
           </div>
           <div style="flex: 1; min-width: 150px; background: white; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center;">
             <div style="font-size: 24pt; font-weight: 800; color: #10b981;" id="statAvgGain">0.00</div>
-            <div style="font-size: 10pt; color: #64748b; font-weight: 600;">មធ្យមភាគ Learning Gain (g)</div>
+            <div style="font-size: 10pt; color: #64748b; font-weight: 600;" data-i18n="modalHistoryAvgGain">មធ្យមភាគ Learning Gain (g)</div>
           </div>
         </div>
         
         <div style="font-weight: 700; font-size: 11pt; color: #1e293b; margin-bottom: 12px; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px;">
-          <i class="fa-solid fa-list"></i> បញ្ជីកិច្ចតែងការចុងក្រោយ (រក្សាទុកក្នុងកុំព្យូទ័រនេះ)
+          <i class="fa-solid fa-list"></i> <span data-i18n="modalHistoryRecentList">បញ្ជីកិច្ចតែងការចុងក្រោយ (រក្សាទុកក្នុងកុំព្យូទ័រនេះ)</span>
         </div>
         
         <div id="historyListContainer" style="display: flex; flex-direction: column; gap: 12px;">
@@ -1468,9 +1468,9 @@
       </div>
       <div class="modal-footer" style="border-top: 1px solid #e2e8f0; padding: 12px 20px; justify-content: space-between;">
         <button type="button" class="btn-secondary" onclick="clearHistory()" style="color: #ef4444; border-color: #fca5a5;">
-          <i class="fa-solid fa-trash-can"></i> លុបប្រវត្តិទាំងអស់
+          <i class="fa-solid fa-trash-can"></i> <span data-i18n="modalHistoryClearAll">លុបប្រវត្តិទាំងអស់</span>
         </button>
-        <button type="button" class="btn-secondary" onclick="closeHistoryModal()">បិទ</button>
+        <button type="button" class="btn-secondary" onclick="closeHistoryModal()" data-i18n="btnClose">បិទ</button>
       </div>
     </div>
   </div>
@@ -1482,12 +1482,12 @@
     <div class="modal modal-card" style="max-width: 520px; width: 95%; background: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);">
       <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
         <div class="modal-title" style="color: #e11d48; font-weight: 700; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
-          <i class="fa-solid fa-file-powerpoint"></i> បង្កើតស្លាយ PowerPoint (AI Generator)
+          <i class="fa-solid fa-file-powerpoint"></i> <span data-i18n="modalPptxTitle">បង្កើតស្លាយ PowerPoint (AI Generator)</span>
         </div>
         <button class="modal-close" onclick="closePptxModal()" style="font-size: 1.3rem; background: none; border: none; cursor: pointer; color: #64748b;"><i class="fa-solid fa-times"></i></button>
       </div>
       <div class="modal-body" style="padding: 20px; max-height: 75vh; overflow-y: auto;">
-        <div style="font-size: 9.5pt; color: #475569; margin-bottom: 16px; line-height: 1.5;">
+        <div style="font-size: 9.5pt; color: #475569; margin-bottom: 16px; line-height: 1.5;" data-i18n="modalPptxDesc">
           ប្រព័ន្ធ AI នឹងអានកិច្ចតែងការ ឬឯកសារយោង រួចសង្ខេបនិងរៀបចំជាស្លាយ PowerPoint (.pptx) ស្វ័យប្រវត្តិតាមស្តង់ដារ MoEYS។
         </div>
         
@@ -1495,10 +1495,10 @@
         <div class="form-group" style="margin-bottom: 14px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <label style="font-weight: 600; color: #1e293b; font-size: 9.5pt; margin: 0;">
-              <i class="fa-solid fa-paperclip" style="color: #e11d48;"></i> ជ្រើសរើសឯកសារយោង (Source / Attachment):
+              <i class="fa-solid fa-paperclip" style="color: #e11d48;"></i> <span data-i18n="modalPptxSourceLabel">ជ្រើសរើសឯកសារយោង (Source / Attachment):</span>
             </label>
             <button type="button" class="btn-tool-action" id="btnUploadPptxSource" onclick="triggerPptxSourceUpload()" style="background: #fff1f2; color: #e11d48; border: 1px solid #fda4af; padding: 3px 8px; font-size: 8.5pt; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
-              <i class="fa-solid fa-cloud-arrow-up"></i> បង្ហោះឯកសារថ្មី
+              <i class="fa-solid fa-cloud-arrow-up"></i> <span data-i18n="modalPptxBtnUpload">បង្ហោះឯកសារថ្មី</span>
             </button>
           </div>
           <input type="file" id="pptxSourceFileInput" accept=".docx,.pdf,.pptx,.txt,.doc" style="display: none;" onchange="handlePptxSourceFileUploaded(event)">
@@ -1509,7 +1509,7 @@
             <option value="custom_file" id="pptxOptCustomFile" style="display: none;">📤 ឯកសារដែលទើបបង្ហោះ (Newly Attached File)</option>
           </select>
           <div id="pptxUploadedFileBadge" style="display: none; margin-top: 6px; padding: 6px 10px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 6px; font-size: 8.5pt; color: #166534; display: flex; align-items: center; justify-content: space-between;">
-            <span id="pptxUploadedFileName" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><i class="fa-solid fa-circle-check"></i> <span>ឯកសារភ្ជាប់</span></span>
+            <span id="pptxUploadedFileName" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><i class="fa-solid fa-circle-check"></i> <span id="pptxUploadedFileLabel">ឯកសារភ្ជាប់</span></span>
             <button type="button" onclick="clearPptxCustomSource()" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0 4px;" title="ដកឯកសារចេញ"><i class="fa-solid fa-times"></i></button>
           </div>
           <!-- In-Modal Notice / Warning Box -->
@@ -1527,7 +1527,7 @@
         <!-- Number of Slides Dropdown with Expanded Options -->
         <div class="form-group" style="margin-bottom: 14px;">
           <label style="font-weight: 600; color: #1e293b; font-size: 9.5pt; margin-bottom: 6px; display: block;">
-            <i class="fa-solid fa-list-ol" style="color: #6366f1;"></i> ចំនួនស្លាយ (Number of Slides):
+            <i class="fa-solid fa-list-ol" style="color: #6366f1;"></i> <span data-i18n="modalPptxNumSlidesLabel">ចំនួនស្លាយ (Number of Slides):</span>
           </label>
           <select id="pptxNumSlides" class="form-control">
             <option value="4">៤ ស្លាយ (សង្ខេបខ្លីបំផុត / Quick Summary)</option>
@@ -1543,14 +1543,14 @@
         <!-- Auto Pictures Option with AI Image Generation -->
         <div class="form-group" style="margin-bottom: 14px;">
           <label style="font-weight: 600; color: #1e293b; font-size: 9.5pt; margin-bottom: 6px; display: block;">
-            <i class="fa-solid fa-wand-magic-sparkles" style="color: #06b6d4;"></i> បញ្ចូលរូបភាពស្វ័យប្រវត្តិ? (Auto-Pictures):
+            <i class="fa-solid fa-wand-magic-sparkles" style="color: #06b6d4;"></i> <span data-i18n="modalPptxImagesLabel">បញ្ចូលរូបភាពស្វ័យប្រវត្តិ? (Auto-Pictures):</span>
           </label>
           <select id="pptxIncludeImages" class="form-control">
             <option value="ai" selected>🎨 បង្កើតរូបភាពដោយ AI (AI Image Generator - Pollinations / Educational AI)</option>
             <option value="web">🌐 ទាញយករូបភាពពីអ៊ីនធឺណិត (Web Stock Photos)</option>
             <option value="no">📄 ទេ (ស្លាយអក្សរសុទ្ធ / Text Only)</option>
           </select>
-          <div style="font-size: 8.5pt; color: #64748b; margin-top: 4px;">
+          <div style="font-size: 8.5pt; color: #64748b; margin-top: 4px;" data-i18n="modalPptxImagesHint">
             <i class="fa-solid fa-circle-info"></i> ជម្រើស "បង្កើតរូបភាពដោយ AI" នឹងបង្កើតរូបគំនូរអប់រំ និងដ្យាក្រាមស្របតាមខ្លឹមសារស្លាយនីមួយៗដោយស្វ័យប្រវត្តិ។
           </div>
         </div>
@@ -1558,7 +1558,7 @@
         <!-- Theme Color Dropdown -->
         <div class="form-group" style="margin-bottom: 14px;">
           <label style="font-weight: 600; color: #1e293b; font-size: 9.5pt; margin-bottom: 6px; display: block;">
-            <i class="fa-solid fa-palette" style="color: #ec4899;"></i> រចនាបទពណ៌ (Theme Color):
+            <i class="fa-solid fa-palette" style="color: #ec4899;"></i> <span data-i18n="modalPptxThemeLabel">រចនាបទពណ៌ (Theme Color):</span>
           </label>
           <select id="pptxTheme" class="form-control">
             <option value="modern_blue" selected>Modern Blue (ខៀវទំនើប - ស្តង់ដារ MoEYS)</option>
@@ -1569,9 +1569,9 @@
         </div>
       </div>
       <div class="modal-footer" style="justify-content: flex-end; background: #fff1f2; padding: 14px 20px; border-top: 1px solid #ffe4e6; display: flex; gap: 10px;">
-        <button class="btn-secondary" onclick="closePptxModal()" style="border-color: #fda4af; color: #e11d48;">បោះបង់</button>
+        <button class="btn-secondary" onclick="closePptxModal()" style="border-color: #fda4af; color: #e11d48;" data-i18n="modalPptxBtnCancel">បោះបង់</button>
         <button class="btn-primary" onclick="generatePptxSlides()" style="background: #e11d48; border: none; padding: 9px 18px; font-weight: 600; border-radius: 8px; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> បង្កើតស្លាយឥឡូវនេះ
+          <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="modalPptxBtnGenerate">បង្កើតស្លាយឥឡូវនេះ</span>
         </button>
       </div>
     </div>
