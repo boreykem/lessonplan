@@ -10680,18 +10680,11 @@ window.toggleGameFullscreen = function() {
 };
 
 window.openGameModal = function() {
-  const m = document.getElementById('gameModal');
-  if (m) {
-    m.style.display = 'flex';
-    m.classList.add('active');
-  }
+  window.open('https://ac-kahoot.onrender.com', '_blank');
 };
 
 window.closeGameModal = function() {
   const m = document.getElementById('gameModal');
-  if (m) {
-    m.style.display = 'none';
-    m.classList.remove('active');
-  }
+  if (m) m.style.display = 'none';
 };
 
