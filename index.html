@@ -1512,6 +1512,16 @@
             <span id="pptxUploadedFileName" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"><i class="fa-solid fa-circle-check"></i> <span>ឯកសារភ្ជាប់</span></span>
             <button type="button" onclick="clearPptxCustomSource()" style="background: none; border: none; color: #ef4444; cursor: pointer; padding: 0 4px;" title="ដកឯកសារចេញ"><i class="fa-solid fa-times"></i></button>
           </div>
+          <!-- In-Modal Notice / Warning Box -->
+          <div id="pptxSourceAlert" style="display: none; margin-top: 8px; padding: 10px 14px; border-radius: 8px; font-size: 9pt; line-height: 1.5; border: 1px solid #fde68a; background: #fffbeb; color: #b45309;">
+            <div style="display: flex; align-items: flex-start; gap: 8px;">
+              <i id="pptxSourceAlertIcon" class="fa-solid fa-triangle-exclamation" style="margin-top: 3px; color: #f59e0b; font-size: 1rem;"></i>
+              <div style="flex: 1;" id="pptxSourceAlertText">
+                <b>មិនទាន់មានកិច្ចតែងការបង្រៀននៅឡើយទេ!</b><br>
+                សូមចុចប៊ូតុង <a href="javascript:void(0)" onclick="triggerPptxSourceUpload()" style="color: #e11d48; font-weight: 700; text-decoration: underline;">«បង្ហោះឯកសារថ្មី»</a> ដើម្បីជ្រើសឯកសារ Word/PDF មេរៀន ឬត្រឡប់ទៅបង្កើតកិច្ចតែងការជាមុនសិន។
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Number of Slides Dropdown with Expanded Options -->
