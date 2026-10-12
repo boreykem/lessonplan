@@ -1494,17 +1494,10 @@
           <button class="modal-close" onclick="closeGameModal()" style="font-size: 1.3rem; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px 8px; margin-left: 4px;"><i class="fa-solid fa-times"></i></button>
         </div>
       </div>
-      <!-- Render.com Wakeup Notification Banner -->
-      <div id="gameRenderNotice" style="background: #fffbeb; color: #b45309; padding: 8px 16px; font-size: 9pt; text-align: center; border-bottom: 1px solid #fde68a; display: flex; align-items: center; justify-content: space-between; transition: all 0.4s ease;">
-        <div style="flex: 1; text-align: center;">
-          <i class="fa-solid fa-circle-info"></i> <b>ជូនដំណឹង៖</b> ដោយសារយើងមិនទាន់មានអ្នកឧបត្ថម្ភសម្រាប់ការងារបង្កើតកម្មវិធីនេះនៅឡើយ ទើបយើងប្រើប្រាស់វេបសាយ (render.com) ឥតគិតថ្លៃ ដែលវានឹងត្រូវការពេល <b>៣០វិនាទី ទៅ ១នាទី</b> ដើម្បីបើកវេបសាយ AC Kahoot នេះ! សូមមេត្តារង់ចាំដោយអនុគ្រោះ!
-        </div>
-        <button type="button" onclick="dismissGameNotice()" style="background: none; border: none; color: #b45309; cursor: pointer; padding: 2px 6px; font-size: 1rem; line-height: 1;" title="បិទការជូនដំណឹង"><i class="fa-solid fa-times"></i></button>
-      </div>
       <div class="modal-body" style="flex: 1; padding: 0; background: #000; overflow: hidden; position: relative;">
         <div id="gameLoadingSpinner" style="position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); color: #94a3b8; text-align: center; z-index: 1;">
            <i class="fa-solid fa-spinner fa-spin" style="font-size: 3rem; margin-bottom: 15px; color: #8b5cf6;"></i>
-           <div style="font-family: 'Kantumruy Pro'; font-size: 11pt; color: #cbd5e1;">កំពុងដំណើរការម៉ាស៊ីនមេហ្គេម...<br><span style="font-size: 9pt; color: #94a3b8;">(អាចប្រើពេល ៣០វិនាទី ទៅ ១ នាទី សម្រាប់ការដាស់ Server)</span></div>
+           <div style="font-family: 'Kantumruy Pro'; font-size: 11pt; color: #cbd5e1;">កំពុងដំណើរការ...</div>
         </div>
         <iframe id="gameIframe" src="https://ac-kahoot.onrender.com" onload="onGameIframeLoaded()" style="width: 100%; height: 100%; border: none; position: relative; z-index: 2;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </div>
