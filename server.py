@@ -1281,8 +1281,8 @@ def add_no_cache_headers(response):
 
 
 
-APP_VERSION = "2.5.0"
-APP_RELEASE_DATE = "2026-08-20"
+APP_VERSION = "2.5.1"
+APP_RELEASE_DATE = "2026-10-12"
 
 
 @app.route("/api/health", methods=["GET"])
@@ -1307,23 +1307,26 @@ def get_system_version():
 def check_system_update():
     manifest_url = os.environ.get(
         "ALPS_UPDATE_URL", 
-        "https://raw.githubusercontent.com/KemBorey/ai-lesson-plan-studio/main/version_manifest.json"
+        "https://raw.githubusercontent.com/boreykem/lessonplan/main/version_manifest.json"
     )
     
     try:
         req = urllib.request.Request(manifest_url, headers={"User-Agent": f"ALPS-Updater/{APP_VERSION}"})
-        with urllib.request.urlopen(req, timeout=3) as resp:
+        with urllib.request.urlopen(req, timeout=5) as resp:
             if resp.status == 200:
                 remote_data = json.loads(resp.read().decode("utf-8"))
-                remote_ver = remote_data.get("version", APP_VERSION)
-                has_update = remote_ver > APP_VERSION
+                remote_ver = str(remote_data.get("version", APP_VERSION)).strip()
+                def parse_ver(v):
+                    nums = re.findall(r'\d+', str(v))
+                    return tuple(map(int, nums)) if nums else (0,)
+                has_update = parse_ver(remote_ver) > parse_ver(APP_VERSION)
                 return jsonify({
                     "hasUpdate": has_update,
                     "currentVersion": APP_VERSION,
                     "latestVersion": remote_ver,
                     "releaseDate": remote_data.get("releaseDate", ""),
                     "releaseNotes": remote_data.get("releaseNotes", ["កែលម្អប្រព័ន្ធ និងបន្ថែមមុខងារថ្មីៗ"]),
-                    "updateUrl": remote_data.get("updateUrl", "")
+                    "updateUrl": remote_data.get("updateUrl", "https://github.com/boreykem/lessonplan")
                 })
     except Exception:
         pass
@@ -1346,13 +1349,31 @@ def apply_system_update():
     
     updated_files = []
     try:
+        # If no files payload supplied directly, pull latest files from GitHub repository
+        if not files_to_update:
+            github_base = "https://raw.githubusercontent.com/boreykem/lessonplan/main"
+            candidate_files = ["index.html", "app.js", "style.css", "public/index.html", "public/app.js"]
+            for rel_file in candidate_files:
+                url = f"{github_base}/{rel_file}"
+                try:
+                    req = urllib.request.Request(url, headers={"User-Agent": "ALPS-AutoUpdater"})
+                    with urllib.request.urlopen(req, timeout=10) as r:
+                        if r.status == 200:
+                            files_to_update[rel_file] = r.read().decode("utf-8")
+                except Exception:
+                    pass
+
         for filename, content in files_to_update.items():
-            safe_name = os.path.basename(filename)
-            if safe_name in ["app.js", "index.html", "style.css", "server.py"]:
-                target_path = os.path.join(base_dir, safe_name)
-                # Create .bak backup
+            safe_name = os.path.normpath(filename).lstrip("\\/")
+            target_path = os.path.normpath(os.path.join(base_dir, safe_name))
+            # Security check: ensure target stays inside base_dir
+            if os.path.commonpath([base_dir, target_path]) == base_dir:
+                os.makedirs(os.path.dirname(target_path), exist_ok=True)
                 if os.path.exists(target_path):
-                    shutil.copy2(target_path, target_path + ".bak")
+                    try:
+                        shutil.copy2(target_path, target_path + ".bak")
+                    except Exception:
+                        pass
                 with open(target_path, "w", encoding="utf-8") as f:
                     f.write(content)
                 updated_files.append(safe_name)
