@@ -10431,7 +10431,7 @@ window.generateGeminiSlidePrompt = function() {
      + ប្រសិនបើរៀបចំជាអត្ថបទ Markdown:
        ![រូបភាពអប់រំ AI ស៊ីមេទ្រី](https://image.pollinations.ai/prompt/{English_Detailed_Prompt_Url_Encoded}?width=1200&height=675&nologo=true)
      + ប្រសិនបើរៀបចំជាកម្មវិធីស្លាយ Canvas (Interactive HTML/CSS Slide Deck):
-       `<img src="https://image.pollinations.ai/prompt/{English_Detailed_Prompt_Url_Encoded}?width=800&height=520&nologo=true" style="width: 100%; height: 380px; object-fit: cover; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);" alt="Educational Illustration">`
+       <img src="https://image.pollinations.ai/prompt/{English_Detailed_Prompt_Url_Encoded}?width=800&height=520&nologo=true" style="width: 100%; height: 380px; object-fit: cover; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);" alt="Educational Illustration">
 
 ២. ✍️ ទំហំ Font និងក្បួនរចនាអក្សរខ្មែរឱ្យធំស្អាតទាក់ទាញ (Typography Hierarchy & Large Font Sizes):
    - ប្រើប្រាស់ពុម្ពអក្សរខ្មែរស្រស់ស្អាតសមរម្យតាមបរិបទ (Kantumruy Pro, Moul Light សម្រាប់ចំណងជើង)។
