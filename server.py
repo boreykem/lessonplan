@@ -1281,8 +1281,8 @@ def add_no_cache_headers(response):
 
 
 
-APP_VERSION = "2.5.1"
-APP_RELEASE_DATE = "2026-10-12"
+APP_VERSION = "2.6.0"
+APP_RELEASE_DATE = "2026-10-13"
 
 
 @app.route("/api/health", methods=["GET"])
