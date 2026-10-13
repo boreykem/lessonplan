@@ -10425,13 +10425,18 @@ window.generateGeminiSlidePrompt = function() {
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 ១. 🖼️ រូបភាព AI / អប់រំពិតប្រាកដសម្រាប់គ្រប់ស្លាយទាំងអស់ (Real AI / Educational Image for EVERY Slide):
-   - គ្រប់ស្លាយទាំងអស់ (ចាប់ពីស្លាយទី ១ រហូតដល់ស្លាយទី ${numSlides}) ត្រូវតែមានរូបភាពពិតប្រាកដដែលស៊ីមេទ្រី ស្រស់ស្អាត ទាក់ទាញ និងស៊ីគ្នា ១០០% ជាមួយខ្លឹមសារស្លាយនោះ។
-   - 🚫 ដាច់ខាតមិនត្រូវប្រើរូបភាព Placeholder ពណ៌ប្រផេះ (DO NOT use placehold.co, via.placeholder, 600x400 ឬរូបប្រអប់ទទេ) ជាដាច់ខាត!
-   - ត្រូវតែប្រើប្រាស់ URL រូបភាពពិតប្រាកដពី Unsplash ឬ Pollinations AI ជានិច្ច៖
-     + ប្រសិនបើរៀបចំជាអត្ថបទ Markdown:
-       ![រូបភាពអប់រំ AI ស៊ីមេទ្រី](https://image.pollinations.ai/prompt/{English_Detailed_Prompt_Url_Encoded}?width=1200&height=675&nologo=true)
-     + ប្រសិនបើរៀបចំជាកម្មវិធីស្លាយ Canvas (Interactive HTML/CSS Slide Deck):
-       <img src="https://image.pollinations.ai/prompt/{English_Detailed_Prompt_Url_Encoded}?width=800&height=520&nologo=true" style="width: 100%; height: 380px; object-fit: cover; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);" alt="Educational Illustration">
+   - គ្រប់ស្លាយទាំងអស់ (ចាប់ពីស្លាយទី ១ ដល់ ស្លាយទី ${numSlides}) ត្រូវតែមានរូបភាពពិតប្រាកដដែលស៊ីមេទ្រី ស្រស់ស្អាត ទាក់ទាញ និងស៊ីគ្នា ១០០% ជាមួយខ្លឹមសារស្លាយនោះ។
+   - 🚫 បម្រាមដាច់ខាត (STRICTLY FORBIDDEN):
+     ហាមប្រើប្រាស់រូបភាពប្រផេះ (DO NOT use placehold.co, via.placeholder, 600x400 ឬរូបប្រអប់ទទេ) ជាដាច់ខាត! ប្រសិនបើមានស្លាយណាបង្ហាញ 600x400 ចាត់ទុកថាការបង្កើតស្លាយនោះមិនត្រឹមត្រូវ!
+   - សម្រាប់កម្មវិធីស្លាយ Canvas (Interactive HTML/CSS Slide Deck)៖
+     គ្រប់ Tag <img> ត្រូវតែកំណត់ src ទៅកាន់ Pollinations AI ដោយមាន Keyword ជាភាសាអង់គ្លេសស៊ីគ្នាជាមួយប្រធានបទស្លាយនោះ៖
+     src="https://image.pollinations.ai/prompt/[English_Topic_Prompt_Without_Spaces]?width=800&height=500&nologo=true"
+     ឧទាហរណ៍ជាក់ស្តែង៖
+     + ស្លាយបង្រៀនគ្រូ៖ <img src="https://image.pollinations.ai/prompt/cambodian_teacher_teaching_highschool_students?width=800&height=500&nologo=true" style="width:100%; height:320px; object-fit:cover; border-radius:12px;" alt="Teacher Illustration">
+     + ស្លាយសិស្សពិភាក្សា៖ <img src="https://image.pollinations.ai/prompt/students_active_learning_classroom_discussion?width=800&height=500&nologo=true" style="width:100%; height:320px; object-fit:cover; border-radius:12px;" alt="Students Discussion">
+     + ស្លាយសកម្មភាពវិជ្ជាជីវៈ៖ <img src="https://image.pollinations.ai/prompt/professional_educator_training_workshop_development?width=800&height=500&nologo=true" style="width:100%; height:320px; object-fit:cover; border-radius:12px;" alt="Professional Development">
+   - សម្រាប់អត្ថបទ Markdown៖
+     ![រូបភាពអប់រំ AI ស៊ីមេទ្រី](https://image.pollinations.ai/prompt/{English_Topic_Prompt}?width=1200&height=675&nologo=true)
 
 ២. ✍️ ទំហំ Font និងក្បួនរចនាអក្សរខ្មែរឱ្យធំស្អាតទាក់ទាញ (Typography Hierarchy & Large Font Sizes):
    - ប្រើប្រាស់ពុម្ពអក្សរខ្មែរស្រស់ស្អាតសមរម្យតាមបរិបទ (Kantumruy Pro, Moul Light សម្រាប់ចំណងជើង)។
