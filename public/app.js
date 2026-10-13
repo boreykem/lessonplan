@@ -10791,25 +10791,23 @@ window.generatePptxSlides = async function() {
       return;
     }
 
-    const prompt = `You are an expert Cambodian MoEYS instructional designer, curriculum specialist, and master PowerPoint presenter.
-Convert the following Cambodian educational material into an engaging, comprehensive, high-quality, professional PowerPoint presentation outline.
+    const prompt = `You are an expert Cambodian MoEYS instructional designer, curriculum specialist, and master modern presentation visual designer.
+Convert the following Cambodian educational material into an engaging, state-of-the-art, visually striking PowerPoint presentation outline.
 Number of slides requested (including Title slide): ${numSlides}
 
 STRICT CRITICAL RULES:
 1. Output MUST be ONLY a raw valid JSON array of objects. Do NOT include markdown code blocks (\`\`\`json) or any conversational text. Output ONLY the raw JSON array.
-2. Language: If the input reference material is in Khmer, all titles, subtitles, bullet points, and speaker notes MUST be in 100% natural, grammatically rich, formal educational Khmer. "imagePrompt" and "imageSearchKeyword" MUST be in English.
-3. REAL AI CONTENT & COMPREHENSIVE DEPTH (NEVER generic or placeholder text):
-   - Synthesize the attached material comprehensively across all ${numSlides} slides.
-   - Slide 1: "type": "title" (Main lesson title, subject/grade subtitle, introductory notes).
-   - Subsequent slides: "type": "content". Each content slide must cover a distinct, meaningful section or concept from the material (e.g. Fundamental Definitions -> Core Theoretical Principles -> Practical Classroom Strategies -> Student Activities & Exercises -> Review & Assessment).
-   - EVERY content slide MUST have 3 to 4 detailed, substantive bullet points.
-   - Use bold markdown lead-ins for key terms in bullets, e.g. "**ពាក្យគន្លឹះ/គោលការណ៍៖** ការពន្យល់លម្អិត...".
-   - ABSOLUTELY NEVER output repetitive, vague, or 1-line surface summaries. Every bullet point must offer concrete value, pedagogical depth, and accurate facts from the reference text.
+2. Language: All titles, subtitles, bullet points, cards, and speaker notes MUST be in 100% natural, grammatically rich, formal educational Khmer. "imagePrompt" and "imageSearchKeyword" MUST be in English.
+3. MODERN EDUCATIONAL CARD / PILL CONCEPT DESIGN (Like Gemini Canvas Cards):
+   - Synthesize the material comprehensively across all ${numSlides} slides.
+   - Slide 1: "type": "title" (Main lesson title, subject/grade subtitle, introductory teacher notes).
+   - Subsequent slides: "type": "content". Each slide must present a clear focal topic with 3 to 4 bite-sized, high-impact key concept points or cards.
+   - For every bullet point or card, ALWAYS use the format: "**ចំណុចគន្លឹះ/ពាក្យគន្លឹះ៖** ការពន្យល់សង្ខេបច្បាស់លាស់ ខ្លីល្មម ងាយយល់". The bold lead-in represents the key highlight or heading, while the explanation represents the descriptive takeaway.
+   - ABSOLUTELY NEVER dump massive unreadable text walls. Keep concepts punchy, memorable, and visually structured.
 4. DETAILED SPEAKER NOTES:
-   - Provide 2 to 4 sentences of rich teaching advice in Khmer per slide, explaining what the teacher should elaborate, what probing questions to ask students, and how to conduct the learning activity.
-5. AI IMAGE GENERATION PROMPT ("imagePrompt"):
-   - For EACH slide, provide a dedicated, highly descriptive English visual prompt for an AI image generator (e.g. "Cambodian teacher explaining educational psychology to attentive high school students in a modern bright classroom, educational illustration, pedagogical atmosphere, warm lighting, high detail").
-   - Match the specific topic of that exact slide (e.g. if the slide is about cognitive development, describe a cognitive thought process or student active learning scene).
+   - Provide 2 to 4 sentences of rich teaching advice in Khmer per slide, explaining what the teacher should elaborate, questions to ask students, and activities.
+5. AI IMAGE PROMPT ("imagePrompt"):
+   - For EACH slide, provide a dedicated, highly descriptive English visual prompt for an educational illustration (e.g. "Warm educational digital illustration of Cambodian classroom, teacher and active students discussing concept, modern flat vector, soft lighting, high quality").
 
 JSON Schema:
 [
@@ -10819,20 +10817,20 @@ JSON Schema:
     "subtitle": "មុខវិជ្ជា - កម្រិតថ្នាក់",
     "speakerNotes": "ការណែនាំផ្តើមមេរៀនសម្រាប់គ្រូបង្រៀន",
     "imageSearchKeyword": "educational psychology",
-    "imagePrompt": "Educational psychology title slide concept, modern classroom with teacher and students, educational illustration, warm lighting, highly detailed"
+    "imagePrompt": "Educational title slide illustration, modern classroom with teacher and students, warm lighting, high quality"
   },
   {
     "type": "content",
-    "title": "ចំណងជើងរងនៃស្លាយជាក់លាក់",
+    "title": "ចំណងជើងរងនៃស្លាយ (Short Impactful Title)",
     "bullets": [
-      "**ចំណុចគន្លឹះទី១៖** ការពន្យល់លម្អិត ស៊ីជម្រៅ ស្របតាមខ្លឹមសារមេរៀនពិតប្រាកដ",
-      "**ចំណុចគន្លឹះទី២៖** ការពន្យល់ពីគោលការណ៍ វិធីសាស្ត្រ ឬទ្រឹស្តីសំខាន់ៗ",
-      "**ចំណុចគន្លឹះទី៣៖** ឧទាហរណ៍ជាក់ស្តែង ឬការអនុវត្តក្នុងថ្នាក់រៀន",
-      "**ចំណុចគន្លឹះទី៤៖** សកម្មភាពសិស្ស ឬចំណុចកត់សម្គាល់សំខាន់"
+      "**០១. គំនិតគន្លឹះទី១៖** ការពន្យល់ខ្លីខ្លឹម ច្បាស់លាស់ និងទាក់ទាញ",
+      "**០២. គំនិតគន្លឹះទី២៖** ការពន្យល់ពីគោលការណ៍ ឬទ្រឹស្តីសំខាន់",
+      "**០៣. គំនិតគន្លឹះទី៣៖** ឧទាហរណ៍ជាក់ស្តែង ឬការអនុវត្តក្នុងថ្នាក់",
+      "**០៤. គំនិតគន្លឹះទី៤៖** សកម្មភាពសិស្ស ឬចំណុចកត់សម្គាល់"
     ],
     "speakerNotes": "ការណែនាំលម្អិតសម្រាប់គ្រូ៖ របៀបពន្យល់សិស្ស សំណួរបំផុសគំនិត និងការដឹកនាំសកម្មភាពក្នុងស្លាយនេះ",
     "imageSearchKeyword": "learning concept",
-    "imagePrompt": "Detailed English prompt for AI image generator depicting this slide concept, classroom education, high quality"
+    "imagePrompt": "Educational digital illustration depicting this slide concept, modern classroom, clean, warm palette"
   }
 ]
 
@@ -11005,21 +11003,57 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
     let pptx = new PptxGenJS();
     pptx.layout = 'LAYOUT_16x9';
 
-    // Theme definitions
-    let bg = 'FFFFFF', titleColor = '333333', bodyColor = '555555', accent = '0078D7';
+    // Theme definitions with curated 3-color palette & modern card styling
+    let bg = 'F8FAFC', titleColor = '0F172A', bodyColor = '334155', accentPrimary = '2563EB', accentSecondary = 'D97706', cardBg = 'FFFFFF', cardBorder = 'E2E8F0';
     if (theme === 'modern_blue') {
-      bg = 'F4F6F9'; titleColor = '003366'; bodyColor = '333333'; accent = '0055A4';
+      bg = 'F8FAFC'; titleColor = '1E3A8A'; bodyColor = '334155'; accentPrimary = '2563EB'; accentSecondary = 'D97706'; cardBg = 'FFFFFF'; cardBorder = 'E2E8F0';
     } else if (theme === 'eco_green') {
-      bg = 'F0FDF4'; titleColor = '14532D'; bodyColor = '166534'; accent = '15803D';
+      bg = 'F0FDF4'; titleColor = '14532D'; bodyColor = '1E293B'; accentPrimary = '059669'; accentSecondary = 'D97706'; cardBg = 'FFFFFF'; cardBorder = 'DCFCE7';
     } else if (theme === 'dark_mode') {
-      bg = '1E293B'; titleColor = 'F8FAFC'; bodyColor = 'CBD5E1'; accent = '38BDF8';
+      bg = '0F172A'; titleColor = 'F8FAFC'; bodyColor = 'CBD5E1'; accentPrimary = '38BDF8'; accentSecondary = 'F59E0B'; cardBg = '1E293B'; cardBorder = '334155';
+    } else if (theme === 'simple_light') {
+      bg = 'FFFFFF'; titleColor = '1E293B'; bodyColor = '475569'; accentPrimary = '4F46E5'; accentSecondary = 'EA580C'; cardBg = 'F8FAFC'; cardBorder = 'E2E8F0';
     }
 
     pptx.defineSlideMaster({
       title: 'MASTER_SLIDE',
       background: { color: bg },
-      slideNumber: { x: 0.3, y: '92%', color: bodyColor, fontSize: 10 }
+      slideNumber: { x: 0.3, y: '92%', color: bodyColor, fontSize: 10, fontFace: 'Kantumruy Pro' }
     });
+
+    // Helper: Parse bullet into { numberBadge, heading, desc }
+    const parseCardContent = (bulletStr, itemIdx) => {
+      let str = String(bulletStr || '').trim();
+      let badge = (itemIdx + 1 < 10) ? `០${itemIdx + 1}` : `${itemIdx + 1}`;
+      let heading = '';
+      let desc = '';
+
+      // Check for markdown bold lead-in: **Title:** Body
+      const boldMatch = str.match(/^\*\*(.*?)\*\*(.*)/);
+      if (boldMatch) {
+        heading = boldMatch[1].trim();
+        desc = boldMatch[2].trim().replace(/^[:：\-–\s]+/, '');
+      } else {
+        // Try colon separator
+        const colonParts = str.split(/[:：]/);
+        if (colonParts.length > 1) {
+          heading = colonParts[0].trim();
+          desc = colonParts.slice(1).join('៖').trim();
+        } else {
+          heading = str.substring(0, 32);
+          desc = str.length > 32 ? str.substring(32).trim() : '';
+        }
+      }
+
+      // Check if heading already contains a number, e.g. 01. or ០១.
+      const numMatch = heading.match(/^(?:០\d|\d\d?|[០-៩]{1,2})[\.\s\)]+/);
+      if (numMatch) {
+        badge = numMatch[0].replace(/[\.\s\)]+/g, '');
+        heading = heading.substring(numMatch[0].length).trim();
+      }
+
+      return { badge, heading, desc };
+    };
 
     // 🚀 High-Speed Sequential Image Fetching (Instant 100ms per slide, completely avoids rate-limits!)
     let slideImages = [];
@@ -11030,6 +11064,7 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
         slideImages.push(img);
       }
     }
+
     for (let idx = 0; idx < slidesData.length; idx++) {
       const slideDef = slidesData[idx];
       let slide = pptx.addSlide({ masterName: 'MASTER_SLIDE' });
@@ -11044,23 +11079,25 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
       const picObj = slideImages[idx] || null;
 
       if (slideDef.type === 'title') {
+        // Title Slide: Clean hero layout with Kantumruy Pro font and contrasting multi-color typography
         if (picObj && picObj.data) {
           slide.addImage({ x: 0, y: 0, w: 10, h: 5.625, data: picObj.data, sizing: { type: 'cover', w: 10, h: 5.625 } });
-          slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 10, h: 5.625, fill: { color: '000000', transparency: 50 } });
-          slide.addText(slideDef.title, { x: 0.8, y: 1.8, w: 8.4, h: 1.8, fontSize: 34, bold: true, color: 'FFFFFF', align: 'center', fontFace: 'Kantumruy Pro' });
-          slide.addText(slideDef.subtitle || '', { x: 1, y: 3.8, w: 8, h: 0.9, fontSize: 20, color: 'E2E8F0', align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 10, h: 5.625, fill: { color: '0A0F1D', transparency: 45 } });
+          slide.addText(slideDef.title, { x: 0.8, y: 1.6, w: 8.4, h: 1.8, fontSize: 32, bold: true, color: 'FFFFFF', align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addText(slideDef.subtitle || '', { x: 1, y: 3.5, w: 8, h: 0.9, fontSize: 18, color: 'FDBA74', align: 'center', fontFace: 'Kantumruy Pro', bold: true });
         } else {
-          slide.addText(slideDef.title, { x: 0.8, y: 1.8, w: 8.4, h: 1.8, fontSize: 36, bold: true, color: titleColor, align: 'center', fontFace: 'Kantumruy Pro' });
-          slide.addText(slideDef.subtitle || '', { x: 1, y: 3.8, w: 8, h: 0.9, fontSize: 22, color: bodyColor, align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addShape(pptx.ShapeType.roundRect, { x: 0.8, y: 0.8, w: 8.4, h: 4.0, rectRadius: 0.2, fill: { color: cardBg }, line: { color: cardBorder, width: 2 } });
+          slide.addText(slideDef.title, { x: 1.0, y: 1.5, w: 8.0, h: 1.6, fontSize: 32, bold: true, color: titleColor, align: 'center', fontFace: 'Kantumruy Pro' });
+          slide.addText(slideDef.subtitle || '', { x: 1.2, y: 3.2, w: 7.6, h: 0.9, fontSize: 18, color: accentSecondary, align: 'center', fontFace: 'Kantumruy Pro', bold: true });
         }
       } else {
-        // Content Slide
-        // Title: clean vertical room at top
+        // Content Slide: Modern Card / Pill Concept Layout (Like Gemini Canvas)
+        // 1. Header Topic Title (fontSize 22 >= 12, Kantumruy Pro, Primary Color)
         slide.addText(slideDef.title || 'ខ្លឹមសារមេរៀន', {
           x: 0.6,
           y: 0.35,
           w: 8.8,
-          h: 0.85,
+          h: 0.8,
           fontSize: 22,
           bold: true,
           color: titleColor,
@@ -11068,55 +11105,213 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
         });
 
         const rawBullets = Array.isArray(slideDef.bullets) ? slideDef.bullets : [String(slideDef.bullets || '')];
-        const cleanBullets = rawBullets
-          .map(b => String(b || '').replace(/\*\*/g, '').trim())
-          .filter(b => b.length > 0);
+        const parsedItems = rawBullets.slice(0, 5).map((b, i) => parseCardContent(b, i));
 
         if (picObj && picObj.data) {
-          // Left: Native clean PowerPoint bullet points with paragraph spacing (ZERO overlapping!)
-          slide.addText(
-            cleanBullets.map(b => ({
-              text: b,
-              options: { bullet: true, paraSpaceAfter: 8 }
-            })),
-            {
+          // Half layout: Left side cards (w: 4.8), Right side image (w: 4.0, h: 3.8)
+          const totalCards = Math.max(1, parsedItems.length);
+          const availH = 3.9;
+          const cardH = Math.min(1.15, Math.max(0.68, (availH - (totalCards - 1) * 0.12) / totalCards));
+          const cardGap = 0.12;
+          const startY = 1.25;
+
+          parsedItems.forEach((item, cIdx) => {
+            const cardY = startY + cIdx * (cardH + cardGap);
+
+            // Background card shape (soft pill with rounded corners)
+            slide.addShape(pptx.ShapeType.roundRect, {
               x: 0.6,
-              y: 1.35,
+              y: cardY,
               w: 4.8,
-              h: 3.8,
+              h: cardH,
+              rectRadius: 0.12,
+              fill: { color: cardBg },
+              line: { color: cardBorder, width: 1.5 }
+            });
+
+            // Color 1: Orange/Amber Number Badge Pill (e.g. ០១, ០២...)
+            slide.addText(item.badge, {
+              x: 0.72,
+              y: cardY + 0.05,
+              w: 0.65,
+              h: cardH - 0.1,
               fontSize: 14,
-              color: bodyColor,
-              align: 'left',
+              bold: true,
+              color: accentSecondary, // Color 1: Warm Amber / Orange (#D97706)
+              align: 'center',
+              valign: 'middle',
               fontFace: 'Kantumruy Pro'
+            });
+
+            // Card Text: Color 2 (Heading: Bold Primary) + Color 3 (Description: Slate/Muted)
+            // Strictly font size >= 12! (Heading 13pt bold, Desc 12pt)
+            let textRuns = [];
+            if (item.heading) {
+              textRuns.push({
+                text: item.heading + (item.desc ? ' ៖ ' : ''),
+                options: {
+                  fontSize: 13,
+                  bold: true,
+                  color: accentPrimary, // Color 2: Bold Indigo / Royal Blue (#2563EB)
+                  fontFace: 'Kantumruy Pro'
+                }
+              });
             }
-          );
-          // Right: AI Image
+            if (item.desc) {
+              textRuns.push({
+                text: item.desc,
+                options: {
+                  fontSize: 12, // User requirement: Font size 12 and larger!
+                  color: bodyColor, // Color 3: Slate Body (#334155)
+                  fontFace: 'Kantumruy Pro'
+                }
+              });
+            }
+
+            slide.addText(textRuns, {
+              x: 1.42,
+              y: cardY + 0.04,
+              w: 3.85,
+              h: cardH - 0.08,
+              align: 'left',
+              valign: 'middle',
+              paraSpaceAfter: 0
+            });
+          });
+
+          // Right side: AI Educational Image with rounded border frame
           slide.addImage({
-            x: 5.6,
-            y: 1.35,
-            w: 4.0,
-            h: 3.7,
+            x: 5.65,
+            y: 1.25,
+            w: 3.95,
+            h: 3.9,
             data: picObj.data,
-            sizing: { type: 'cover', w: 4.0, h: 3.7 }
+            sizing: { type: 'cover', w: 3.95, h: 3.9 }
+          });
+          slide.addShape(pptx.ShapeType.roundRect, {
+            x: 5.65,
+            y: 1.25,
+            w: 3.95,
+            h: 3.9,
+            rectRadius: 0.15,
+            fill: { type: 'none' },
+            line: { color: cardBorder, width: 2 }
           });
         } else {
-          // Full width bullets when no image
-          slide.addText(
-            cleanBullets.map(b => ({
-              text: b,
-              options: { bullet: true, paraSpaceAfter: 10 }
-            })),
-            {
-              x: 0.6,
-              y: 1.35,
-              w: 8.8,
-              h: 3.8,
-              fontSize: 16,
-              color: bodyColor,
-              align: 'left',
-              fontFace: 'Kantumruy Pro'
-            }
-          );
+          // Full-width cards (e.g. 2x2 grid or horizontal cards across 8.8 width)
+          const totalCards = Math.max(1, parsedItems.length);
+          if (totalCards === 4) {
+            // 2x2 Grid Layout (Like Gemini Canvas 2x2 grid in Screenshot 3!)
+            const colW = 4.25;
+            const rowH = 1.8;
+            const colGap = 0.3;
+            const rowGap = 0.25;
+            parsedItems.forEach((item, cIdx) => {
+              const col = cIdx % 2;
+              const row = Math.floor(cIdx / 2);
+              const cardX = 0.6 + col * (colW + colGap);
+              const cardY = 1.3 + row * (rowH + rowGap);
+
+              slide.addShape(pptx.ShapeType.roundRect, {
+                x: cardX,
+                y: cardY,
+                w: colW,
+                h: rowH,
+                rectRadius: 0.15,
+                fill: { color: cardBg },
+                line: { color: cardBorder, width: 1.5 }
+              });
+
+              slide.addText(item.badge, {
+                x: cardX + 0.15,
+                y: cardY + 0.15,
+                w: 0.7,
+                h: 0.4,
+                fontSize: 16,
+                bold: true,
+                color: accentSecondary,
+                align: 'center',
+                fontFace: 'Kantumruy Pro'
+              });
+
+              let gridRuns = [
+                {
+                  text: item.heading + '\n',
+                  options: { fontSize: 15, bold: true, color: accentPrimary, fontFace: 'Kantumruy Pro' }
+                }
+              ];
+              if (item.desc) {
+                gridRuns.push({
+                  text: item.desc,
+                  options: { fontSize: 13, color: bodyColor, fontFace: 'Kantumruy Pro' }
+                });
+              }
+
+              slide.addText(gridRuns, {
+                x: cardX + 0.2,
+                y: cardY + 0.55,
+                w: colW - 0.4,
+                h: rowH - 0.65,
+                align: 'left',
+                valign: 'top'
+              });
+            });
+          } else {
+            // Horizontal stacked wide cards
+            const availH = 3.9;
+            const cardH = Math.min(1.2, Math.max(0.72, (availH - (totalCards - 1) * 0.14) / totalCards));
+            const cardGap = 0.14;
+            const startY = 1.25;
+
+            parsedItems.forEach((item, cIdx) => {
+              const cardY = startY + cIdx * (cardH + cardGap);
+              slide.addShape(pptx.ShapeType.roundRect, {
+                x: 0.6,
+                y: cardY,
+                w: 8.8,
+                h: cardH,
+                rectRadius: 0.12,
+                fill: { color: cardBg },
+                line: { color: cardBorder, width: 1.5 }
+              });
+
+              slide.addText(item.badge, {
+                x: 0.8,
+                y: cardY + 0.05,
+                w: 0.75,
+                h: cardH - 0.1,
+                fontSize: 15,
+                bold: true,
+                color: accentSecondary,
+                align: 'center',
+                valign: 'middle',
+                fontFace: 'Kantumruy Pro'
+              });
+
+              let fullRuns = [];
+              if (item.heading) {
+                fullRuns.push({
+                  text: item.heading + (item.desc ? ' ៖ ' : ''),
+                  options: { fontSize: 14, bold: true, color: accentPrimary, fontFace: 'Kantumruy Pro' }
+                });
+              }
+              if (item.desc) {
+                fullRuns.push({
+                  text: item.desc,
+                  options: { fontSize: 13, color: bodyColor, fontFace: 'Kantumruy Pro' }
+                });
+              }
+
+              slide.addText(fullRuns, {
+                x: 1.6,
+                y: cardY + 0.05,
+                w: 7.6,
+                h: cardH - 0.1,
+                align: 'left',
+                valign: 'middle'
+              });
+            });
+          }
         }
       }
     }
