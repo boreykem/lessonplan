@@ -2471,15 +2471,32 @@ def vercel_entry_dispatch():
     return jsonify({"error": f"Endpoint /{v_clean} not found"}), 404
 
 
-if __name__ == "__main__":
-    @app.route("/<path:filename>", methods=["GET"])
-    def serve_static_files(filename):
-        resp = send_from_directory(".", filename)
-        resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
-        resp.headers["Pragma"] = "no-cache"
-        resp.headers["Expires"] = "0"
-        return resp
+@app.route("/", methods=["GET"])
+def serve_root():
+    target_dir = "public" if os.path.exists("public/index.html") else "."
+    resp = send_from_directory(target_dir, "index.html")
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
+
+@app.route("/<path:filename>", methods=["GET"])
+def serve_static_files(filename):
+    if os.path.exists(os.path.join("public", filename)):
+        resp = send_from_directory("public", filename)
+    elif os.path.exists(filename):
+        resp = send_from_directory(".", filename)
+    else:
+        target_dir = "public" if os.path.exists("public/index.html") else "."
+        resp = send_from_directory(target_dir, "index.html")
+    resp.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
+
+
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8765))
     print(f"🚀 AI Lesson Plan Studio running on http://127.0.0.1:{port}")
     
@@ -2494,4 +2511,4 @@ if __name__ == "__main__":
             pass
 
     threading.Thread(target=_open_ui, daemon=True).start()
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(host="0.0.0.0", port=port, debug=False, threaded=True)
