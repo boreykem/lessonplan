@@ -7337,24 +7337,27 @@ async function autoOpenNotebookLMWithPrompt() {
   const title = data.lessonTitle || 'មេរៀន';
   const subject = data.subject || '';
   const grade = data.grade || '';
-  const prompt = `Focus on explaining the lesson "${title}" for ${subject} ${grade}.
-Please ensure the ENTIRE VIDEO NARRATION and ON-SCREEN TEXT are in KHMER LANGUAGE (ភាសាខ្មែរ).
-Video Style: Explainer.
-Duration: 6 to 10 minutes.
-Content:
-1. Hook & Introduction to the core concept.
-2. Deep dive into formulas, rules, or main theories.
-3. Real-world applications and examples relevant to Cambodia.
-4. Summary and a short quiz challenge for the students.
-Please align the explanation strictly with the uploaded lesson plan documents.
-Output MUST be spoken and written in KHMER ONLY!`;
+  
+  // Ultra-strict multilingual prompt for NotebookLM Video Overview:
+  // Note: NotebookLM will use English if prompted in English, so the prompt itself MUST be written
+  // in 100% formal Khmer, commanding the Video Overview to write and speak 100% Khmer Unicode!
+  const prompt = `សូមផលិតវីដេអូពន្យល់មេរៀន (Explainer Video Overview) រយៈពេល ៦ ទៅ ១០ នាទី សម្រាប់មេរៀន «${title}» មុខវិជ្ជា ${subject} ${grade}។
+
+⚠️ លក្ខខណ្ឌចាំបាច់បំផុត (CRITICAL INSTRUCTIONS):
+១. ភាសានិយាយ និងអក្សរលើស្លាយ (Language): ទាំងសំឡេងអត្ថាធិប្បាយ (Narration) និងអក្សរបង្ហាញលើស្លាយវីដេអូ (On-Screen Text / Slides) ត្រូវតែជា «ភាសាខ្មែរ ១០០%» (Khmer Language Only)។ ដាច់ខាតកុំប្រើប្រាស់ភាសាអង់គ្លេសលើស្លាយ ឬក្នុងសំឡេងនិយាយ!
+២. ខ្លឹមសារវីដេអូ (Video Content):
+   - ឈុតទី១ (អារម្ភកថា & ចំណុចចាប់អារម្មណ៍): បង្ហាញពីសារៈសំខាន់នៃមេរៀនក្នុងជីវភាពរស់នៅជាក់ស្តែង
+   - ឈុតទី២ (ទ្រឹស្តី និងគោលការណ៍គន្លឹះ): ពន្យល់និយមន័យ ក្បួនច្បាប់ រូបមន្ត ឬទ្រឹស្តីស្នូលជាភាសាខ្មែរច្បាស់ៗ
+   - ឈុតទី៣ (ឧទាហរណ៍ជាក់ស្តែង): លើកឧទាហរណ៍ក្នុងបរិបទសង្គម និងការអប់រំនៅកម្ពុជា
+   - ឈុតទី៤ (សង្ខេប & សំណួរត្រិះរិះ): សង្ខេបខ្លឹមសារសំខាន់ និងដាក់សំណួរពិភាក្សាសម្រាប់សិស្ស
+៣. រចនាបថ (Style): Explainer Video, រូបភាពគំនូរជីវចល ឬដ្យាក្រាមច្បាស់ៗ អមដោយអក្សររត់ភាសាខ្មែរងាយស្រួលអាន។`;
 
   try {
     await navigator.clipboard.writeText(prompt);
   } catch (e) {}
 
   window.open('https://notebook.google.com/notebook/104a40ae-6850-4e52-b0cf-e66a5deee7bd', '_blank');
-  showToast('🚀 បានបើក Google NotebookLM និងចម្លង Video Prompt (Font: Kantumruy Pro) ចូល Clipboard! សូមចុច Ctrl+V (Paste)។', 'success');
+  showToast('🚀 បានបើក Google NotebookLM និងចម្លង Prompt ជាភាសាខ្មែរ ១០០% ចូល Clipboard! សូមចុច Ctrl+V (Paste) ក្នុងប្រអប់ Customize។', 'success');
 }
 
 function downloadNotebookLMSourceFile() {
