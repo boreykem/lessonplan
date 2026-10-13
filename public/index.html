@@ -1568,11 +1568,16 @@
           </select>
         </div>
       </div>
-      <div class="modal-footer" style="justify-content: flex-end; background: #fff1f2; padding: 14px 20px; border-top: 1px solid #ffe4e6; display: flex; gap: 10px;">
-        <button class="btn-secondary" onclick="closePptxModal()" style="border-color: #fda4af; color: #e11d48;" data-i18n="modalPptxBtnCancel">បោះបង់</button>
-        <button class="btn-primary" onclick="generatePptxSlides()" style="background: #e11d48; border: none; padding: 9px 18px; font-weight: 600; border-radius: 8px; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="modalPptxBtnGenerate">បង្កើតស្លាយឥឡូវនេះ</span>
+      <div class="modal-footer" style="justify-content: space-between; background: #fff1f2; padding: 14px 20px; border-top: 1px solid #ffe4e6; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <button type="button" class="btn-tool-action" onclick="copyGeminiSlidePrompt()" style="background: #ffffff; color: #1e40af; border: 1px solid #93c5fd; padding: 8px 12px; font-size: 8.8pt; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 600;" title="ចម្លង Master Prompt សម្រាប់យកទៅប្រើដោយផ្ទាល់ក្នុង gemini.google.com">
+          <i class="fa-brands fa-google" style="color: #2563eb;"></i> <span>ចម្លង Prompt ទៅប្រើក្នុង Gemini Web</span>
         </button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn-secondary" onclick="closePptxModal()" style="border-color: #fda4af; color: #e11d48;" data-i18n="modalPptxBtnCancel">បោះបង់</button>
+          <button class="btn-primary" onclick="generatePptxSlides()" style="background: #e11d48; border: none; padding: 9px 18px; font-weight: 600; border-radius: 8px; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="modalPptxBtnGenerate">បង្កើតស្លាយឥឡូវនេះ</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>

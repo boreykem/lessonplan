@@ -10347,6 +10347,67 @@ window.handlePptxSourceChanged = function(val) {
   refreshPptxSourceAlert();
 };
 
+window.copyGeminiSlidePrompt = async function() {
+  const sourceChoice = document.getElementById('pptxSourceSelect')?.value || 'current_plan';
+  let title = (document.getElementById('lessonTitleInput')?.value || '').trim();
+  let subject = (document.getElementById('subjectSelect')?.value || 'ទូទៅ').trim();
+  let grade = (document.getElementById('gradeSelect')?.value || 'ទូទៅ').trim();
+  let sourceText = '';
+
+  if (sourceChoice === 'custom_file' && state.pptxCustomSource) {
+    sourceText = state.pptxCustomSource.content;
+    title = state.pptxCustomSource.fileName.replace(/\.[^/.]+$/, "");
+  } else if (sourceChoice === 'uploaded_lesson_file' && state.lessonContent) {
+    sourceText = state.lessonContent;
+    if (state.lessonFileName) title = state.lessonFileName.replace(/\.[^/.]+$/, "");
+  } else if (sourceChoice === 'history_plan') {
+    try {
+      const history = JSON.parse(localStorage.getItem('alps_plan_history') || '[]');
+      if (history.length > 0 && history[0].planData) {
+        sourceText = history[0].planData.sourceDocumentText || JSON.stringify(history[0].planData);
+        title = history[0].title || title;
+      }
+    } catch (_) {}
+  } else if (state.currentPlan?.sourceDocumentText) {
+    sourceText = state.currentPlan.sourceDocumentText;
+    if (state.currentPlan.lessonTitle) title = state.currentPlan.lessonTitle;
+  } else if (state.currentPlan) {
+    sourceText = JSON.stringify(state.currentPlan, null, 2);
+    if (state.currentPlan.lessonTitle) title = state.currentPlan.lessonTitle;
+  }
+
+  const numSlides = parseInt(document.getElementById('pptxNumSlides')?.value || '15');
+
+  const webPrompt = `អ្នកគឺជាអ្នកជំនាញគរុកោសល្យ និងរចនាស្លាយបទបង្ហាញ PowerPoint កម្រិតខ្ពស់សម្រាប់ក្រសួងអប់រំ យុវជន និងកីឡា (MoEYS)។
+សូមជួយរៀបចំខ្លឹមសារស្លាយបទបង្ហាញ PowerPoint (Slide Presentation Outline) ចំនួន ${numSlides} ស្លាយ (ស្លាយទី១ ដល់ ស្លាយទី ${numSlides}) យ៉ាងពិស្តារ និងលម្អិតបំផុតសម្រាប់មេរៀនខាងក្រោម៖
+
+📌 ព័ត៌មានមេរៀន៖
+- ចំណងជើងមេរៀន៖ ${title || 'មេរៀនអប់រំ'}
+- មុខវិជ្ជា៖ ${subject}
+- កម្រិតថ្នាក់៖ ${grade}
+- ចំនួនស្លាយដែលត្រូវបង្កើត៖ ${numSlides} ស្លាយ (រួមទាំងស្លាយចំណងជើង)
+
+🎯 សំណើ និងទម្រង់សម្រាប់ស្លាយនីមួយៗ (ស្លាយទី១ ដល់ ស្លាយទី ${numSlides})៖
+១. ចំណងជើងស្លាយ (Slide Title)៖ ខ្លី ខ្លឹម ច្បាស់លាស់ និងទាក់ទាញអារម្មណ៍
+២. ចំណុចសំខាន់ៗនៃស្លាយ (Key Points / Cards)៖ មាន ៣ ទៅ ៤ ចំណុច ដោយមានក្បាលចំណុចដិត (Bold Heading) ស្របតាមប្រធានបទជាក់ស្តែង និងការពន្យល់ស៊ីជម្រៅ ងាយយល់
+៣. សកម្មភាពសិស្ស ឬសំណួរបំផុសគំនិត (Classroom Discussion / Activity)៖ សំណួរគន្លឹះដើម្បីសួរសិស្ស ឬសកម្មភាពពិភាក្សាជាក្រុម
+៤. ការណែនាំសម្រាប់គ្រូបង្រៀន (Speaker Notes)៖ ការណែនាំគរុកោសល្យ ២-៤ ឃ្លា របៀបបង្រៀនស្លាយនេះឱ្យមានប្រសិទ្ធភាព
+៥. សំណើរូបភាព/ដ្យាក្រាម (Visual / Image Suggestion)៖ សំណើរូបភាពគំនូរ ឬដ្យាក្រាមអប់រំ
+
+${sourceText ? `\n📚 ឯកសារយោងមេរៀនដើម (Source Document):\n` + sourceText.substring(0, 35000) + `\n` : ''}
+
+សូមសរសេរខ្លឹមសារទាំងអស់ជាភាសាខ្មែរផ្លូវការ ១០០% ត្រឹមត្រូវតាមក្បួនវេយ្យាករណ៍ និងរៀបរៀងតាមលំដាប់លំដោយគរុកោសល្យ MoEYS យ៉ាងរស់រវើក!`;
+
+  try {
+    await navigator.clipboard.writeText(webPrompt);
+    showToast(`📋 បានចម្លង Master Prompt សម្រាប់ Gemini Web រួចរាល់ (${numSlides} ស្លាយ)! កំពុងបើក gemini.google.com...`, 'success', 6000);
+    window.open('https://gemini.google.com', '_blank');
+  } catch (err) {
+    console.warn('Clipboard copy error:', err);
+    window.prompt('សូមចម្លង Master Prompt ខាងក្រោមនេះយកទៅ Paste ក្នុង gemini.google.com:', webPrompt);
+  }
+};
+
 function extractAndParseSlidesJson(text) {
   if (!text) return null;
   let clean = text.trim();
@@ -10801,13 +10862,13 @@ Number of slides requested (including Title slide): ${numSlides}
 STRICT CRITICAL RULES:
 1. Output MUST be ONLY a raw valid JSON array of objects. Do NOT include markdown code blocks (\`\`\`json) or any conversational text. Output ONLY the raw JSON array.
 2. Language: All titles, subtitles, bullet points, cards, and speaker notes MUST be in 100% natural, grammatically rich, formal educational Khmer. "imagePrompt" and "imageSearchKeyword" MUST be in English.
-3. MODERN EDUCATIONAL CARD / PILL CONCEPT DESIGN (Like Gemini Canvas Cards):
-   - Synthesize the material comprehensively across all ${numSlides} slides.
+3. HIGH-QUALITY DIVERSE EDUCATIONAL CARDS (Pedagogical Excellence):
+   - Thoroughly synthesize the material and logically distribute key topics across all ${numSlides} slides.
    - Slide 1: "type": "title" (Main lesson title, subject/grade subtitle, introductory teacher notes).
-   - Subsequent slides: "type": "content". Each slide must present a clear focal topic with 3 to 4 bite-sized, high-impact key concept points or cards.
-   - For every bullet point or card, ALWAYS use the format: "**ចំណុចគន្លឹះ/ពាក្យគន្លឹះ៖** ការពន្យល់សង្ខេបច្បាស់លាស់ ខ្លីល្មម ងាយយល់".
-   - DO NOT prefix bullets with static repetitive numbers like "០១.", "០២.", "០៣.", "០៤." on every single slide! Only use numbered steps if the slide is specifically describing a sequential process/stages (e.g. ជំហានទី១, ដំណាក់កាលទី២). Otherwise, use direct concept headings (e.g. "**ទស្សនទានស្នូល៖** ...", "**គោលការណ៍គរុកោសល្យ៖** ...", "**ការអនុវត្តជាក់ស្តែង៖** ...").
-   - ABSOLUTELY NEVER dump massive unreadable text walls. Keep concepts punchy, memorable, and visually structured.
+   - Subsequent slides: "type": "content". Each slide must present a clear, focused subtopic with 3 to 4 bite-sized, high-impact key concept points or cards.
+   - For every card/bullet point, use meaningful and contextual bold headings tailored specifically to that topic (for example, subject definitions, formulas, theories, historical events, classroom experiments, or discussion questions).
+   - DO NOT repeat the exact same placeholder headings across slides! Never use robotic 01-04 numbers unless describing real chronological steps.
+   - Keep concepts punchy, memorable, and visually structured.
 4. DETAILED SPEAKER NOTES:
    - Provide 2 to 4 sentences of rich teaching advice in Khmer per slide, explaining what the teacher should elaborate, questions to ask students, and activities.
 5. AI IMAGE PROMPT ("imagePrompt"):
@@ -10827,10 +10888,9 @@ JSON Schema:
     "type": "content",
     "title": "ចំណងជើងរងនៃស្លាយ (Short Impactful Title)",
     "bullets": [
-      "**ទស្សនទានស្នូល៖** ការពន្យល់ខ្លីខ្លឹម ច្បាស់លាស់ និងទាក់ទាញ",
-      "**គោលការណ៍គរុកោសល្យ៖** ការពន្យល់ពីទ្រឹស្តី ឬក្បួនច្បាប់សំខាន់",
-      "**ការអនុវត្តជាក់ស្តែង៖** ឧទាហរណ៍ជាក់ស្តែងក្នុងថ្នាក់រៀន",
-      "**សកម្មភាពសិស្ស៖** សកម្មភាពពិភាក្សា ឬចំណុចកត់សម្គាល់"
+      "**ទ្រឹស្តីសិក្សា៖** ការពន្យល់ពីគោលគំនិតចម្បងដោយខ្លីខ្លឹម និងច្បាស់លាស់",
+      "**ការអនុវត្តជាក់ស្តែង៖** ឧទាហរណ៍ជាក់ស្តែងនៅក្នុងថ្នាក់រៀន",
+      "**សំណួរបំផុសគំនិត៖** សំណួរជំរុញសិស្សឱ្យគិតពិចារណាស៊ីជម្រៅ"
     ],
     "speakerNotes": "ការណែនាំលម្អិតសម្រាប់គ្រូ៖ របៀបពន្យល់សិស្ស សំណួរបំផុសគំនិត និងការដឹកនាំសកម្មភាពក្នុងស្លាយនេះ",
     "imageSearchKeyword": "learning concept",
@@ -10943,7 +11003,7 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
               body: JSON.stringify({
                 contents: [{ role: 'user', parts: [{ text: prompt }] }],
                 generationConfig: {
-                  temperature: 0.3,
+                  temperature: 0.65,
                   response_mime_type: 'application/json'
                 }
               })
