@@ -8583,7 +8583,7 @@ async function checkLicenseStatus() {
 // ==========================================
 // 🔄 CLOUD AUTO-UPDATER SYSTEM
 // ==========================================
-const CURRENT_APP_VERSION = '2.5.1';
+const CURRENT_APP_VERSION = '2.6.0';
 
 function openUpdateModal() {
   const modal = document.getElementById('updateModal');
