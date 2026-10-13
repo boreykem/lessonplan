@@ -10409,6 +10409,30 @@ window.generateGeminiSlidePrompt = function() {
   };
   const themeName = themeMap[theme] || 'Modern Blue';
 
+  const curatedImageBank = [
+    'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=900&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=900&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=900&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=900&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=900&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=900&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=900&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=900&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=900&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=900&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=900&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=900&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1491841573634-28140fc7ced7?w=900&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=900&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=900&auto=format&fit=crop'
+  ];
+
+  let exactSlideImagesText = '';
+  for (let i = 1; i <= numSlides; i++) {
+    const imgUrl = curatedImageBank[(i - 1) % curatedImageBank.length];
+    exactSlideImagesText += `- ស្លាយទី ${i}៖ ${imgUrl}\n`;
+  }
+
   const webPrompt = `អ្នកគឺជាអ្នកជំនាញគរុកោសល្យ និងរចនាស្លាយបទបង្ហាញ PowerPoint កម្រិតខ្ពស់សម្រាប់ក្រសួងអប់រំ យុវជន និងកីឡា (MoEYS)។
 សូមជួយរៀបចំខ្លឹមសារស្លាយបទបង្ហាញ PowerPoint (Slide Presentation Outline) ចំនួន ${numSlides} ស្លាយ (ស្លាយទី១ ដល់ ស្លាយទី ${numSlides}) យ៉ាងពិស្តារ លម្អិត និងស្រស់ស្អាតបំផុតសម្រាប់មេរៀនខាងក្រោម៖
 
@@ -10424,19 +10448,15 @@ window.generateGeminiSlidePrompt = function() {
 🚨 លក្ខខណ្ឌចាំបាច់ពិសេស (STRICT MANDATORY RULES):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-១. 🖼️ រូបភាព AI / អប់រំពិតប្រាកដសម្រាប់គ្រប់ស្លាយទាំងអស់ (Real AI / Educational Image for EVERY Slide):
-   - គ្រប់ស្លាយទាំងអស់ (ចាប់ពីស្លាយទី ១ ដល់ ស្លាយទី ${numSlides}) ត្រូវតែមានរូបភាពពិតប្រាកដដែលស៊ីមេទ្រី ស្រស់ស្អាត ទាក់ទាញ និងស៊ីគ្នា ១០០% ជាមួយខ្លឹមសារស្លាយនោះ។
-   - 🚫 បម្រាមដាច់ខាត (STRICTLY FORBIDDEN):
-     ហាមប្រើប្រាស់រូបភាពប្រផេះ (DO NOT use placehold.co, via.placeholder, 600x400 ឬរូបប្រអប់ទទេ) ជាដាច់ខាត! ប្រសិនបើមានស្លាយណាបង្ហាញ 600x400 ចាត់ទុកថាការបង្កើតស្លាយនោះមិនត្រឹមត្រូវ!
-   - សម្រាប់កម្មវិធីស្លាយ Canvas (Interactive HTML/CSS Slide Deck)៖
-     គ្រប់ Tag <img> ត្រូវតែកំណត់ src ទៅកាន់ Pollinations AI ដោយមាន Keyword ជាភាសាអង់គ្លេសស៊ីគ្នាជាមួយប្រធានបទស្លាយនោះ៖
-     src="https://image.pollinations.ai/prompt/[English_Topic_Prompt_Without_Spaces]?width=800&height=500&nologo=true"
-     ឧទាហរណ៍ជាក់ស្តែង៖
-     + ស្លាយបង្រៀនគ្រូ៖ <img src="https://image.pollinations.ai/prompt/cambodian_teacher_teaching_highschool_students?width=800&height=500&nologo=true" style="width:100%; height:320px; object-fit:cover; border-radius:12px;" alt="Teacher Illustration">
-     + ស្លាយសិស្សពិភាក្សា៖ <img src="https://image.pollinations.ai/prompt/students_active_learning_classroom_discussion?width=800&height=500&nologo=true" style="width:100%; height:320px; object-fit:cover; border-radius:12px;" alt="Students Discussion">
-     + ស្លាយសកម្មភាពវិជ្ជាជីវៈ៖ <img src="https://image.pollinations.ai/prompt/professional_educator_training_workshop_development?width=800&height=500&nologo=true" style="width:100%; height:320px; object-fit:cover; border-radius:12px;" alt="Professional Development">
-   - សម្រាប់អត្ថបទ Markdown៖
-     ![រូបភាពអប់រំ AI ស៊ីមេទ្រី](https://image.pollinations.ai/prompt/{English_Topic_Prompt}?width=1200&height=675&nologo=true)
+១. 🖼️ រូបភាពអប់រំពិតប្រាកដសម្រាប់គ្រប់ស្លាយទាំងអស់ (Real Educational Photography - ZERO PLACEHOLDERS):
+   - គ្រប់ស្លាយទាំងអស់ (ចាប់ពីស្លាយទី ១ ដល់ ស្លាយទី ${numSlides}) ត្រូវតែមានរូបភាពអប់រំពិតប្រាកដ ១០០% ស្រស់ស្អាត ទាក់ទាញ។
+   - 🚫 បម្រាមដាច់ខាត៖ ហាមប្រើប្រាស់រូបភាពប្រផេះ (DO NOT use placehold.co, via.placeholder, 600x400 ឬប្រអប់ទទេ) ជាដាច់ខាត!
+   - 📸 បញ្ជី URL រូបភាពជាក់ស្តែងដែលអ្នកត្រូវតែយកទៅដាក់ក្នុងស្លាយនីមួយៗ (MANDATORY EXACT PHOTO URLS):
+${exactSlideImagesText}
+   - ក្នុងកូដ HTML នៃ Canvas Slide Deck គ្រប់ Tag <img> ត្រូវតែកំណត់ src តាមបញ្ជីខាងលើ៖
+     <img src="[URL_តាមលេខស្លាយខាងលើ]" style="width: 100%; height: 320px; object-fit: cover; border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.12);" alt="Educational Photography">
+   - ប្រសិនបើរៀបចំជា Markdown Outline ត្រូវសរសេរ៖
+     ![រូបភាពអប់រំ]([URL_តាមលេខស្លាយខាងលើ])
 
 ២. ✍️ ទំហំ Font និងក្បួនរចនាអក្សរខ្មែរឱ្យធំស្អាតទាក់ទាញ (Typography Hierarchy & Large Font Sizes):
    - ប្រើប្រាស់ពុម្ពអក្សរខ្មែរស្រស់ស្អាតសមរម្យតាមបរិបទ (Kantumruy Pro, Moul Light សម្រាប់ចំណងជើង)។
