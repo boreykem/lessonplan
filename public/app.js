@@ -10805,7 +10805,8 @@ STRICT CRITICAL RULES:
    - Synthesize the material comprehensively across all ${numSlides} slides.
    - Slide 1: "type": "title" (Main lesson title, subject/grade subtitle, introductory teacher notes).
    - Subsequent slides: "type": "content". Each slide must present a clear focal topic with 3 to 4 bite-sized, high-impact key concept points or cards.
-   - For every bullet point or card, ALWAYS use the format: "**ចំណុចគន្លឹះ/ពាក្យគន្លឹះ៖** ការពន្យល់សង្ខេបច្បាស់លាស់ ខ្លីល្មម ងាយយល់". The bold lead-in represents the key highlight or heading, while the explanation represents the descriptive takeaway.
+   - For every bullet point or card, ALWAYS use the format: "**ចំណុចគន្លឹះ/ពាក្យគន្លឹះ៖** ការពន្យល់សង្ខេបច្បាស់លាស់ ខ្លីល្មម ងាយយល់".
+   - DO NOT prefix bullets with static repetitive numbers like "០១.", "០២.", "០៣.", "០៤." on every single slide! Only use numbered steps if the slide is specifically describing a sequential process/stages (e.g. ជំហានទី១, ដំណាក់កាលទី២). Otherwise, use direct concept headings (e.g. "**ទស្សនទានស្នូល៖** ...", "**គោលការណ៍គរុកោសល្យ៖** ...", "**ការអនុវត្តជាក់ស្តែង៖** ...").
    - ABSOLUTELY NEVER dump massive unreadable text walls. Keep concepts punchy, memorable, and visually structured.
 4. DETAILED SPEAKER NOTES:
    - Provide 2 to 4 sentences of rich teaching advice in Khmer per slide, explaining what the teacher should elaborate, questions to ask students, and activities.
@@ -10826,10 +10827,10 @@ JSON Schema:
     "type": "content",
     "title": "ចំណងជើងរងនៃស្លាយ (Short Impactful Title)",
     "bullets": [
-      "**០១. គំនិតគន្លឹះទី១៖** ការពន្យល់ខ្លីខ្លឹម ច្បាស់លាស់ និងទាក់ទាញ",
-      "**០២. គំនិតគន្លឹះទី២៖** ការពន្យល់ពីគោលការណ៍ ឬទ្រឹស្តីសំខាន់",
-      "**០៣. គំនិតគន្លឹះទី៣៖** ឧទាហរណ៍ជាក់ស្តែង ឬការអនុវត្តក្នុងថ្នាក់",
-      "**០៤. គំនិតគន្លឹះទី៤៖** សកម្មភាពសិស្ស ឬចំណុចកត់សម្គាល់"
+      "**ទស្សនទានស្នូល៖** ការពន្យល់ខ្លីខ្លឹម ច្បាស់លាស់ និងទាក់ទាញ",
+      "**គោលការណ៍គរុកោសល្យ៖** ការពន្យល់ពីទ្រឹស្តី ឬក្បួនច្បាប់សំខាន់",
+      "**ការអនុវត្តជាក់ស្តែង៖** ឧទាហរណ៍ជាក់ស្តែងក្នុងថ្នាក់រៀន",
+      "**សកម្មភាពសិស្ស៖** សកម្មភាពពិភាក្សា ឬចំណុចកត់សម្គាល់"
     ],
     "speakerNotes": "ការណែនាំលម្អិតសម្រាប់គ្រូ៖ របៀបពន្យល់សិស្ស សំណួរបំផុសគំនិត និងការដឹកនាំសកម្មភាពក្នុងស្លាយនេះ",
     "imageSearchKeyword": "learning concept",
@@ -11024,38 +11025,49 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
       slideNumber: { x: 0.3, y: '92%', color: bodyColor, fontSize: 10, fontFace: 'Kantumruy Pro' }
     });
 
-    // Helper: Parse bullet into { numberBadge, heading, desc }
+    // Dynamic icon bullet pool for conceptual cards (no robotic 01-04 on every slide!)
+    const bulletIcons = ['✦', '◆', '●', '★', '►', '❖'];
+
+    // Helper: Parse bullet into { isNumbered, badge, heading, desc }
     const parseCardContent = (bulletStr, itemIdx) => {
       let str = String(bulletStr || '').trim();
-      let badge = (itemIdx + 1 < 10) ? `០${itemIdx + 1}` : `${itemIdx + 1}`;
       let heading = '';
       let desc = '';
+      let badge = '';
+      let isNumbered = false;
 
-      // Check for markdown bold lead-in: **Title:** Body
+      // 1. Extract bold lead-in: **Heading:** Body
       const boldMatch = str.match(/^\*\*(.*?)\*\*(.*)/);
       if (boldMatch) {
         heading = boldMatch[1].trim();
         desc = boldMatch[2].trim().replace(/^[:：\-–\s]+/, '');
       } else {
-        // Try colon separator
         const colonParts = str.split(/[:：]/);
         if (colonParts.length > 1) {
           heading = colonParts[0].trim();
           desc = colonParts.slice(1).join('៖').trim();
         } else {
-          heading = str.substring(0, 32);
-          desc = str.length > 32 ? str.substring(32).trim() : '';
+          heading = str.substring(0, 36);
+          desc = str.length > 36 ? str.substring(36).trim() : '';
         }
       }
 
-      // Check if heading already contains a number, e.g. 01. or ០១.
-      const numMatch = heading.match(/^(?:០\d|\d\d?|[០-៩]{1,2})[\.\s\)]+/);
-      if (numMatch) {
-        badge = numMatch[0].replace(/[\.\s\)]+/g, '');
-        heading = heading.substring(numMatch[0].length).trim();
+      // 2. Clean trailing colons from heading to avoid double colons "៖ ៖"
+      heading = heading.replace(/[:：\s]+$/, '').trim();
+
+      // 3. Detect if bullet explicitly mentions a step, stage, or number
+      const stepMatch = heading.match(/^(?:ជំហានទី|ដំណាក់កាលទី|ចំណុចទី|គន្លឹះទី)?\s*([០-៩\d]{1,2})[\.\s\:\)៖\-]*/);
+      if (stepMatch && (heading.includes('ជំហាន') || heading.includes('ដំណាក់កាល') || heading.includes('ចំណុចទី'))) {
+        isNumbered = true;
+        badge = stepMatch[1];
+        heading = heading.replace(stepMatch[0], '').trim();
+      } else {
+        // Conceptual card: Use dynamic aesthetic symbol icon
+        isNumbered = false;
+        badge = bulletIcons[itemIdx % bulletIcons.length];
       }
 
-      return { badge, heading, desc };
+      return { isNumbered, badge, heading, desc };
     };
 
     // 🚀 High-Speed Sequential Image Fetching (Instant 100ms per slide, completely avoids rate-limits!)
@@ -11132,13 +11144,13 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
               line: { color: cardBorder, width: 1.5 }
             });
 
-            // Color 1: Orange/Amber Number Badge Pill (e.g. ០១, ០២...)
+            // Accent Pill / Icon (Amber/Orange accent, dynamic icon or step number)
             slide.addText(item.badge, {
               x: 0.72,
               y: cardY + 0.05,
-              w: 0.65,
+              w: 0.55,
               h: cardH - 0.1,
-              fontSize: 14,
+              fontSize: item.isNumbered ? 15 : 16,
               bold: true,
               color: accentSecondary, // Color 1: Warm Amber / Orange (#D97706)
               align: 'center',
@@ -11172,9 +11184,9 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
             }
 
             slide.addText(textRuns, {
-              x: 1.42,
+              x: 1.32,
               y: cardY + 0.04,
-              w: 3.85,
+              w: 3.95,
               h: cardH - 0.08,
               align: 'left',
               valign: 'middle',
@@ -11204,7 +11216,7 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
           // Full-width cards (e.g. 2x2 grid or horizontal cards across 8.8 width)
           const totalCards = Math.max(1, parsedItems.length);
           if (totalCards === 4) {
-            // 2x2 Grid Layout (Like Gemini Canvas 2x2 grid in Screenshot 3!)
+            // 2x2 Grid Layout
             const colW = 4.25;
             const rowH = 1.8;
             const colGap = 0.3;
@@ -11228,9 +11240,9 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
               slide.addText(item.badge, {
                 x: cardX + 0.15,
                 y: cardY + 0.15,
-                w: 0.7,
+                w: 0.6,
                 h: 0.4,
-                fontSize: 16,
+                fontSize: item.isNumbered ? 16 : 18,
                 bold: true,
                 color: accentSecondary,
                 align: 'center',
@@ -11281,9 +11293,9 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
               slide.addText(item.badge, {
                 x: 0.8,
                 y: cardY + 0.05,
-                w: 0.75,
+                w: 0.6,
                 h: cardH - 0.1,
-                fontSize: 15,
+                fontSize: item.isNumbered ? 15 : 18,
                 bold: true,
                 color: accentSecondary,
                 align: 'center',
@@ -11306,9 +11318,9 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
               }
 
               slide.addText(fullRuns, {
-                x: 1.6,
+                x: 1.5,
                 y: cardY + 0.05,
-                w: 7.6,
+                w: 7.7,
                 h: cardH - 0.1,
                 align: 'left',
                 valign: 'middle'
