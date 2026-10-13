@@ -606,8 +606,8 @@ const I18N_DICTIONARY = {
     modalHistoryRecentList: "បញ្ជីកិច្ចតែងការចុងក្រោយ (រក្សាទុកក្នុងកុំព្យូទ័រនេះ)",
     modalHistoryClearAll: "លុបប្រវត្តិទាំងអស់",
 
-    modalPptxTitle: "បង្កើតស្លាយ PowerPoint (AI Generator)",
-    modalPptxDesc: "ប្រព័ន្ធ AI នឹងអានកិច្ចតែងការ ឬឯកសារយោង រួចសង្ខេបនិងរៀបចំជាស្លាយ PowerPoint (.pptx) ស្វ័យប្រវត្តិតាមស្តង់ដារ MoEYS។",
+    modalPptxTitle: "បង្កើតស្លាយ PowerPoint (Gemini AI Studio)",
+    modalPptxDesc: "ប្រព័ន្ធនឹងអានកិច្ចតែងការ ឬឯកសារយោង រួចរៀបចំ Master Prompt កម្រិតខ្ពស់សម្រាប់យកទៅបង្កើតស្លាយក្នុង Google Gemini (Web) ខាងក្រៅដោយស្វ័យប្រវត្តិ។",
     modalPptxSourceLabel: "ជ្រើសរើសឯកសារយោង (Source / Attachment):",
     modalPptxBtnUpload: "បង្ហោះឯកសារថ្មី",
     modalPptxNumSlidesLabel: "ចំនួនស្លាយ (Number of Slides):",
@@ -615,7 +615,7 @@ const I18N_DICTIONARY = {
     modalPptxImagesHint: 'ជម្រើស "បង្កើតរូបភាពដោយ AI" នឹងបង្កើតរូបគំនូរអប់រំ និងដ្យាក្រាមស្របតាមខ្លឹមសារស្លាយនីមួយៗដោយស្វ័យប្រវត្តិ។',
     modalPptxThemeLabel: "រចនាបទពណ៌ (Theme Color):",
     modalPptxBtnCancel: "បោះបង់",
-    modalPptxBtnGenerate: "បង្កើតស្លាយឥឡូវនេះ",
+    modalPptxBtnGenerate: "បង្កើតស្លាយជាមួយ Gemini Web",
 
     modalUpdateTitle: "ប្រព័ន្ធអាប់ដេតស្វ័យប្រវត្ត (Cloud Auto-Updater)",
     modalUpdateInstalledVersion: "កំណែកម្មវិធីបច្ចុប្បន្ន (Installed Version):",
@@ -746,8 +746,8 @@ const I18N_DICTIONARY = {
     modalHistoryRecentList: "Recent Lesson Plans (Saved on this device)",
     modalHistoryClearAll: "Clear All History",
 
-    modalPptxTitle: "PowerPoint Slides Generator (AI Studio)",
-    modalPptxDesc: "AI analyzes your lesson plan or attached documents to craft professional PowerPoint (.pptx) slides following MoEYS pedagogical standards.",
+    modalPptxTitle: "PowerPoint Slides Studio (Gemini AI)",
+    modalPptxDesc: "The system reads your lesson plan or attached document to craft an advanced Master Prompt, copies it to clipboard, and opens Gemini Web automatically.",
     modalPptxSourceLabel: "Select Reference Source / Attachment:",
     modalPptxBtnUpload: "Upload New File",
     modalPptxNumSlidesLabel: "Number of Slides:",
@@ -755,7 +755,7 @@ const I18N_DICTIONARY = {
     modalPptxImagesHint: 'The "AI Generated Images" option will automatically generate educational diagrams and illustrations aligned with each slide topic.',
     modalPptxThemeLabel: "Theme Color:",
     modalPptxBtnCancel: "Cancel",
-    modalPptxBtnGenerate: "Generate Slides Now",
+    modalPptxBtnGenerate: "Generate Slides via Gemini Web",
 
     modalUpdateTitle: "Cloud Auto-Updater System",
     modalUpdateInstalledVersion: "Installed App Version:",
@@ -10376,7 +10376,22 @@ window.copyGeminiSlidePrompt = async function() {
     if (state.currentPlan.lessonTitle) title = state.currentPlan.lessonTitle;
   }
 
+  if (!sourceText && !title) {
+    const alertEl = document.getElementById('pptxSourceAlert');
+    if (alertEl) alertEl.style.display = 'block';
+    showToast('⚠️ សូមបញ្ចូលចំណងជើងមេរៀន ឬបង្ហោះឯកសារយោងជាមុនសិន!', 'warning', 6000);
+    return;
+  }
+
   const numSlides = parseInt(document.getElementById('pptxNumSlides')?.value || '15');
+  const theme = document.getElementById('pptxTheme')?.value || 'modern_blue';
+  const themeMap = {
+    modern_blue: 'Modern Blue (ខៀវទំនើប - ស្តង់ដារ MoEYS)',
+    eco_green: 'Eco Green (បៃតងធម្មជាតិ)',
+    dark_mode: 'Dark Mode (ស្រមោលងងឹត - ទំនើប)',
+    simple_light: 'Simple Light (ស/ស្អាត)'
+  };
+  const themeName = themeMap[theme] || 'Modern Blue';
 
   const webPrompt = `អ្នកគឺជាអ្នកជំនាញគរុកោសល្យ និងរចនាស្លាយបទបង្ហាញ PowerPoint កម្រិតខ្ពស់សម្រាប់ក្រសួងអប់រំ យុវជន និងកីឡា (MoEYS)។
 សូមជួយរៀបចំខ្លឹមសារស្លាយបទបង្ហាញ PowerPoint (Slide Presentation Outline) ចំនួន ${numSlides} ស្លាយ (ស្លាយទី១ ដល់ ស្លាយទី ${numSlides}) យ៉ាងពិស្តារ និងលម្អិតបំផុតសម្រាប់មេរៀនខាងក្រោម៖
@@ -10386,10 +10401,12 @@ window.copyGeminiSlidePrompt = async function() {
 - មុខវិជ្ជា៖ ${subject}
 - កម្រិតថ្នាក់៖ ${grade}
 - ចំនួនស្លាយដែលត្រូវបង្កើត៖ ${numSlides} ស្លាយ (រួមទាំងស្លាយចំណងជើង)
+- រចនាបថពណ៌ស្លាយ៖ ${themeName}
+- ទម្រង់ស្លាយ៖ កាតព័ត៌មានទំនើប (Card Concept Layout) សមាមាត្រ 16:9
 
 🎯 សំណើ និងទម្រង់សម្រាប់ស្លាយនីមួយៗ (ស្លាយទី១ ដល់ ស្លាយទី ${numSlides})៖
 ១. ចំណងជើងស្លាយ (Slide Title)៖ ខ្លី ខ្លឹម ច្បាស់លាស់ និងទាក់ទាញអារម្មណ៍
-២. ចំណុចសំខាន់ៗនៃស្លាយ (Key Points / Cards)៖ មាន ៣ ទៅ ៤ ចំណុច ដោយមានក្បាលចំណុចដិត (Bold Heading) ស្របតាមប្រធានបទជាក់ស្តែង និងការពន្យល់ស៊ីជម្រៅ ងាយយល់
+២. ចំណុចសំខាន់ៗនៃស្លាយ (Key Concept Cards)៖ មាន ៣ ទៅ ៤ ចំណុច ដោយមានក្បាលចំណុចដិត (Bold Heading) ស្របតាមប្រធានបទជាក់ស្តែង និងការពន្យល់ស៊ីជម្រៅ ងាយយល់
 ៣. សកម្មភាពសិស្ស ឬសំណួរបំផុសគំនិត (Classroom Discussion / Activity)៖ សំណួរគន្លឹះដើម្បីសួរសិស្ស ឬសកម្មភាពពិភាក្សាជាក្រុម
 ៤. ការណែនាំសម្រាប់គ្រូបង្រៀន (Speaker Notes)៖ ការណែនាំគរុកោសល្យ ២-៤ ឃ្លា របៀបបង្រៀនស្លាយនេះឱ្យមានប្រសិទ្ធភាព
 ៥. សំណើរូបភាព/ដ្យាក្រាម (Visual / Image Suggestion)៖ សំណើរូបភាពគំនូរ ឬដ្យាក្រាមអប់រំ
@@ -10398,9 +10415,11 @@ ${sourceText ? `\n📚 ឯកសារយោងមេរៀនដើម (Source 
 
 សូមសរសេរខ្លឹមសារទាំងអស់ជាភាសាខ្មែរផ្លូវការ ១០០% ត្រឹមត្រូវតាមក្បួនវេយ្យាករណ៍ និងរៀបរៀងតាមលំដាប់លំដោយគរុកោសល្យ MoEYS យ៉ាងរស់រវើក!`;
 
+  closePptxModal();
+
   try {
     await navigator.clipboard.writeText(webPrompt);
-    showToast(`📋 បានចម្លង Master Prompt សម្រាប់ Gemini Web រួចរាល់ (${numSlides} ស្លាយ)! កំពុងបើក gemini.google.com...`, 'success', 6000);
+    showToast(`📋 បានចម្លង Master Prompt សម្រាប់ Gemini Web រួចរាល់ (${numSlides} ស្លាយ)! កំពុងបើក gemini.google.com... សូមចុច Ctrl+V (Paste)។`, 'success', 8000);
     window.open('https://gemini.google.com', '_blank');
   } catch (err) {
     console.warn('Clipboard copy error:', err);
