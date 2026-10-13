@@ -10421,22 +10421,25 @@ window.generateGeminiSlidePrompt = function() {
 - ទម្រង់ស្លាយ៖ កាតព័ត៌មានទំនើប (Modern Card Concept Layout) សមាមាត្រ 16:9
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🚨 លក្ខខណ្ឌចាំបាច់ពិសេសចំនួន ២ (STRICT MANDATORY RULES):
+🚨 លក្ខខណ្ឌចាំបាច់ពិសេស (STRICT MANDATORY RULES):
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-១. 🖼️ រូបភាព AI ពិតប្រាកដសម្រាប់គ្រប់ស្លាយទាំងអស់ (Real AI Image for EVERY Slide):
-   - គ្រប់ស្លាយទាំងអស់ (ចាប់ពីស្លាយទី ១ រហូតដល់ស្លាយទី ${numSlides}) ត្រូវតែមានរូបភាព AI ពិតប្រាកដដែលស៊ីមេទ្រី (Symmetrical / Harmonious Composition) ស្រស់ស្អាត ទាក់ទាញ និងស៊ីគ្នា ១០០% ជាមួយខ្លឹមសារស្លាយនោះ។
-   - ក្នុងស្លាយនីមួយៗ ត្រូវតែដាក់តំណភ្ជាប់រូបភាព AI តាមទម្រង់ Markdown Image ដោយផ្ទាល់ដូចខាងក្រោម (ជំនួស {English_Prompt} ដោយពាក្យគន្លឹះអង់គ្លេសលម្អិត)៖
-     ![រូបភាពអប់រំ AI ស៊ីមេទ្រី](https://image.pollinations.ai/prompt/{English_Detailed_Prompt_Url_Encoded}?width=1200&height=675&nologo=true)
-     (ឧទាហរណ៍ prompt: "Symmetrical balanced modern educational illustration of [topic], clean pedagogical diagram, warm vibrant colors, high aesthetic quality, 8k")
+១. 🖼️ រូបភាព AI / អប់រំពិតប្រាកដសម្រាប់គ្រប់ស្លាយទាំងអស់ (Real AI / Educational Image for EVERY Slide):
+   - គ្រប់ស្លាយទាំងអស់ (ចាប់ពីស្លាយទី ១ រហូតដល់ស្លាយទី ${numSlides}) ត្រូវតែមានរូបភាពពិតប្រាកដដែលស៊ីមេទ្រី ស្រស់ស្អាត ទាក់ទាញ និងស៊ីគ្នា ១០០% ជាមួយខ្លឹមសារស្លាយនោះ។
+   - 🚫 ដាច់ខាតមិនត្រូវប្រើរូបភាព Placeholder ពណ៌ប្រផេះ (DO NOT use placehold.co, via.placeholder, 600x400 ឬរូបប្រអប់ទទេ) ជាដាច់ខាត!
+   - ត្រូវតែប្រើប្រាស់ URL រូបភាពពិតប្រាកដពី Unsplash ឬ Pollinations AI ជានិច្ច៖
+     + ប្រសិនបើរៀបចំជាអត្ថបទ Markdown:
+       ![រូបភាពអប់រំ AI ស៊ីមេទ្រី](https://image.pollinations.ai/prompt/{English_Detailed_Prompt_Url_Encoded}?width=1200&height=675&nologo=true)
+     + ប្រសិនបើរៀបចំជាកម្មវិធីស្លាយ Canvas (Interactive HTML/CSS Slide Deck):
+       `<img src="https://image.pollinations.ai/prompt/{English_Detailed_Prompt_Url_Encoded}?width=800&height=520&nologo=true" style="width: 100%; height: 380px; object-fit: cover; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.15);" alt="Educational Illustration">`
 
 ២. ✍️ ទំហំ Font និងក្បួនរចនាអក្សរខ្មែរឱ្យធំស្អាតទាក់ទាញ (Typography Hierarchy & Large Font Sizes):
    - ប្រើប្រាស់ពុម្ពអក្សរខ្មែរស្រស់ស្អាតសមរម្យតាមបរិបទ (Kantumruy Pro, Moul Light សម្រាប់ចំណងជើង)។
-   - ទំហំអក្សរត្រូវតែធំជាងមុន ច្បាស់ៗ និងងាយស្រួលមើលពីចម្ងាយក្នុងថ្នាក់រៀន៖
-     + ចំណងជើងធំនៃស្លាយ (Slide Title): ប្រើទំហំធំលេចធ្លោ (# ឬ ##, ទំហំ 28pt - 36pt, អក្សរដិត Bold) ពណ៌ចម្បងទាក់ទាញ
-     + ក្បាលកាត និងចំណុចសំខាន់ (Key Concept Cards): ប្រើទំហំធំល្មម (###, ទំហំ 18pt - 22pt, អក្សរដិត Bold) ជាមួយរូបសញ្ញា Emoji/Icon ស៊ីគ្នា
-     + ខ្លឹមសារពន្យល់ (Body Content): ប្រើទំហំអក្សរធំល្មមងាយអាន (ទំហំ 14pt - 16pt) ដោយមានគម្លាតបន្ទាត់ស្រឡះល្អ មិនញាត់អក្សរតូចៗផ្តុំគ្នាឡើយ
-     + ការណែនាំគ្រូ (Speaker Notes): ដាក់ក្នុងប្រអប់ដាច់ដោយឡែក (Quote Block > )
+   - ទំហំអក្សរត្រូវតែធំជាងមុន ច្បាស់ៗ និងងាយស្រួលមើលពីចម្ងាយក្នុងថ្នាក់រៀន (មិនត្រូវប្រើអក្សរតូចៗឡើយ)៖
+     + ចំណងជើងធំនៃស្លាយ (Slide Title): ប្រើទំហំធំលេចធ្លោ (# ឬ ## / CSS 30px - 36px, អក្សរដិត Bold) ពណ៌ចម្បងទាក់ទាញ
+     + ក្បាលកាត និងចំណុចសំខាន់ (Key Concept Cards): ប្រើទំហំធំល្មម (### / CSS 20px - 22px, អក្សរដិត Bold) ជាមួយរូបសញ្ញា Emoji/Icon ស៊ីគ្នា
+     + ខ្លឹមសារពន្យល់ (Body Content): ប្រើទំហំអក្សរធំល្មមងាយអាន (CSS 16px - 18px, Line-height: 1.7) ដោយមានគម្លាតបន្ទាត់ស្រឡះល្អ មិនញាត់អក្សរតូចៗផ្តុំគ្នាឡើយ
+     + ការណែនាំគ្រូ (Speaker Notes): ដាក់ក្នុងប្រអប់ដាច់ដោយឡែក (Quote Block > ឬ Notes Box) ទំហំ 14px - 15px
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🎯 ទម្រង់គំរូនៃស្លាយនីមួយៗ (ស្លាយទី១ ដល់ ស្លាយទី ${numSlides})៖
