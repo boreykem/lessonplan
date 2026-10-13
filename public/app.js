@@ -10347,7 +10347,23 @@ window.handlePptxSourceChanged = function(val) {
   refreshPptxSourceAlert();
 };
 
-window.copyGeminiSlidePrompt = async function() {
+window.openGeminiPromptModal = function() {
+  const el = document.getElementById('geminiPromptModal');
+  if (el) el.style.display = 'flex';
+};
+
+window.closeGeminiPromptModal = function() {
+  const el = document.getElementById('geminiPromptModal');
+  if (el) el.style.display = 'none';
+};
+
+window.backToPptxModal = function() {
+  closeGeminiPromptModal();
+  const pptxModal = document.getElementById('pptxModal');
+  if (pptxModal) pptxModal.style.display = 'flex';
+};
+
+window.generateGeminiSlidePrompt = function() {
   const sourceChoice = document.getElementById('pptxSourceSelect')?.value || 'current_plan';
   let title = (document.getElementById('lessonTitleInput')?.value || '').trim();
   let subject = (document.getElementById('subjectSelect')?.value || 'ទូទៅ').trim();
@@ -10415,15 +10431,41 @@ ${sourceText ? `\n📚 ឯកសារយោងមេរៀនដើម (Source 
 
 សូមសរសេរខ្លឹមសារទាំងអស់ជាភាសាខ្មែរផ្លូវការ ១០០% ត្រឹមត្រូវតាមក្បួនវេយ្យាករណ៍ និងរៀបរៀងតាមលំដាប់លំដោយគរុកោសល្យ MoEYS យ៉ាងរស់រវើក!`;
 
+  // 1. Close current PPTX setup modal
   closePptxModal();
 
+  // 2. Put full prompt into textarea and update count
+  const textarea = document.getElementById('geminiPromptTextarea');
+  if (textarea) textarea.value = webPrompt;
+  const countEl = document.getElementById('geminiPromptCharCount');
+  if (countEl) countEl.textContent = `${webPrompt.length} តួអក្សរ`;
+
+  // 3. Pop up the new preview modal
+  openGeminiPromptModal();
+};
+window.copyGeminiSlidePrompt = window.generateGeminiSlidePrompt; // Backward compatibility
+
+window.confirmCopyAndOpenGemini = async function() {
+  const textarea = document.getElementById('geminiPromptTextarea');
+  const promptText = textarea ? textarea.value : '';
+
+  if (!promptText.trim()) {
+    showToast('⚠️ មិនទាន់មានខ្លឹមសារ Prompt សម្រាប់ចម្លងឡើយ!', 'warning');
+    return;
+  }
+
+  // 1. Close preview modal
+  closeGeminiPromptModal();
+
+  // 2. Copy to clipboard and open Gemini Web in new tab
   try {
-    await navigator.clipboard.writeText(webPrompt);
-    showToast(`📋 បានចម្លង Master Prompt សម្រាប់ Gemini Web រួចរាល់ (${numSlides} ស្លាយ)! កំពុងបើក gemini.google.com... សូមចុច Ctrl+V (Paste)។`, 'success', 8000);
+    await navigator.clipboard.writeText(promptText);
+    showToast('📋 បានកូពី Prompt រួចរាល់! កំពុងបើក Google Gemini ក្នុង New Tab... សូមចុច Ctrl+V (Paste)។', 'success', 8000);
     window.open('https://gemini.google.com', '_blank');
   } catch (err) {
     console.warn('Clipboard copy error:', err);
-    window.prompt('សូមចម្លង Master Prompt ខាងក្រោមនេះយកទៅ Paste ក្នុង gemini.google.com:', webPrompt);
+    window.prompt('សូមកូពី Prompt ខាងក្រោមនេះយកទៅ Paste ក្នុង gemini.google.com:', promptText);
+    window.open('https://gemini.google.com', '_blank');
   }
 };
 

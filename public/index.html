@@ -1570,9 +1570,53 @@
       </div>
       <div class="modal-footer" style="justify-content: flex-end; background: #fff1f2; padding: 14px 20px; border-top: 1px solid #ffe4e6; display: flex; gap: 10px; align-items: center;">
         <button class="btn-secondary" onclick="closePptxModal()" style="border-color: #fda4af; color: #e11d48;" data-i18n="modalPptxBtnCancel">បោះបង់</button>
-        <button class="btn-primary" onclick="copyGeminiSlidePrompt()" style="background: #e11d48; border: none; padding: 9px 20px; font-weight: 600; border-radius: 8px; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;" title="ចម្លង Master Prompt & បើក gemini.google.com">
-          <i class="fa-brands fa-google"></i> <span data-i18n="modalPptxBtnGenerate">បង្កើតស្លាយជាមួយ Gemini Web</span>
+        <button class="btn-primary" onclick="generateGeminiSlidePrompt()" style="background: #e11d48; border: none; padding: 9px 20px; font-weight: 600; border-radius: 8px; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;" title="រៀបចំ Master Prompt & បើកផ្ទាំងកូពី">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="modalPptxBtnGenerate">បង្កើតស្លាយជាមួយ Gemini Web</span>
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gemini Slide Prompt Preview Modal (Pop up ផ្ទាំងបន្ទាប់សម្រាប់ Copy Prompt) -->
+  <div id="geminiPromptModal" class="modal-overlay modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.85); backdrop-filter: blur(8px); z-index: 10001; align-items: center; justify-content: center;">
+    <div class="modal modal-card" style="max-width: 660px; width: 95%; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid #e2e8f0;">
+      <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; background: #f8fafc;">
+        <div class="modal-title" style="color: #1e3a8a; font-weight: 700; font-size: 1.12rem; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-brands fa-google" style="color: #2563eb;"></i> <span>ផ្ទាំង Master Prompt សម្រាប់ Gemini Web</span>
+        </div>
+        <button class="modal-close" onclick="closeGeminiPromptModal()" style="font-size: 1.3rem; background: none; border: none; cursor: pointer; color: #64748b;"><i class="fa-solid fa-times"></i></button>
+      </div>
+      <div class="modal-body" style="padding: 20px; max-height: 75vh; overflow-y: auto;">
+        <div style="font-size: 9.3pt; color: #475569; margin-bottom: 12px; line-height: 1.5; display: flex; align-items: flex-start; gap: 8px; background: #eff6ff; padding: 10px 14px; border-radius: 8px; border: 1px solid #bfdbfe;">
+          <i class="fa-solid fa-circle-info" style="color: #2563eb; margin-top: 3px;"></i>
+          <div>
+            <b>Master Prompt ត្រូវបានរៀបចំរួចរាល់៖</b> លោកគ្រូអាចពិនិត្យ ឬកែសម្រួលបន្ថែម រួចចុចប៊ូតុង <b>«កូពី Prompt»</b> ខាងក្រោម។ ប្រព័ន្ធនឹងចម្លង Prompt នេះ បិទផ្ទាំងនេះ ហើយបើក <b>gemini.google.com</b> ក្នុង New Tab ដោយស្វ័យប្រវត្តិ។
+          </div>
+        </div>
+        <div style="margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
+          <label style="font-size: 9pt; font-weight: 600; color: #334155;">
+            <i class="fa-solid fa-terminal" style="color: #2563eb;"></i> ខ្លឹមសារ Master Prompt ពេញលេញ៖
+          </label>
+          <span id="geminiPromptCharCount" style="font-size: 8pt; color: #64748b; font-weight: 500;"></span>
+        </div>
+        <textarea id="geminiPromptTextarea" spellcheck="false" style="width: 100%; height: 280px; font-family: 'Kantumruy Pro', sans-serif; font-size: 9.3pt; line-height: 1.6; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 12px 14px; background: #f8fafc; color: #0f172a; resize: vertical; box-sizing: border-box; outline: none;"></textarea>
+        <div style="font-size: 8.5pt; color: #64748b; margin-top: 6px; display: flex; align-items: center; gap: 5px;">
+          <i class="fa-solid fa-keyboard" style="color: #94a3b8;"></i>
+          <span>នៅពេល Google Gemini បើកឡើង សូមចុច <b>Ctrl + V</b> (Paste) រួចចុច Enter ដើម្បីបង្កើតស្លាយ។</span>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content: space-between; background: #f1f5f9; padding: 14px 20px; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; align-items: center;">
+        <button type="button" class="btn-secondary" onclick="backToPptxModal()" style="border-color: #cbd5e1; color: #475569; padding: 8px 14px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 9pt;">
+          <i class="fa-solid fa-arrow-left"></i> <span>ត្រឡប់ក្រោយ</span>
+        </button>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" class="btn-secondary" onclick="closeGeminiPromptModal()" style="border-color: #cbd5e1; color: #64748b; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: 9pt;">
+            បិទ
+          </button>
+          <button type="button" class="btn-primary" onclick="confirmCopyAndOpenGemini()" style="background: linear-gradient(135deg, #16a34a, #15803d); border: none; padding: 9px 22px; font-weight: 700; border-radius: 8px; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(22,163,74,0.35); font-size: 9.5pt;" title="កូពី Prompt, បិទផ្ទាំងនេះ និងបើក gemini.google.com">
+            <i class="fa-solid fa-copy"></i> <span>កូពី Prompt</span> <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 8.5pt; opacity: 0.85;"></i>
+          </button>
+        </div>
       </div>
     </div>
   </div>
