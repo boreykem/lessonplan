@@ -13,7 +13,12 @@ if (Test-Path $targetExe) {
 } else {
     $s.TargetPath = "wscript.exe"
     $s.Arguments = "`"$targetVbs`""
-    $s.IconLocation = "shell32.dll,14"
+    $iconPath = Join-Path $PSScriptRoot 'app_icon.ico'
+    if (Test-Path $iconPath) {
+        $s.IconLocation = "$iconPath,0"
+    } else {
+        $s.IconLocation = "shell32.dll,14"
+    }
 }
 $s.WorkingDirectory = $PSScriptRoot
 $s.Description = 'AI Lesson Plan Studio - កម្មវិធីបង្កើតកិច្ចតែងការបង្រៀនស្វ័យប្រវត្តិ'

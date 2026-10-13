@@ -109,7 +109,7 @@ const PRESET_TEMPLATES = {
   },
   flipped_learning_5step: {
     id: "flipped_learning_5step",
-    name: "កិច្ចតែងការបង្រៀនតាមបែបត្រឡប់ (Flipped Learning ៥ ជំហាន: ៥%-១០%-១០%-៧០%-៥%)",
+    name: "កិច្ចតែងការតាមបែបត្រឡប់ (Flipped Learning)",
     badge: "ថ្នាក់រៀនត្រឡប់ (៥%-១០%-១០%-៧០%-៥%)",
     description: "ទម្រង់កិច្ចតែងការបង្រៀនតាមបែបត្រឡប់ ជាមួយ Pre-test QCM ៥ សំណួរ និង Post-test MCQ ៥ សំណួរ",
     structure: {
@@ -544,7 +544,7 @@ const I18N_DICTIONARY = {
     step1Desc: "ជ្រើសរើសប្រភេទកិច្ចតែងការស្តង់ដារ MoEYS",
     labelPresetTemplate: "ជ្រើសរើសប្រភេទកិច្ចតែងការ MoEYS៖",
     optPresetStandard: "កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)",
-    optPresetFlipped: "⚡ កិច្ចតែងការតាមបែបថ្នាក់រៀនត្រឡប់ (Flipped Learning ៥ ជំហាន: ៥%-១០%-១០%-៧០%-៥% + Pre-test QCM)",
+    optPresetFlipped: "⚡ កិច្ចតែងការតាមបែបត្រឡប់ (Flipped Learning)",
     optPresetUbD: "កិច្ចតែងការតាមបែបត្រឡប់ (Backward Design / UbD ៣ ដំណាក់កាល)",
     optPresetPrimary: "កិច្ចតែងការបឋមសិក្សា (ថ្នាក់ទី ១-៦)",
     optPresetStem: "កិច្ចតែងការបែប STEM / 5E (វិទ្យាសាស្ត្រ និងពិសោធន៍)",
@@ -684,7 +684,7 @@ const I18N_DICTIONARY = {
     step1Desc: "Select MoEYS Standard Official Template",
     labelPresetTemplate: "Select Lesson Plan Format:",
     optPresetStandard: "Standard 5-Step Lesson Plan (General / Secondary)",
-    optPresetFlipped: "⚡ Flipped Learning 5-Step (5%-10%-10%-70%-5% + Pre-test QCM)",
+    optPresetFlipped: "⚡ Flipped Learning Lesson Plan",
     optPresetUbD: "Backward Design / UbD (3-Stage Framework)",
     optPresetPrimary: "Primary School Lesson Plan (Grades 1-6)",
     optPresetStem: "STEM / 5E Inquiry Lesson Plan (Science & Experiments)",
@@ -9568,13 +9568,28 @@ function handleInstallPwaClick() {
 }
 window.handleInstallPwaClick = handleInstallPwaClick;
 
-function triggerPwaPromptDirectly() {
+async function triggerPwaPromptDirectly() {
   if (deferredPrompt) {
     handleInstallPwaClick();
-  } else {
-    if (typeof showToast === 'function') {
-      showToast('💡 សូមអនុវត្តតាមការណែនាំខាងក្រោម ដើម្បីដំឡើងលើឧបករណ៍របស់អ្នក!', 'info');
+    return;
+  }
+  try {
+    const res = await fetch('/api/create-desktop-shortcut', { method: 'POST' });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success) {
+        if (typeof showToast === 'function') {
+          showToast('✅ បានបង្កើត Shortcut "AI Lesson Plan Studio" លើ Desktop រួចរាល់ដោយជោគជ័យ!', 'success');
+        }
+        markPwaAsInstalled();
+        closeInstallModal();
+        return;
+      }
     }
+  } catch (err) {}
+
+  if (typeof showToast === 'function') {
+    showToast('💡 សូមអនុវត្តតាមការណែនាំខាងក្រោម ដើម្បីដំឡើងលើឧបករណ៍របស់អ្នក!', 'info');
   }
 }
 window.triggerPwaPromptDirectly = triggerPwaPromptDirectly;

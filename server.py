@@ -56,7 +56,7 @@ PRESET_TEMPLATES = {
     },
     "flipped_learning_5step": {
         "id": "flipped_learning_5step",
-        "name": "កិច្ចតែងការតាមបែបថ្នាក់រៀនត្រឡប់ (Flipped Learning ៥ ជំហាន: ៥%-១០%-១០%-៧០%-៥% + Pre-test QCM ១០ សំណួរ)",
+        "name": "កិច្ចតែងការតាមបែបត្រឡប់ (Flipped Learning)",
         "badge": "ថ្នាក់រៀនត្រឡប់ Flipped",
         "description": "ទម្រង់ថ្នាក់រៀនត្រឡប់ (Pre-Class Self-Study, In-Class Active Learning 70%, Exit Ticket) ជាមួយវិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង QCM 10 សំណួរ (កម្រិត 2-6-2)"
     },
@@ -2413,6 +2413,20 @@ def export_docx():
     )
 
 
+@app.route("/api/create-desktop-shortcut", methods=["POST", "GET"])
+def create_desktop_shortcut_api():
+    try:
+        ps_script = os.path.join(os.path.dirname(os.path.abspath(__file__)), "create_shortcut.ps1")
+        if os.path.exists(ps_script):
+            res = subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", ps_script], capture_output=True, text=True, timeout=10)
+            if res.returncode == 0:
+                return jsonify({"success": True, "message": "បានបង្កើត Shortcut លើ Desktop រួចរាល់ដោយជោគជ័យ!"})
+            return jsonify({"success": False, "error": res.stderr or "Script returned error"}), 500
+        return jsonify({"success": False, "error": "create_shortcut.ps1 not found"}), 404
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
 # Vercel Serverless Dispatcher
 @app.route("/api/index", methods=["GET", "POST", "OPTIONS"])
 @app.route("/api", methods=["GET", "POST", "OPTIONS"])
@@ -2441,6 +2455,8 @@ def vercel_entry_dispatch():
         return activate_license()
     elif v_clean == "export/docx":
         return export_docx()
+    elif v_clean == "create-desktop-shortcut":
+        return create_desktop_shortcut_api()
     elif v_clean in ["upload/lesson", "upload/template", "upload/parse"]:
         return upload_and_parse_file()
     elif v_clean == "generate":
