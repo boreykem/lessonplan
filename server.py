@@ -855,17 +855,16 @@ def generate_with_gemini_python(api_key, data):
     is_bd = not is_flipped and is_backward_design_request(data)
 
     if is_flipped:
-        system_prompt = f"""You are Google Gemini AI serving as an expert Cambodian educator, 21st-century pedagogical coach, and Google NotebookLM specialist for the Ministry of Education, Youth and Sport (MoEYS) and Teacher Education Colleges (TEC).
-Generate a complete, high-quality, professional Lesson Plan based on the **FLIPPED LEARNING (ថ្នាក់រៀនត្រឡប់) 5-Step Model** (៥% - ១០% - ១០% - ៧០% - ៥%) with an authentic **Pre-Test QCM 10 Questions** (2-6-2 difficulty ratio), a **វីដេអូបង្រៀន Guide (5-8 mins - Font: Kantumruy Pro)**, a 4x4 **Active Collaboration Rubric**, a **Post-Test MCQ 10 Questions (Bloom's 3-4-3)**, and an **Exit Ticket 3-2-1** in Khmer.
+        system_prompt = f"""You are Google Gemini AI serving as an expert Cambodian educator, 21st-century pedagogical coach, and instructional designer for the Ministry of Education, Youth and Sport (MoEYS) and Teacher Education Colleges (TEC).
+Generate a complete, high-quality, professional Lesson Plan based on the **FLIPPED LEARNING (ថ្នាក់រៀនត្រឡប់) 5-Step Model** (៥% - ១០% - ១០% - ៧០% - ៥%) with an authentic **Pre-Test QCM 5 Questions** (2-6-2 difficulty ratio), a 4x4 **Active Collaboration Rubric**, and a **Post-Test MCQ 5 Questions (Bloom's 3-4-3)** in Khmer.
 
 Pedagogical Principles & Step Guidelines for Flipped Learning:
-1. Google NotebookLM Pre-Class Phase (សកម្មភាពស្វ័យសិក្សាត្រៀមមុនម៉ោង):
-   - វីដេអូបង្រៀន (៥ ទៅ ៨ នាទី - Font: Kantumruy Pro) with 4 progressive scenes (Narration in Khmer & On-Screen Display text).
+1. Pre-Class Phase (សកម្មភាពស្វ័យសិក្សាត្រៀមមុនម៉ោង):
    - Key takeaways and diagnostic tasks.
    - Muddiest Point prompt (សិស្សកត់ត្រាចំណុចឆ្ងល់យ៉ាងតិច ១ យកមកដោះស្រាយក្នុងជំហានទី២).
-2. Diagnostic Assessment (វិញ្ញាសា Pre-Test QCM ១០ សំណួរ បង្កើតដោយ Gemini AI - កម្រិតស្តង់ដារ ២-៦-២):
-   - Strictly 10 multiple-choice questions with choices (A, B, C, D / ក, ខ, គ, ឃ), correct answer, and explanation.
-   - Difficulty standard 2-6-2: Questions 1-2 (Easy), Questions 3-8 (Medium), Questions 9-10 (Hard).
+2. Diagnostic Assessment (វិញ្ញាសា Pre-Test QCM ៥ សំណួរ បង្កើតដោយ Gemini AI - កម្រិតស្តង់ដារ ២-៦-២):
+   - Strictly 5 multiple-choice questions with choices (A, B, C, D / ក, ខ, គ, ឃ), correct answer, and explanation.
+   - Questions 1-2 (Easy), Questions 3-4 (Medium), Question 5 (Hard).
 3. In-Class 5-Step Process (ដំណើរការបង្រៀន ៥ ជំហាន: ៥% - ១០% - ១០% - ៧០% - ៥%):
    - ជំហានទី ១ : រដ្ឋបាលថ្នាក់ & ការរៀបចំ (៥%): គ្មានសំណួរចោទសួរទេ! គ្រូស្វាគមន៍ ពិនិត្យវត្តមាន សណ្ដាប់ធ្នាប់ អនាម័យ និងរៀបចំបរិយាកាសសិក្សាសកម្ម។
    - ជំហានទី ២ : ត្រួតពិនិត្យការស្វ័យសិក្សាពីផ្ទះ & ដោះស្រាយចម្ងល់ Muddiest Points (Engage & Explore) (១០%): គ្រូផ្សារភ្ជាប់លទ្ធផល Pre-Test, ចោទសួរផ្ទាល់មាត់បំផុសស្មារតី ២ សំណួរខ្លីៗ, ហៅសិស្សលើកឡើង Muddiest Points, និងបង្ហាញការវាយតម្លៃ Pre-Test។
@@ -877,13 +876,11 @@ Pedagogical Principles & Step Guidelines for Flipped Learning:
        (3) ការដើរតួដោះស្រាយវិបត្តិ (Role-Play / Simulation), ឬ 
        (4) ការត្រិះរិះពីការគិត (Metacognitive Reflection)។
      • រៀបចំសកម្មភាពនេះឱ្យមានភាពស៊ីជម្រៅ ដោយបែងចែកជា ៤ ដំណាក់កាលតូចៗ (ការរៀបចំ, ការអនុវត្ត, ការបង្ហាញ/ឆ្លុះបញ្ចាំង, ការបូកសរុប) ដោយផ្អែកលើខ្លឹមសារមេរៀន។
-     • ដាក់តេស្តបញ្ចប់ Post-Test & Exit Ticket 3-2-1។
+     • ដាក់តេស្តបញ្ចប់ Post-Test។
    - ជំហានទី ៥ : បណ្តាំផ្ញើ និងកិច្ចការផ្ទះ (៥%): បណ្តាំផ្ញើសីលធម៌/បរិស្ថាន + ដាក់ ១ សំណួរកិច្ចការស្រាវជ្រាវ (Research Task) សម្រាប់រៀបចំម៉ោងបន្ទាប់។
-4. Post-Class / Extension Phase (សកម្មភាពពង្រីកពុទ្ធិក្រោយម៉ោង).
-5. TTT 30% / STT 70% RULE: In Step 4, explicitly design activities so the Teacher Talking Time is max 30%, and Student Talking Time is 70% (Student-Centered).
-6. 21st CENTURY SKILLS (4Cs): At the end of student activities (especially in Step 4), tag the exact 4Cs skill being developed in brackets (e.g., [ជំនាញសហការ និងការគិតស៊ីជម្រៅ]).
-7. EXIT TICKET 3-2-1: In Step 5, you MUST include an "Exit Ticket 3-2-1" formative assessment (e.g., សរសេរ ៣ចំណុចដែលបានរៀន, ២ចំណុចដែលចាប់អារម្មណ៍, ១ចំណុចដែលឆ្ងល់).
-8. MANDATORY INSTRUCTIONAL OBJECTIVE FORMULA (ក្បួនតែងវត្ថុបំណងបង្រៀនស្តង់ដារ MoEYS / គរុកោសល្យ A-C-S):
+4. TTT 30% / STT 70% RULE: In Step 4, explicitly design activities so the Teacher Talking Time is max 30%, and Student Talking Time is 70% (Student-Centered).
+5. 21st CENTURY SKILLS (4Cs): At the end of student activities (especially in Step 4), tag the exact 4Cs skill being developed in brackets (e.g., [ជំនាញសហការ និងការគិតស៊ីជម្រៅ]).
+6. MANDATORY INSTRUCTIONAL OBJECTIVE FORMULA (ក្បួនតែងវត្ថុបំណងបង្រៀនស្តង់ដារ MoEYS / គរុកោសល្យ A-C-S):
    ⚠️ វិធានកំណត់ចំនួនចំណុច (STRICT 1-BULLET LIMIT): នៅក្នុងវត្ថុបំណងនីមួយៗទាំង ៣ ផ្នែក (វិជ្ជាសម្បទា បំណិនសម្បទា ចរិយាសម្បទា) ត្រូវតែមានត្រឹមតែ ១ ចំណុចគត់ (EXACTLY 1 single comprehensive bullet point per category) ដែលមានសមាសភាគពេញលេញទាំង ៣ តាមរូបមន្ត ACS៖
    - [A - Action / សកម្មភាព ឬ របៀបធ្វើសកម្មភាព]: ប្រើកិរិយាស័ព្ទសកម្មដែលអាចវាស់វែងបាន (ឧ. កំណត់, ពន្យល់, រៀបរាប់, គណនា, វិភាគ, ដោះស្រាយ, រៀបចំ, បង្ហាញ, ប្ដេជ្ញាចិត្ត...)
    - [C - Condition / លក្ខខណ្ឌ]: មធ្យោបាយ ឬវិធីសាស្ត្ររៀន (ឧ. «តាមរយៈការពន្យល់របស់គ្រូ និងការសង្កេតស្លាយ/វីដេអូ», «តាមរយៈការអានឯកសារគោល», «តាមរយៈការអនុវត្តលំហាត់ជាក់ស្តែង និងការពិភាក្សាជាក្រុម», «តាមរយៈការឆ្លុះបញ្ចាំងលើ Exit Ticket»...)
@@ -1251,6 +1248,10 @@ Return ONLY valid JSON matching this schema:
                 parsed["duration"] = duration or parsed.get("duration")
                 parsed["chapter"] = chapter or parsed.get("chapter")
                 parsed["lessonTitle"] = lesson_title or parsed.get("lessonTitle")
+                if not parsed.get("preTestQCM"):
+                    parsed["preTestQCM"] = generate_pretest_qcm_python(parsed["subject"], parsed["grade"], parsed["lessonTitle"], [])
+                if not parsed.get("postTestMCQ"):
+                    parsed["postTestMCQ"] = generate_posttest_mcq_python(parsed["subject"], parsed["grade"], parsed["lessonTitle"], [])
                 return parsed
         except urllib.error.HTTPError as he:
             err_body = he.read().decode("utf-8", errors="ignore")
@@ -1483,10 +1484,31 @@ def generate_lesson_plan():
             plan = synthesize_lesson_plan_python(data)
         
         if isinstance(plan, dict):
-            if "preTestQCM" in plan and isinstance(plan["preTestQCM"], list):
-                plan["preTestQCM"] = randomize_quiz_list(plan["preTestQCM"])
-            if "postTestMCQ" in plan and isinstance(plan["postTestMCQ"], list):
-                plan["postTestMCQ"] = randomize_quiz_list(plan["postTestMCQ"])
+            for k in ["notebooklmGuide", "preClassPhase", "differentiatedPlan", "activeRubric", "exitTicket321", "postClassPhase", "selfEvaluation"]:
+                plan.pop(k, None)
+            if "preTestQCM" not in plan or not isinstance(plan["preTestQCM"], list):
+                plan["preTestQCM"] = []
+            if len(plan["preTestQCM"]) < 5:
+                synth = generate_pretest_qcm_python(plan.get("subject", ""), plan.get("grade", ""), plan.get("lessonTitle", ""), [])
+                for q in synth:
+                    if len(plan["preTestQCM"]) >= 5:
+                        break
+                    plan["preTestQCM"].append(q)
+            elif len(plan["preTestQCM"]) > 5:
+                plan["preTestQCM"] = plan["preTestQCM"][:5]
+            plan["preTestQCM"] = randomize_quiz_list(plan["preTestQCM"])
+
+            if "postTestMCQ" not in plan or not isinstance(plan["postTestMCQ"], list):
+                plan["postTestMCQ"] = []
+            if len(plan["postTestMCQ"]) < 5:
+                synth = generate_posttest_mcq_python(plan.get("subject", ""), plan.get("grade", ""), plan.get("lessonTitle", ""), [])
+                for q in synth:
+                    if len(plan["postTestMCQ"]) >= 5:
+                        break
+                    plan["postTestMCQ"].append(q)
+            elif len(plan["postTestMCQ"]) > 5:
+                plan["postTestMCQ"] = plan["postTestMCQ"][:5]
+            plan["postTestMCQ"] = randomize_quiz_list(plan["postTestMCQ"])
 
         return jsonify({"success": True, "data": plan})
     except Exception as e:
