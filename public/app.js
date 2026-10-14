@@ -8,11 +8,39 @@
 // System Default Gemini API Key (embedded so teachers can generate lesson plans out-of-the-box without manual key entry)
 const SYSTEM_DEFAULT_GEMINI_KEY = (typeof atob === 'function') ? atob('') : '';
 
+// Legacy default keys that should be automatically migrated to the new default key for all users
+const LEGACY_DEFAULT_GEMINI_KEYS = (typeof atob === 'function')
+  ? [atob('')]
+  : [];
+
 function getActiveGeminiApiKey() {
   const stored = localStorage.getItem('gemini_api_key');
+  if (stored && LEGACY_DEFAULT_GEMINI_KEYS.includes(stored.trim())) {
+    localStorage.removeItem('gemini_api_key');
+    return SYSTEM_DEFAULT_GEMINI_KEY;
+  }
   if (stored && stored.trim()) return stored.trim();
   return SYSTEM_DEFAULT_GEMINI_KEY;
 }
+
+// Auto-migrate legacy default key for existing users so every user gets the new Gemini key as default
+(function ensureDefaultGeminiKeyMigration() {
+  try {
+    const stored = localStorage.getItem('gemini_api_key');
+    if (stored && LEGACY_DEFAULT_GEMINI_KEYS.includes(stored.trim())) {
+      localStorage.removeItem('gemini_api_key');
+    }
+    const currentKeyVer = 'v2_2026_10';
+    if (localStorage.getItem('system_gemini_key_ver') !== currentKeyVer) {
+      if (stored && LEGACY_DEFAULT_GEMINI_KEYS.includes(stored.trim())) {
+        localStorage.removeItem('gemini_api_key');
+      }
+      localStorage.setItem('system_gemini_key_ver', currentKeyVer);
+    }
+  } catch (e) {
+    console.warn('API key migration warning:', e);
+  }
+})();
 
 const state = {
   templateMode: 'preset', // 'preset' | 'saved' | 'custom'
@@ -2218,7 +2246,7 @@ async function extractTextFromFile(file) {
       const mimeType = file.type || (extension === 'png' ? 'image/png' : 'image/jpeg');
       const rawBase64 = base64Data.split(',')[1];
 
-      const ocrCandidateModels = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-flash-latest', 'gemini-2.5-flash'];
+      const ocrCandidateModels = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-flash-latest', 'gemini-3.5-flash', 'gemini-3.5-flash-lite'];
       for (const model of ocrCandidateModels) {
         try {
           const ocrUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -3257,13 +3285,14 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
     discovered.sort((a, b) => {
       const score = (m) => {
         const name = (m.name || '').toLowerCase();
-        if (name.includes('3.8-flash')) return 150;
-        if (name.includes('3.6-flash')) return 140;
-        if (name.includes('3.7-flash')) return 135;
-        if (name.includes('3.5-flash')) return 130;
-        if (name.includes('flash-latest')) return 125;
+        if (name.includes('3.5-flash-lite')) return 160;
+        if (name.includes('flash-lite-latest')) return 155;
+        if (name.includes('3.5-flash')) return 150;
+        if (name.includes('flash-latest')) return 145;
+        if (name.includes('3.8-flash')) return 140;
+        if (name.includes('3.6-flash')) return 135;
+        if (name.includes('3.7-flash')) return 130;
         if (name.includes('2.5-pro')) return 120;
-        if (name.includes('2.5-flash')) return 110;
         if (name.includes('2.0-flash')) return 100;
         if (name.includes('1.5-pro')) return 90;
         if (name.includes('1.5-flash')) return 80;
@@ -3282,11 +3311,13 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
 
   if (candidateModels.length === 0) {
     candidateModels = [
+      { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
+      { ver: 'v1beta', name: 'gemini-flash-lite-latest' },
+      { ver: 'v1beta', name: 'gemini-3.5-flash' },
       { ver: 'v1beta', name: 'gemini-3.8-flash' },
       { ver: 'v1beta', name: 'gemini-3.6-flash' },
       { ver: 'v1beta', name: 'gemini-3.7-flash' },
       { ver: 'v1beta', name: 'gemini-flash-latest' },
-      { ver: 'v1beta', name: 'gemini-2.5-flash' },
       { ver: 'v1beta', name: 'gemini-2.5-pro' }
     ];
   }
@@ -3297,7 +3328,7 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
     const item = candidateModels[i];
     const modelLabel = `${item.name}`;
     const isPro = item.name.includes('pro');
-    const badgeText = isPro ? '🏆 ម៉ូដែល Pro គិតស៊ីជម្រៅ' : '⚡ ម៉ូដែល Gemini 2.0 Flash';
+    const badgeText = isPro ? '🏆 ម៉ូដែល Pro គិតស៊ីជម្រៅ' : '⚡ ម៉ូដែល Gemini Flash ល្បឿនលឿន';
     
     setLoadingOverlayStatus(
       'AI កំពុងវិភាគឯកសារ និងរៀបចំកិច្ចតែងការ...',
@@ -3307,12 +3338,11 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
 
     const streamUrl = `https://generativelanguage.googleapis.com/${item.ver}/models/${item.name}:streamGenerateContent?alt=sse&key=${apiKey}`;
     const directUrl = `https://generativelanguage.googleapis.com/${item.ver}/models/${item.name}:generateContent?key=${apiKey}`;
+    const controller = new AbortController();
+    // Fast failover timeout (30 seconds per model) so users are never stuck on busy/503 models
+    const modelTimeoutMs = 30000;
+    const timeoutId = setTimeout(() => controller.abort(), modelTimeoutMs);
     try {
-      const controller = new AbortController();
-      // Give Gemini 6 minutes (360,000ms) to thoroughly generate classroom-ready content without early timeout
-      const modelTimeoutMs = 360000;
-      const timeoutId = setTimeout(() => controller.abort(), modelTimeoutMs);
-
       // Safe universal maxOutputTokens across all Gemini models (prevents 400 Bad Request)
       const maxTokens = 8192;
 
@@ -3401,15 +3431,27 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
         } else if (!streamResp.ok) {
           const errorData = await streamResp.json().catch(() => ({}));
           const errMsg = errorData.error?.message || streamResp.statusText || `HTTP ${streamResp.status}`;
-          // If 429 quota or invalid key, throw immediately to trigger model rotation
-          if (streamResp.status === 429 || errMsg.includes('API_KEY_INVALID') || errMsg.includes('Quota')) {
-            throw new Error(errMsg);
-          }
+          throw new Error(errMsg);
         }
       } catch (streamErr) {
-        console.warn(`[AI Engine] SSE stream failed on ${modelLabel} (${streamErr.message}). Fallback to direct HTTP REST...`);
-        if (streamErr.message && (streamErr.message.includes('API_KEY_INVALID') || streamErr.message.includes('Quota') || streamErr.message.includes('429'))) {
-          throw streamErr;
+        console.warn(`[AI Engine] SSE stream failed on ${modelLabel} (${streamErr.message}). Fallback...`);
+        const isTransientOverload = streamErr.message && (
+          streamErr.message.includes('503') ||
+          streamErr.message.includes('high demand') ||
+          streamErr.message.includes('Unavailable') ||
+          streamErr.message.includes('Quota') ||
+          streamErr.message.includes('429') ||
+          streamErr.name === 'AbortError'
+        );
+        if (isTransientOverload) {
+          lastError = streamErr;
+          setLoadingOverlayStatus(
+            'AI កំពុងប្តូរទៅកាន់ម៉ូដែលបម្រុង...',
+            `ម៉ូដែល ${item.name} កំពុងមមាញឹក... ប្រព័ន្ធកំពុងប្តូរទៅម៉ូដែលបន្ទាប់!`,
+            `⚡ កំពុងប្តូរទៅ ${candidateModels[i+1]?.name || 'ម៉ូដែលបន្ទាប់'}`
+          );
+          await new Promise(r => setTimeout(r, 300));
+          continue;
         }
       }
 
@@ -3493,6 +3535,8 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
       console.warn(`[AI Engine] Error on ${modelLabel}:`, err.message);
       lastError = err;
       continue;
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 
@@ -3813,13 +3857,14 @@ async function testCurrentAiProviderKey() {
       discovered.sort((a, b) => {
         const score = (m) => {
           const name = (m.name || '').toLowerCase();
-          if (name.includes('3.8-flash')) return 150;
-          if (name.includes('3.6-flash')) return 140;
-          if (name.includes('3.7-flash')) return 135;
-          if (name.includes('3.5-flash')) return 130;
-          if (name.includes('flash-latest')) return 125;
+          if (name.includes('3.5-flash-lite')) return 160;
+          if (name.includes('flash-lite-latest')) return 155;
+          if (name.includes('3.5-flash')) return 150;
+          if (name.includes('flash-latest')) return 145;
+          if (name.includes('3.8-flash')) return 140;
+          if (name.includes('3.6-flash')) return 135;
+          if (name.includes('3.7-flash')) return 130;
           if (name.includes('2.5-pro')) return 120;
-          if (name.includes('2.5-flash')) return 110;
           if (name.includes('2.0-flash')) return 100;
           if (name.includes('1.5-pro')) return 90;
           if (name.includes('1.5-flash')) return 80;
@@ -3832,11 +3877,13 @@ async function testCurrentAiProviderKey() {
       modelsToTest = discovered;
     } else {
       modelsToTest = [
+        { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
+        { ver: 'v1beta', name: 'gemini-flash-lite-latest' },
+        { ver: 'v1beta', name: 'gemini-3.5-flash' },
         { ver: 'v1beta', name: 'gemini-3.8-flash' },
         { ver: 'v1beta', name: 'gemini-3.6-flash' },
         { ver: 'v1beta', name: 'gemini-3.7-flash' },
         { ver: 'v1beta', name: 'gemini-flash-latest' },
-        { ver: 'v1beta', name: 'gemini-2.5-flash' },
         { ver: 'v1beta', name: 'gemini-2.5-pro' }
       ];
     }
@@ -5194,8 +5241,8 @@ Return ONLY valid JSON array with ${numQuestions} objects matching this schema:
 ]`;
 
     if (apiKey) {
-      // Try gemini-2.5-flash / gemini-2.0-flash / gemini-1.5-flash
-      for (const model of ['gemini-2.5-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro']) {
+      // Try gemini-3.8-flash / gemini-3.6-flash / gemini-3.5-flash / gemini-flash-latest
+      for (const model of ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.7-flash', 'gemini-flash-latest', 'gemini-3.5-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-pro']) {
         try {
           const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
             method: 'POST',
@@ -11086,10 +11133,13 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
 
       if (candidateModels.length === 0) {
         candidateModels = [
+          { ver: 'v1beta', name: 'gemini-3.8-flash' },
+          { ver: 'v1beta', name: 'gemini-3.6-flash' },
+          { ver: 'v1beta', name: 'gemini-3.7-flash' },
           { ver: 'v1beta', name: 'gemini-flash-latest' },
-          { ver: 'v1beta', name: 'gemini-pro-latest' },
-          { ver: 'v1beta', name: 'gemini-2.5-flash' },
-          { ver: 'v1beta', name: 'gemini-2.0-flash' }
+          { ver: 'v1beta', name: 'gemini-3.5-flash' },
+          { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
+          { ver: 'v1beta', name: 'gemini-pro-latest' }
         ];
       }
 
