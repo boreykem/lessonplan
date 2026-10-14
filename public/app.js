@@ -550,6 +550,8 @@ const I18N_DICTIONARY = {
     headerHistoryTitle: "ប្រវត្តិកិច្ចតែងការ (History Dashboard)",
     headerLicense: "អាជ្ញាបណ្ណ",
     headerLicenseTitle: "ព័ត៌មានអាជ្ញាបណ្ណ និងការ Activate កម្មវិធី",
+    headerApiKey: "API Key",
+    headerApiKeyTitle: "កំណត់ ឬពិនិត្យ API Key (Gemini, Groq, OpenRouter)",
     headerUpdateTitle: "ពិនិត្យមើលកំណែអាប់ដេតថ្មី (Cloud Auto-Updater)",
     headerThemeTitle: "ប្តូរពណ៌ Theme",
     demoSelectDefault: "✨ ជ្រើសរើសមេរៀនគំរូ (Quick Demos)...",
@@ -687,6 +689,8 @@ const I18N_DICTIONARY = {
     headerHistoryTitle: "Lesson Plan History Dashboard",
     headerLicense: "License",
     headerLicenseTitle: "License Information & App Activation",
+    headerApiKey: "API Key",
+    headerApiKeyTitle: "Configure or check AI API Key (Gemini, Groq, OpenRouter)",
     headerUpdateTitle: "Check for Updates (Cloud Auto-Updater)",
     headerThemeTitle: "Toggle Light / Dark Theme",
     demoSelectDefault: "✨ Select Demo Lesson (Quick Demos)...",
@@ -856,6 +860,11 @@ function setLanguage(lang, showNotification = false) {
   const headerLicenseLabel = document.getElementById('headerLicenseLabel');
   if (btnLicense) btnLicense.title = dict.headerLicenseTitle;
   if (headerLicenseLabel) headerLicenseLabel.textContent = dict.headerLicense;
+
+  const btnApiKeyEl = document.getElementById('btnApiKey');
+  const headerApiKeyLabel = document.getElementById('headerApiKeyLabel');
+  if (btnApiKeyEl) btnApiKeyEl.title = dict.headerApiKeyTitle;
+  if (headerApiKeyLabel) headerApiKeyLabel.textContent = dict.headerApiKey;
 
   const btnCheckUpdate = document.getElementById('btnCheckUpdate');
   if (btnCheckUpdate) btnCheckUpdate.title = dict.headerUpdateTitle;
@@ -1952,54 +1961,54 @@ function initEventListeners() {
   }
 
   // API Key Modal
-  const apiKeyModal = document.getElementById('apiKeyModal');
   const btnApiKey = document.getElementById('btnApiKey');
   const btnCloseModal = document.getElementById('btnCloseModal');
   const btnSaveKey = document.getElementById('btnSaveKey');
   const btnRemoveKey = document.getElementById('btnRemoveKey');
-  const inputGeminiKey = document.getElementById('inputGeminiKey');
-  const selectAiProvider = document.getElementById('selectAiProvider');
+  const btnResetKeyModal = document.getElementById('btnResetKeyModal');
+  const btnResetToSystemDefault = document.getElementById('btnResetToSystemDefault');
 
-  btnApiKey.addEventListener('click', () => {
-    inputGeminiKey.value = state.geminiApiKey;
-    if (selectAiProvider) {
-      selectAiProvider.value = state.aiProvider || (state.geminiApiKey.startsWith('gsk_') ? 'groq' : (state.geminiApiKey.startsWith('sk-or-') ? 'openrouter' : 'gemini'));
-      handleAiProviderChange();
-    }
-    apiKeyModal.style.display = 'flex';
-  });
+  if (btnApiKey) {
+    btnApiKey.addEventListener('click', (e) => {
+      e.preventDefault();
+      openApiKeyModal();
+    });
+  }
 
-  btnCloseModal.addEventListener('click', () => {
-    apiKeyModal.style.display = 'none';
-  });
+  if (btnCloseModal) {
+    btnCloseModal.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeApiKeyModal();
+    });
+  }
 
-  btnSaveKey.addEventListener('click', () => {
-    const key = inputGeminiKey.value.trim();
-    const provider = selectAiProvider ? selectAiProvider.value : 'gemini';
-    state.aiProvider = provider;
-    localStorage.setItem('ai_provider', provider);
-    if (key) {
-      state.geminiApiKey = key;
-      localStorage.setItem('gemini_api_key', key);
-      const provName = provider === 'groq' ? 'Groq Cloud (Free)' : (provider === 'openrouter' ? 'OpenRouter' : 'Google Gemini');
-      showToast(`បានរក្សាទុក ${provName} API Key ដោយជោគជ័យ!`, 'success');
-    } else {
-      state.geminiApiKey = SYSTEM_DEFAULT_GEMINI_KEY;
-      localStorage.removeItem('gemini_api_key');
-      showToast('បានកំណត់ឡើងវិញទៅ System Gemini API Key លំនាំដើម', 'info');
-    }
-    checkApiKeyStatus();
-    apiKeyModal.style.display = 'none';
-  });
+  if (btnSaveKey) {
+    btnSaveKey.addEventListener('click', (e) => {
+      e.preventDefault();
+      saveApiKeyFromModal();
+    });
+  }
 
-  btnRemoveKey.addEventListener('click', () => {
-    state.geminiApiKey = SYSTEM_DEFAULT_GEMINI_KEY;
-    localStorage.removeItem('gemini_api_key');
-    if (inputGeminiKey) inputGeminiKey.value = SYSTEM_DEFAULT_GEMINI_KEY;
-    checkApiKeyStatus();
-    showToast('បានកំណត់ទៅប្រើប្រាស់ System Gemini API Key លំនាំដើម!', 'info');
-    apiKeyModal.style.display = 'none';
-  });
+  if (btnRemoveKey) {
+    btnRemoveKey.addEventListener('click', (e) => {
+      e.preventDefault();
+      removeApiKeyFromModal();
+    });
+  }
+
+  if (btnResetKeyModal) {
+    btnResetKeyModal.addEventListener('click', (e) => {
+      e.preventDefault();
+      resetToSmartEngineDefault();
+    });
+  }
+
+  if (btnResetToSystemDefault) {
+    btnResetToSystemDefault.addEventListener('click', (e) => {
+      e.preventDefault();
+      resetToSmartEngineDefault();
+    });
+  }
 
 
   // Export Actions
@@ -2339,12 +2348,28 @@ function updateWordCount() {
 // Check API Key Status Indicator
 function checkApiKeyStatus() {
   const badge = document.getElementById('apiKeyBadge');
-  if (state.geminiApiKey) {
-    badge.classList.add('active');
-    badge.title = 'Gemini API Key ត្រូវបានភ្ជាប់';
+  const btn = document.getElementById('btnApiKey');
+  const customKey = localStorage.getItem('gemini_api_key');
+  if (!badge) return;
+
+  if (customKey) {
+    badge.className = 'status-dot active';
+    badge.style.backgroundColor = '#10b981';
+    badge.style.boxShadow = '0 0 6px #10b981';
+    badge.title = 'Personal API Key ត្រូវបានភ្ជាប់';
+    if (btn) btn.title = '🔑 កំពុងប្រើ Personal API Key (ចុចដើម្បីកែប្រែ ឬ Reset)';
+  } else if (state.geminiApiKey) {
+    badge.className = 'status-dot active';
+    badge.style.backgroundColor = '#38bdf8';
+    badge.style.boxShadow = '0 0 6px #38bdf8';
+    badge.title = 'System Gemini AI រួចរាល់ជាស្រេច';
+    if (btn) btn.title = '🤖 ប្រព័ន្ធ Gemini AI ភ្ជាប់ស្រេច (ចុចដើម្បីបញ្ចូល Key ផ្ទាល់ខ្លួន)';
   } else {
-    badge.classList.remove('active');
-    badge.title = 'ដំណើរការដោយ Smart Engine ស្វ័យប្រវត្តិ';
+    badge.className = 'status-dot';
+    badge.style.backgroundColor = '#ef4444';
+    badge.style.boxShadow = 'none';
+    badge.title = 'មិនទាន់ភ្ជាប់ API Key';
+    if (btn) btn.title = '⚠️ មិនទាន់ភ្ជាប់ API Key (ចុចដើម្បីកំណត់)';
   }
 }
 
@@ -3630,6 +3655,12 @@ function openApiKeyModal() {
   const selectAiProvider = document.getElementById('selectAiProvider');
   if (inputGeminiKey) {
     inputGeminiKey.value = state.geminiApiKey || getActiveGeminiApiKey();
+    inputGeminiKey.type = 'password';
+    const icon = document.getElementById('iconToggleKeyMask');
+    if (icon) {
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
   }
   if (selectAiProvider) {
     const savedKey = state.geminiApiKey || getActiveGeminiApiKey();
@@ -3637,6 +3668,7 @@ function openApiKeyModal() {
     selectAiProvider.value = savedProvider;
     handleAiProviderChange();
   }
+  updateApiKeyModalUI();
   if (apiKeyModal) {
     apiKeyModal.style.display = 'flex';
   }
@@ -3659,7 +3691,7 @@ function saveApiKeyFromModal() {
   const provider = selectAiProvider ? selectAiProvider.value : 'gemini';
   state.aiProvider = provider;
   localStorage.setItem('ai_provider', provider);
-  if (key) {
+  if (key && key !== SYSTEM_DEFAULT_GEMINI_KEY) {
     state.geminiApiKey = key;
     localStorage.setItem('gemini_api_key', key);
     const provName = provider === 'groq' ? 'Groq Cloud (Free)' : (provider === 'openrouter' ? 'OpenRouter' : 'Google Gemini');
@@ -3670,6 +3702,7 @@ function saveApiKeyFromModal() {
     showToast('បានកំណត់ឡើងវិញទៅ System Gemini API Key លំនាំដើម', 'info');
   }
   checkApiKeyStatus();
+  updateApiKeyModalUI();
   if (apiKeyModal) apiKeyModal.style.display = 'none';
 }
 window.saveApiKeyFromModal = saveApiKeyFromModal;
@@ -3681,10 +3714,100 @@ function removeApiKeyFromModal() {
   localStorage.removeItem('gemini_api_key');
   if (inputGeminiKey) inputGeminiKey.value = SYSTEM_DEFAULT_GEMINI_KEY;
   checkApiKeyStatus();
+  updateApiKeyModalUI();
   showToast('បានកំណត់ទៅប្រើប្រាស់ System Gemini API Key លំនាំដើម!', 'info');
   if (apiKeyModal) apiKeyModal.style.display = 'none';
 }
 window.removeApiKeyFromModal = removeApiKeyFromModal;
+
+// Update UI elements in the API Key Modal
+function updateApiKeyModalUI() {
+  const statusBox = document.getElementById('apiKeyCurrentStatusBox');
+  const statusTitle = document.getElementById('apiKeyStatusTitle');
+  const statusDesc = document.getElementById('apiKeyStatusDesc');
+  const customKey = localStorage.getItem('gemini_api_key');
+  const provider = state.aiProvider || localStorage.getItem('ai_provider') || 'gemini';
+
+  if (customKey) {
+    if (statusBox) {
+      statusBox.style.background = '#eff6ff';
+      statusBox.style.borderColor = '#bfdbfe';
+    }
+    if (statusTitle) {
+      statusTitle.style.color = '#1d4ed8';
+      const provName = provider === 'groq' ? 'Groq Cloud' : (provider === 'openrouter' ? 'OpenRouter' : 'Google Gemini');
+      statusTitle.innerHTML = `<i class="fa-solid fa-key" style="color: #f59e0b;"></i> កំពុងប្រើប្រាស់ ${provName} API Key ផ្ទាល់ខ្លួនរបស់អ្នក (Custom Key)`;
+    }
+    if (statusDesc) {
+      statusDesc.style.color = '#1e40af';
+      statusDesc.innerHTML = '✨ លោកគ្រូ អ្នកគ្រូកំពុងប្រើ Key ផ្ទាល់ខ្លួន។ ប្រសិនបើជួបបញ្ហា Quota ឬចង់ប្រើប្រព័ន្ធស្វ័យប្រវត្តិនៃកម្មវិធីវិញ សូមចុចប៊ូតុង <strong>«🔄 Reset លំនាំដើម»</strong> ខាងក្រោម។';
+    }
+  } else {
+    if (statusBox) {
+      statusBox.style.background = '#f0fdf4';
+      statusBox.style.borderColor = '#bbf7d0';
+    }
+    if (statusTitle) {
+      statusTitle.style.color = '#15803d';
+      statusTitle.innerHTML = '<i class="fa-solid fa-circle-check"></i> ប្រព័ន្ធបានភ្ជាប់ System Gemini AI រួចជាស្រេច (Active)';
+    }
+    if (statusDesc) {
+      statusDesc.style.color = '#166534';
+      statusDesc.innerHTML = '✨ <strong>លោកគ្រូ អ្នកគ្រូមិនចាំបាច់បញ្ចូល Key ក៏ដំណើរការបានដែរ!</strong> ប្រព័ន្ធបានភ្ជាប់ Google Gemini AI ជាស្រេច។ ប៉ុន្តែប្រសិនបើលោកគ្រូ អ្នកគ្រូចង់ប្រើ Key ផ្ទាល់ខ្លួនពី aistudio.google.com, Groq ឬ OpenRouter អាច Paste ខាងក្រោមរួចចុច «រក្សាទុក Key»។';
+    }
+  }
+}
+window.updateApiKeyModalUI = updateApiKeyModalUI;
+
+function toggleApiKeyMask() {
+  const input = document.getElementById('inputGeminiKey');
+  const icon = document.getElementById('iconToggleKeyMask');
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    if (icon) {
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    }
+  } else {
+    input.type = 'password';
+    if (icon) {
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
+  }
+}
+window.toggleApiKeyMask = toggleApiKeyMask;
+
+async function pasteApiKeyFromClipboard() {
+  const input = document.getElementById('inputGeminiKey');
+  if (!input) return;
+  try {
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      const text = await navigator.clipboard.readText();
+      if (text && text.trim()) {
+        input.value = text.trim();
+        autoDetectApiKeyProvider(input.value);
+        showToast('📋 បានបិទភ្ជាប់ API Key ដោយជោគជ័យ!', 'success');
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn('Clipboard read failed:', err);
+  }
+  input.focus();
+  showToast('សូមចុច Ctrl+V ដើម្បីបិទភ្ជាប់ API Key', 'info');
+}
+window.pasteApiKeyFromClipboard = pasteApiKeyFromClipboard;
+
+function clearApiKeyInput() {
+  const input = document.getElementById('inputGeminiKey');
+  if (input) {
+    input.value = '';
+    input.focus();
+  }
+}
+window.clearApiKeyInput = clearApiKeyInput;
 
 // Handle AI Provider dropdown changes
 function handleAiProviderChange() {
@@ -3937,15 +4060,23 @@ window.testGeminiApiKey = testCurrentAiProviderKey;
 // 1-Click Reset to Default Smart Engine (Clean Start)
 function resetToSmartEngineDefault() {
   localStorage.removeItem('gemini_api_key');
+  localStorage.removeItem('ai_provider');
   state.geminiApiKey = SYSTEM_DEFAULT_GEMINI_KEY;
+  state.aiProvider = 'gemini';
   const inputEl = document.getElementById('inputGeminiKey');
   if (inputEl) inputEl.value = SYSTEM_DEFAULT_GEMINI_KEY;
+  const sel = document.getElementById('selectAiProvider');
+  if (sel) sel.value = 'gemini';
+  handleAiProviderChange();
   const statusEl = document.getElementById('apiKeyTestStatus');
-  if (statusEl) statusEl.style.display = 'none';
+  if (statusEl) {
+    statusEl.style.display = 'block';
+    statusEl.style.background = '#f0fdf4';
+    statusEl.style.color = '#15803d';
+    statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> បានកំណត់ឡើងវិញទៅ System Gemini API Key លំនាំដើមរួចរាល់!';
+  }
   checkApiKeyStatus();
-
-  const modal = document.getElementById('apiKeyModal');
-  if (modal) modal.style.display = 'none';
+  updateApiKeyModalUI();
 
   showToast('🔄 បានកំណត់ឡើងវិញទៅ System Gemini API Key លំនាំដើមដោយជោគជ័យ!', 'success');
 }
