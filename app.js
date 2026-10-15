@@ -4658,6 +4658,7 @@ async function resetToSmartEngineDefault() {
   if (sel) sel.value = 'gemini';
   handleAiProviderChange();
   const statusEl = document.getElementById('apiKeyTestStatus');
+  if (statusEl) {
     statusEl.style.display = 'block';
     statusEl.style.background = '#fefce8';
     statusEl.style.color = '#854d0e';
