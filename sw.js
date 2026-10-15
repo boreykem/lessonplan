@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lessonplan-cache-v44';
+const CACHE_NAME = 'lessonplan-cache-v46';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -80,3 +80,4 @@ self.addEventListener('fetch', (event) => {
     }).catch(() => fetch(event.request))
   );
 });
+

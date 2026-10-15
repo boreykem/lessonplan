@@ -2243,7 +2243,7 @@ async function extractTextFromFile(file) {
       const mimeType = file.type || (extension === 'png' ? 'image/png' : 'image/jpeg');
       const rawBase64 = base64Data.split(',')[1];
 
-      const ocrCandidateModels = ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-3.8-flash', 'gemini-3.5-flash-lite'];
+      const ocrCandidateModels = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-2.5-pro', 'gemini-3.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'];
       for (const model of ocrCandidateModels) {
         try {
           const ocrUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -2463,7 +2463,18 @@ async function handleGenerateLessonPlan() {
       planData = await generateWithOpenRouterAPI(genParams);
     } else {
       showToast('🤖 កំពុងដំណើរការដោយ Google Gemini AI...', 'info');
-      planData = await generateWithGeminiAPI(genParams);
+      try {
+        planData = await generateWithGeminiAPI(genParams);
+      } catch (geminiErr) {
+        console.warn('[AI Lesson Plan] Direct Gemini call encountered an issue:', geminiErr);
+        // If user key hit quota or rate limit, automatically try backend AI server
+        try {
+          showToast('🔄 Key ផ្ទាល់ខ្លួនជួបបញ្ហា... កំពុងប្តូរស្វ័យប្រវត្តទៅកាន់ AI Server បម្រុង...', 'info');
+          planData = await generateWithBackendAPI(genParams);
+        } catch (backendErr) {
+          throw geminiErr;
+        }
+      }
     }
 
     if (planData) {
@@ -2645,6 +2656,20 @@ function openKeyFromAiErrorModal() {
   openApiKeyModal();
 }
 window.openKeyFromAiErrorModal = openKeyFromAiErrorModal;
+
+function clearKeyAndRetry() {
+  localStorage.removeItem('gemini_api_key');
+  localStorage.removeItem('ai_provider');
+  state.geminiApiKey = '';
+  state.aiProvider = 'gemini';
+  state.verifiedGeminiModel = null;
+  checkApiKeyStatus();
+  updateApiKeyModalUI();
+  closeAiErrorModal();
+  showToast('បានសម្អាត Key ចេញរួចរាល់! កំពុងដំណើរការតាម AI Server...', 'info');
+  handleGenerateLessonPlan();
+}
+window.clearKeyAndRetry = clearKeyAndRetry;
 
 function proceedOfflineDeliberately() {
   closeAiErrorModal();
@@ -2837,7 +2862,7 @@ window.discoverGeminiModels = discoverGeminiModels;
 // 🌐 Backend Server API Generator (uses Vercel GEMINI_API_KEY env var - no personal key needed)
 async function generateWithBackendAPI(params) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 90000); // 90s timeout
+  const timeoutId = setTimeout(() => controller.abort(), 360000); // 6-minute timeout (more than 5 mins)
 
   try {
     const res = await fetch('/api/generate', {
@@ -3342,19 +3367,24 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
     discovered.sort((a, b) => {
       const score = (m) => {
         const name = (m.name || '').toLowerCase();
-        if (name === 'gemini-2.0-flash') return 200;
-        if (name === 'gemini-1.5-flash') return 190;
-        if (name === 'gemini-2.5-flash') return 180;
-        if (name === 'gemini-3.8-flash') return 175;
-        if (name.includes('flash-lite')) return 160;
-        if (name.includes('flash') && !name.includes('tts') && !name.includes('image')) return 150;
-        if (name.includes('pro') && !name.includes('tts') && !name.includes('image')) return 120;
+        if (name === 'gemini-2.5-pro') return 250;
+        if (name === 'gemini-3.8-flash') return 240;
+        if (name === 'gemini-3.6-flash') return 230;
+        if (name === 'gemini-3.5-flash-lite') return 210;
+        if (name === 'gemini-2.5-flash-lite') return 200;
+        if (name.includes('2.5-pro')) return 195;
+        if (name.includes('3.8-flash')) return 190;
+        if (name.includes('3.6-flash')) return 185;
+        if (name.includes('flash-lite')) return 175;
+        if (name === 'gemini-2.0-flash') return 150;
+        if (name.includes('flash') && !name.includes('tts') && !name.includes('image')) return 140;
+        if (name.includes('pro') && !name.includes('tts') && !name.includes('image')) return 130;
         return 10;
       };
       return score(b) - score(a);
     });
     for (const m of discovered) {
-      if (candidateModels.length >= 3) break; // Limit to top 3 models
+      if (candidateModels.length >= 4) break; // Limit to top 4 models
       if (!candidateModels.some(c => c.name === m.name)) {
         candidateModels.push(m);
       }
@@ -3363,10 +3393,12 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
 
   if (candidateModels.length === 0) {
     candidateModels = [
-      { ver: 'v1beta', name: 'gemini-2.0-flash' },
-      { ver: 'v1beta', name: 'gemini-1.5-flash' },
-      { ver: 'v1beta', name: 'gemini-2.5-flash' },
-      { ver: 'v1beta', name: 'gemini-3.8-flash' }
+      { ver: 'v1beta', name: 'gemini-2.5-pro' },
+      { ver: 'v1beta', name: 'gemini-3.8-flash' },
+      { ver: 'v1beta', name: 'gemini-3.6-flash' },
+      { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
+      { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
+      { ver: 'v1beta', name: 'gemini-2.0-flash' }
     ];
   }
 
@@ -3380,15 +3412,15 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
     
     setLoadingOverlayStatus(
       'AI កំពុងវិភាគឯកសារ និងរៀបចំកិច្ចតែងការ...',
-      `កំពុងបង្កើតកិច្ចតែងការតាម Google Gemini (${item.name})... សូមរង់ចាំបន្តិច ដើម្បីទទួលបានលទ្ធផលស្តង់ដារ!`,
+      `កំពុងបង្កើតកិច្ចតែងការតាម Google Gemini (${item.name})... សូមរង់ចាំបន្តិច (អនុញ្ញាតពេលរហូតដល់ ៦ នាទី ដើម្បីទទួលបានលទ្ធផលស្តង់ដារល្អបំផុត)!`,
       `🤖 ដំណើរការម៉ូដែល ${i + 1}/${candidateModels.length} (${item.name}) - ${badgeText}`
     );
 
     const streamUrl = `https://generativelanguage.googleapis.com/${item.ver}/models/${item.name}:streamGenerateContent?alt=sse&key=${apiKey}`;
     const directUrl = `https://generativelanguage.googleapis.com/${item.ver}/models/${item.name}:generateContent?key=${apiKey}`;
     const controller = new AbortController();
-    // Fast failover timeout (30 seconds per model) so users are never stuck on busy/503 models
-    const modelTimeoutMs = 30000;
+    // Generous failover timeout: 6 minutes (360,000ms > 5 minutes) so complex reasoning & Khmer token output never get cut off
+    const modelTimeoutMs = 360000;
     const timeoutId = setTimeout(() => controller.abort(), modelTimeoutMs);
     try {
       // Safe universal maxOutputTokens across all Gemini models (prevents 400 Bad Request)
@@ -4004,24 +4036,31 @@ async function testCurrentAiProviderKey() {
       discovered.sort((a, b) => {
         const score = (m) => {
           const name = (m.name || '').toLowerCase();
-          if (name === 'gemini-2.0-flash') return 200;
-          if (name === 'gemini-1.5-flash') return 190;
-          if (name === 'gemini-2.5-flash') return 180;
-          if (name === 'gemini-3.8-flash') return 175;
-          if (name.includes('flash-lite')) return 160;
-          if (name.includes('flash') && !name.includes('tts') && !name.includes('image')) return 150;
-          if (name.includes('pro') && !name.includes('tts') && !name.includes('image')) return 120;
+          if (name === 'gemini-2.5-pro') return 250;
+          if (name === 'gemini-3.8-flash') return 240;
+          if (name === 'gemini-3.6-flash') return 230;
+          if (name === 'gemini-3.5-flash-lite') return 210;
+          if (name === 'gemini-2.5-flash-lite') return 200;
+          if (name.includes('2.5-pro')) return 195;
+          if (name.includes('3.8-flash')) return 190;
+          if (name.includes('3.6-flash')) return 185;
+          if (name.includes('flash-lite')) return 175;
+          if (name === 'gemini-2.0-flash') return 150;
+          if (name.includes('flash') && !name.includes('tts') && !name.includes('image')) return 140;
+          if (name.includes('pro') && !name.includes('tts') && !name.includes('image')) return 130;
           return 10;
         };
         return score(b) - score(a);
       });
-      modelsToTest = discovered.slice(0, 3);
+      modelsToTest = discovered.slice(0, 4);
     } else {
       modelsToTest = [
-        { ver: 'v1beta', name: 'gemini-2.0-flash' },
-        { ver: 'v1beta', name: 'gemini-1.5-flash' },
-        { ver: 'v1beta', name: 'gemini-2.5-flash' },
-        { ver: 'v1beta', name: 'gemini-3.8-flash' }
+        { ver: 'v1beta', name: 'gemini-2.5-pro' },
+        { ver: 'v1beta', name: 'gemini-3.8-flash' },
+        { ver: 'v1beta', name: 'gemini-3.6-flash' },
+        { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
+        { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
+        { ver: 'v1beta', name: 'gemini-2.0-flash' }
       ];
     }
 
@@ -5387,8 +5426,8 @@ Return ONLY valid JSON array with ${numQuestions} objects matching this schema:
 ]`;
 
     if (apiKey) {
-      // Try gemini-2.0-flash / gemini-1.5-flash / gemini-2.5-flash
-      for (const model of ['gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-3.8-flash', 'gemini-3.5-flash-lite']) {
+      // Try gemini-2.5-pro / gemini-3.8-flash / gemini-3.6-flash / gemini-3.5-flash-lite
+      for (const model of ['gemini-2.5-pro', 'gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-2.0-flash']) {
         try {
           const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
             method: 'POST',
@@ -11263,10 +11302,14 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
             disc.sort((a, b) => {
               const sc = (m) => {
                 const n = (m.name || '').toLowerCase();
-                if (n.includes('flash-latest')) return 100;
-                if (n.includes('pro-latest')) return 95;
-                if (n.includes('2.5-flash')) return 90;
-                if (n.includes('2.0-flash')) return 85;
+                if (n.includes('2.5-pro')) return 110;
+                if (n.includes('3.8-flash')) return 105;
+                if (n.includes('3.6-flash')) return 100;
+                if (n.includes('3.5-flash-lite')) return 95;
+                if (n.includes('2.5-flash-lite')) return 90;
+                if (n.includes('flash-latest')) return 85;
+                if (n.includes('pro-latest')) return 80;
+                if (n.includes('2.0-flash')) return 75;
                 if (n.includes('flash')) return 70;
                 return 50;
               };
@@ -11279,11 +11322,12 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
 
       if (candidateModels.length === 0) {
         candidateModels = [
-          { ver: 'v1beta', name: 'gemini-2.0-flash' },
-          { ver: 'v1beta', name: 'gemini-1.5-flash' },
-          { ver: 'v1beta', name: 'gemini-2.5-flash' },
+          { ver: 'v1beta', name: 'gemini-2.5-pro' },
           { ver: 'v1beta', name: 'gemini-3.8-flash' },
-          { ver: 'v1beta', name: 'gemini-3.5-flash-lite' }
+          { ver: 'v1beta', name: 'gemini-3.6-flash' },
+          { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
+          { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
+          { ver: 'v1beta', name: 'gemini-2.0-flash' }
         ];
       }
 
@@ -11788,4 +11832,5 @@ window.closeGameModal = function() {
   const m = document.getElementById('gameModal');
   if (m) m.style.display = 'none';
 };
+
 

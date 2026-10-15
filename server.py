@@ -837,7 +837,7 @@ def synthesize_lesson_plan_python(data):
 # Gemini AI Online Integration
 # ==============================================================================
 def generate_with_gemini_python(api_key, data):
-    endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key={api_key}"
     
     subject = data.get("subject", "")
     grade = data.get("grade", "")
@@ -1215,11 +1215,12 @@ Return ONLY valid JSON matching this schema:
     }
 
     candidate_endpoints = [
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key={api_key}",
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={api_key}",
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
     ]
 
     last_error = None
@@ -1231,7 +1232,7 @@ Return ONLY valid JSON matching this schema:
         )
 
         try:
-            with urllib.request.urlopen(req, timeout=30) as response:
+            with urllib.request.urlopen(req, timeout=360) as response:
                 res_data = json.loads(response.read().decode("utf-8"))
                 text_content = res_data["candidates"][0]["content"]["parts"][0]["text"]
                 parsed = json.loads(text_content)
@@ -1801,11 +1802,11 @@ Return ONLY a valid JSON array of exactly 10 scene objects. Every object MUST ha
     }
 
     candidate_endpoints = [
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key={api_key}",
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={api_key}",
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
     ]
 
     last_error = None
@@ -1816,7 +1817,7 @@ Return ONLY a valid JSON array of exactly 10 scene objects. Every object MUST ha
                 data=json.dumps(payload).encode("utf-8"),
                 headers={"Content-Type": "application/json"}
             )
-            with urllib.request.urlopen(req, timeout=60) as response:
+            with urllib.request.urlopen(req, timeout=360) as response:
                 res_data = json.loads(response.read().decode("utf-8"))
                 text_content = res_data["candidates"][0]["content"]["parts"][0]["text"]
                 
