@@ -26,9 +26,9 @@ const PersistentKeyVault = {
   getSync() {
     try {
       const fromLocal = (localStorage.getItem('gemini_api_key') || '').trim();
-      if (fromLocal && !fromLocal.startsWith('AQ.')) return fromLocal;
+      if (fromLocal) return fromLocal;
       const fromCookie = this.getCookie('gemini_api_key');
-      if (fromCookie && !fromCookie.startsWith('AQ.')) {
+      if (fromCookie) {
         try { localStorage.setItem('gemini_api_key', fromCookie); } catch (e) {}
         return fromCookie;
       }
@@ -235,7 +235,7 @@ const PersistentKeyVault = {
       } catch (e) {}
     }
 
-    if (key && key.trim() && !key.startsWith('AQ.')) {
+    if (key && key.trim()) {
       state.geminiApiKey = key.trim();
       state.aiProvider = provider || 'gemini';
       await this.save(key.trim(), provider);
@@ -2742,10 +2742,10 @@ function checkApiKeyStatus() {
   const badge = document.getElementById('apiKeyBadge');
   const btn = document.getElementById('btnApiKey');
   const label = document.getElementById('headerApiKeyLabel');
-  const customKey = state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key');
+  const customKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
   if (!badge) return;
 
-  if (customKey && customKey.trim() && !customKey.startsWith('AQ.')) {
+  if (customKey) {
     badge.className = 'status-dot active';
     badge.style.backgroundColor = '#10b981';
     badge.style.boxShadow = '0 0 8px #10b981';
@@ -4233,7 +4233,7 @@ function updateEmptyStateApiStatus() {
   const key = (state.geminiApiKey || getActiveGeminiApiKey() || '').trim();
   const provider = state.aiProvider || PersistentKeyVault.getProviderSync();
 
-  if (key && !key.startsWith('AQ.')) {
+  if (key) {
     banner.style.background = '#f0fdf4';
     banner.style.borderColor = '#86efac';
     banner.style.color = '#15803d';
@@ -4254,7 +4254,12 @@ function updateEmptyStateApiStatus() {
 }
 window.updateEmptyStateApiStatus = updateEmptyStateApiStatus;
 
+let _lastSaveApiKeyTime = 0;
 function saveApiKeyFromModal() {
+  const now = Date.now();
+  if (now - _lastSaveApiKeyTime < 250) return;
+  _lastSaveApiKeyTime = now;
+
   const showSuccessToast = arguments.length > 0 ? arguments[0] : true;
   const inputGeminiKey = document.getElementById('inputGeminiKey');
   const selectAiProvider = document.getElementById('selectAiProvider');
@@ -4274,6 +4279,7 @@ function saveApiKeyFromModal() {
   }
   checkApiKeyStatus();
   updateApiKeyModalUI();
+  updateEmptyStateApiStatus();
   if (apiKeyModal && showSuccessToast) apiKeyModal.style.display = 'none';
 
   if (key && pendingGenParams) {

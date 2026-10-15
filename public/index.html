@@ -852,7 +852,7 @@
             (function() {
               try {
                 var k = localStorage.getItem('gemini_api_key') || (document.cookie.match(/(?:^|; )persistent_api_key=([^;]*)/) || [])[1];
-                if (k && k.trim() && !k.startsWith('AQ.')) {
+                if (k && k.trim()) {
                   var b = document.getElementById('emptyStateApiBanner');
                   var d = document.getElementById('emptyStateApiDot');
                   var t = document.getElementById('emptyStateApiText');
@@ -1857,7 +1857,7 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261015_v20_runtime_fix"></script>
+  <script src="app.js?v=20261015_v21_key_connected_fix"></script>
 </body>
 </html>
 
