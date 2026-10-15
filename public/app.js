@@ -7538,59 +7538,135 @@ function importPlansFromJson(file) {
   reader.readAsText(file);
 }
 
-// Google NotebookLM Prompt & Studio Actions
-async function copyNotebookLMPrompt() {
-  const data = state.generatedPlanData;
-  if (!data) {
-    showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
-    return;
-  }
+// Google NotebookLM & Gemini Notebook Studio Actions
+let currentNotebookLmText = '';
 
-  const title = data.lessonTitle || 'មេរៀន';
-  const subject = data.subject || '';
-  const grade = data.grade || '';
-  const prompt = data.notebooklmGuide?.notebooklmPrompt || `Please generate a Deep Dive Audio Overview podcast script and Study Guide in Khmer for Cambodian high school curriculum on topic: "${title}" (${subject} ${grade}). Include key principles, real-world applications, and FAQ.`;
-
-  try {
-    await navigator.clipboard.writeText(prompt);
-    showToast('📋 បានចម្លង Prompt សម្រាប់ Google NotebookLM រួចរាល់! លោកអ្នកអាចយកទៅ paste ក្នុង notebooklm.google.com', 'success');
-  } catch (err) {
-    showToast('មិនអាចចម្លងបានទេ: ' + err.message, 'error');
-  }
-}
-
-async function autoOpenNotebookLMWithPrompt() {
+function prepareNotebookLmText() {
   const data = state.generatedPlanData || state.currentPlan;
-  if (!data) {
-    showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
-    return;
+  
+  const subject = data?.subject || document.getElementById('txtSubject')?.value?.trim() || 'វិទ្យាសាស្ត្រ';
+  const grade = data?.grade || document.getElementById('txtGrade')?.value?.trim() || 'ទី១០';
+  const title = data?.lessonTitle || document.getElementById('txtLessonTitle')?.value?.trim() || 'មេរៀន';
+  const duration = data?.duration || document.getElementById('txtDuration')?.value?.trim() || '៥០ នាទី';
+  const method = data?.method || document.getElementById('selectMethod')?.value || '5E';
+
+  let fullDoc = `=======================================================\n`;
+  fullDoc += `PROMPT សម្រាប់ GEMINI NOTEBOOK / GOOGLE NOTEBOOKLM\n`;
+  fullDoc += `=======================================================\n`;
+  fullDoc += `សូមផលិតវីដេអូពន្យល់មេរៀន (Explainer Video Overview / Micro-Lecture) រយៈពេល ៦ ទៅ ១០ នាទី សម្រាប់មេរៀន «${title}» មុខវិជ្ជា ${subject} ${grade}។\n\n`;
+  fullDoc += `⚠️ លក្ខខណ្ឌចាំបាច់បំផុត (CRITICAL INSTRUCTIONS):\n`;
+  fullDoc += `១. ភាសានិយាយ និងអក្សរលើស្លាយ (Language): ទាំងសំឡេងអត្ថាធិប្បាយ (Narration) និងអក្សរបង្ហាញលើស្លាយវីដេអូ (On-Screen Text / Slides) ត្រូវតែជា «ភាសាខ្មែរ ១០០%» (Khmer Language Only)។ ដាច់ខាតកុំប្រើប្រាស់ភាសាអង់គ្លេសលើស្លាយ ឬក្នុងសំឡេងនិយាយ!\n`;
+  fullDoc += `២. ខ្លឹមសារវីដេអូ (Video Content):\n`;
+  fullDoc += `   - ឈុតទី១ (អារម្ភកថា & ចំណុចចាប់អារម្មណ៍): បង្ហាញពីសារៈសំខាន់នៃមេរៀនក្នុងជីវភាពរស់នៅជាក់ស្តែង\n`;
+  fullDoc += `   - ឈុតទី២ (ទ្រឹស្តី និងគោលការណ៍គន្លឹះ): ពន្យល់និយមន័យ ក្បួនច្បាប់ រូបមន្ត ឬទ្រឹស្តីស្នូលជាភាសាខ្មែរច្បាស់ៗ\n`;
+  fullDoc += `   - ឈុតទី៣ (ឧទាហរណ៍ជាក់ស្តែង): លើកឧទាហរណ៍ក្នុងបរិបទសង្គម និងការអប់រំនៅកម្ពុជា\n`;
+  fullDoc += `   - ឈុតទី៤ (សង្ខេប & សំណួរត្រិះរិះ): សង្ខេបខ្លឹមសារសំខាន់ និងដាក់សំណួរពិភាក្សាសម្រាប់សិស្ស\n`;
+  fullDoc += `៣. រចនាបថ (Style): Explainer Video, រូបភាព ឬដ្យាក្រាមច្បាស់ៗ អមដោយអក្សររត់ភាសាខ្មែរងាយស្រួលអាន Font Kantumruy Pro។\n\n`;
+
+  fullDoc += `=======================================================\n`;
+  fullDoc += `ខ្លឹមសារឯកសារមេរៀនទាំងស្រុង (FULL LESSON PLAN DOCUMENT)\n`;
+  fullDoc += `=======================================================\n`;
+  fullDoc += `• មុខវិជ្ជា៖ ${subject}\n`;
+  fullDoc += `• ថ្នាក់៖ ${grade}\n`;
+  fullDoc += `• មេរៀន៖ ${title}\n`;
+  fullDoc += `• រយៈពេល៖ ${duration}\n`;
+  fullDoc += `• វិធីសាស្ត្របង្រៀន៖ ${method}\n\n`;
+
+  if (data?.objectives) {
+    fullDoc += `[វត្ថុបំណងមេរៀន]\n`;
+    if (data.objectives.knowledge?.length) {
+      fullDoc += `- វិជ្ជាសម្បទា៖ ` + data.objectives.knowledge.join('; ') + `\n`;
+    }
+    if (data.objectives.skills?.length) {
+      fullDoc += `- បំណិនសម្បទា៖ ` + data.objectives.skills.join('; ') + `\n`;
+    }
+    if (data.objectives.attitudes?.length) {
+      fullDoc += `- ចរិយាសម្បទា៖ ` + data.objectives.attitudes.join('; ') + `\n`;
+    }
+    fullDoc += `\n`;
   }
 
-  const title = data.lessonTitle || 'មេរៀន';
-  const subject = data.subject || '';
-  const grade = data.grade || '';
-  
-  // Ultra-strict multilingual prompt for NotebookLM Video Overview:
-  // Note: NotebookLM will use English if prompted in English, so the prompt itself MUST be written
-  // in 100% formal Khmer, commanding the Video Overview to write and speak 100% Khmer Unicode!
-  const prompt = `សូមផលិតវីដេអូពន្យល់មេរៀន (Explainer Video Overview) រយៈពេល ៦ ទៅ ១០ នាទី សម្រាប់មេរៀន «${title}» មុខវិជ្ជា ${subject} ${grade}។
+  if (data?.materials) {
+    fullDoc += `[សម្ភារឧបទេស]\n${data.materials}\n\n`;
+  }
 
-⚠️ លក្ខខណ្ឌចាំបាច់បំផុត (CRITICAL INSTRUCTIONS):
-១. ភាសានិយាយ និងអក្សរលើស្លាយ (Language): ទាំងសំឡេងអត្ថាធិប្បាយ (Narration) និងអក្សរបង្ហាញលើស្លាយវីដេអូ (On-Screen Text / Slides) ត្រូវតែជា «ភាសាខ្មែរ ១០០%» (Khmer Language Only)។ ដាច់ខាតកុំប្រើប្រាស់ភាសាអង់គ្លេសលើស្លាយ ឬក្នុងសំឡេងនិយាយ!
-២. ខ្លឹមសារវីដេអូ (Video Content):
-   - ឈុតទី១ (អារម្ភកថា & ចំណុចចាប់អារម្មណ៍): បង្ហាញពីសារៈសំខាន់នៃមេរៀនក្នុងជីវភាពរស់នៅជាក់ស្តែង
-   - ឈុតទី២ (ទ្រឹស្តី និងគោលការណ៍គន្លឹះ): ពន្យល់និយមន័យ ក្បួនច្បាប់ រូបមន្ត ឬទ្រឹស្តីស្នូលជាភាសាខ្មែរច្បាស់ៗ
-   - ឈុតទី៣ (ឧទាហរណ៍ជាក់ស្តែង): លើកឧទាហរណ៍ក្នុងបរិបទសង្គម និងការអប់រំនៅកម្ពុជា
-   - ឈុតទី៤ (សង្ខេប & សំណួរត្រិះរិះ): សង្ខេបខ្លឹមសារសំខាន់ និងដាក់សំណួរពិភាក្សាសម្រាប់សិស្ស
-៣. រចនាបថ (Style): Explainer Video, រូបភាពគំនូរជីវចល ឬដ្យាក្រាមច្បាស់ៗ អមដោយអក្សររត់ភាសាខ្មែរងាយស្រួលអាន។`;
+  if (data?.steps && Array.isArray(data.steps)) {
+    fullDoc += `[ដំណើរការបង្រៀន និងរៀន ៥ ជំហាន]\n`;
+    data.steps.forEach((st, idx) => {
+      fullDoc += `\n${st.stepTitle || `ជំហានទី ${idx + 1}`} (${st.duration || ''})៖\n`;
+      if (st.teacherActivity) fullDoc += `• សកម្មភាពគ្រូ៖ ${st.teacherActivity}\n`;
+      if (st.contentSummary) fullDoc += `• ខ្លឹមសារមេរៀន៖ ${st.contentSummary}\n`;
+      if (st.studentActivity) fullDoc += `• សកម្មភាពសិស្ស៖ ${st.studentActivity}\n`;
+    });
+    fullDoc += `\n`;
+  }
 
-  try {
-    await navigator.clipboard.writeText(prompt);
-  } catch (e) {}
+  const lessonContent = data?.lessonContent || document.getElementById('txtLessonContent')?.value || '';
+  if (lessonContent && lessonContent.trim().length > 10) {
+    fullDoc += `[ឯកសារ និងខ្លឹមសារលម្អិតបន្ថែម]\n${lessonContent.trim()}\n\n`;
+  }
 
-  window.open('https://notebook.google.com/notebook/104a40ae-6850-4e52-b0cf-e66a5deee7bd', '_blank');
-  showToast('🚀 បានបើក Google NotebookLM និងចម្លង Prompt ជាភាសាខ្មែរ ១០០% ចូល Clipboard! សូមចុច Ctrl+V (Paste) ក្នុងប្រអប់ Customize។', 'success');
+  return fullDoc;
 }
+
+async function openNotebookLM() {
+  const fullText = prepareNotebookLmText();
+  currentNotebookLmText = fullText;
+
+  // Copy Prompt and full document to Clipboard
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(fullText);
+    }
+  } catch (err) {
+    console.warn('Clipboard copy error:', err);
+  }
+
+  // Populate preview text in modal
+  const previewEl = document.getElementById('notebookLmCopiedPreview');
+  if (previewEl) {
+    previewEl.textContent = fullText;
+  }
+
+  // Open modal popup
+  const modal = document.getElementById('notebookLmModal');
+  if (modal) {
+    modal.style.display = 'flex';
+  } else {
+    // Fallback if modal DOM element is not present
+    alert('✅ បាន Copy Prompt និងឯកសារទាំងស្រុង សម្រាប់ដំណើរការបង្កើតវីដេអូក្នុង Gemini Notebook\n\nសូមចុច OK ដើម្បីបន្តទៅ Gemini Notebook និងសូម Paste Prompt ចូល រួចចុចត្រង់ប្រអប់បង្កើតវីដេអូ។');
+    window.open('https://notebook.google.com/notebook/104a40ae-6850-4e52-b0cf-e66a5deee7bd', '_blank');
+  }
+}
+window.openNotebookLM = openNotebookLM;
+window.autoOpenNotebookLMWithPrompt = openNotebookLM;
+window.copyNotebookLMPrompt = openNotebookLM;
+
+function closeNotebookLmModal() {
+  const modal = document.getElementById('notebookLmModal');
+  if (modal) modal.style.display = 'none';
+}
+window.closeNotebookLmModal = closeNotebookLmModal;
+
+function proceedToNotebookLMWeb() {
+  closeNotebookLmModal();
+  window.open('https://notebook.google.com/notebook/104a40ae-6850-4e52-b0cf-e66a5deee7bd', '_blank');
+  showToast('🚀 កំពុងបើក Gemini Notebook... សូមចុច Ctrl+V (Paste) ដើម្បីបិទភ្ជាប់!', 'success');
+}
+window.proceedToNotebookLMWeb = proceedToNotebookLMWeb;
+
+async function copyNotebookLMPromptAgain(e) {
+  if (e) e.stopPropagation();
+  if (currentNotebookLmText) {
+    try {
+      await navigator.clipboard.writeText(currentNotebookLmText);
+      showToast('📋 បានចម្លង Prompt & ឯកសារម្តងទៀតដោយជោគជ័យ!', 'success');
+    } catch (err) {
+      showToast('មិនអាចចម្លងបានទេ: ' + err.message, 'error');
+    }
+  }
+}
+window.copyNotebookLMPromptAgain = copyNotebookLMPromptAgain;
 
 function downloadNotebookLMSourceFile() {
   const data = state.generatedPlanData;
@@ -9645,9 +9721,12 @@ window.downloadVideoAsWebM = downloadVideoAsWebM;
 window.openSavedPlanInCanvas = openSavedPlanInCanvas;
 window.exportSavedPlanDocx = exportSavedPlanDocx;
 window.deleteSavedPlan = deleteSavedPlan;
-window.copyNotebookLMPrompt = autoOpenNotebookLMWithPrompt;
-window.openNotebookLM = autoOpenNotebookLMWithPrompt;
-window.autoOpenNotebookLMWithPrompt = autoOpenNotebookLMWithPrompt;
+window.copyNotebookLMPrompt = openNotebookLM;
+window.openNotebookLM = openNotebookLM;
+window.autoOpenNotebookLMWithPrompt = openNotebookLM;
+window.closeNotebookLmModal = closeNotebookLmModal;
+window.proceedToNotebookLMWeb = proceedToNotebookLMWeb;
+window.copyNotebookLMPromptAgain = copyNotebookLMPromptAgain;
 window.downloadNotebookLMSourceFile = downloadNotebookLMSourceFile;
 window.copyVideoAIScriptPrompt = copyVideoAIScriptPrompt;
 window.exportTestToCSV = exportTestToCSV;
