@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lessonplan-cache-v55';
+const CACHE_NAME = 'lessonplan-cache-v56';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -7,7 +7,8 @@ const ASSETS_TO_CACHE = [
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
-  '/ac-mart-logo-1.jpg'
+  '/ac-mart-logo-1.jpg',
+  '/ac-mart-logo-circle.png'
 ];
 
 self.addEventListener('install', (event) => {
