@@ -2510,6 +2510,16 @@ async function handleGenerateLessonPlan() {
     state.currentPlan = planData;
     state.generatedPlanData = planData;
     renderLessonPlanToA4(planData);
+    try {
+      if (typeof saveToHistory === 'function') {
+        saveToHistory(planData);
+      }
+      if (typeof updateSavedPlansCountBadge === 'function') {
+        updateSavedPlansCountBadge();
+      }
+    } catch(hErr) {
+      console.warn('History auto-save error:', hErr);
+    }
 
     // Auto-save admin profile if remember is checked
     const chkAutoRemember = document.getElementById('chkAutoRememberAdmin');
@@ -8010,6 +8020,9 @@ function closeSavedPlansModal() {
   const modal = document.getElementById('savedPlansModal');
   if (modal) modal.style.display = 'none';
 }
+window.openSavedPlansModal = openSavedPlansModal;
+window.closeSavedPlansModal = closeSavedPlansModal;
+window.saveCurrentGeneratedPlan = saveCurrentGeneratedPlan;
 
 function saveCurrentGeneratedPlan() {
   if (!state.generatedPlanData) {

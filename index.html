@@ -131,12 +131,7 @@
           </select>
         </div>
 
-        <!-- Saved Plans Library Button (Hidden) -->
-        <button id="btnOpenSavedPlans" class="btn-secondary" style="display: none;" title="បើកបណ្ណាល័យកិច្ចតែងការដែលបានរក្សាទុក">
-          <i class="fa-solid fa-folder-open"></i>
-          <span class="btn-text">បណ្ណាល័យ</span>
-          <span id="savedPlansCountBadge" class="count-badge">០</span>
-        </button>
+
 
                 <!-- Spinner and Group Generator -->
         <button id="btnWheel" class="btn-secondary btn-wheel-blink" onclick="window.open('https://luckywheel-ac.vercel.app/', '_blank')" title="បង្វិលកងចៃដន្យ (Lucky Wheel & Group Maker)">
@@ -170,6 +165,13 @@
           <i class="fa-solid fa-key" style="color: #f59e0b;"></i>
           <span class="btn-text" id="headerApiKeyLabel" data-i18n="headerApiKey">API Key</span>
           <span id="apiKeyBadge" class="status-dot active"></span>
+        </button>
+
+        <!-- Saved Plans Library Button (Visible) -->
+        <button id="btnOpenSavedPlans" class="btn-secondary" style="border-color: #0284c7; color: #0284c7; display: inline-flex; align-items: center; gap: 6px;" onclick="openSavedPlansModal()" title="បើកបណ្ណាល័យកិច្ចតែងការដែលបានរក្សាទុក (Saved Lesson Plans Library)">
+          <i class="fa-solid fa-book-bookmark" style="color: #0284c7;"></i>
+          <span class="btn-text">បណ្ណាល័យ</span>
+          <span id="savedPlansCountBadge" class="count-badge" style="background: #0284c7; color: white; padding: 1px 7px; border-radius: 10px; font-size: 0.75rem; font-weight: 700;">០</span>
         </button>
 
         <!-- History Button -->
@@ -677,8 +679,8 @@
 
           <div class="toolbar-divider"></div>
 
-          <!-- Save Plan Button (Hidden) -->
-          <button id="btnSaveGeneratedPlan" class="btn-tool-action btn-save-plan" style="display: none;" title="រក្សាទុកកិច្ចតែងការនេះទៅក្នុងបណ្ណាល័យ">
+          <!-- Save Plan Button (Visible) -->
+          <button id="btnSaveGeneratedPlan" class="btn-tool-action btn-save-plan" style="background: #0284c7; color: white; border: none; font-weight: 600;" onclick="saveCurrentGeneratedPlan()" title="រក្សាទុកកិច្ចតែងការនេះទៅក្នុងបណ្ណាល័យ">
             <i class="fa-solid fa-floppy-disk"></i> រក្សាទុក
           </button>
 
@@ -1542,8 +1544,13 @@
           </div>
         </div>
         
-        <div style="font-weight: 700; font-size: 11pt; color: #1e293b; margin-bottom: 12px; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px;">
-          <i class="fa-solid fa-list"></i> <span data-i18n="modalHistoryRecentList">បញ្ជីកិច្ចតែងការចុងក្រោយ (រក្សាទុកក្នុងកុំព្យូទ័រនេះ)</span>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px;">
+          <div style="font-weight: 700; font-size: 11pt; color: #1e293b;">
+            <i class="fa-solid fa-list"></i> <span data-i18n="modalHistoryRecentList">បញ្ជីកិច្ចតែងការចុងក្រោយ (រក្សាទុកក្នុងកុំព្យូទ័រនេះ)</span>
+          </div>
+          <button type="button" class="btn-secondary" onclick="closeHistoryModal(); openSavedPlansModal();" style="border-color: #0284c7; color: #0284c7; padding: 3px 10px; font-size: 0.8rem; font-weight: 700; display: inline-flex; align-items: center; gap: 5px; cursor: pointer;">
+            <i class="fa-solid fa-book-bookmark"></i> បើកបណ្ណាល័យ (Library)
+          </button>
         </div>
         
         <div id="historyListContainer" style="display: flex; flex-direction: column; gap: 12px;">
@@ -1734,7 +1741,7 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261015_v10_notebooklm_fix"></script>
+  <script src="app.js?v=20261015_v11_library_visible"></script>
 </body>
 </html>
 
