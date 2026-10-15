@@ -21,7 +21,7 @@
   <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
-  <link rel="stylesheet" href="style.css?v=20261015_v12_20261015_v8_api_key_guard">
+  <link rel="stylesheet" href="style.css?v=20261015_v13_autofit20261015_v8_api_key_guard">
   
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="/manifest.json">
@@ -740,65 +740,65 @@
           </div>
         </div>
 
-        <!-- Initial Placeholder State (Shown before generate) -->
+        <!-- Initial Placeholder State (Shown before generate) - Perfectly Auto-Fitted -->
         <div id="emptyState" class="empty-state">
           <!-- Icon Wrap -->
-          <div class="empty-icon-wrap" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; width: 68px; height: 68px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 14px; font-size: 2rem; box-shadow: 0 8px 20px rgba(79, 70, 229, 0.28);">
+          <div class="empty-icon-wrap" style="background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); color: white; width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-size: 1.5rem; box-shadow: 0 6px 16px rgba(79, 70, 229, 0.25);">
             <i class="fa-solid fa-book-open-reader"></i>
           </div>
 
           <!-- Welcome Header -->
-          <h3 style="font-size: 1.3rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">ស្វាគមន៍មកកាន់ AI Lesson Plan Studio</h3>
-          <p style="font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.5;">ប្រព័ន្ធឆ្លាតវៃជំនួយគ្រូបង្រៀនក្នុងការរៀបចំកិច្ចតែងការ និងកម្រងសំណួរវាយតម្លៃស្តង់ដារ MoEYS</p>
+          <h3 style="font-size: 1.18rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">ស្វាគមន៍មកកាន់ AI Lesson Plan Studio</h3>
+          <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">ប្រព័ន្ធឆ្លាតវៃជំនួយគ្រូបង្រៀនក្នុងការរៀបចំកិច្ចតែងការ និងកម្រងសំណួរវាយតម្លៃស្តង់ដារ MoEYS</p>
 
           <!-- API Status Banner -->
-          <div id="emptyStateApiBanner" style="display: inline-flex; align-items: center; gap: 8px; background: #fefce8; border: 1.5px solid #fef08a; padding: 7px 16px; border-radius: 20px; font-size: 0.84rem; font-weight: 600; color: #854d0e; margin-bottom: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
+          <div id="emptyStateApiBanner" style="display: inline-flex; align-items: center; gap: 8px; background: #fefce8; border: 1.5px solid #fef08a; padding: 5px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; color: #854d0e; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
             <span id="emptyStateApiDot">🟡</span>
             <span id="emptyStateApiText">មិនទាន់ភ្ជាប់ API Key (កំពុងប្រើ Offline Mode)</span>
-            <button type="button" id="btnEmptyBannerConnectKey" onclick="openApiKeyModal()" style="background: #f59e0b; color: white; border: none; padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 700; cursor: pointer; margin-left: 4px; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);">
+            <button type="button" id="btnEmptyBannerConnectKey" onclick="openApiKeyModal()" style="background: #f59e0b; color: white; border: none; padding: 2px 9px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; margin-left: 4px; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);">
               <i class="fa-solid fa-key"></i> ភ្ជាប់ Key ឥឡូវនេះ
             </button>
           </div>
 
-          <!-- 3-Step Visual Cards Grid -->
-          <div class="empty-steps-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; text-align: left;">
+          <!-- 3-Step Visual Cards Grid (Auto-fits 3 columns in 1 row) -->
+          <div class="empty-steps-grid">
             <!-- Step 1 -->
-            <div class="empty-step-card" style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; padding: 14px; transition: transform 0.2s, box-shadow 0.2s;">
-              <span style="display: inline-block; background: #e0e7ff; color: #4338ca; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-bottom: 8px;">ជំហានទី ១</span>
-              <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-primary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+            <div class="empty-step-card" style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 10px 12px; transition: transform 0.2s, box-shadow 0.2s;">
+              <span style="display: inline-block; background: #e0e7ff; color: #4338ca; font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px;">ជំហានទី ១</span>
+              <div style="font-weight: 700; font-size: 0.84rem; color: var(--text-primary); margin-bottom: 3px; display: flex; align-items: center; gap: 5px; white-space: nowrap;">
                 <i class="fa-solid fa-file-circle-plus" style="color: #4f46e5;"></i> រើសទម្រង់/មេរៀន
               </div>
-              <div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5;">ជ្រើសរើសទម្រង់ MoEYS ឬ Upload ឯកសារ Word, PDF, PPTX នៅបន្ទះខាងឆ្វេង</div>
+              <div style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">ជ្រើសទម្រង់ MoEYS ឬ Upload Word/PDF/PPTX</div>
             </div>
 
             <!-- Step 2 -->
-            <div class="empty-step-card" style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; padding: 14px; transition: transform 0.2s, box-shadow 0.2s;">
-              <span style="display: inline-block; background: #ecfdf5; color: #047857; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-bottom: 8px;">ជំហានទី ២</span>
-              <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-primary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                <i class="fa-solid fa-wand-magic-sparkles" style="color: #10b981;"></i> ចុចបង្កើតដោយ AI
+            <div class="empty-step-card" style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 10px 12px; transition: transform 0.2s, box-shadow 0.2s;">
+              <span style="display: inline-block; background: #ecfdf5; color: #047857; font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px;">ជំហានទី ២</span>
+              <div style="font-weight: 700; font-size: 0.84rem; color: var(--text-primary); margin-bottom: 3px; display: flex; align-items: center; gap: 5px; white-space: nowrap;">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color: #10b981;"></i> បង្កើតដោយ AI
               </div>
-              <div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5;">រៀបចំកិច្ចតែងការ ៥ ជំហាន + Pre-Test (៦-៣-១) + Post-Test (២-៦-២)</div>
+              <div style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">កិច្ចតែងការ ៥ ជំហាន + Pre (60/30/10) + Post (20/60/20)</div>
             </div>
 
             <!-- Step 3 -->
-            <div class="empty-step-card" style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 10px; padding: 14px; transition: transform 0.2s, box-shadow 0.2s;">
-              <span style="display: inline-block; background: #f0f9ff; color: #0369a1; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; margin-bottom: 8px;">ជំហានទី ៣</span>
-              <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-primary); margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+            <div class="empty-step-card" style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 10px 12px; transition: transform 0.2s, box-shadow 0.2s;">
+              <span style="display: inline-block; background: #f0f9ff; color: #0369a1; font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px;">ជំហានទី ៣</span>
+              <div style="font-weight: 700; font-size: 0.84rem; color: var(--text-primary); margin-bottom: 3px; display: flex; align-items: center; gap: 5px; white-space: nowrap;">
                 <i class="fa-solid fa-file-word" style="color: #0284c7;"></i> កែសម្រួល & Export
               </div>
-              <div style="font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5;">ពិនិត្យផ្ទាល់លើទំព័រ A4 និងទាញយកជាឯកសារ Word (.docx) ផ្លូវការ</div>
+              <div style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">ពិនិត្យលើ A4 រួច Export ជា Word (.docx) / PPTX</div>
             </div>
           </div>
 
           <!-- Quick Action Buttons -->
-          <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-            <button id="btnEmptyQuickDemo" class="btn-primary" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; border: none; font-weight: 700; padding: 9px 18px; border-radius: 8px; font-size: 0.9rem; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
-              <i class="fa-solid fa-play"></i> <span data-i18n="btnEmptyQuickDemo">សាកល្បងជាមួយមេរៀនគំរូភ្លាមៗ</span>
+          <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+            <button id="btnEmptyQuickDemo" class="btn-primary" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; border: none; font-weight: 700; padding: 8px 15px; border-radius: 8px; font-size: 0.84rem; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-play"></i> <span data-i18n="btnEmptyQuickDemo">សាកល្បងមេរៀនគំរូ</span>
             </button>
-            <button id="btnEmptyConnectKey" class="btn-secondary" onclick="openApiKeyModal()" style="border: 1.5px solid #f59e0b; color: #b45309; background: #fffbeb; font-weight: 700; padding: 9px 16px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
-              <i class="fa-solid fa-key" style="color: #f59e0b;"></i> <span>ភ្ជាប់ Gemini API Key</span>
+            <button id="btnEmptyConnectKey" class="btn-secondary" onclick="openApiKeyModal()" style="border: 1.5px solid #f59e0b; color: #b45309; background: #fffbeb; font-weight: 700; padding: 8px 14px; border-radius: 8px; font-size: 0.84rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              <i class="fa-solid fa-key" style="color: #f59e0b;"></i> <span>ភ្ជាប់ API Key</span>
             </button>
-            <button id="btnEmptyOpenLibrary" class="btn-secondary" onclick="openSavedPlansModal()" style="border: 1.5px solid #0284c7; color: #0284c7; background: #f0f9ff; font-weight: 700; padding: 9px 16px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+            <button id="btnEmptyOpenLibrary" class="btn-secondary" onclick="openSavedPlansModal()" style="border: 1.5px solid #0284c7; color: #0284c7; background: #f0f9ff; font-weight: 700; padding: 8px 14px; border-radius: 8px; font-size: 0.84rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
               <i class="fa-solid fa-book-bookmark" style="color: #0284c7;"></i> <span>បណ្ណាល័យកិច្ចតែងការ</span>
             </button>
           </div>
@@ -1792,7 +1792,7 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261015_v12_welcome_screen"></script>
+  <script src="app.js?v=20261015_v13_autofit"></script>
 </body>
 </html>
 
