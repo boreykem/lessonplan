@@ -4600,20 +4600,174 @@ function randomizeQuizList(list) {
   return list.map(q => randomizeQuestionOptions(q));
 }
 
-// Generate Pre-Test QCM 10 Questions with randomized correct answer position
-function generatePreTestQCMOffline(subject, grade, lessonTitle, mainPoints) {
-  const p1 = mainPoints[0] || `និយមន័យ និងគោលការណ៍គ្រឹះនៃ ${lessonTitle}`;
+// Generate Pre-Test QCM 10 Questions following strict 60% - 30% - 10% MoEYS Standard
+function generatePreTestQCMOffline(subject, grade, lessonTitle, mainPoints = []) {
+  const cleanTitle = (lessonTitle || "មេរៀន").trim();
+  const subj = (subject || "").toLowerCase();
+  const isPsychOrInfo = subj.includes('ចិត្តវិទ្យា') || cleanTitle.includes('ព័ត៌មាន') || cleanTitle.includes('ចងចាំ') || subj.includes('psychology');
+
+  if (isPsychOrInfo) {
+    const psychList = [
+      // 6 EASY QUESTIONS (Q1 - Q6) - 60%
+      {
+        number: 1,
+        difficulty: "ងាយ (Easy)",
+        difficultyLevel: "easy",
+        question: "តើអ្វីជា «ការទទួលដឹងតាមរយៈញាណ» (Sensory Register / Sensory Memory) ក្នុងចិត្តវិទ្យាអប់រំ?",
+        options: {
+          A: "ជាដំណាក់កាលដំបូងនៃការកត់សម្គាល់ព័ត៌មានពីបរិស្ថានតាមរយៈឥន្ទ្រិយារម្មណ៍ទាំង ៥ ក្នុងរយៈពេលខ្លីបំផុត",
+          B: "ជាការចងចាំចំណេះដឹងអចិន្ត្រៃយ៍ដែលមិនអាចបំភ្លេចបាន",
+          C: "ជាការគិតពិចារណាដោះស្រាយលំហាត់ស្មុគស្មាញ",
+          D: "ជាការបដិសេធមិនទទួលយកព័ត៌មានពីខាងក្រៅ"
+        },
+        correctAnswer: "A",
+        explanation: "Sensory Register គឺជាច្រកទ្វារដំបូងដែលទទួលរំញោចពីបរិស្ថានតាមរយៈភ្នែក ត្រចៀក ច្រមុះ អណ្តាត និងស្បែក ក្នុងថិរវេលាត្រឹមតែពីរបីវិនាទីប៉ុណ្ណោះ។"
+      },
+      {
+        number: 2,
+        difficulty: "ងាយ (Easy)",
+        difficultyLevel: "easy",
+        question: "ក្នុងចំណោមឥន្ទ្រិយារម្មណ៍ទាំង៥ តើញាណណាខ្លះដែលដើរតួយ៉ាងសំខាន់បំផុតក្នុងការទទួលព័ត៌មានសម្រាប់ការរៀនសូត្រក្នុងថ្នាក់?",
+        options: {
+          A: "ចក្ខុវិញ្ញាណ (ការមើលឃើញ) និងសោតវិញ្ញាណ (ការស្តាប់ឮ)",
+          B: "ឃានវិញ្ញាណ (ការហិតក្លិន) និងជីវ្ហាវិញ្ញាណ (ការភ្លក្សរស)",
+          C: "កាយវិញ្ញាណតែមួយមុខគត់",
+          D: "គ្មានឥន្ទ្រិយារម្មណ៍ណាពាក់ព័ន្ធនឹងការរៀនសូត្រឡើយ"
+        },
+        correctAnswer: "A",
+        explanation: "ជាង ៨០% នៃព័ត៌មានដែលមនុស្សទទួលបានក្នុងការរៀនសូត្រ គឺឆ្លងកាត់តាមរយៈការមើលឃើញ (Visual) និងការស្តាប់ (Auditory)។"
+      },
+      {
+        number: 3,
+        difficulty: "ងាយ (Easy)",
+        difficultyLevel: "easy",
+        question: "តើ «ការយកចិត្តទុកដាក់» (Attention) ដើរតួជាអ្វីក្នុងដំណើរការទទួលបានព័ត៌មាន?",
+        options: {
+          A: "ជាតម្រងជ្រើសរើសព័ត៌មានសំខាន់ពី Sensory Memory បញ្ជូនទៅកាន់ Working Memory",
+          B: "ជាការបញ្ឈប់ដំណើរការខួរក្បាលមិនឱ្យគិត",
+          C: "ជាការទន្ទេញចាំមាត់ដោយមិនបាច់យល់",
+          D: "ជាការបំផ្លាញទិន្នន័យចាស់ៗចោល"
+        },
+        correctAnswer: "A",
+        explanation: "ប្រសិនបើគ្មានការយកចិត្តទុកដាក់ (Attention) ទេ ព័ត៌មានដែលប៉ះនឹងញាណនឹងរសាត់បាត់ភ្លាមៗ ដោយមិនអាចឆ្លងចូលទៅក្នុងស្មារតីបានឡើយ។"
+      },
+      {
+        number: 4,
+        difficulty: "ងាយ (Easy)",
+        difficultyLevel: "easy",
+        question: "យោងតាមទ្រឹស្តីចិត្តវិទ្យារបស់លោក George Miller តើអង្គចងចាំរយៈពេលខ្លី (Short-Term / Working Memory) អាចផ្ទុកព័ត៌មានបានប្រមាណប៉ុន្មានឯកតា (Chunks)?",
+        options: {
+          A: "៧ ± ២ ឯកតា (ចន្លោះពី ៥ ទៅ ៩ ឯកតា)",
+          B: "គ្មានដែនកំណត់ អាចផ្ទុករាប់ពាន់ឯកតា",
+          C: "ត្រឹមតែ ១ ឯកតាតែប៉ុណ្ណោះ",
+          D: "២០ ទៅ ៣០ ឯកតាក្នុងពេលតែមួយ"
+        },
+        correctAnswer: "A",
+        explanation: "ក្បួន Miller's Law (7 ± 2) បញ្ជាក់ថា អង្គចងចាំដំណើរការរបស់មនុស្សមានសមត្ថភាពផ្ទុកព័ត៌មានថ្មីក្នុងកម្រិតកំណត់គឺចន្លោះពី ៥ ទៅ ៩ ឯកតាប៉ុណ្ណោះ។"
+      },
+      {
+        number: 5,
+        difficulty: "ងាយ (Easy)",
+        difficultyLevel: "easy",
+        question: "តើអ្វីជាតួនាទីចម្បងនៃ «អង្គចងចាំរយៈពេលវែង» (Long-Term Memory)?",
+        options: {
+          A: "រក្សាទុកចំណេះដឹង ជំនាញ និងបទពិសោធន៍ទុកប្រើប្រាស់ក្នុងរយៈពេលយូរ ឬអចិន្ត្រៃយ៍",
+          B: "កត់ត្រាព័ត៌មានបណ្ដោះអាសន្នត្រឹមតែ ៥ វិនាទី",
+          C: "ដំណើរការតែនៅពេលមនុស្សកំពុងដេកលក់ប៉ុណ្ណោះ",
+          D: "ផ្ទុកតែលេខទូរស័ព្ទដោយមិនផ្ទុកចំណេះដឹងទូទៅ"
+        },
+        correctAnswer: "A",
+        explanation: "Long-Term Memory គឺជាឃ្លាំងស្តុកចំណេះដឹងដ៏ធំធេង និងមានថិរវេលារក្សាទុកយូរអង្វែង សម្រាប់ទាញយកមកប្រើប្រាស់នៅពេលត្រូវការ។"
+      },
+      {
+        number: 6,
+        difficulty: "ងាយ (Easy)",
+        difficultyLevel: "easy",
+        question: "នៅពេលសិស្សស្តាប់ឮគ្រូពន្យល់ភ្លាមៗ តែភ្លេចបាត់ក្នុងរយៈពេលកន្លះនាទីក្រោយមក តើបាតុភូតនេះកើតឡើងនៅដំណាក់កាលណា?",
+        options: {
+          A: "នៅដំណាក់កាល Short-Term / Working Memory ដែលមិនទាន់បានឆ្លងកាត់ការ Rehearsal",
+          B: "នៅដំណាក់កាល Long-Term Memory បាត់បង់ជារៀងរហូត",
+          C: "ជាជំងឺភ្លេចភ្លាំងធ្ងន់ធ្ងរមិនអាចព្យាបាលបាន",
+          D: "ជាការចងចាំស្វ័យប្រវត្តិកម្រិតខ្ពស់"
+        },
+        correctAnswer: "A",
+        explanation: "ព័ត៌មានក្នុង Working Memory ប្រសិនបើមិនត្រូវបានរំលឹកឡើងវិញ (Rehearsal) ឬកត់ត្រាទុកទេ វានឹងរលាយបាត់ក្នុងរង្វង់ ១៥-៣០ វិនាទី។"
+      },
+      // 3 MEDIUM QUESTIONS (Q7 - Q9) - 30%
+      {
+        number: 7,
+        difficulty: "មធ្យម (Medium)",
+        difficultyLevel: "medium",
+        question: "ដើម្បីផ្ទេរព័ត៌មានពី Working Memory ទៅរក្សាទុកក្នុង Long-Term Memory តើត្រូវឆ្លងកាត់ដំណើរការគន្លឹះណា?",
+        options: {
+          A: "ដំណើរការកូដទុក (Encoding) តាមរយៈការផ្សារភ្ជាប់ន័យ និងការអនុវត្តរំលឹក (Rehearsal)",
+          B: "ការបិទភ្នែកមិនមើលមេរៀន",
+          C: "ការរង់ចាំឱ្យចំណេះដឹងជ្រាបចូលដោយឯកឯង",
+          D: "ការអានត្រឹមតែមួយភ្លែតដោយមិនគិតពិចារណា"
+        },
+        correctAnswer: "A",
+        explanation: "Encoding គឺជាដំណើរការបំប្លែងព័ត៌មាន និងផ្សារភ្ជាប់ជាមួយ Schema ដែលមានស្រាប់ ដើម្បីរក្សាទុកក្នុង Long-Term Memory បានយ៉ាងរឹងមាំ។"
+      },
+      {
+        number: 8,
+        difficulty: "មធ្យម (Medium)",
+        difficultyLevel: "medium",
+        question: "តើបច្ចេកទេស «ការបំបែកជាដុំៗ» (Chunking) ជួយសម្រួលដល់ការទទួលបានព័ត៌មានយ៉ាងដូចម្តេច?",
+        options: {
+          A: "ជួយរៀបចំព័ត៌មានដាច់ៗពីគ្នាឱ្យទៅជាបណ្តុំមានន័យ កាត់បន្ថយបន្ទុក Working Memory",
+          B: "ជួយលុបបំបាត់ព័ត៌មានស្មុគស្មាញចោលទាំងអស់",
+          C: "តម្រូវឱ្យទន្ទេញលេខម្តងមួយខ្ទង់ដាច់ដោយឡែក",
+          D: "មិនមានផលប្រយោជន៍ដល់ការចងចាំឡើយ"
+        },
+        correctAnswer: "A",
+        explanation: "Chunking ជួយច្របាច់ព័ត៌មានជាច្រើនឱ្យក្លាយជាក្រុមតូចៗ (ឧ. លេខទូរស័ព្ទ 012-345-678) ធ្វើឱ្យខួរក្បាលងាយកត់ចំណាំដោយមិនលើសចំណុះ 7±2។"
+      },
+      {
+        number: 9,
+        difficulty: "មធ្យម (Medium)",
+        difficultyLevel: "medium",
+        question: "យោងតាមទ្រឹស្តី Cognitive Load តើសភាព «លើសបន្ទុកនៃការយល់ដឹង» (Cognitive Overload) បង្កផលប៉ះពាល់អ្វីដល់សិស្ស?",
+        options: {
+          A: "ធ្វើឱ្យ Working Memory ជាប់គាំង មិនអាចដំណើរការ ឬយល់ខ្លឹមសារមេរៀនថ្មីបាន",
+          B: "ជួយឱ្យសិស្សរៀនបានលឿនជាងមុនទ្វេដង",
+          C: "ជួយបង្កើនទំហំផ្ទុកនៃ Long-Term Memory ដោយស្វ័យប្រវត្តិ",
+          D: "មិនមានផលប៉ះពាល់អ្វីដល់ដំណើរការរៀនសូត្រឡើយ"
+        },
+        correctAnswer: "A",
+        explanation: "នៅពេលព័ត៌មានហូរចូលច្រើនលើសសមត្ថភាពនៃ Working Memory សិស្សនឹងមានអារម្មណ៍ច្របូកច្របល់ និងបាត់បង់លទ្ធភាពយល់ដឹង។"
+      },
+      // 1 HARD QUESTION (Q10) - 10%
+      {
+        number: 10,
+        difficulty: "ពិបាក (Hard)",
+        difficultyLevel: "hard",
+        question: "[ការវិភាគគរុកោសល្យ] សិស្សម្នាក់អាចមើលស្លាយបង្រៀនរបស់គ្រូ ប៉ុន្តែពេលសួរនាំ គាត់មិនអាចរំលឹកខ្លឹមសារសំខាន់ៗបានឡើយ។ តើការបរាជ័យនេះបណ្តាលមកពីកត្តាស្នូលណា ហើយគ្រូគួរដោះស្រាយយ៉ាងដូចម្តេច?",
+        options: {
+          A: "បរាជ័យត្រង់ Selective Attention និង Encoding (មើលដោយអសកម្ម) -> គ្រូគួរប្រើសំណួរដាស់គំនិត និងឱ្យសិស្សកត់ត្រាសង្ខេប",
+          B: "សិស្សខ្វះសមត្ថភាពខួរក្បាលតាំងពីកំណើត មិនអាចកែលម្អបាន",
+          C: "គ្រូគួរបង្កើនចំនួនអក្សរលើស្លាយឱ្យកាន់តែច្រើនថែមទៀត",
+          D: "គ្រូគួរបញ្ឈប់ការបង្រៀន និងឱ្យសិស្សរៀនដោយខ្លួនឯង"
+        },
+        correctAnswer: "A",
+        explanation: "ការមើលឃើញ (Sensory) ដោយគ្មានការយកចិត្តទុកដាក់ និងការកូដទុក (Elaborative Encoding) មិនអាចបង្កើតជាការយល់ដឹងបានឡើយ។ គ្រូត្រូវរៀបចំសកម្មភាព Active Learning ដើម្បីជួយជំរុញដំណើរការនេះ។"
+      }
+    ];
+    return randomizeQuizList(psychList);
+  }
+
+  // General Subject Bank (Strict 60% Easy, 30% Medium, 10% Hard)
+  const p1 = mainPoints[0] || `និយមន័យ និងគោលការណ៍គ្រឹះនៃ ${cleanTitle}`;
   const p2 = mainPoints[1] || `លក្ខណៈសម្គាល់ និងរូបមន្តគន្លឹះក្នុង ${subject}`;
   const p3 = mainPoints[2] || `ការអនុវត្ត និងទំនាក់ទំនងបាតុភូតជាក់ស្តែង`;
   const p4 = mainPoints[3] || `ក្បួនដោះស្រាយបញ្ហា និងការគណនា`;
 
   const rawList = [
-    // 2 EASY QUESTIONS (Q1, Q2) - 20%
+    // 6 EASY QUESTIONS (Q1 - Q6) - 60%
     {
       number: 1,
       difficulty: "ងាយ (Easy)",
       difficultyLevel: "easy",
-      question: `តើអ្វីជាគោលគំនិតចម្បង ឬនិយមន័យត្រឹមត្រូវនៃ «${lessonTitle}» ក្នុងមុខវិជ្ជា ${subject}?`,
+      question: `តើអ្វីជាគោលគំនិតចម្បង ឬនិយមន័យគ្រឹះនៃ «${cleanTitle}» ក្នុងមុខវិជ្ជា ${subject}?`,
       options: {
         A: `ជាដំណើរការ ឬគោលការណ៍ដែលផ្សារភ្ជាប់ទៅនឹង ${p1}`,
         B: `ជាបាតុភូតដែលមិនទាក់ទងនឹង ${subject} ឡើយ`,
@@ -4621,159 +4775,321 @@ function generatePreTestQCMOffline(subject, grade, lessonTitle, mainPoints) {
         D: `ជាច្បាប់ដែលមិនមានការប្រែប្រួល និងគ្មានការអនុវត្ត`
       },
       correctAnswer: "A",
-      explanation: `ផ្អែកលើខ្លឹមសារមេរៀនស្វ័យសិក្សា និយមន័យស្នូលនៃ ${lessonTitle} គឺសំដៅលើ ${p1}។`
+      explanation: `និយមន័យស្នូល និងចំណេះដឹងត្រៀមជាមុននៃ ${cleanTitle} គឺសំដៅលើ ${p1}។`
     },
     {
       number: 2,
       difficulty: "ងាយ (Easy)",
       difficultyLevel: "easy",
-      question: `ក្នុងចំណោមជម្រើសខាងក្រោម តើមួយណាជាធាតុផ្សំ ឬកត្តាសម្គាល់សំខាន់នៃ «${lessonTitle}»?`,
+      question: `ក្នុងចំណោមជម្រើសខាងក្រោម តើមួយណាជាលក្ខណៈសម្គាល់គ្រឹះនៃ «${cleanTitle}»?`,
       options: {
-        A: `កត្តាទី១ និងកត្តាទី២ មិនពាក់ព័ន្ធ`,
-        B: `${p2}`,
-        C: `កត្តាអសកម្មដែលគ្មានចលនា`,
-        D: `ការបំផ្លាញទិន្នន័យទាំងស្រុង`
-      },
-      correctAnswer: "B",
-      explanation: `ចំណុចសម្គាល់ស្នូលដែលបានរៀបរាប់ក្នុងឯកសារស្វ័យសិក្សាគឺ ${p2}។`
-    },
-
-    // 6 MEDIUM QUESTIONS (Q3 - Q8) - 60%
-    {
-      number: 3,
-      difficulty: "មធ្យម (Medium)",
-      difficultyLevel: "medium",
-      question: `នៅពេលពិនិត្យមើលយន្តការនៃ «${lessonTitle}» តើដំណើរការប្រព្រឹត្តទៅតាមលំដាប់លំដោយដូចម្តេច?`,
-      options: {
-        A: `ចាប់ផ្តើមពីដំណាក់កាលទីមួយ បន្តទៅ ${p1} រួចបង្កើតជាលទ្ធផលចុងក្រោយ`,
-        B: `កើតឡើងដោយចៃដន្យគ្មានលំដាប់លំដោយ`,
-        C: `បញ្ចប់មុនពេលចាប់ផ្តើមប្រតិកម្ម`,
-        D: `កើតឡើងតែនៅពេលគ្មានថាមពលប៉ុណ្ណោះ`
+        A: `${p2}`,
+        B: `កត្តាអសកម្មដែលគ្មានចលនា និងគ្មានទំនាក់ទំនង`,
+        C: `ការមិនអើពើចំពោះទ្រឹស្តីមូលដ្ឋាន`,
+        D: `ការបំផ្លាញទិន្នន័យចាស់ៗចោលទាំងស្រុង`
       },
       correctAnswer: "A",
-      explanation: `ដំណើរការស្តង់ដារតម្រូវឱ្យឆ្លងកាត់ដំណាក់កាលលំដាប់លំដោយច្បាស់លាស់ដើម្បីទទួលបានលទ្ធផល។`
+      explanation: `ចំណុចសម្គាល់ស្នូលដែលសិស្សត្រូវចងចាំមុនពេលចូលរៀនគឺ ${p2}។`
+    },
+    {
+      number: 3,
+      difficulty: "ងាយ (Easy)",
+      difficultyLevel: "easy",
+      question: `តើពាក្យគន្លឹះ ឬឯកតារង្វាស់/សញ្ញាសម្គាល់ណាដែលផ្សារភ្ជាប់ជិតស្និទ្ធបំផុតជាមួយ «${cleanTitle}»?`,
+      options: {
+        A: `លក្ខណៈគ្រឹះស្របតាម ${p1}`,
+        B: `សញ្ញាសម្គាល់ដែលផ្ទុយនឹងវិទ្យាសាស្ត្រ`,
+        C: `ធាតុដែលមិនមានតម្លៃក្នុងការគណនា`,
+        D: `កត្តាចៃដន្យដែលគ្មានមូលដ្ឋានច្បាស់លាស់`
+      },
+      correctAnswer: "A",
+      explanation: `ការចងចាំពាក្យគន្លឹះ និងឯកតារង្វាស់ត្រឹមត្រូវជាមូលដ្ឋានគ្រឹះនៃមុខវិជ្ជា។`
     },
     {
       number: 4,
-      difficulty: "មធ្យម (Medium)",
-      difficultyLevel: "medium",
-      question: `ប្រសិនបើមានការប្រែប្រួលលក្ខខណ្ឌមួយក្នុង ${subject} តើ ${lessonTitle} នឹងរងឥទ្ធិពលយ៉ាងដូចម្តេច?`,
+      difficulty: "ងាយ (Easy)",
+      difficultyLevel: "easy",
+      question: `នៅពេលចាប់ផ្តើមសិក្សាអំពី «${cleanTitle}» តើចំណេះដឹងមុន (Prerequisite) ណាដែលសិស្សត្រូវមានជាចាំបាច់?`,
       options: {
-        A: `គ្មានការប្រែប្រួលអ្វីទាំងអស់`,
-        B: `ល្បឿន ឬប្រសិទ្ធភាពនឹងប្រែប្រួលអាស្រ័យលើ ${p3}`,
-        C: `ដំណើរការទាំងមូលត្រូវបញ្ឈប់ជាអចិន្ត្រៃយ៍`,
-        D: `ប្រែប្រួលបញ្ច្រាសទិសដៅដោយគ្មានមូលហេតុ`
+        A: `ការយល់ដឹងពីគោលការណ៍គ្រឹះ និងបម្រាប់ទូទៅនៃ ${subject}`,
+        B: `ការទន្ទេញរូបមន្តកម្រិតខ្ពស់ដោយមិនបាច់យល់ន័យ`,
+        C: `ការរំលងទ្រឹស្តីគ្រឹះចូលទៅអនុវត្តលំហាត់ស្មុគស្មាញភ្លាម`,
+        D: `មិនត្រូវការចំណេះដឹងអ្វីទាំងអស់`
       },
-      correctAnswer: "B",
-      explanation: `កត្តាជុំវិញមានទំនាក់ទំនងផ្ទាល់ជាមួយប្រសិទ្ធភាព និងយន្តការនៃ ${p3}។`
+      correctAnswer: "A",
+      explanation: `ចំណេះដឹងត្រៀមជាមុនជួយភ្ជាប់ស្ពានទៅរកការយល់ដឹងមេរៀនថ្មីបានយ៉ាងរលូន។`
     },
     {
       number: 5,
-      difficulty: "មធ្យម (Medium)",
-      difficultyLevel: "medium",
-      question: `តើការអនុវត្តរូបមន្ត ឬទ្រឹស្តីនៃ «${lessonTitle}» ត្រូវធ្វើឡើងតាមជំហានណាដែលត្រឹមត្រូវបំផុត?`,
+      difficulty: "ងាយ (Easy)",
+      difficultyLevel: "easy",
+      question: `តើប្រភព ឬឧទាហរណ៍សាមញ្ញបំផុតក្នុងជីវភាពណាដែលឆ្លុះបញ្ចាំងពីគោលការណ៍នៃ «${cleanTitle}»?`,
       options: {
-        A: `កំណត់អញ្ញាត/ទិន្នន័យ -> ជ្រើសរើសរូបមន្តស្រប -> គណនា និងផ្ទៀងផ្ទាត់លទ្ធផល`,
-        B: `ទាយចម្លើយភ្លាមៗដោយមិនបាច់គិត`,
-        C: `ជំនួសលេខដោយមិនបាច់ប្តូរខ្នាត`,
-        D: `ប្រើប្រាស់រូបមន្តណាក៏បានដោយគ្មានលក្ខខណ្ឌ`
+        A: `បាតុភូត ឬសកម្មភាពប្រចាំថ្ងៃដែលទាក់ទងនឹង ${p3}`,
+        B: `ករណីដែលផ្ទុយនឹងច្បាប់ធម្មជាតិទាំងស្រុង`,
+        C: `ព្រឹត្តិការណ៍ដែលមិនអាចពន្យល់បានតាមវិទ្យាសាស្ត្រ`,
+        D: `ស្ថានភាពដែលគ្មានទិន្នន័យជាក់លាក់`
       },
       correctAnswer: "A",
-      explanation: `ក្បួនវិទ្យាសាស្ត្រត្រឹមត្រូវតម្រូវឱ្យវិភាគទិន្នន័យ ប្រើរូបមន្តត្រូវ និងផ្ទៀងផ្ទាត់ខ្នាត។`
+      explanation: `ឧទាហរណ៍សាមញ្ញក្នុងជីវភាពប្រចាំថ្ងៃជួយឱ្យសិស្សមើលឃើញរូបភាពច្បាស់នៃមេរៀន។`
     },
     {
       number: 6,
-      difficulty: "មធ្យម (Medium)",
-      difficultyLevel: "medium",
-      question: `តើឧទាហរណ៍ជាក់ស្តែងមួយណាខាងក្រោមនេះ ដែលឆ្លុះបញ្ចាំងពីគោលការណ៍នៃ «${lessonTitle}» ក្នុងជីវភាពរស់នៅ?`,
+      difficulty: "ងាយ (Easy)",
+      difficultyLevel: "easy",
+      question: `តើគោលបំណងចម្បងនៃការរៀន «${cleanTitle}» ក្នុងកម្រិតថ្នាក់នេះ គឺដើម្បីអ្វី?`,
       options: {
-        A: `ករណីទី១ ដែលស្របនឹង ${p3}`,
-        B: `ករណីដែលផ្ទុយនឹងច្បាប់ធម្មជាតិ`,
-        C: `បាតុភូតដែលមិនអាចពន្យល់បានតាមបែបវិទ្យាសាស្ត្រ`,
-        D: `ការសន្មតដែលគ្មានមូលដ្ឋានជាក់ស្តែង`
+        A: `កសាងមូលដ្ឋានគ្រឹះក្នុងការយល់ដឹង និងដោះស្រាយបញ្ហាស្របតាម ${p1}`,
+        B: `គ្រាន់តែដើម្បីប្រឡងឱ្យជាប់ដោយមិនចាំបាច់យកទៅប្រើ`,
+        C: `ដើម្បីទន្ទេញចាំមាត់មួយគ្រា`,
+        D: `ដើម្បីបោះបង់ការស្រាវជ្រាវបន្ថែម`
       },
       correctAnswer: "A",
-      explanation: `ការផ្សារភ្ជាប់ទ្រឹស្តីទៅនឹងជីវភាពជាក់ស្តែងគឺជាស្នូលនៃ Flipped Learning។`
+      explanation: `គោលបំណងគរុកោសល្យគឺដើម្បីកសាងសមត្ថភាពគ្រឹះសម្រាប់បន្តទៅកម្រិតខ្ពស់។`
     },
+
+    // 3 MEDIUM QUESTIONS (Q7 - Q9) - 30%
     {
       number: 7,
       difficulty: "មធ្យម (Medium)",
       difficultyLevel: "medium",
-      question: `ចូរប្រៀបធៀបចំណុចដូចគ្នា និងខុសគ្នាសំខាន់ៗរវាងដំណាក់កាលទាំងពីរនៃ ${lessonTitle}៖`,
+      question: `នៅពេលពិនិត្យមើលយន្តការ ឬដំណើរការនៃ «${cleanTitle}» តើដំណាក់កាលប្រព្រឹត្តទៅតាមលំដាប់លំដោយយ៉ាងដូចម្តេច?`,
       options: {
-        A: `ដំណាក់កាលទីមួយត្រូវការធាតុចូលចម្បង រីឯដំណាក់កាលទីពីរផលិតផលសម្រេច (${p4})`,
-        B: `ដំណាក់កាលទាំងពីរដូចគ្នាបេះបិទគ្មានចំណុចខុសគ្នា`,
-        C: `គ្មានដំណាក់កាលណាដំណើរការបានផលឡើយ`,
-        D: `ដំណាក់កាលទាំងពីរកើតឡើងនៅទីតាំងខុសគ្នាស្រឡះដោយគ្មានទំនាក់ទំនង`
+        A: `ចាប់ផ្តើមពីការកំណត់ទិន្នន័យ បន្តទៅ ${p1} រួចបង្កើតជាលទ្ធផលស្របតាម ${p3}`,
+        B: `កើតឡើងដោយចៃដន្យគ្មានលំដាប់លំដោយ`,
+        C: `បញ្ចប់មុនពេលចាប់ផ្តើមដំណើរការ`,
+        D: `ដំណើរការតែនៅពេលគ្មានថាមពលប៉ុណ្ណោះ`
       },
       correctAnswer: "A",
-      explanation: `ការវិភាគប្រៀបធៀបបង្ហាញពីតួនាទីបំពេញបន្ថែមគ្នានៃដំណាក់កាលនីមួយៗ។`
+      explanation: `ការយល់ដឹងពីលំដាប់លំដោយនៃដំណើរការជាស្នូលនៃការអនុវត្ត។`
     },
     {
       number: 8,
       difficulty: "មធ្យម (Medium)",
       difficultyLevel: "medium",
-      question: `តើកត្តាចម្បងណាដែលកំណត់ភាពត្រឹមត្រូវ និងគុណភាពនៃការដោះស្រាយបញ្ហាក្នុង ${lessonTitle}?`,
+      question: `ប្រសិនបើមានការប្រែប្រួលកត្តា ឬលក្ខខណ្ឌមួយក្នុង ${subject} តើ ${cleanTitle} នឹងរងឥទ្ធិពលយ៉ាងដូចម្តេច?`,
       options: {
-        A: `ការយល់ដឹងច្បាស់ពីទ្រឹស្តី និងការប្រើប្រាស់ ${p4}`,
-        B: `ការទន្ទេញចាំដោយមិនយល់ន័យ`,
-        C: `ល្បឿននៃការសរសេរតែមួយមុខ`,
-        D: `ការចម្លងតាមគំរូដោយមិនវិភាគ`
+        A: `ល្បឿន ឬលទ្ធផលនឹងប្រែប្រួលអាស្រ័យលើទំនាក់ទំនងនៃ ${p3}`,
+        B: `គ្មានការប្រែប្រួលអ្វីទាំងអស់ទោះបីលក្ខខណ្ឌផ្លាស់ប្តូរក៏ដោយ`,
+        C: `ដំណើរការទាំងមូលត្រូវខូចខាតជាអចិន្ត្រៃយ៍`,
+        D: `ប្រែប្រួលដោយគ្មានច្បាប់ទម្លាប់វិទ្យាសាស្ត្រ`
       },
       correctAnswer: "A",
-      explanation: `ការយល់ដឹងពីគោលការណ៍ និងក្បួនដោះស្រាយបញ្ហាជាគន្លឹះឈានទៅរកភាពត្រឹមត្រូវ។`
+      explanation: `ការប្រែប្រួលនៃកត្តាខាងក្រៅជះឥទ្ធិពលផ្ទាល់ទៅលើលទ្ធផលតាមក្បួនវិទ្យាសាស្ត្រ។`
     },
-
-    // 2 HARD QUESTIONS (Q9, Q10) - 20%
     {
       number: 9,
-      difficulty: "ពិបាក (Hard)",
-      difficultyLevel: "hard",
-      question: `[ស្ថានភាពបញ្ហាស្មុគស្មាញ] ឧបមាថាមានទិន្នន័យមិនប្រក្រតីមួយបានកើតឡើងក្នុងប្រព័ន្ធនៃ ${lessonTitle}។ តើអ្នកគួរវិភាគរកឫសគល់បញ្ហា និងដំណោះស្រាយតាមបែបវិទ្យាសាស្ត្រយ៉ាងដូចម្តេច?`,
+      difficulty: "មធ្យម (Medium)",
+      difficultyLevel: "medium",
+      question: `តើការអនុវត្តរូបមន្ត ឬទ្រឹស្តីនៃ «${cleanTitle}» ក្នុងស្ថានភាពជាក់ស្តែង តម្រូវឱ្យចាប់ផ្តើមពីជំហានណា?`,
       options: {
-        A: `កំណត់អថេរមិនប្រក្រតី -> ផ្ទៀងផ្ទាត់ជាមួយគោលការណ៍ ${p1} & ${p4} -> កែសម្រួលប៉ារ៉ាម៉ែត្រដើម្បីស្តារលំនឹង`,
-        B: `បោះបង់ការពិសោធន៍ និងសន្និដ្ឋានថាប្រព័ន្ធបរាជ័យ`,
-        C: `ផ្លាស់ប្តូរទិន្នន័យតាមចិត្តដើម្បីឱ្យត្រូវនឹងទ្រឹស្តី`,
-        D: `មិនអើពើចំពោះទិន្នន័យមិនប្រក្រតីនោះឡើយ`
+        A: `កំណត់បម្រាប់ និងទិន្នន័យ -> ជ្រើសរើសគោលការណ៍ស្រប (${p4}) -> គណនា និងផ្ទៀងផ្ទាត់`,
+        B: `ទាយចម្លើយភ្លាមៗដោយមិនបាច់វិភាគបម្រាប់`,
+        C: `ជំនួសលេខដោយមិនបាច់ប្តូរខ្នាតឱ្យត្រូវស្តង់ដារ`,
+        D: `ប្រើប្រាស់រូបមន្តណាក៏បានដោយគ្មានលក្ខខណ្ឌ`
       },
       correctAnswer: "A",
-      explanation: `ការដោះស្រាយបញ្ហាស្មុគស្មាញតម្រូវឱ្យមានការគិតបែបស៊ីជម្រៅ (Higher-order thinking) និងការវិភាគរកមូលហេតុឫសគល់។`
+      explanation: `ក្បួនដោះស្រាយបញ្ហាត្រឹមត្រូវតម្រូវឱ្យវិភាគទិន្នន័យ ប្រើរូបមន្តត្រូវ និងផ្ទៀងផ្ទាត់លទ្ធផល។`
     },
+
+    // 1 HARD QUESTION (Q10) - 10%
     {
       number: 10,
       difficulty: "ពិបាក (Hard)",
       difficultyLevel: "hard",
-      question: `[ការវាយតម្លៃ និងការសំយោគ] តើអ្នកអាចវាយតម្លៃពីផលជះរយៈពេលវែងនៃ «${lessonTitle}» លើការអភិវឌ្ឍបច្ចេកវិទ្យា និងការរស់នៅប្រកបដោយចីរភាពដោយរបៀបណា?`,
+      question: `[ការវិភាគ និងការត្រិះរិះ] ឧបមាថាមានភាពមិនស៊ីសង្វាក់គ្នាក្នុងការដោះស្រាយបញ្ហានៃ «${cleanTitle}»។ តើអ្នកគួរវិភាគរកឫសគល់នៃបញ្ហាតាមបែបវិទ្យាសាស្ត្រយ៉ាងដូចម្តេច?`,
       options: {
-        A: `ជួយបង្កើនប្រសិទ្ធភាពការងារ កាត់បន្ថយការខ្ជះខ្ជាយថាមពល និងជំរុញនវានុវត្តន៍តាមរយៈ ${p3}`,
-        B: `គ្មានផលប្រយោជន៍ដល់ការអភិវឌ្ឍសង្គមឡើយ`,
-        C: `បង្កឱ្យមានតែផលប៉ះពាល់អវិជ្ជមាន`,
-        D: `គ្រាន់តែជាលំហាត់លើក្រដាសគ្មានតម្លៃអនុវត្ត`
+        A: `កំណត់អថេរមិនប្រក្រតី -> ផ្ទៀងផ្ទាត់ជាមួយគោលការណ៍គ្រឹះ ${p1} & ${p4} -> កែសម្រួលប៉ារ៉ាម៉ែត្រដើម្បីស្តារភាពត្រឹមត្រូវ`,
+        B: `បោះបង់ការដោះស្រាយ និងសន្និដ្ឋានថាទ្រឹស្តីមិនពិត`,
+        C: `ផ្លាស់ប្តូរទិន្នន័យតាមចិត្តដើម្បីឱ្យស្របនឹងការគិតផ្ទាល់ខ្លួន`,
+        D: `មិនអើពើចំពោះចំណុចខុសឆ្គងនោះឡើយ`
       },
       correctAnswer: "A",
-      explanation: `ការវាយតម្លៃកម្រិតខ្ពស់តម្រូវឱ្យសំយោគចំណេះដឹងទៅកាន់បរិបទធំទូលាយនៃសង្គម និងការអភិវឌ្ឍប្រកបដោយចីរភាព។`
+      explanation: `ការត្រិះរិះពិចារណាកម្រិតខ្ពស់តម្រូវឱ្យវិភាគរកឫសគល់នៃកំហុស និងកែតម្រូវតាមក្បួនវិធីសាស្ត្រវិទ្យាសាស្ត្រ។`
     }
   ];
   return randomizeQuizList(rawList);
 }
 
-// Generate Post-Test MCQ 10 Questions with randomized correct answer position
+// Generate Post-Test MCQ 10 Questions following strict 20% - 60% - 20% MoEYS Bloom Standard
 function generatePostTestMCQOffline(subject, grade, lessonTitle, mainPoints = []) {
   const cleanTitle = (lessonTitle || "មេរៀន").trim();
   const subj = (subject || "").toLowerCase();
+  const isPsychOrInfo = subj.includes('ចិត្តវិទ្យា') || cleanTitle.includes('ព័ត៌មាន') || cleanTitle.includes('ចងចាំ') || subj.includes('psychology');
+
+  if (isPsychOrInfo) {
+    const psychPostList = [
+      // 2 EASY QUESTIONS (Q1, Q2) - 20%
+      {
+        number: 1,
+        bloom: "Remember & Understand",
+        difficulty: "ងាយ (Easy)",
+        difficultyLevel: "easy",
+        question: "តើយន្តការនៃការទទួលបាន និងដំណើរការព័ត៌មាន (Information Processing Model) ចែកចេញជាប៉ុន្មានដំណាក់កាលស្នូល?",
+        options: {
+          A: "៣ ដំណាក់កាលស្នូល៖ Sensory Register -> Working Memory -> Long-Term Memory",
+          B: "ត្រឹមតែ ១ ដំណាក់កាលគត់ គឺការទន្ទេញចាំមាត់",
+          C: "២ ដំណាក់កាល គឺការស្តាប់ឮ និងការភ្លេច",
+          D: "៥ ដំណាក់កាលដោយគ្មានទំនាក់ទំនងគ្នា"
+        },
+        correctAnswer: "A",
+        explanation: "គំរូ Atkinson-Shiffrin បញ្ជាក់យ៉ាងច្បាស់ពីដំណាក់កាលទាំងបីនៃការដំណើរការព័ត៌មានក្នុងចិត្តវិទ្យាយល់ដឹង។"
+      },
+      {
+        number: 2,
+        bloom: "Remember & Understand",
+        difficulty: "ងាយ (Easy)",
+        difficultyLevel: "easy",
+        question: "តើអ្វីជា «គ្រោងចំណេះដឹង» (Schema) ក្នុងអង្គចងចាំរយៈពេលវែង?",
+        options: {
+          A: "ជាបណ្តាញរៀបចំចំណេះដឹង និងគំនិតដែលទាក់ទងគ្នា ដែលជួយឱ្យមនុស្សយល់ពីពិភពជុំវិញខ្លួន",
+          B: "ជាការចងចាំពាក្យមួយម៉ាត់ដាច់ដោយឡែក",
+          C: "ជាកោសិកាខួរក្បាលដែលមិនដំណើរការ",
+          D: "ជាអារម្មណ៍ភ័យខ្លាចពេលជួបបញ្ហា"
+        },
+        correctAnswer: "A",
+        explanation: "Schema គឺជាគ្រោងគំនិត ឬប្រព័ន្ធរៀបចំព័ត៌មានក្នុងខួរក្បាល ដែលជួយឱ្យយើងបកស្រាយ និងបញ្ចូលព័ត៌មានថ្មីៗបានយ៉ាងឆាប់រហ័ស។"
+      },
+      // 6 MEDIUM QUESTIONS (Q3 - Q8) - 60%
+      {
+        number: 3,
+        bloom: "Apply",
+        difficulty: "មធ្យម (Medium)",
+        difficultyLevel: "medium",
+        question: "ក្នុងការបង្រៀនជាក់ស្តែង ដើម្បីទាក់ទាញ «ការយកចិត្តទុកដាក់ជ្រើសរើស» (Selective Attention) របស់សិស្ស តើគ្រូគួរអនុវត្តវិធីណាដែលល្អបំផុត?",
+        options: {
+          A: "ប្រើប្រាស់សំណួរចោទសួរដាស់គំនិត សម្ភារឧបទេសរូបភាពច្បាស់ និងការផ្លាស់ប្តូរកាយវិការបង្រៀន",
+          B: "និយាយសំឡេងដដែលៗស្មើៗគ្នាតាំងពីដើមដល់ចប់ម៉ោង",
+          C: "ដាក់ស្លាយដែលមានតែអក្សរតូចៗណែនពេញអេក្រង់",
+          D: "ហាមសិស្សមិនឱ្យសួរនាំ ឬធ្វើសកម្មភាពអ្វីទាំងអស់"
+        },
+        correctAnswer: "A",
+        explanation: "ការប្រែប្រួលរំញោច (Stimulus variation) និងការចោទសួរជួយទាញ Attention ពី Sensory Memory ចូលទៅ Working Memory បានយ៉ាងមានប្រសិទ្ធភាព។"
+      },
+      {
+        number: 4,
+        bloom: "Apply",
+        difficulty: "មធ្យម (Medium)",
+        difficultyLevel: "medium",
+        question: "នៅពេលសិស្សកំពុងគិតដោះស្រាយលំហាត់គណិតវិទ្យា ឬវិភាគអត្ថបទ តើអង្គចងចាំណាដែលកំពុងបំពេញការងារសកម្មបំផុត?",
+        options: {
+          A: "Working Memory (អង្គចងចាំដំណើរការ / អង្គចងចាំរយៈពេលខ្លី)",
+          B: "Sensory Register តែមួយមុខ",
+          C: "មិនមានអង្គចងចាំណាដំណើរការឡើយ",
+          D: "កាយវិញ្ញាណនៃការប៉ះពាល់"
+        },
+        correctAnswer: "A",
+        explanation: "Working Memory គឺជាកន្លែងធ្វើការសកម្មនៃខួរក្បាល (Mental Workspace) សម្រាប់រក្សាទុក និងចាត់ចែងព័ត៌មានក្នុងពេលដំណាលគ្នា។"
+      },
+      {
+        number: 5,
+        bloom: "Analyze",
+        difficulty: "មធ្យម (Medium)",
+        difficultyLevel: "medium",
+        question: "យោងតាមទ្រឹស្តីបន្ទុកនៃការយល់ដឹង (Cognitive Load Theory) តើគ្រូអាចកាត់បន្ថយ Extraneous Cognitive Load (បន្ទុកឥតប្រយោជន៍) យ៉ាងដូចម្តេច?",
+        options: {
+          A: "លុបបំបាត់ព័ត៌មានរំខានដែលមិនទាក់ទងនឹងមេរៀន និងបង្ហាញខ្លឹមសារតាមលំដាប់លំដោយសាមញ្ញទៅស្មុគស្មាញ",
+          B: "ចាក់ភ្លេងឮខ្លាំងៗក្នុងពេលពន្យល់មេរៀនស្មុគស្មាញ",
+          C: "ដាក់លំហាត់ពិបាកបំផុតតាំងពីដើមម៉ោងរៀន",
+          D: "ឱ្យសិស្សមើលអត្ថបទវែងអន្លាយដោយគ្មានការណែនាំ"
+        },
+        correctAnswer: "A",
+        explanation: "ការរៀបចំមេរៀនច្បាស់លាស់ មិនមានកត្តារំខាន ជួយការពារកុំឱ្យ Working Memory ត្រូវចំណាយថាមពលលើរឿងឥតប្រយោជន៍។"
+      },
+      {
+        number: 6,
+        bloom: "Apply & Solve",
+        difficulty: "មធ្យម (Medium)",
+        difficultyLevel: "medium",
+        question: "ហេតុអ្វីបានជាបច្ចេកទេស «ការអនុវត្តរំលឹកឡើងវិញ» (Retrieval Practice ដូចជាការធ្វើតេស្តសាកល្បង) មានប្រសិទ្ធភាពជាងការគ្រាន់តែអានសៀវភៅឡើងវិញ?",
+        options: {
+          A: "ជួយពង្រឹងផ្លូវប្រសាទ (Neural Pathways) ក្នុងការទាញយកព័ត៌មានពី Long-Term Memory និងធ្វើឱ្យការចងចាំរឹងមាំ",
+          B: "ជួយឱ្យសិស្សចំណាយពេលតិចជាងមុនដោយមិនបាច់គិត",
+          C: "ធ្វើឱ្យសិស្សអាចទន្ទេញដោយមិនបាច់យល់",
+          D: "មិនមានភាពខុសគ្នារវាងវិធីទាំងពីរឡើយ"
+        },
+        correctAnswer: "A",
+        explanation: "Retrieval Practice បង្កើត Testing Effect ដែលទាមទារឱ្យខួរក្បាលប្រឹងប្រែងទាញព័ត៌មានមកប្រើ ធ្វើឱ្យដាននៃការចងចាំរឹងមាំយូរអង្វែង។"
+      },
+      {
+        number: 7,
+        bloom: "Analyze",
+        difficulty: "មធ្យម (Medium)",
+        difficultyLevel: "medium",
+        question: "ក្នុងចំណោមវិធីសាស្ត្រខាងក្រោម តើវិធីណាដែលជួយដល់ដំណើរការ Encoding ក្នុងកម្រិតស៊ីជម្រៅ (Deep Processing)?",
+        options: {
+          A: "Elaborative Rehearsal (ការភ្ជាប់ចំណេះដឹងថ្មីទៅនឹងឧទាហរណ៍ជាក់ស្តែង និងការពន្យល់ជាពាក្យសម្តីផ្ទាល់ខ្លួន)",
+          B: "Maintenance Rehearsal (ការទន្ទេញពាក្យដដែលៗដោយគ្មានការគិត)",
+          C: "ការចម្លងអត្ថបទតាមសៀវភៅពុម្ពពាក្យមួយទៅពាក្យមួយ",
+          D: "ការទន្ទេញតែមួយយប់មុនពេលប្រឡង"
+        },
+        correctAnswer: "A",
+        explanation: "Deep Processing ទាមទារឱ្យមានការវិភាគន័យ (Semantic Analysis) និងការផ្សារភ្ជាប់ ដែលនាំឱ្យព័ត៌មានស្ថិតស្ថេរក្នុង Long-Term Memory។"
+      },
+      {
+        number: 8,
+        bloom: "Apply",
+        difficulty: "មធ្យម (Medium)",
+        difficultyLevel: "medium",
+        question: "ប្រសិនបើសិស្សម្នាក់ចងចាំនិយមន័យបានល្អ ប៉ុន្តែមិនចេះយកទៅអនុវត្តដោះស្រាយបញ្ហាក្នុងថ្នាក់រៀន តើមានន័យថាសិស្សខ្វះអ្វី?",
+        options: {
+          A: "ខ្វះចំណេះដឹងនីតិវិធី (Procedural Knowledge) និងសមត្ថភាពផ្ទេរចំណេះដឹង (Transfer of Learning)",
+          B: "ខ្វះសមត្ថភាពស្តាប់ឮ",
+          C: "ខ្វះអង្គចងចាំរយៈពេលខ្លី",
+          D: "មានអង្គចងចាំ Sensory ខូចខាត"
+        },
+        correctAnswer: "A",
+        explanation: "ការចងចាំត្រឹមតែ Declarative Knowledge (និយមន័យ) មិនទាន់គ្រប់គ្រាន់ទេ សិស្សត្រូវមានការហ្វឹកហាត់លើ Procedural Knowledge ដើម្បីចេះអនុវត្ត។"
+      },
+      // 2 HARD QUESTIONS (Q9, Q10) - 20%
+      {
+        number: 9,
+        bloom: "Evaluate",
+        difficulty: "ពិបាក (Hard)",
+        difficultyLevel: "hard",
+        question: "[ករណីសិក្សាគរុកោសល្យ] សិស្សក្នុងថ្នាក់រៀនមួយជួបបញ្ហាភ្លេចមេរៀនស្ទើរតែទាំងស្រុងក្រោយពេលរៀនចប់មួយសប្តាហ៍ (Ebbinghaus Forgetting Curve)។ ផ្អែកលើយន្តការនៃការទទួលបានព័ត៌មាន តើគ្រូគួររៀបចំយុទ្ធសាស្ត្រគរុកោសល្យបែបណាដើម្បីដោះស្រាយ?",
+        options: {
+          A: "រៀបចំ Spaced Repetition (ការរំលឹកឡើងវិញតាមចន្លោះពេលកំណត់) រួមជាមួយការធ្វើតេស្តរង្វាយតម្លៃខ្លីៗជាប្រចាំ",
+          B: "ស្តីបន្ទោសសិស្ស និងបង្ខំឱ្យសិស្សចម្លងមេរៀនដដែលៗ ១០០ ដង",
+          C: "បង្រៀនមេរៀនថ្មីបន្តទៀតដោយមិនបាច់ខ្វល់ពីមេរៀនចាស់",
+          D: "លុបចោលការធ្វើតេស្តទាំងអស់ក្នុងថ្នាក់"
+        },
+        correctAnswer: "A",
+        explanation: "Spaced Repetition (ការរំលឹកខណ្ឌពេល) គឺជាយុទ្ធសាស្ត្រផ្អែកលើវិទ្យាសាស្ត្រខួរក្បាល ដែលអាចបំបែកខ្សែកោងនៃការភ្លេច (Forgetting Curve) បានយ៉ាងជោគជ័យ។"
+      },
+      {
+        number: 10,
+        bloom: "Create & Synthesize",
+        difficulty: "ពិបាក (Hard)",
+        difficultyLevel: "hard",
+        question: "[ការសំយោគ និងការវាយតម្លៃ] តើគ្រូបង្រៀនអាចរៀបចំកិច្ចតែងការបង្រៀនតាមបែបថ្នាក់រៀនត្រឡប់ (Flipped Learning) យ៉ាងដូចម្តេច ដើម្បីគាំទ្រដល់យន្តការទទួលបានព័ត៌មានរបស់សិស្សឱ្យឈានដល់កម្រិត Higher-Order Thinking?",
+        options: {
+          A: "ឱ្យសិស្សទទួលព័ត៌មានគ្រឹះនៅផ្ទះតាមវីដេអូខ្លី (កាត់បន្ថយបន្ទុកក្នុងថ្នាក់) រួចប្រើម៉ោងក្នុងថ្នាក់សម្រាប់ការវិភាគ ដោះស្រាយបញ្ហា និងកសាង Schema ជាក់ស្តែង",
+          B: "ឱ្យសិស្សធ្វើលំហាត់ស្មុគស្មាញនៅផ្ទះម្នាក់ឯងដោយគ្មានការណែនាំ",
+          C: "បង្រៀនមេរៀនដដែលពីរដងដោយគ្មានសកម្មភាពក្រុម",
+          D: "លុបបំបាត់ការរៀននៅផ្ទះ និងបង្រៀនតែទ្រឹស្តីក្នុងថ្នាក់"
+        },
+        correctAnswer: "A",
+        explanation: "Flipped Learning បង្វែរការទទួលព័ត៌មានដំបូង (Lower Bloom) ទៅផ្ទះតាមល្បឿនផ្ទាល់ខ្លួនរបស់សិស្ស និងទុកពេលក្នុងថ្នាក់សម្រាប់សកម្មភាពកម្រិតខ្ពស់ (Higher Bloom) ជាមួយគ្រូ។"
+      }
+    ];
+    return randomizeQuizList(psychPostList);
+  }
+
+  // General Subject Bank (Strict 20% Easy, 60% Medium, 20% Hard)
   const p1 = mainPoints[0] || `ទ្រឹស្តី និងគោលការណ៍គ្រឹះនៃ ${cleanTitle}`;
   const p2 = mainPoints[1] || `វិធីសាស្ត្រគណនា និងការអនុវត្ត ${subject}`;
   const p3 = mainPoints[2] || `ការដោះស្រាយបញ្ហាក្នុងជីវភាពជាក់ស្តែង`;
   const p4 = mainPoints[3] || `ការវិភាគ និងការវាយតម្លៃកម្រិតខ្ពស់`;
 
-  return [
-    // 1. Remember & Understand (20%)
+  const rawPostList = [
+    // 2 EASY (Q1, Q2) - 20%
     {
       number: 1,
       bloom: "Remember & Understand",
       difficulty: "ងាយ (Easy)",
       difficultyLevel: "easy",
-      question: `តើគោលគំនិតស្នូល ឬច្បាប់គ្រឹះនៃ «${cleanTitle}» ក្នុងមុខវិជ្ជា ${subject} ចែងអំពីអ្វីចម្បង?`,
+      question: `តើគោលការណ៍ស្នូល ឬច្បាប់គ្រឹះនៃ «${cleanTitle}» ក្នុងមុខវិជ្ជា ${subject} ចែងអំពីអ្វីចម្បង?`,
       options: {
         A: `ជាគោលការណ៍គ្រឹះដែលកំណត់អំពី ${p1}`,
         B: `ជាបាតុភូតដែលកើតឡើងដោយចៃដន្យគ្មានច្បាប់ទម្លាប់`,
@@ -4783,9 +5099,25 @@ function generatePostTestMCQOffline(subject, grade, lessonTitle, mainPoints = []
       correctAnswer: "A",
       explanation: `គោលការណ៍គ្រឹះនៃ ${cleanTitle} គឺកំណត់យ៉ាងច្បាស់អំពី ${p1}។`
     },
-    // 2. Apply (20%)
     {
       number: 2,
+      bloom: "Remember & Understand",
+      difficulty: "ងាយ (Easy)",
+      difficultyLevel: "easy",
+      question: `ក្នុងចំណោមនិយមន័យខាងក្រោម តើមួយណាឆ្លុះបញ្ចាំងពីខ្លឹមសារដែលបានរៀនក្នុង «${cleanTitle}» ត្រឹមត្រូវបំផុត?`,
+      options: {
+        A: `និយមន័យដែលស្របតាមគោលការណ៍ ${p1}`,
+        B: `ការយល់ច្រឡំដែលផ្ទុយនឹងការពិត`,
+        C: `ការបកស្រាយដែលគ្មានទឡ្ហីករណ៍ច្បាស់លាស់`,
+        D: `ការសន្មតដែលគ្មានការផ្ទៀងផ្ទាត់`
+      },
+      correctAnswer: "A",
+      explanation: `និយមន័យត្រឹមត្រូវផ្អែកលើការយល់ដឹងស៊ីជម្រៅនៃខ្លឹមសារមេរៀន។`
+    },
+
+    // 6 MEDIUM (Q3 - Q8) - 60%
+    {
+      number: 3,
       bloom: "Apply",
       difficulty: "មធ្យម (Medium)",
       difficultyLevel: "medium",
@@ -4799,9 +5131,8 @@ function generatePostTestMCQOffline(subject, grade, lessonTitle, mainPoints = []
       correctAnswer: "A",
       explanation: `ការអនុវត្តត្រឹមត្រូវតម្រូវឱ្យវិភាគបម្រាប់ ប្រើរូបមន្តស្រប និងគណនាផ្ទៀងផ្ទាត់ខ្នាត។`
     },
-    // 3. Apply & Solve (20%)
     {
-      number: 3,
+      number: 4,
       bloom: "Apply & Solve",
       difficulty: "មធ្យម (Medium)",
       difficultyLevel: "medium",
@@ -4815,9 +5146,8 @@ function generatePostTestMCQOffline(subject, grade, lessonTitle, mainPoints = []
       correctAnswer: "A",
       explanation: `ការអនុវត្តជាក់ស្តែងនៃ ${cleanTitle} ជួយដោះស្រាយបញ្ហា និងបង្កើនប្រសិទ្ធភាពស្របតាម ${p3}។`
     },
-    // 4. Analyze (20%)
     {
-      number: 4,
+      number: 5,
       bloom: "Analyze",
       difficulty: "មធ្យម (Medium)",
       difficultyLevel: "medium",
@@ -4831,23 +5161,85 @@ function generatePostTestMCQOffline(subject, grade, lessonTitle, mainPoints = []
       correctAnswer: "A",
       explanation: `ការវិភាគបែបស៊ីជម្រៅតម្រូវឱ្យពិនិត្យទំនាក់ទំនងរវាងអថេរ និងលក្ខខណ្ឌជាក់ស្តែង។`
     },
-    // 5. Evaluate & Create (20%)
     {
-      number: 5,
-      bloom: "Evaluate & Create",
+      number: 6,
+      bloom: "Apply",
+      difficulty: "មធ្យម (Medium)",
+      difficultyLevel: "medium",
+      question: `ក្នុងការដោះស្រាយបញ្ហាជាក់ស្តែង តើជំហានណាដែលជួយបញ្ចៀសកំហុសឆ្គងបានល្អបំផុតក្នុង «${cleanTitle}»?`,
+      options: {
+        A: `ការផ្ទៀងផ្ទាត់លក្ខខណ្ឌព្រំដែន និងការត្រួតពិនិត្យភាពស៊ីសង្វាក់គ្នានៃ ${p2}`,
+        B: `ការប្រញាប់សន្និដ្ឋានដោយមិនផ្ទៀងផ្ទាត់`,
+        C: `ការកាត់បន្ថយជំហានគណនាឱ្យនៅខ្លីបំផុតដោយមិនបាច់គិត`,
+        D: `ការជឿជាក់លើការទាយទុកជាមុនតែមួយមុខ`
+      },
+      correctAnswer: "A",
+      explanation: `ការផ្ទៀងផ្ទាត់លក្ខខណ្ឌព្រំដែនជួយធានានូវភាពសុក្រឹតនៃការដោះស្រាយ។`
+    },
+    {
+      number: 7,
+      bloom: "Analyze",
+      difficulty: "មធ្យម (Medium)",
+      difficultyLevel: "medium",
+      question: `ប្រសិនបើមានអថេរមួយកើនឡើងទ្វេដងក្នុងប្រព័ន្ធនៃ «${cleanTitle}» តើផលប៉ះពាល់លើលទ្ធផលចុងក្រោយនឹងទៅជាយ៉ាងណា?`,
+      options: {
+        A: `ប្រែប្រួលសមាមាត្រស្រប ឬច្រាសអាស្រ័យលើទំនាក់ទំនងសមីការនៃ ${p2}`,
+        B: `នៅថេរដដែលគ្មានការប្រែប្រួល`,
+        C: `ធ្លាក់ចុះដល់សូន្យភ្លាមៗ`,
+        D: `ប្រែប្រួលដោយគ្មានទំនាក់ទំនងគណិតវិទ្យា`
+      },
+      correctAnswer: "A",
+      explanation: `ការវិភាគទំនាក់ទំនងសមាមាត្រជាបំណិនស្នូលក្នុងការអនុវត្តវិទ្យាសាស្ត្រ។`
+    },
+    {
+      number: 8,
+      bloom: "Apply & Solve",
+      difficulty: "មធ្យម (Medium)",
+      difficultyLevel: "medium",
+      question: `តើវិធីសាស្ត្រមួយណាដែលបង្ហាញពីការផ្ទេរចំណេះដឹង (Transfer of Learning) នៃ «${cleanTitle}» ទៅកាន់ស្ថានភាពថ្មី?`,
+      options: {
+        A: `ការយកគោលការណ៍ ${p3} ទៅសម្របសម្រួលដោះស្រាយបញ្ហាក្នុងបរិបទថ្មីដែលមិនធ្លាប់ជួបពីមុន`,
+        B: `ការធ្វើតែលំហាត់ដដែលៗដែលធ្លាប់បានបង្រៀន`,
+        C: `ការបដិសេធមិនដោះស្រាយបញ្ហាណាដែលខុសពីសៀវភៅពុម្ព`,
+        D: `ការរង់ចាំឱ្យមានដំណោះស្រាយគំរូទើបធ្វើតាម`
+      },
+      correctAnswer: "A",
+      explanation: `Transfer of Learning គឺជាសមត្ថភាពយកចំណេះដឹងដែលបានរៀនទៅអនុវត្តក្នុងបរិបទថ្មី។`
+    },
+
+    // 2 HARD (Q9, Q10) - 20%
+    {
+      number: 9,
+      bloom: "Evaluate",
       difficulty: "ពិបាក (Hard)",
       difficultyLevel: "hard",
       question: `[ការវាយតម្លៃ និងការដោះស្រាយបញ្ហា] ប្រសិនបើជួបប្រទះស្ថានភាពស្មុគស្មាញ ឬភាពយល់ច្រឡំ (Misconception) លើ «${cleanTitle}» តើគួរវាយតម្លៃ និងកែលម្អយ៉ាងដូចម្តេច?`,
       options: {
         A: `បង្កើតស្ថានភាព Cognitive Conflict -> ផ្ទៀងផ្ទាត់លើទឡ្ហីករណ៍ជាក់ស្តែង -> កែសម្រួល Schema ឱ្យត្រូវតាម ${p1}`,
         B: `បដិសេធរាល់ការកែលម្អ និងរក្សាការយល់ខុសដដែល`,
-        C: `សតីបន្ទោសអ្នករៀនដោយមិនផ្តល់ការពន្យល់`,
+        C: `ស្តីបន្ទោសអ្នករៀនដោយមិនផ្តល់ការពន្យល់`,
         D: `រំលងបញ្ហានោះចោលដោយមិនដោះស្រាយ`
       },
       correctAnswer: "A",
       explanation: `ការវាយតម្លៃកម្រិតខ្ពស់តម្រូវឱ្យវិភាគរកឫសគល់នៃកំហុស និងបង្កើតដំណោះស្រាយកែតម្រូវ Schema ឱ្យត្រឹមត្រូវ។`
+    },
+    {
+      number: 10,
+      bloom: "Create & Synthesize",
+      difficulty: "ពិបាក (Hard)",
+      difficultyLevel: "hard",
+      question: `[ការសំយោគ និងការច្នៃប្រឌិត] តើអ្នកអាចសំយោគចំណេះដឹងនៃ «${cleanTitle}» ទៅបង្កើតជាដំណោះស្រាយ ឬគម្រោងនវានុវត្តន៍ជាក់ស្តែងដោយរបៀបណា?`,
+      options: {
+        A: `រួមបញ្ចូលគោលការណ៍ ${p1} និង ${p3} ដើម្បីរចនាគម្រោងដោះស្រាយបញ្ហាពិតក្នុងសហគមន៍ប្រកបដោយចីរភាព`,
+        B: `ចម្លងស្នាដៃចាស់ៗរបស់អ្នកដទៃទាំងស្រុង`,
+        C: `រៀបចំគម្រោងដែលគ្មានមូលដ្ឋានវិទ្យាសាស្ត្រគាំទ្រ`,
+        D: `កំណត់គោលដៅដែលមិនអាចសម្រេចបានក្នុងភាពជាក់ស្តែង`
+      },
+      correctAnswer: "A",
+      explanation: `កម្រិតខ្ពស់បំផុតនៃ Bloom គឺការសំយោគចំណេះដឹងពហុវិស័យទៅបង្កើតជានវានុវត្តន៍មានប្រយោជន៍។`
     }
   ];
+  return randomizeQuizList(rawPostList);
 }
 
 function generateActiveRubric(lessonTitle, subject) {
@@ -5442,101 +5834,231 @@ function renderLearningGainReflectionBlock(data) {
 
 async function callAiForSingleTest(testType, plan, numQuestions = 10, scale = null) {
   showLoadingOverlay();
+  const isPre = testType === 'pre';
+  const isEn = (state.language === 'en');
+
   setLoadingOverlayStatus(
-    testType === 'pre' ? '📝 AI កំពុងបង្កើតកម្រងសំណួរ Pre-Test...' : '📝 AI កំពុងបង្កើតកម្រងសំណួរ Post-Test...',
-    `Gemini AI កំពុងបង្កើតសំណួរ ${numQuestions} ចំណុច...`
+    isPre ? '📝 AI កំពុងបង្កើតកម្រងសំណួរ Pre-Test (៦០% - ៣០% - ១០%)...' : '📝 AI កំពុងបង្កើតកម្រងសំណួរ Post-Test (២០% - ៦០% - ២០%)...',
+    `កំពុងវិភាគខ្លឹមសារមេរៀន «${plan.lessonTitle || ''}» ដើម្បីបង្កើតសំណួរឆ្លាតវៃ...`,
+    '🤖 ដំណើរការដោយ Advanced Pedagogical AI Engine'
   );
+
   try {
-    const apiKey = state.geminiApiKey || getActiveGeminiApiKey();
-    const isPre = testType === 'pre';
-    const isEn = (state.language === 'en');
+    const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || '').trim();
+    const provider = state.aiProvider || localStorage.getItem('ai_provider') || 'gemini';
     
-    let e = isPre ? 6 : 2;
-    let m = isPre ? 3 : 6;
-    let h = isPre ? 1 : 2;
+    // Standard Distribution:
+    // Pre-Test: 60% Easy, 30% Medium, 10% Hard
+    // Post-Test: 20% Easy, 60% Medium, 20% Hard
+    let e = isPre ? Math.round(numQuestions * 0.6) : Math.round(numQuestions * 0.2);
+    let m = isPre ? Math.round(numQuestions * 0.3) : Math.round(numQuestions * 0.6);
+    let h = Math.max(0, numQuestions - e - m);
     
     if (scale) {
-      e = scale.e;
-      m = scale.m;
-      h = scale.h;
-    } else if (numQuestions === 5) {
-      e = isPre ? 3 : 1;
-      m = isPre ? 1 : 3;
-      h = 1;
+      e = parseInt(scale.e) || e;
+      m = parseInt(scale.m) || m;
+      h = parseInt(scale.h) || h;
     }
 
-    const diffPrompt = isPre ? 
-      `Difficulty level: ${e} Easy (Remember), ${m} Medium (Apply), ${h} Hard (Analyze).` :
-      `Bloom's Taxonomy / Difficulty: ${e} Easy (Remember/Understand), ${m} Medium (Apply/Analyze), ${h} Hard (Evaluate/Create).`;
+    if (!apiKey) {
+      showToast('💡 មិនទាន់មាន API Key - កំពុងរៀបចំតាមកម្រងសំណួរគំរូស្តង់ដារ MoEYS...', 'info');
+      return isPre 
+        ? generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, [])
+        : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []);
+    }
 
-    const prompt = isPre ? `You are Google Gemini AI expert pedagogical educator for Cambodia MoEYS.
-Generate EXACTLY ${numQuestions} specific Pre-Test Multiple-Choice Diagnostic Questions (QCM) in ${isEn ? 'English' : 'Khmer'} testing prerequisite knowledge for this lesson:
-Topic: "${plan.lessonTitle}"
-Subject: "${plan.subject}"
-Grade: "${plan.grade}"
-${diffPrompt}
+    // Extract rich teaching context to give Gemini deep awareness of lesson
+    let objectivesSummary = '';
+    if (plan.objectives) {
+      const k = (plan.objectives.knowledge || []).join('; ');
+      const s = (plan.objectives.skills || []).join('; ');
+      const a = (plan.objectives.attitudes || []).join('; ');
+      objectivesSummary = `វិជ្ជាសម្បទា: ${k} | បំណិនសម្បទា: ${s} | ចរិយាសម្បទា: ${a}`;
+    }
 
-Return ONLY valid JSON array with ${numQuestions} objects matching this schema:
+    let stepsSummary = '';
+    if (Array.isArray(plan.steps) && plan.steps.length > 0) {
+      stepsSummary = plan.steps.map(st => `${st.stepTitle || ''}: ${st.contentSummary || st.teacherActivity || ''}`).slice(0, 5).join('\n');
+    } else if (plan.stage1) {
+      stepsSummary = `ការយល់ដឹងស្នូល: ${(plan.stage1.enduringUnderstandings || []).join('; ')} | សំណួរគន្លឹះ: ${(plan.stage1.essentialQuestions || []).join('; ')}`;
+    }
+
+    let docSnippet = '';
+    if (state.extractedText) {
+      docSnippet = state.extractedText.slice(0, 1500).replace(/\s+/g, ' ');
+    }
+
+    const testTypeDescription = isPre
+      ? `បុរេតេស្ត (Pre-Test Diagnostic Assessment) ក្នុងគោលដៅវាស់ស្ទង់ «ចំណេះដឹងត្រៀមជាមុន (Prerequisite / Baseline Knowledge)» ដែលសិស្សត្រូវមានជាគ្រឹះ មុននឹងរៀនមេរៀនថ្មីនេះ។ សំណួរភាគច្រើន (${e} ងាយ, ${m} មធ្យម) ត្រូវជាសំណួរចងចាំ និងការយល់ដឹងគ្រឹះ ចំណែក ${h} ពិបាក ជាការគិតវិភាគ។`
+      : `បច្ឆិមតេស្ត (Post-Test Mastery Assessment) ក្នុងគោលដៅវាស់ស្ទង់ «ការយល់ដឹងស៊ីជម្រៅ និងការសម្រេចបានតាម Bloom's Taxonomy» នៃខ្លឹមសារមេរៀនដែលបានរៀនរួច។ សំណួរត្រូវមាន ${e} ងាយ (ការចងចាំ/យល់), ${m} មធ្យម (ការអនុវត្ត/ការដោះស្រាយបញ្ហា/ការវិភាគ), និង ${h} ពិបាក (ការវាយតម្លៃ/ការសំយោគកម្រិតខ្ពស់)។`;
+
+    const systemPrompt = `តួនាទី៖ អ្នកគឺជាសាស្ត្រាចារ្យ និងអ្នកជំនាញកម្រិតខ្ពស់នៃការបង្កើតវិញ្ញាសាវាយតម្លៃគរុកោសល្យ និងតេស្តស្ដង់ដារនៃក្រសួងអប់រំ យុវជន និងកីឡា (MoEYS)។
+ភារកិច្ច៖ បង្កើតកម្រងសំណួរពហុជ្រើសរើស (Multiple Choice Questions) ចំនួនពិតប្រាកដ ${numQuestions} សំណួរ ជាភាសាខ្មែរ ដោយផ្អែកលើខ្លឹមសារពិតជាក់ស្ដែងនៃមេរៀន។
+
+ព័ត៌មានលម្អិតនៃមេរៀន៖
+- មុខវិជ្ជា៖ ${plan.subject || 'ទូទៅ'}
+- កម្រិតថ្នាក់៖ ${plan.grade || 'ទូទៅ'}
+- ចំណងជើងមេរៀន៖ ${plan.lessonTitle || 'មេរៀន'}
+${plan.chapter ? `- ជំពូក៖ ${plan.chapter}` : ''}
+${objectivesSummary ? `- វត្ថុបំណងមេរៀន៖ ${objectivesSummary}` : ''}
+${stepsSummary ? `- ខ្លឹមសារសង្ខេបនៃជំហានបង្រៀន៖\n${stepsSummary}` : ''}
+${docSnippet ? `- សម្រង់ខ្លឹមសារមេរៀនបន្ថែម៖\n${docSnippet}` : ''}
+
+ប្រភេទតេស្ត និងការបែងចែកកម្រិតលំបាក៖
+${testTypeDescription}
+- ចំនួនសំណួរសរុប៖ ${numQuestions} សំណួរ
+- កម្រិតងាយ (Easy): ${e} សំណួរ (${Math.round((e / numQuestions) * 100)}%)
+- កម្រិតមធ្យម (Medium): ${m} សំណួរ (${Math.round((m / numQuestions) * 100)}%)
+- កម្រិតពិបាក (Hard): ${h} សំណួរ (${Math.round((h / numQuestions) * 100)}%)
+
+🚨 បទបញ្ជាគរុកោសល្យតឹងរ៉ឹងបំផុត (STRICT RULES - NO ROBOTIC TEMPLATES):
+១. ដាច់ខាតមិនត្រូវបង្កើតសំណួរពុម្ពទូទៅ ឬចម្លងចំណងជើងមេរៀនចូលក្នុងប្រធានបទដដែលៗដូចជា៖
+   ❌ «តើ [ចំណងជើងមេរៀន] មានឥទ្ធិពលយ៉ាងណា?»
+   ❌ «តើការអនុវត្ត [ចំណងជើងមេរៀន] ត្រូវធ្វើតាមដំណាក់កាលណា?»
+   ❌ «តើសារពារពាក់ព័ន្ធណាដែលរងផលប៉ះពាល់ពី [ចំណងជើងមេរៀន]?»
+២. សំណួរនីមួយៗត្រូវតែចោទសួរអំពី «គំនិតស្នូលជាក់ស្ដែង» នៃមុខវិជ្ជា (Authentic Scientific / Pedagogical Concepts, Real Theories, Practical Classroom Scenarios, Case Studies)។ ឧទាហរណ៍ ប្រសិនបើមេរៀន «យន្តការនៃការទទួលបានព័ត៌មាន» (Information Processing in Psychology) សំណួរត្រូវសួរអំពី៖ ការទទួលដឹងតាមឥន្ទ្រិយារម្មណ៍ (Sensory Register), ការជ្រើសរើសយកចិត្តទុកដាក់ (Attention), អង្គចងចាំដំណើរការ (Working Memory), ការកូដទុក (Encoding), អង្គចងចាំវែង (Long-term Memory), ការរំលឹក (Retrieval), ឬបន្ទុកនៃការយល់ដឹង (Cognitive Load)!
+៣. ជម្រើសចម្លើយនីមួយៗ (A, B, C, D) ត្រូវតែជាជម្រើសសមហេតុផលក្នុងវិស័យអប់រំ (Plausible distractors) មិនត្រូវដាក់ចម្លើយកំប្លែង ឬមិនទំនងឡើយ។
+៤. ចម្លើយត្រឹមត្រូវ (correctAnswer) ត្រូវតែឆ្លាស់គ្នារវាង A, B, C, D (កុំដាក់ A រហូត)។
+៥. ការពន្យល់ (explanation) ត្រូវបញ្ជាក់ឱ្យបានច្បាស់លាស់ពីមូលហេតុដែលចម្លើយនោះត្រឹមត្រូវតាមក្បួនគរុកោសល្យ។
+
+ទម្រង់លទ្ធផលត្រឡប់មកវិញ (JSON ARRAY ONLY):
+ត្រឡប់មកវិញតែ JSON Array សុទ្ធដែលមាន ${numQuestions} objects ដូចទម្រង់នេះ (គ្មានអក្សរបន្ថែមក្រៅពី JSON):
 [
   {
     "number": 1,
     "difficulty": "ងាយ (Easy)",
     "difficultyLevel": "easy",
-    "question": "...",
-    "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
-    "correctAnswer": "A",
-    "explanation": "..."
-  }
-]` : `You are Google Gemini AI expert pedagogical educator for Cambodia MoEYS.
-Generate EXACTLY ${numQuestions} specific Post-Test Multiple-Choice Mastery Assessment Questions (MCQ) in ${isEn ? 'English' : 'Khmer'} measuring student learning mastery of this specific lesson:
-Topic: "${plan.lessonTitle}"
-Subject: "${plan.subject}"
-Grade: "${plan.grade}"
-${diffPrompt}
-
-Return ONLY valid JSON array with ${numQuestions} objects matching this schema:
-[
-  {
-    "number": 1,
-    "difficulty": "មធ្យម (Medium)",
-    "difficultyLevel": "medium",
-    "question": "...",
-    "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
-    "correctAnswer": "A",
-    "explanation": "..."
+    "question": "ខ្លឹមសារសំណួរជាក់លាក់...",
+    "options": {
+      "A": "ជម្រើសទី ១",
+      "B": "ជម្រើសទី ២",
+      "C": "ជម្រើសទី ៣",
+      "D": "ជម្រើសទី ៤"
+    },
+    "correctAnswer": "B",
+    "explanation": "ការពន្យល់គរុកោសល្យលម្អិត..."
   }
 ]`;
 
-    if (apiKey) {
-      // Try gemini-2.5-pro / gemini-3.8-flash / gemini-3.6-flash / gemini-3.5-flash-lite
-      for (const model of ['gemini-2.5-pro', 'gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-2.0-flash']) {
-        try {
-          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ role: 'user', parts: [{ text: prompt }] }],
-              generationConfig: {
-                response_mime_type: 'application/json',
-                temperature: 0.25,
-                maxOutputTokens: 3500
-              }
-            })
-          });
-          if (resp.ok) {
-            const data = await resp.json();
-            const txt = data.candidates?.[0]?.content?.parts?.[0]?.text;
-            const parsed = extractAndParseJson(txt);
-            const list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || []);
-            if (list && list.length > 0) return list;
-          }
-        } catch (e) {
-          console.warn(`Model ${model} test generator error:`, e);
+    // 1. Try Groq API if key is Groq
+    if (provider === 'groq' || apiKey.startsWith('gsk_')) {
+      try {
+        const groqResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages: [
+              { role: 'system', content: 'You are an elite MoEYS curriculum examiner. Return ONLY a valid JSON array of test questions.' },
+              { role: 'user', content: systemPrompt }
+            ],
+            temperature: 0.3,
+            response_format: { type: 'json_object' }
+          })
+        });
+        if (groqResp.ok) {
+          const resJson = await groqResp.json();
+          const content = resJson.choices?.[0]?.message?.content;
+          const parsed = extractAndParseJson(content);
+          const list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || parsed.test || []);
+          if (list && list.length > 0) return list.slice(0, numQuestions);
         }
+      } catch (groqErr) {
+        console.warn('Groq single test generator error:', groqErr);
       }
     }
 
-    // Reliable offline generation fallback
+    // 2. Try OpenRouter API if key is OpenRouter
+    if (provider === 'openrouter' || apiKey.startsWith('sk-or-')) {
+      try {
+        const orResp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.0-flash-001',
+            messages: [
+              { role: 'system', content: 'You are an elite MoEYS curriculum examiner. Return ONLY a valid JSON array of test questions.' },
+              { role: 'user', content: systemPrompt }
+            ],
+            temperature: 0.3
+          })
+        });
+        if (orResp.ok) {
+          const resJson = await orResp.json();
+          const content = resJson.choices?.[0]?.message?.content;
+          const parsed = extractAndParseJson(content);
+          const list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || parsed.test || []);
+          if (list && list.length > 0) return list.slice(0, numQuestions);
+        }
+      } catch (orErr) {
+        console.warn('OpenRouter test generator error:', orErr);
+      }
+    }
+
+    // 3. Try Google Gemini AI Models
+    const geminiModels = [];
+    if (state.verifiedGeminiModel && state.verifiedGeminiModel.name) {
+      geminiModels.push(state.verifiedGeminiModel.name);
+    }
+    geminiModels.push('gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash');
+    const uniqueModels = [...new Set(geminiModels)];
+
+    for (const model of uniqueModels) {
+      try {
+        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: systemPrompt }] }],
+            generationConfig: {
+              response_mime_type: 'application/json',
+              temperature: 0.3,
+              maxOutputTokens: 4096
+            }
+          })
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          const txt = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          const parsed = extractAndParseJson(txt);
+          const list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || parsed.test || []);
+          if (list && list.length > 0) return list.slice(0, numQuestions);
+        }
+      } catch (e) {
+        console.warn(`Model ${model} single test generator error:`, e);
+      }
+    }
+
+    // 4. Try Backend Server proxy (/api/generate/test)
+    try {
+      const serverResp = await fetch('/api/generate/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          testType,
+          plan,
+          numQuestions,
+          scale: { e, m, h },
+          apiKey
+        })
+      });
+      if (serverResp.ok) {
+        const serverData = await serverResp.json();
+        if (serverData.success && Array.isArray(serverData.data) && serverData.data.length > 0) {
+          return serverData.data.slice(0, numQuestions);
+        }
+      }
+    } catch (srvErr) {
+      console.warn('Server test generator fallback error:', srvErr);
+    }
+
+    // 5. Fallback to High-Quality Subject-Aware Offline Bank
     return isPre 
       ? generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, [])
       : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []);
@@ -10137,7 +10659,9 @@ window.promptGenerateTest = async function(type) {
   const isEn = (state.language === 'en');
   const isPre = type === 'pre';
   
-  // Default scales for 10 questions
+  // Standardized Assessment Distribution:
+  // Pre-Test (Diagnostic): 60% Easy, 30% Medium, 10% Hard (6 - 3 - 1 for 10 Qs)
+  // Post-Test (Mastery):   20% Easy, 60% Medium, 20% Hard (2 - 6 - 2 for 10 Qs)
   const defEasy = isPre ? 6 : 2;
   const defMed = isPre ? 3 : 6;
   const defHard = isPre ? 1 : 2;
@@ -10149,44 +10673,73 @@ window.promptGenerateTest = async function(type) {
   overlay.className = 'modal-backdrop modal-overlay test-config-modal-overlay active';
   overlay.style.cssText = 'position: fixed; inset: 0; background: rgba(15,23,42,0.75); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 10005;';
   
-  const title = isPre ? (isEn ? 'Pre-Test Configuration' : 'ការកំណត់បុរេតេស្ត (Pre-Test)') : (isEn ? 'Post-Test Configuration' : 'ការកំណត់បច្ឆិមតេស្ត (Post-Test)');
+  const title = isPre 
+    ? (isEn ? '🎯 Pre-Test Configuration (60% - 30% - 10%)' : '🎯 ការកំណត់បុរេតេស្ត (Pre-Test) — ៦០% - ៣០% - ១០%') 
+    : (isEn ? '🎓 Post-Test Configuration (20% - 60% - 20%)' : '🎓 ការកំណត់បច្ឆិមតេស្ត (Post-Test) — ២០% - ៦០% - ២០%');
   
+  const descHelp = isPre
+    ? (isEn ? 'Standard Diagnostic Assessment: 60% Easy (Prerequisite recall), 30% Medium (Apply), 10% Hard (Analyze)' : 'ស្តង់ដារបុរេតេស្ត MoEYS: ងាយ ៦០% (ចំណេះដឹងត្រៀមជាមុន), មធ្យម ៣០% (ការយល់ដឹង), ពិបាក ១០% (ការត្រិះរិះ)')
+    : (isEn ? "Standard Mastery Assessment (Bloom's Taxonomy): 20% Easy (Recall), 60% Medium (Apply & Analyze), 20% Hard (Evaluate & Create)" : 'ស្តង់ដារបច្ឆិមតេស្ត MoEYS (Bloom): ងាយ ២០% (ចងចាំ), មធ្យម ៦០% (អនុវត្ត និងវិភាគ), ពិបាក ២០% (វាយតម្លៃ និងសំយោគ)');
+
+  const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || '').trim();
+  const provider = state.aiProvider || localStorage.getItem('ai_provider') || 'gemini';
+  const hasKey = Boolean(apiKey);
+  const provName = provider === 'groq' ? 'Groq Cloud' : (provider === 'openrouter' ? 'OpenRouter' : 'Google Gemini AI');
+
   overlay.innerHTML = `
-    <div class="modal modal-card active" style="max-width: 440px; width: 95%; background: #ffffff; border-radius: 14px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); overflow: hidden; animation: modalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);">
-      <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
-        <div class="modal-title" style="color: ${isPre ? '#4338ca' : '#166534'}; font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+    <div class="modal modal-card active" style="max-width: 460px; width: 95%; background: #ffffff; border-radius: 14px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35); overflow: hidden; animation: modalScaleIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);">
+      <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; background: ${isPre ? '#f5f3ff' : '#f0fdf4'};">
+        <div class="modal-title" style="color: ${isPre ? '#4338ca' : '#166534'}; font-weight: 800; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
           <i class="fa-solid ${isPre ? 'fa-wand-magic-sparkles' : 'fa-graduation-cap'}"></i> <span>${title}</span>
         </div>
         <button class="modal-close" onclick="this.closest('.test-config-modal-overlay').remove()" style="font-size: 1.3rem; background: none; border: none; cursor: pointer; color: #64748b;"><i class="fa-solid fa-times"></i></button>
       </div>
       <div class="modal-body" style="padding: 20px;">
-        <div class="form-group">
-          <label style="font-weight: 600; color: #334155; margin-bottom: 6px; display: block;">${isEn ? 'Total Questions:' : 'ចំនួនសំណួរសរុប៖'}</label>
-          <input type="number" id="testTotalQ" class="form-control" value="10" min="1" max="25" oninput="window.updateScaleInputs()">
+        <div style="font-size: 8.5pt; color: #475569; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 8px 12px; margin-bottom: 14px; line-height: 1.5;">
+          💡 <strong>${descHelp}</strong>
         </div>
-        <div style="font-weight: 600; font-size: 10pt; margin-top: 18px; margin-bottom: 10px; color: #475569; padding-bottom: 5px; border-bottom: 2px solid #e2e8f0;">
-          ${isEn ? 'Difficulty Scale (Sum must equal total)' : 'កម្រិតលំបាកសំណួរ (ផលបូកត្រូវស្មើចំនួនសរុប)'}:
+
+        ${!hasKey ? `
+        <div style="margin-bottom: 14px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
+          <div style="font-size: 8.5pt; color: #92400e; line-height: 1.4;">
+            ⚠️ <strong>មិនទាន់បានបញ្ចូល API Key</strong> (តេស្តនឹងត្រូវរៀបចំតាមគំរូទូទៅ)
+          </div>
+          <button type="button" onclick="this.closest('.test-config-modal-overlay').remove(); openApiKeyModal();" style="white-space: nowrap; font-size: 8pt; font-weight: 700; background: #d97706; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+            🔑 ភ្ជាប់ API Key
+          </button>
+        </div>` : `
+        <div style="margin-bottom: 14px; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 8px 12px; font-size: 8.5pt; color: #065f46; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-circle-check" style="color: #10b981;"></i> <span>ភ្ជាប់ជាមួយ <strong>${provName}</strong> រួចរាល់ — ដំណើរការបង្កើតសំណួរឆ្លាតវៃ</span>
+        </div>`}
+
+        <div class="form-group">
+          <label style="font-weight: 700; color: #334155; margin-bottom: 6px; display: block; font-size: 9.5pt;">${isEn ? 'Total Questions:' : 'ចំនួនសំណួរសរុប៖'}</label>
+          <input type="number" id="testTotalQ" class="form-control" value="10" min="1" max="30" oninput="window.updateScaleInputs()">
+        </div>
+        <div style="font-weight: 700; font-size: 9.5pt; margin-top: 16px; margin-bottom: 10px; color: #475569; padding-bottom: 5px; border-bottom: 2px solid #e2e8f0; display: flex; justify-content: space-between;">
+          <span>${isEn ? 'Difficulty Distribution:' : 'កម្រិតលំបាកសំណួរ (ផលបូកស្មើចំនួនសរុប):'}</span>
+          <span style="font-size: 8.5pt; color: #64748b; font-weight: 600;">${isPre ? 'ស្តង់ដារ ៦០% - ៣០% - ១០%' : 'ស្តង់ដារ ២០% - ៦០% - ២០%'}</span>
         </div>
         <div style="display: flex; gap: 10px;">
           <div class="form-group" style="flex: 1;">
-            <label style="color: #15803d; font-size: 9.5pt; font-weight: 600;">${isEn ? 'Easy' : 'ងាយ'}</label>
-            <input type="number" id="testEasyQ" class="form-control" style="border: 1.5px solid #86efac; background: #f0fdf4; font-weight: 700; color: #166534;" value="${defEasy}" min="0">
+            <label style="color: #15803d; font-size: 9pt; font-weight: 700;">${isPre ? (isEn ? 'Easy (60%)' : 'ងាយ (៦០%)') : (isEn ? 'Easy (20%)' : 'ងាយ (២០%)')}</label>
+            <input type="number" id="testEasyQ" class="form-control" style="border: 1.5px solid #86efac; background: #f0fdf4; font-weight: 700; color: #166534;" value="${defEasy}" min="0" oninput="window.syncTotalFromScale()">
           </div>
           <div class="form-group" style="flex: 1;">
-            <label style="color: #a16207; font-size: 9.5pt; font-weight: 600;">${isEn ? 'Medium' : 'មធ្យម'}</label>
-            <input type="number" id="testMedQ" class="form-control" style="border: 1.5px solid #fde047; background: #fefce8; font-weight: 700; color: #854d0e;" value="${defMed}" min="0">
+            <label style="color: #a16207; font-size: 9pt; font-weight: 700;">${isPre ? (isEn ? 'Medium (30%)' : 'មធ្យម (៣០%)') : (isEn ? 'Medium (60%)' : 'មធ្យម (៦០%)')}</label>
+            <input type="number" id="testMedQ" class="form-control" style="border: 1.5px solid #fde047; background: #fefce8; font-weight: 700; color: #854d0e;" value="${defMed}" min="0" oninput="window.syncTotalFromScale()">
           </div>
           <div class="form-group" style="flex: 1;">
-            <label style="color: #b91c1c; font-size: 9.5pt; font-weight: 600;">${isEn ? 'Hard' : 'ពិបាក'}</label>
-            <input type="number" id="testHardQ" class="form-control" style="border: 1.5px solid #fca5a5; background: #fef2f2; font-weight: 700; color: #991b1b;" value="${defHard}" min="0">
+            <label style="color: #b91c1c; font-size: 9pt; font-weight: 700;">${isPre ? (isEn ? 'Hard (10%)' : 'ពិបាក (១០%)') : (isEn ? 'Hard (20%)' : 'ពិបាក (២០%)')}</label>
+            <input type="number" id="testHardQ" class="form-control" style="border: 1.5px solid #fca5a5; background: #fef2f2; font-weight: 700; color: #991b1b;" value="${defHard}" min="0" oninput="window.syncTotalFromScale()">
           </div>
         </div>
-        <div id="testScaleError" style="color: #ef4444; font-size: 9.5pt; margin-top: 12px; display: none; background: #fee2e2; padding: 8px; border-radius: 6px; border: 1px solid #fca5a5;"></div>
+        <div id="testScaleError" style="color: #ef4444; font-size: 9pt; margin-top: 12px; display: none; background: #fee2e2; padding: 8px 12px; border-radius: 6px; border: 1px solid #fca5a5; line-height: 1.4;"></div>
       </div>
       <div class="modal-footer" style="justify-content: flex-end; background: #f8fafc; padding: 14px 20px; border-top: 1px solid #e2e8f0; display: flex; gap: 10px;">
         <button class="btn-secondary" onclick="this.closest('.test-config-modal-overlay').remove()">${isEn ? 'Cancel' : 'បោះបង់'}</button>
-        <button class="btn-primary" id="btnConfirmTestGen" style="background: ${isPre ? '#4f46e5' : '#10b981'}; box-shadow: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; color: white; border: none; cursor: pointer;">
-          <i class="fa-solid fa-bolt"></i> ${isEn ? 'Generate Test' : 'បង្កើតកម្រងសំណួរ'}
+        <button class="btn-primary" id="btnConfirmTestGen" style="background: ${isPre ? '#4f46e5' : '#10b981'}; box-shadow: none; padding: 8px 18px; border-radius: 8px; font-weight: 700; color: white; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+          <i class="fa-solid fa-bolt"></i> <span>${isEn ? 'Generate Test' : 'បង្កើតកម្រងសំណួរ'}</span>
         </button>
       </div>
     </div>
@@ -10194,7 +10747,49 @@ window.promptGenerateTest = async function(type) {
   document.body.appendChild(overlay);
 
   window.updateScaleInputs = function() {
-    const total = parseInt(document.getElementById('testTotalQ').value) || 0;
+    const totalEl = document.getElementById('testTotalQ');
+    const easyEl = document.getElementById('testEasyQ');
+    const medEl = document.getElementById('testMedQ');
+    const hardEl = document.getElementById('testHardQ');
+    const errBox = document.getElementById('testScaleError');
+    if (!totalEl || !easyEl || !medEl || !hardEl) return;
+    
+    const total = Math.max(1, Math.min(30, parseInt(totalEl.value) || 10));
+
+    let e, m, h;
+    if (isPre) {
+      // Pre-Test Standard: 60% Easy, 30% Medium, 10% Hard
+      e = Math.round(total * 0.60);
+      m = Math.round(total * 0.30);
+      h = Math.max(0, total - e - m);
+    } else {
+      // Post-Test Standard: 20% Easy, 60% Medium, 20% Hard
+      e = Math.round(total * 0.20);
+      m = Math.round(total * 0.60);
+      h = Math.max(0, total - e - m);
+    }
+    easyEl.value = e;
+    medEl.value = m;
+    hardEl.value = h;
+    if (errBox) errBox.style.display = 'none';
+  };
+
+  window.syncTotalFromScale = function() {
+    const totalEl = document.getElementById('testTotalQ');
+    const easyEl = document.getElementById('testEasyQ');
+    const medEl = document.getElementById('testMedQ');
+    const hardEl = document.getElementById('testHardQ');
+    const errBox = document.getElementById('testScaleError');
+    if (!totalEl || !easyEl || !medEl || !hardEl) return;
+    
+    const e = Math.max(0, parseInt(easyEl.value) || 0);
+    const m = Math.max(0, parseInt(medEl.value) || 0);
+    const h = Math.max(0, parseInt(hardEl.value) || 0);
+    const sum = e + m + h;
+    if (sum > 0) {
+      totalEl.value = sum;
+    }
+    if (errBox) errBox.style.display = 'none';
   };
 
   document.getElementById('btnConfirmTestGen').onclick = async function() {
