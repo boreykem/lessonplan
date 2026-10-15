@@ -4,31 +4,252 @@
  * live A4 preview & inline editing, Word (.docx) export, and PDF/Print.
  */
 
-// Global State
-// Global State
 // System Default Gemini API Key (teachers can provide their own key or use Smart Local Synthesizer)
 const SYSTEM_DEFAULT_GEMINI_KEY = '';
 
-function getActiveGeminiApiKey() {
-  const stored = (localStorage.getItem('gemini_api_key') || '').trim();
-  if (stored.startsWith('AQ.')) {
-    localStorage.removeItem('gemini_api_key');
-    return '';
-  }
-  return stored;
-}
+// ==============================================================================
+// 🔐 Universal Multi-Layer Persistent Key Vault
+// Stores and synchronizes across 4 independent persistent storage layers:
+// 1. localStorage (Synchronous, instant)
+// 2. Cookie (10-Year Long-Lived Session, survives cache/history clearing)
+// 3. IndexedDB (Persistent Structured Storage, immune to simple cookie clear)
+// 4. Local PC Backend (Survives 100% browser data reset when running locally)
+// With automatic self-healing: if key exists in ANY layer, it restores all layers!
+// ONLY clears when user explicitly clicks "🔄 សម្អាត Key" in the modal.
+// ==============================================================================
 
-// Cleanse any leaked or outdated keys from browser localStorage
-(function cleanupStoredApiKeys() {
-  try {
-    const stored = (localStorage.getItem('gemini_api_key') || '').trim();
-    if (stored.startsWith('AQ.')) {
-      localStorage.removeItem('gemini_api_key');
+const PersistentKeyVault = {
+  DB_NAME: 'AI_Lesson_Plan_Permanent_Vault',
+  DB_VERSION: 1,
+  STORE_NAME: 'user_security_credentials',
+
+  getSync() {
+    try {
+      const fromLocal = (localStorage.getItem('gemini_api_key') || '').trim();
+      if (fromLocal && !fromLocal.startsWith('AQ.')) return fromLocal;
+      const fromCookie = this.getCookie('gemini_api_key');
+      if (fromCookie && !fromCookie.startsWith('AQ.')) {
+        try { localStorage.setItem('gemini_api_key', fromCookie); } catch (e) {}
+        return fromCookie;
+      }
+    } catch (e) {}
+    return '';
+  },
+
+  getProviderSync() {
+    try {
+      const fromLocal = localStorage.getItem('ai_provider');
+      if (fromLocal) return fromLocal;
+      const fromCookie = this.getCookie('ai_provider');
+      if (fromCookie) {
+        try { localStorage.setItem('ai_provider', fromCookie); } catch (e) {}
+        return fromCookie;
+      }
+    } catch (e) {}
+    return 'gemini';
+  },
+
+  setCookie(name, val) {
+    try {
+      const isHttps = window.location.protocol === 'https:';
+      const secureFlag = isHttps ? '; Secure' : '';
+      document.cookie = `${name}=${encodeURIComponent(val)}; max-age=315360000; path=/; SameSite=Lax${secureFlag}`;
+    } catch (e) {}
+  },
+
+  getCookie(name) {
+    try {
+      const match = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
+      return match ? decodeURIComponent(match[1]).trim() : '';
+    } catch (e) {
+      return '';
     }
-  } catch (e) {
-    console.warn('API key cleanup warning:', e);
+  },
+
+  deleteCookie(name) {
+    try {
+      document.cookie = `${name}=; max-age=0; path=/;`;
+    } catch (e) {}
+  },
+
+  openDB() {
+    return new Promise((resolve) => {
+      if (!window.indexedDB) return resolve(null);
+      try {
+        const req = indexedDB.open(this.DB_NAME, this.DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(this.STORE_NAME)) {
+            db.createObjectStore(this.STORE_NAME);
+          }
+        };
+        req.onsuccess = (e) => resolve(e.target.result);
+        req.onerror = () => resolve(null);
+      } catch (e) {
+        resolve(null);
+      }
+    });
+  },
+
+  async getFromIndexedDB(keyName) {
+    try {
+      const db = await this.openDB();
+      if (!db) return null;
+      return new Promise((resolve) => {
+        try {
+          const tx = db.transaction(this.STORE_NAME, 'readonly');
+          const store = tx.objectStore(this.STORE_NAME);
+          const req = store.get(keyName);
+          req.onsuccess = () => resolve(req.result || null);
+          req.onerror = () => resolve(null);
+        } catch (e) {
+          resolve(null);
+        }
+      });
+    } catch (e) {
+      return null;
+    }
+  },
+
+  async setToIndexedDB(keyName, value) {
+    try {
+      const db = await this.openDB();
+      if (!db) return false;
+      return new Promise((resolve) => {
+        try {
+          const tx = db.transaction(this.STORE_NAME, 'readwrite');
+          const store = tx.objectStore(this.STORE_NAME);
+          store.put(value, keyName);
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => resolve(false);
+        } catch (e) {
+          resolve(false);
+        }
+      });
+    } catch (e) {
+      return false;
+    }
+  },
+
+  async deleteFromIndexedDB(keyName) {
+    try {
+      const db = await this.openDB();
+      if (!db) return false;
+      return new Promise((resolve) => {
+        try {
+          const tx = db.transaction(this.STORE_NAME, 'readwrite');
+          const store = tx.objectStore(this.STORE_NAME);
+          store.delete(keyName);
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => resolve(false);
+        } catch (e) {
+          resolve(false);
+        }
+      });
+    } catch (e) {
+      return false;
+    }
+  },
+
+  async requestPersistentStorage() {
+    try {
+      if (navigator.storage && navigator.storage.persist) {
+        const isPersisted = await navigator.storage.persisted();
+        if (!isPersisted) {
+          await navigator.storage.persist();
+        }
+      }
+    } catch (e) {}
+  },
+
+  async save(key, provider) {
+    const cleanKey = (key || '').trim();
+    const cleanProv = (provider || 'gemini').trim();
+
+    if (!cleanKey) {
+      await this.clear();
+      return;
+    }
+
+    try {
+      localStorage.setItem('gemini_api_key', cleanKey);
+      localStorage.setItem('ai_provider', cleanProv);
+    } catch (e) {}
+
+    this.setCookie('gemini_api_key', cleanKey);
+    this.setCookie('ai_provider', cleanProv);
+
+    await this.setToIndexedDB('gemini_api_key', cleanKey);
+    await this.setToIndexedDB('ai_provider', cleanProv);
+
+    this.requestPersistentStorage();
+
+    try {
+      fetch('/api/key/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: cleanKey, provider: cleanProv })
+      }).catch(() => {});
+    } catch (e) {}
+  },
+
+  async clear() {
+    try {
+      localStorage.removeItem('gemini_api_key');
+      localStorage.removeItem('ai_provider');
+    } catch (e) {}
+
+    this.deleteCookie('gemini_api_key');
+    this.deleteCookie('ai_provider');
+
+    await this.deleteFromIndexedDB('gemini_api_key');
+    await this.deleteFromIndexedDB('ai_provider');
+
+    try {
+      fetch('/api/key/clear', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      }).catch(() => {});
+    } catch (e) {}
+  },
+
+  async restore() {
+    let key = this.getSync();
+    let provider = this.getProviderSync();
+
+    if (!key) {
+      key = await this.getFromIndexedDB('gemini_api_key');
+      provider = (await this.getFromIndexedDB('ai_provider')) || provider;
+    }
+
+    if (!key) {
+      try {
+        const resp = await fetch('/api/key/get').catch(() => null);
+        if (resp && resp.ok) {
+          const data = await resp.json().catch(() => ({}));
+          if (data && data.key) {
+            key = data.key.trim();
+            provider = data.provider || provider;
+          }
+        }
+      } catch (e) {}
+    }
+
+    if (key && key.trim() && !key.startsWith('AQ.')) {
+      state.geminiApiKey = key.trim();
+      state.aiProvider = provider || 'gemini';
+      await this.save(key.trim(), provider);
+      return true;
+    }
+
+    return false;
   }
-})();
+};
+window.PersistentKeyVault = PersistentKeyVault;
+
+function getActiveGeminiApiKey() {
+  return state.geminiApiKey || PersistentKeyVault.getSync();
+}
 
 const state = {
   templateMode: 'preset', // 'preset' | 'saved' | 'custom'
@@ -46,7 +267,7 @@ const state = {
   lessonContent: '',
   currentZoom: 1.0,
   language: localStorage.getItem('app_language') || 'km',
-  aiProvider: localStorage.getItem('ai_provider') || 'gemini',
+  aiProvider: PersistentKeyVault.getProviderSync(),
   geminiApiKey: getActiveGeminiApiKey(),
   generatedPlanData: null
 };
@@ -1599,7 +1820,18 @@ document.addEventListener('DOMContentLoaded', () => {
   try { initPdfJs(); } catch (e) { console.error('initPdfJs err:', e); }
   try { initEventListeners(); } catch (e) { console.error('initEventListeners err:', e); }
   try { initDropzones(); } catch (e) { console.error('initDropzones err:', e); }
+  try {
+    PersistentKeyVault.restore().then((restored) => {
+      if (restored) {
+        checkApiKeyStatus();
+        updateEmptyStateApiStatus();
+      }
+    });
+  } catch (e) {
+    console.error('PersistentKeyVault restore err:', e);
+  }
   try { checkApiKeyStatus(); } catch (e) { console.error('checkApiKeyStatus err:', e); }
+  try { updateEmptyStateApiStatus(); } catch (e) { console.error('updateEmptyStateApiStatus err:', e); }
   try { setLanguage(state.language || 'km', false); } catch(e) { console.error('setLanguage err:', e); }
   try { updateWordCount(); } catch (e) { console.error('updateWordCount err:', e); }
   try { loadSavedAdminProfile(); } catch (e) { console.error('loadSavedAdminProfile err:', e); }
@@ -2148,6 +2380,25 @@ function initEventListeners() {
     });
   }
 
+  const inputGeminiKey = document.getElementById('inputGeminiKey');
+  if (inputGeminiKey) {
+    let keyDebounceTimer = null;
+    inputGeminiKey.addEventListener('input', (e) => {
+      const val = (e.target.value || '').trim();
+      clearTimeout(keyDebounceTimer);
+      if (val.length >= 20 || val.startsWith('AIza') || val.startsWith('gsk_') || val.startsWith('sk-or-')) {
+        keyDebounceTimer = setTimeout(() => {
+          saveApiKeyFromModal(false);
+        }, 500);
+      }
+    });
+    inputGeminiKey.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        saveApiKeyFromModal(true);
+      }
+    });
+  }
 
   // Export Actions
   document.getElementById('btnExportWord').addEventListener('click', handleExportWord);
@@ -2488,30 +2739,19 @@ function checkApiKeyStatus() {
   const badge = document.getElementById('apiKeyBadge');
   const btn = document.getElementById('btnApiKey');
   const label = document.getElementById('headerApiKeyLabel');
-  const customKey = localStorage.getItem('gemini_api_key');
+  const customKey = state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key');
   if (!badge) return;
 
-  if (customKey && customKey.trim()) {
+  if (customKey && customKey.trim() && !customKey.startsWith('AQ.')) {
     badge.className = 'status-dot active';
     badge.style.backgroundColor = '#10b981';
-    badge.style.boxShadow = '0 0 6px #10b981';
+    badge.style.boxShadow = '0 0 8px #10b981';
     badge.title = 'Personal API Key ត្រូវបានភ្ជាប់';
     if (label) label.textContent = 'API Key';
     if (btn) {
       btn.title = '🔑 កំពុងប្រើ Personal API Key (ចុចដើម្បីកែប្រែ ឬ Reset)';
       btn.style.borderColor = '#10b981';
-      btn.style.background = '';
-    }
-  } else if (state.geminiApiKey && state.geminiApiKey.trim()) {
-    badge.className = 'status-dot active';
-    badge.style.backgroundColor = '#10b981';
-    badge.style.boxShadow = '0 0 6px #10b981';
-    badge.title = 'API Key ត្រូវបានភ្ជាប់';
-    if (label) label.textContent = 'API Key';
-    if (btn) {
-      btn.title = '🔑 កំពុងប្រើ API Key (ចុចដើម្បីកែប្រែ ឬ Reset)';
-      btn.style.borderColor = '#10b981';
-      btn.style.background = '';
+      btn.style.background = '#f0fdf4';
     }
   } else {
     badge.className = 'status-dot';
@@ -2525,6 +2765,7 @@ function checkApiKeyStatus() {
       btn.style.background = '#fffbeb';
     }
   }
+  try { updateEmptyStateApiStatus(); } catch (e) {}
 }
 
 // ==========================================================================
@@ -3968,6 +4209,10 @@ window.openApiKeyModal = openApiKeyModal;
 
 function closeApiKeyModal() {
   const apiKeyModal = document.getElementById('apiKeyModal');
+  const input = document.getElementById('inputGeminiKey');
+  if (input && input.value.trim() && input.value.trim() !== (state.geminiApiKey || '')) {
+    saveApiKeyFromModal(false);
+  }
   if (apiKeyModal) {
     apiKeyModal.style.display = 'none';
   }
@@ -3982,9 +4227,9 @@ function updateEmptyStateApiStatus() {
   if (!banner || !dot || !text) return;
 
   const key = (state.geminiApiKey || getActiveGeminiApiKey() || '').trim();
-  const provider = state.aiProvider || localStorage.getItem('ai_provider') || 'gemini';
+  const provider = state.aiProvider || PersistentKeyVault.getProviderSync();
 
-  if (key) {
+  if (key && !key.startsWith('AQ.')) {
     banner.style.background = '#f0fdf4';
     banner.style.borderColor = '#86efac';
     banner.style.color = '#15803d';
@@ -4003,26 +4248,26 @@ function updateEmptyStateApiStatus() {
 window.updateEmptyStateApiStatus = updateEmptyStateApiStatus;
 
 function saveApiKeyFromModal() {
+  const showSuccessToast = arguments.length > 0 ? arguments[0] : true;
   const inputGeminiKey = document.getElementById('inputGeminiKey');
   const selectAiProvider = document.getElementById('selectAiProvider');
   const apiKeyModal = document.getElementById('apiKeyModal');
   const key = (inputGeminiKey?.value || '').trim();
   const provider = selectAiProvider ? selectAiProvider.value : 'gemini';
   state.aiProvider = provider;
-  localStorage.setItem('ai_provider', provider);
   if (key) {
     state.geminiApiKey = key;
-    localStorage.setItem('gemini_api_key', key);
+    PersistentKeyVault.save(key, provider);
     const provName = provider === 'groq' ? 'Groq Cloud (Free)' : (provider === 'openrouter' ? 'OpenRouter' : 'Google Gemini');
-    showToast(`បានរក្សាទុក ${provName} API Key ដោយជោគជ័យ!`, 'success');
+    if (showSuccessToast) showToast(`បានរក្សាទុក ${provName} API Key ដោយជោគជ័យ!`, 'success');
   } else {
     state.geminiApiKey = '';
-    localStorage.removeItem('gemini_api_key');
-    showToast('បានសម្អាត API Key រួចរាល់!', 'info');
+    PersistentKeyVault.clear();
+    if (showSuccessToast) showToast('បានសម្អាត API Key រួចរាល់!', 'info');
   }
   checkApiKeyStatus();
   updateApiKeyModalUI();
-  if (apiKeyModal) apiKeyModal.style.display = 'none';
+  if (apiKeyModal && showSuccessToast) apiKeyModal.style.display = 'none';
 
   if (key && pendingGenParams) {
     showToast('🚀 កំពុងដំណើរការបង្កើតកិច្ចតែងការដោយ AI ដោយស្វ័យប្រវត្តិ...', 'info');
@@ -4033,11 +4278,11 @@ function saveApiKeyFromModal() {
 }
 window.saveApiKeyFromModal = saveApiKeyFromModal;
 
-function removeApiKeyFromModal() {
+async function removeApiKeyFromModal() {
   const inputGeminiKey = document.getElementById('inputGeminiKey');
   const apiKeyModal = document.getElementById('apiKeyModal');
   state.geminiApiKey = '';
-  localStorage.removeItem('gemini_api_key');
+  await PersistentKeyVault.clear();
   if (inputGeminiKey) inputGeminiKey.value = '';
   checkApiKeyStatus();
   updateApiKeyModalUI();
@@ -4051,8 +4296,8 @@ function updateApiKeyModalUI() {
   const statusBox = document.getElementById('apiKeyCurrentStatusBox');
   const statusTitle = document.getElementById('apiKeyStatusTitle');
   const statusDesc = document.getElementById('apiKeyStatusDesc');
-  const customKey = localStorage.getItem('gemini_api_key');
-  const provider = state.aiProvider || localStorage.getItem('ai_provider') || 'gemini';
+  const customKey = state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key');
+  const provider = state.aiProvider || PersistentKeyVault.getProviderSync();
 
   if (customKey) {
     if (statusBox) {
@@ -4114,7 +4359,13 @@ async function pasteApiKeyFromClipboard() {
       if (text && text.trim()) {
         input.value = text.trim();
         autoDetectApiKeyProvider(input.value);
-        showToast('📋 បានបិទភ្ជាប់ API Key ដោយជោគជ័យ!', 'success');
+        const curProv = document.getElementById('selectAiProvider')?.value || 'gemini';
+        state.geminiApiKey = input.value;
+        state.aiProvider = curProv;
+        await PersistentKeyVault.save(input.value, curProv);
+        checkApiKeyStatus();
+        updateApiKeyModalUI();
+        showToast('📋 បានបិទភ្ជាប់ និងរក្សាទុក API Key ដោយជោគជ័យ!', 'success');
         return;
       }
     }
@@ -4246,9 +4497,14 @@ async function testCurrentAiProviderKey() {
         });
         if (resp.ok) {
           success = true;
+          state.geminiApiKey = key;
+          state.aiProvider = provider;
+          await PersistentKeyVault.save(key, provider);
+          checkApiKeyStatus();
+          updateApiKeyModalUI();
           statusEl.style.background = '#f0fdf4';
           statusEl.style.color = '#16a34a';
-          statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> ការតភ្ជាប់ជោគជ័យ! Groq Cloud API Key (${m}) ដំណើរការយ៉ាងរលូន ១០០% (Ultra-Fast ⚡)។`;
+          statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> ការតភ្ជាប់ជោគជ័យ និងបានរក្សាទុក! Groq Cloud API Key (${m}) ដំណើរការយ៉ាងរលូន ១០០% (Ultra-Fast ⚡)។`;
           break;
         } else {
           const errJson = await resp.json().catch(() => ({}));
@@ -4282,9 +4538,14 @@ async function testCurrentAiProviderKey() {
         })
       });
       if (resp.ok) {
+        state.geminiApiKey = key;
+        state.aiProvider = provider;
+        await PersistentKeyVault.save(key, provider);
+        checkApiKeyStatus();
+        updateApiKeyModalUI();
         statusEl.style.background = '#f0fdf4';
         statusEl.style.color = '#16a34a';
-        statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> ការតភ្ជាប់ជោគជ័យ! OpenRouter API Key មានសុពលភាព។';
+        statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> ការតភ្ជាប់ជោគជ័យ និងបានរក្សាទុក! OpenRouter API Key មានសុពលភាព។';
       } else {
         const errJson = await resp.json().catch(() => ({}));
         statusEl.style.background = '#fef2f2';
@@ -4352,11 +4613,16 @@ async function testCurrentAiProviderKey() {
         if (resp.ok) {
           success = true;
           state.verifiedGeminiModel = item;
+          state.geminiApiKey = key;
+          state.aiProvider = provider;
+          await PersistentKeyVault.save(key, provider);
+          checkApiKeyStatus();
+          updateApiKeyModalUI();
           statusEl.style.background = '#f0fdf4';
           statusEl.style.color = '#16a34a';
           const isPro = item.name.includes('pro');
           const badge = isPro ? ' 🏆 <strong>(Pro Model Activated!)</strong>' : ' ⚡ <strong>(Gemini Flash Activated!)</strong>';
-          statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> ការតភ្ជាប់ជោគជ័យ! Google Gemini <strong>${item.name}</strong> ដំណើរការ ១០០%!${badge}`;
+          statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> ការតភ្ជាប់ជោគជ័យ និងបានរក្សាទុក! Google Gemini <strong>${item.name}</strong> ដំណើរការ ១០០%!${badge}`;
           break;
         } else {
           const errData = await resp.json().catch(() => ({}));
@@ -4381,9 +4647,8 @@ window.testCurrentAiProviderKey = testCurrentAiProviderKey;
 window.testGeminiApiKey = testCurrentAiProviderKey;
 
 // 1-Click Reset to Default Smart Engine (Clean Start)
-function resetToSmartEngineDefault() {
-  localStorage.removeItem('gemini_api_key');
-  localStorage.removeItem('ai_provider');
+async function resetToSmartEngineDefault() {
+  await PersistentKeyVault.clear();
   state.geminiApiKey = '';
   state.aiProvider = 'gemini';
   state.verifiedGeminiModel = null;
@@ -4393,7 +4658,6 @@ function resetToSmartEngineDefault() {
   if (sel) sel.value = 'gemini';
   handleAiProviderChange();
   const statusEl = document.getElementById('apiKeyTestStatus');
-  if (statusEl) {
     statusEl.style.display = 'block';
     statusEl.style.background = '#fefce8';
     statusEl.style.color = '#854d0e';

@@ -2250,6 +2250,74 @@ def activate_license():
         }), 400
 
 
+# ==============================================================================
+# Persistent User API Key Vault on PC (Survives Browser Data Deletion)
+# ==============================================================================
+LOCAL_KEY_FILE = os.path.join(os.path.dirname(__file__), "user_api_key.json")
+GLOBAL_KEY_FILE = os.path.join(GLOBAL_APP_DIR, "user_api_key.json")
+
+def read_persistent_user_key():
+    for path in [LOCAL_KEY_FILE, GLOBAL_KEY_FILE]:
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    content = json.load(f)
+                    if content and content.get("key"):
+                        return content
+            except Exception:
+                pass
+    return {"key": "", "provider": "gemini"}
+
+@app.route("/api/key/save", methods=["POST"])
+def api_save_user_key():
+    try:
+        data = request.get_json(silent=True) or {}
+        key = (data.get("key") or "").strip()
+        provider = (data.get("provider") or "gemini").strip()
+        record = {
+            "key": key,
+            "provider": provider,
+            "updated_at": datetime.now().isoformat()
+        }
+        for path in [LOCAL_KEY_FILE, GLOBAL_KEY_FILE]:
+            try:
+                with open(path, "w", encoding="utf-8") as f:
+                    json.dump(record, f, ensure_ascii=False, indent=2)
+            except Exception:
+                pass
+        return jsonify({"status": "ok", "message": "API Key saved to PC vault"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/key/get", methods=["GET"])
+def api_get_user_key():
+    try:
+        record = read_persistent_user_key()
+        return jsonify({
+            "status": "ok",
+            "key": record.get("key", ""),
+            "provider": record.get("provider", "gemini")
+        })
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@app.route("/api/key/clear", methods=["POST"])
+def api_clear_user_key():
+    try:
+        record = {"key": "", "provider": "gemini", "updated_at": datetime.now().isoformat()}
+        for path in [LOCAL_KEY_FILE, GLOBAL_KEY_FILE]:
+            try:
+                if os.path.exists(path):
+                    with open(path, "w", encoding="utf-8") as f:
+                        json.dump(record, f, ensure_ascii=False, indent=2)
+            except Exception:
+                pass
+        return jsonify({"status": "ok", "message": "API Key cleared from PC vault"})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+
+
 @app.route("/api/tts/khmer", methods=["GET", "POST"])
 def get_khmer_tts():
     if request.method == "POST":
@@ -3110,6 +3178,12 @@ def vercel_entry_dispatch():
         return check_system_update()
     elif v_clean == "tts/khmer":
         return tts_khmer_route()
+    elif v_clean == "key/get":
+        return api_get_user_key()
+    elif v_clean == "key/save":
+        return api_save_user_key()
+    elif v_clean == "key/clear":
+        return api_clear_user_key()
 
     return jsonify({"error": f"Endpoint /{v_clean} not found"}), 404
 

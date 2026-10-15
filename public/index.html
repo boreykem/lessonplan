@@ -88,16 +88,6 @@
       if ((window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true || localStorage.getItem('pwa_app_installed') === 'true') {
         document.documentElement.classList.add('pwa-installed');
       }
-      // Force delete obsolete caches
-      if ('caches' in window) {
-        caches.keys().then(function(keys) {
-          keys.forEach(function(key) {
-            if (key !== 'lessonplan-cache-v6') {
-              caches.delete(key);
-            }
-          });
-        });
-      }
     } catch(e) {}
   </script>
 </head>
@@ -1848,7 +1838,7 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261015_v16_modern_ui"></script>
+  <script src="app.js?v=20261015_v18_permanent_key"></script>
 </body>
 </html>
 
