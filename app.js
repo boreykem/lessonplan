@@ -1825,11 +1825,14 @@ function initEventListeners() {
     }
   });
 
-  document.getElementById('btnEmptyQuickDemo').addEventListener('click', () => {
-    loadSampleLesson(0);
-    document.getElementById('samplePicker').value = '0';
-    showToast('បានផ្ទុកមេរៀនគំរូរូបវិទ្យា ថ្នាក់ទី ៨ រួចរាល់!', 'info');
-  });
+  const btnEmptyQuickDemo = document.getElementById('btnEmptyQuickDemo');
+  if (btnEmptyQuickDemo) {
+    btnEmptyQuickDemo.addEventListener('click', () => {
+      loadSampleLesson(0);
+      document.getElementById('samplePicker').value = '0';
+      showToast('បានផ្ទុកមេរៀនគំរូរូបវិទ្យា ថ្នាក់ទី ៨ រួចរាល់!', 'info');
+    });
+  }
 
   // Lesson Content textarea word count and auto-remember
   const lessonTextarea = document.getElementById('lessonContentText');
