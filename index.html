@@ -884,21 +884,21 @@
       </div>
 
       <div class="modal-body">
-        <div id="apiKeyCurrentStatusBox" style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;">
-          <div id="apiKeyStatusTitle" style="font-weight: 700; color: #15803d; display: flex; align-items: center; gap: 6px; font-size: 0.95rem;">
-            <i class="fa-solid fa-circle-check"></i> ប្រព័ន្ធបានភ្ជាប់ Gemini AI រួចជាស្រេច (Active)
+        <div id="apiKeyCurrentStatusBox" style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px;">
+          <div id="apiKeyStatusTitle" style="font-weight: 700; color: #334155; display: flex; align-items: center; gap: 6px; font-size: 0.95rem;">
+            <i class="fa-solid fa-key" style="color: #64748b;"></i> ស្ថានភាព API Key
           </div>
-          <p id="apiKeyStatusDesc" style="font-size: 0.85rem; color: #166534; margin: 6px 0 0 0; line-height: 1.5;">
-            ✨ <strong>លោកគ្រូ អ្នកគ្រូមិនចាំបាច់បញ្ចូល Key ទៀតទេ!</strong> ប្រព័ន្ធបានភ្ជាប់ Google Gemini AI ជាស្រេច។ លោកគ្រូ អ្នកគ្រូគ្រាន់តែជ្រើសរើស ឬបញ្ចូលមេរៀន រួចចុច <strong>«បង្កើតកិច្ចតែងការបង្រៀន»</strong> គឺដំណើរការភ្លាមៗ!
+          <p id="apiKeyStatusDesc" style="font-size: 0.85rem; color: #475569; margin: 6px 0 0 0; line-height: 1.5;">
+            សូមបញ្ចូល Google Gemini API Key ផ្ទាល់ខ្លួនរបស់អ្នក (ឥតគិតថ្លៃពី aistudio.google.com) ឬជ្រើសរើស AI Provider ផ្សេងទៀត។
           </p>
-          <button type="button" id="btnResetToSystemDefault" class="btn-secondary mt-2" onclick="resetToSmartEngineDefault()" style="background: white; border: 1px solid #86efac; color: #15803d; font-weight: 600; width: 100%; justify-content: center; display: inline-flex; align-items: center; gap: 6px;">
-            <i class="fa-solid fa-rotate-left"></i> 🔄 កំណត់ឡើងវិញទៅ System Gemini API Key លំនាំដើម
+          <button type="button" id="btnResetToSystemDefault" class="btn-secondary mt-2" onclick="resetToSmartEngineDefault()" style="background: white; border: 1px solid #cbd5e1; color: #475569; font-weight: 600; width: 100%; justify-content: center; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fa-solid fa-rotate-left"></i> 🔄 សម្អាត Key (Clear / Reset)
           </button>
         </div>
 
         <div class="control-group">
           <label for="selectAiProvider"><strong>ជ្រើសរើសប្រព័ន្ធ AI Provider៖</strong></label>
-          <select id="selectAiProvider" class="form-control" style="font-weight: 600;" onchange="handleAiProviderChange()">
+          <select id="selectAiProvider" class="control-select form-control" style="font-weight: 600;" onchange="handleAiProviderChange()">
             <option value="gemini" selected>🤖 Google Gemini (Google AI Studio - Pro & Flash)</option>
             <option value="groq">⚡ Groq Cloud (Free & Ultra Fast - Llama 3.3 70B & DeepSeek)</option>
             <option value="openrouter">🌐 OpenRouter (Universal - DeepSeek R1, Llama, Claude)</option>
@@ -937,8 +937,8 @@
       </div>
 
       <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
-        <button id="btnResetKeyModal" type="button" class="btn-secondary" onclick="resetToSmartEngineDefault()" style="color: #0284c7; border-color: #38bdf8; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;" title="កំណត់ឡើងវិញទៅ System Gemini Key លំនាំដើម">
-          <i class="fa-solid fa-rotate-left"></i> 🔄 Reset លំនាំដើម
+        <button id="btnResetKeyModal" type="button" class="btn-secondary" onclick="resetToSmartEngineDefault()" style="color: #475569; border-color: #cbd5e1; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;" title="សម្អាត Key (Clear / Reset)">
+          <i class="fa-solid fa-rotate-left"></i> 🔄 សម្អាត Key
         </button>
         <div style="display: flex; gap: 8px; align-items: center;">
           <button id="btnRemoveKey" type="button" class="btn-ghost" onclick="removeApiKeyFromModal()">លុប Key</button>
