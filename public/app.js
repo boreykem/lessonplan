@@ -8343,32 +8343,56 @@ function prepareNotebookLmText() {
 }
 
 async function openNotebookLM() {
-  const fullText = prepareNotebookLmText();
-  currentNotebookLmText = fullText;
-
-  // Copy Prompt and full document to Clipboard
   try {
+    const fullText = prepareNotebookLmText();
+    currentNotebookLmText = fullText;
+
+    // Copy Prompt and full document to Clipboard with multi-tier fallback
+    let copied = false;
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(fullText);
+      try {
+        await navigator.clipboard.writeText(fullText);
+        copied = true;
+      } catch (cErr) {
+        console.warn('Clipboard API error, trying fallback:', cErr);
+      }
+    }
+    if (!copied) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = fullText;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        copied = true;
+      } catch (fbErr) {
+        console.warn('execCommand copy fallback failed:', fbErr);
+      }
+    }
+
+    // Populate preview text in modal
+    const previewEl = document.getElementById('notebookLmCopiedPreview');
+    if (previewEl) {
+      previewEl.textContent = fullText;
+    }
+
+    // Open modal popup
+    const modal = document.getElementById('notebookLmModal');
+    if (modal) {
+      modal.style.display = 'flex';
+      showToast('📋 បានចម្លង Prompt & ឯកសារមេរៀនចូល Clipboard រួចរាល់!', 'success');
+    } else {
+      // Fallback if modal DOM element is not present
+      showToast('🚀 កំពុងបើក Google NotebookLM...', 'info');
+      window.open('https://notebooklm.google.com/', '_blank');
     }
   } catch (err) {
-    console.warn('Clipboard copy error:', err);
-  }
-
-  // Populate preview text in modal
-  const previewEl = document.getElementById('notebookLmCopiedPreview');
-  if (previewEl) {
-    previewEl.textContent = fullText;
-  }
-
-  // Open modal popup
-  const modal = document.getElementById('notebookLmModal');
-  if (modal) {
-    modal.style.display = 'flex';
-  } else {
-    // Fallback if modal DOM element is not present
-    alert('✅ បាន Copy Prompt និងឯកសារទាំងស្រុង សម្រាប់ដំណើរការបង្កើតវីដេអូក្នុង Gemini Notebook\n\nសូមចុច OK ដើម្បីបន្តទៅ Gemini Notebook និងសូម Paste Prompt ចូល រួចចុចត្រង់ប្រអប់បង្កើតវីដេអូ។');
-    window.open('https://notebook.google.com/notebook/104a40ae-6850-4e52-b0cf-e66a5deee7bd', '_blank');
+    console.error('openNotebookLM error:', err);
+    window.open('https://notebooklm.google.com/', '_blank');
   }
 }
 window.openNotebookLM = openNotebookLM;
@@ -8383,8 +8407,12 @@ window.closeNotebookLmModal = closeNotebookLmModal;
 
 function proceedToNotebookLMWeb() {
   closeNotebookLmModal();
-  window.open('https://notebook.google.com/notebook/104a40ae-6850-4e52-b0cf-e66a5deee7bd', '_blank');
-  showToast('🚀 កំពុងបើក Gemini Notebook... សូមចុច Ctrl+V (Paste) ដើម្បីបិទភ្ជាប់!', 'success');
+  const win = window.open('https://notebooklm.google.com/', '_blank');
+  if (!win || win.closed || typeof win.closed === 'undefined') {
+    window.location.href = 'https://notebooklm.google.com/';
+  } else {
+    showToast('🚀 កំពុងបើក Google NotebookLM... សូមចុច Ctrl+V (Paste) ដើម្បីបិទភ្ជាប់!', 'success');
+  }
 }
 window.proceedToNotebookLMWeb = proceedToNotebookLMWeb;
 
@@ -8628,8 +8656,9 @@ function toggleInAppAudioPodcast() {
   playNextKhmerChunk();
 }
 
-function openNotebookLM() {
-  autoOpenNotebookLMWithPrompt();
+// NotebookLM trigger alias
+function triggerNotebookLMFromMenu() {
+  openNotebookLM();
 }
 
 // ==========================================================================
