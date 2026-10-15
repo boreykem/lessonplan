@@ -21,7 +21,7 @@
   <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
-  <link rel="stylesheet" href="style.css?v=20261015_v15_ac_mart_logo">
+  <link rel="stylesheet" href="style.css?v=20261015_v16_modern_ui">
   
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="/manifest.json">
@@ -210,7 +210,7 @@
         <!-- STEP 1: Upload / Select Template -->
         <section class="config-card">
           <div class="card-header">
-            <div class="step-badge" data-i18n="stepBadge1">១</div>
+            <span class="step-badge" data-i18n="stepBadge1"><i class="fa-solid fa-file-lines"></i> ជំហានទី ១</span>
             <div class="card-title-group">
               <h3 data-i18n="step1Title">ទម្រង់កិច្ចតែងការ (Template)</h3>
               <p data-i18n="step1Desc">ជ្រើសរើសប្រភេទកិច្ចតែងការស្តង់ដារ MoEYS</p>
@@ -340,11 +340,21 @@
         <!-- STEP 2: Upload Lesson Content & Documents -->
         <section class="config-card">
           <div class="card-header">
-            <div class="step-badge" data-i18n="stepBadge2">២</div>
+            <span class="step-badge" data-i18n="stepBadge2"><i class="fa-solid fa-book-open"></i> ជំហានទី ២</span>
             <div class="card-title-group">
               <h3 data-i18n="step2Title">ឯកសារ និងខ្លឹមសារមេរៀន (Lesson Material)</h3>
               <p data-i18n="step2Desc">Upload ឬបញ្ចូលឯកសារមេរៀន ស្លាយ ឬអត្ថបទ</p>
             </div>
+          </div>
+
+          <!-- Modern Segmented Tabs: Upload File vs Type/Paste Text -->
+          <div class="modern-segmented-tabs">
+            <button type="button" id="tabBtnUploadMode" class="segmented-tab-btn active" onclick="switchLessonMaterialTab('upload')">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Upload ឯកសារ (DOCX/PDF/PPTX)
+            </button>
+            <button type="button" id="tabBtnTextMode" class="segmented-tab-btn" onclick="switchLessonMaterialTab('text')">
+              <i class="fa-solid fa-pen-to-square"></i> ខ្លឹមសារអត្ថបទ
+            </button>
           </div>
 
           <!-- Lesson Mode Switcher (Hidden) -->
@@ -419,29 +429,36 @@
 
             <!-- 2. Upload / Input Lesson Material Container -->
             <div id="uploadLessonWrapper">
-              <!-- Lesson Material Dropzone -->
-              <div class="dropzone mt-1" id="lessonDropzone">
-                <input type="file" id="lessonFileInput" accept=".docx,.pdf,.txt,.doc,.pptx,.ppt,.png,.jpg,.jpeg,.webp" class="file-input-hidden">
-                <div class="dropzone-content">
-                  <div class="drop-icon"><i class="fa-solid fa-file-shield"></i></div>
-                  <p class="drop-primary" id="dropPrimaryText" data-i18n="dropPrimary">ទម្លាក់ឯកសារមេរៀន/ស្លាយ/រូបភាព នៅទីនេះ ឬ <span class="browse-link">ចុចដើម្បីរើសឯកសារ</span></p>
-                  <p class="drop-hint" id="dropHintText" data-i18n="dropHint">គាំទ្រ PowerPoint (.pptx), Word (.docx), PDF (.pdf), រូបភាពថតសៀវភៅ (.png, .jpg), TXT</p>
-                </div>
-                <!-- File Status Pill -->
-                <div id="lessonFileStatus" class="file-status-pill" style="display: none;">
-                  <i class="fa-solid fa-circle-check"></i>
-                  <span class="file-name">lesson_chapter.pdf</span>
-                  <button type="button" class="btn-remove-file" id="btnRemoveLessonFile"><i class="fa-solid fa-xmark"></i></button>
+              <!-- Lesson Material Dropzone Container -->
+              <div id="dropzoneContainerWrapper">
+                <div class="dropzone mt-1" id="lessonDropzone">
+                  <input type="file" id="lessonFileInput" accept=".docx,.pdf,.txt,.doc,.pptx,.ppt,.png,.jpg,.jpeg,.webp" class="file-input-hidden">
+                  <div class="dropzone-content">
+                    <div class="drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                    <p class="drop-primary" id="dropPrimaryText" data-i18n="dropPrimary">ទម្លាក់ឯកសារមេរៀន/ស្លាយ/រូបភាព នៅទីនេះ ឬ <span class="browse-link">ចុចដើម្បីរើសឯកសារ</span></p>
+                    <p class="drop-hint" id="dropHintText" data-i18n="dropHint">គាំទ្រ PowerPoint (.pptx), Word (.docx), PDF (.pdf), រូបភាពថតសៀវភៅ (.png, .jpg), TXT</p>
+                  </div>
+                  <!-- File Status Pill -->
+                  <div id="lessonFileStatus" class="file-status-pill" style="display: none;">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span class="file-name">lesson_chapter.pdf</span>
+                    <button type="button" class="btn-remove-file" id="btnRemoveLessonFile"><i class="fa-solid fa-xmark"></i></button>
+                  </div>
                 </div>
               </div>
 
               <!-- Lesson Text Box -->
-              <div class="control-group mt-3">
+              <div id="lessonTextareaWrapper" class="control-group mt-2">
                 <div class="label-with-action">
                   <label for="lessonContentText" data-i18n="lessonContentLabel">ខ្លឹមសារមេរៀន / ចំណុចសំខាន់ៗ <span class="req">*</span></label>
-                  <span class="badge-tag" id="charCount">0 ពាក្យ</span>
+                  <div style="display: flex; gap: 8px; align-items: center;">
+                    <span class="badge-tag" id="charCount">0 ពាក្យ</span>
+                    <button type="button" class="btn-link-action" onclick="pasteToLessonContent()" title="Paste ពីក្តារចុច" style="font-size: 0.76rem; color: #4f46e5; background: none; border: none; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                      <i class="fa-solid fa-paste"></i> Paste
+                    </button>
+                  </div>
                 </div>
-                <textarea id="lessonContentText" class="form-control" rows="6" placeholder="បញ្ចូល ឬបិទភ្ជាប់ខ្លឹមសារមេរៀន និយមន័យ រូបមន្ត លំហាត់ ឧទាហរណ៍ ឬអត្ថបទដកស្រង់ពីសៀវភៅពុម្ពនៅទីនេះ..."></textarea>
+                <textarea id="lessonContentText" class="form-control" rows="5" placeholder="បញ្ចូល ឬបិទភ្ជាប់ខ្លឹមសារមេរៀន និយមន័យ រូបមន្ត លំហាត់ ឧទាហរណ៍ ឬអត្ថបទដកស្រង់ពីសៀវភៅពុម្ពនៅទីនេះ..."></textarea>
               </div>
 
               <!-- Remember / Auto-Save Lesson Bar (Hidden as requested) -->
@@ -473,86 +490,119 @@
         <!-- STEP 3: Lesson Metadata & Parameters -->
         <section class="config-card">
           <div class="card-header flex-between">
-            <div class="header-step-title">
-              <div class="step-badge" data-i18n="stepBadge3">៣</div>
+            <div class="header-step-title" style="display: flex; align-items: center; gap: 8px;">
+              <span class="step-badge" data-i18n="stepBadge3"><i class="fa-solid fa-chalkboard-user"></i> ជំហានទី ៣</span>
               <div class="card-title-group">
-                <h3 data-i18n="step3Title">ព័ត៌មានរដ្ឋបាល និងវិធីសាស្ត្របង្រៀន</h3>
+                <h3 data-i18n="step3Title">ព័ត៌មានរដ្ឋបាល និងខ្លឹមសារបង្រៀន</h3>
                 <p data-i18n="step3Desc">កំណត់ព័ត៌មានលម្អិតសម្រាប់ក្បាលកិច្ចតែងការ</p>
               </div>
             </div>
-            <div class="admin-quick-actions">
-              <button type="button" id="btnSaveAdminInfo" class="btn-pill-action" title="ចុចដើម្បីរក្សាទុកព័ត៌មានរដ្ឋបាលនេះទុកប្រើលើកក្រោយ">
-                <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="btnSaveAdminInfo">រក្សាទុក</span>
-              </button>
-              <button type="button" id="btnClearAdminInfo" class="btn-pill-ghost" title="លុបព័ត៌មានដែលបានចងចាំ" style="display: none;">
-                <i class="fa-solid fa-trash-can"></i>
-              </button>
-            </div>
           </div>
 
-          <div class="form-grid-2">
-            <div class="control-group">
-              <label for="inputSchool" data-i18n="schoolLabel">ឈ្មោះសាលារៀន</label>
-              <div class="input-icon-wrap">
-                <i class="fa-solid fa-school"></i>
-                <input type="text" id="inputSchool" class="form-control" list="schoolSuggestions" placeholder="ឧ. វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម / វិទ្យាល័យ...">
-                <datalist id="schoolSuggestions">
-                  <option value="វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម">
-                  <option value="វិទ្យាស្ថានគរុកោសល្យរាជធានីភ្នំពេញ">
-                  <option value="វិទ្យាស្ថានគរុកោសល្យបាត់ដំបង">
-                  <option value="វិទ្យាស្ថានជាតិអប់រំ (NIE)">
-                  <option value="វិទ្យាល័យ ហ៊ុន សែន ភ្នំពេញ">
-                </datalist>
+          <!-- Teacher Profile Compact Card (Expandable Accordion) -->
+          <div class="teacher-profile-card" id="teacherProfileCard">
+            <div class="teacher-profile-summary" id="teacherProfileSummary" onclick="toggleTeacherProfileFields()">
+              <div class="teacher-profile-avatar">
+                <i class="fa-solid fa-chalkboard-user"></i>
               </div>
-            </div>
-
-            <div class="control-group">
-              <label for="inputTeacher" data-i18n="teacherLabel">ឈ្មោះគ្រូបង្រៀន</label>
-              <div class="input-icon-wrap">
-                <i class="fa-solid fa-user-tie"></i>
-                <input type="text" id="inputTeacher" class="form-control" placeholder="ឧ. លោកគ្រូ / អ្នកគ្រូ...">
+              <div class="teacher-profile-meta">
+                <div class="teacher-profile-name">
+                  <strong id="summaryTeacherName">លោកគ្រូ / អ្នកគ្រូ</strong> • <span id="summarySchoolName" style="color: var(--text-secondary);">ឈ្មោះសាលារៀន ឬស្ថាប័ន</span>
+                </div>
+                <div class="teacher-profile-sub">
+                  <span id="summaryDegreeGrade">អនុវិទ្យាល័យ • ថ្នាក់ទី ៨</span>
+                </div>
               </div>
-            </div>
-          </div>
-
-          <!-- Row 2: Study Degree & Grade (Separated side-by-side) -->
-          <div class="form-grid-2 mt-2">
-            <div class="control-group">
-              <label for="inputDegree" data-i18n="degreeLabel">កម្រិតសិក្សា / ស្ថាប័នអប់រំ (Study Degree / Institute) <span class="req">*</span></label>
-              <select id="inputDegree" class="form-control">
-                <option value="lower_sec" selected>🏫 អនុវិទ្យាល័យ (Lower Secondary: ថ្នាក់ទី ៧-៩)</option>
-                <option value="upper_sec">🎓 វិទ្យាល័យ (Upper Secondary: ថ្នាក់ទី ១០-១២)</option>
-                <option value="primary">📚 បឋមសិក្សា (Primary: ថ្នាក់ទី ១-៦)</option>
-                <option value="kindergarten">🌱 មត្តេយ្យសិក្សា (Kindergarten)</option>
-                <option value="tec_kampongcham">🏛️ វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម (TEC Kampong Cham)</option>
-                <option value="teacher_training">👨‍🏫 គរុកោសល្យ និង NIE (Teacher Training)</option>
-                <option value="higher_ed">🏛️ ឧត្តមសិក្សា / បរិញ្ញាបត្រ (Higher Education)</option>
-                <option value="tvet">🛠️ បណ្តុះបណ្តាលវិជ្ជាជីវៈ (TVET / Vocational)</option>
-                <option value="custom">✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)</option>
-              </select>
+              <button type="button" class="btn-toggle-profile-edit" id="btnToggleProfileEdit" onclick="event.stopPropagation(); toggleTeacherProfileFields();">
+                <i class="fa-solid fa-pen-to-square"></i> <span id="btnToggleProfileEditText">កែប្រែ</span>
+              </button>
             </div>
 
-            <div class="control-group">
-              <label for="inputGrade" data-i18n="gradeLabel">កម្រិតថ្នាក់ / ឆ្នាំសិក្សា (Grade / Class) <span class="req">*</span></label>
-              <select id="inputGrade" class="form-control">
-                <option value="ថ្នាក់ទី ៧">ថ្នាក់ទី ៧</option>
-                <option value="ថ្នាក់ទី ៨" selected>ថ្នាក់ទី ៨</option>
-                <option value="ថ្នាក់ទី ៩">ថ្នាក់ទី ៩</option>
-                <option value="custom">✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)</option>
-              </select>
+            <!-- Expandable Fields Drawer -->
+            <div class="teacher-profile-fields" id="teacherProfileFields" style="display: none;">
+              <!-- School & Teacher Name in Clean Full Width Control Groups -->
+              <div class="control-group">
+                <label for="inputSchool" data-i18n="schoolLabel">ឈ្មោះសាលារៀន ឬស្ថាប័នអប់រំ</label>
+                <div class="input-icon-wrap">
+                  <i class="fa-solid fa-school"></i>
+                  <input type="text" id="inputSchool" class="form-control" list="schoolSuggestions" placeholder="ឧ. វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម / វិទ្យាល័យ..." oninput="updateTeacherProfileSummaryLive()">
+                  <datalist id="schoolSuggestions">
+                    <option value="វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម">
+                    <option value="វិទ្យាស្ថានគរុកោសល្យរាជធានីភ្នំពេញ">
+                    <option value="វិទ្យាស្ថានគរុកោសល្យបាត់ដំបង">
+                    <option value="វិទ្យាស្ថានជាតិអប់រំ (NIE)">
+                    <option value="វិទ្យាល័យ ហ៊ុន សែន ភ្នំពេញ">
+                  </datalist>
+                </div>
+              </div>
+
+              <div class="control-group">
+                <label for="inputTeacher" data-i18n="teacherLabel">ឈ្មោះគ្រូបង្រៀន</label>
+                <div class="input-icon-wrap">
+                  <i class="fa-solid fa-user-tie"></i>
+                  <input type="text" id="inputTeacher" class="form-control" placeholder="ឧ. កែវ បូរី" oninput="updateTeacherProfileSummaryLive()">
+                </div>
+              </div>
+
+              <!-- Degree & Grade -->
+              <div class="form-grid-2">
+                <div class="control-group">
+                  <label for="inputDegree" data-i18n="degreeLabel">កម្រិតសិក្សា <span class="req">*</span></label>
+                  <select id="inputDegree" class="form-control" onchange="updateTeacherProfileSummaryLive()">
+                    <option value="lower_sec" selected>🏫 អនុវិទ្យាល័យ (ថ្នាក់ទី ៧-៩)</option>
+                    <option value="upper_sec">🎓 វិទ្យាល័យ (ថ្នាក់ទី ១០-១២)</option>
+                    <option value="primary">📚 បឋមសិក្សា (ថ្នាក់ទី ១-៦)</option>
+                    <option value="kindergarten">🌱 មត្តេយ្យសិក្សា</option>
+                    <option value="tec_kampongcham">🏛️ វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម</option>
+                    <option value="teacher_training">👨‍🏫 គរុកោសល្យ និង NIE</option>
+                    <option value="higher_ed">🏛️ ឧត្តមសិក្សា / បរិញ្ញាបត្រ</option>
+                    <option value="tvet">🛠️ បណ្តុះបណ្តាលវិជ្ជាជីវៈ (TVET)</option>
+                    <option value="custom">✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់</option>
+                  </select>
+                </div>
+
+                <div class="control-group">
+                  <label for="inputGrade" data-i18n="gradeLabel">កម្រិតថ្នាក់ <span class="req">*</span></label>
+                  <select id="inputGrade" class="form-control" onchange="updateTeacherProfileSummaryLive()">
+                    <option value="ថ្នាក់ទី ៧">ថ្នាក់ទី ៧</option>
+                    <option value="ថ្នាក់ទី ៨" selected>ថ្នាក់ទី ៨</option>
+                    <option value="ថ្នាក់ទី ៩">ថ្នាក់ទី ៩</option>
+                    <option value="custom">✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់</option>
+                  </select>
+                </div>
+              </div>
 
               <!-- Custom Grade Text Input (Hidden by default) -->
               <div id="customGradeInputWrap" class="custom-sub-input-wrap" style="display: none;">
                 <div class="input-icon-wrap">
                   <i class="fa-solid fa-pen"></i>
-                  <input type="text" id="inputCustomGradeText" class="form-control" placeholder="ឧ. ថ្នាក់ទី ៨ ក / ថ្នាក់ទី ១២A1 / ជំនាន់ទី ១៥...">
+                  <input type="text" id="inputCustomGradeText" class="form-control" placeholder="ឧ. ថ្នាក់ទី ៨ ក / ជំនាន់ទី ១៥..." oninput="updateTeacherProfileSummaryLive()">
+                </div>
+              </div>
+
+              <!-- Remember Profile & Action Buttons -->
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border-color); flex-wrap: wrap; gap: 8px;">
+                <label class="remember-checkbox-label" style="font-size: 0.78rem;">
+                  <input type="checkbox" id="chkAutoRememberAdmin" checked>
+                  <span>ចងចាំព័ត៌មាននេះទុកប្រើលើកក្រោយ</span>
+                </label>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                  <button type="button" id="btnSaveAdminInfo" class="btn-pill-action" title="រក្សាទុកព័ត៌មានរដ្ឋបាល">
+                    <i class="fa-solid fa-floppy-disk"></i> រក្សាទុក
+                  </button>
+                  <button type="button" id="btnClearAdminInfo" class="btn-pill-ghost" title="លុបព័ត៌មានដែលបានចងចាំ" style="display: none;">
+                    <i class="fa-solid fa-trash-can"></i>
+                  </button>
+                  <span id="savedProfileBadge" class="saved-profile-pill" style="display: none;">
+                    <i class="fa-solid fa-check"></i> បានចងចាំ
+                  </span>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Row 3: Subject & Duration -->
-          <div class="form-grid-2 mt-2">
+          <!-- Subject & Method -->
+          <div class="form-grid-2">
             <div class="control-group">
               <label for="inputSubject" data-i18n="subjectLabel">មុខវិជ្ជា <span class="req">*</span></label>
               <select id="inputSubject" class="form-control">
@@ -560,7 +610,7 @@
                 <option value="គណិតវិទ្យា">គណិតវិទ្យា</option>
                 <option value="ភាសាខ្មែរ">ភាសាខ្មែរ</option>
                 <option value="ចិត្តវិទ្យាអប់រំ">ចិត្តវិទ្យាអប់រំ</option>
-                <option value="ព័ត៌មានវិទ្យា">ព័ត៌មានវិទ្យា (ICT / Computer)</option>
+                <option value="ព័ត៌មានវិទ្យា">ព័ត៌មានវិទ្យា (ICT)</option>
                 <option value="គីមីវិទ្យា">គីមីវិទ្យា</option>
                 <option value="ជីវវិទ្យា">ជីវវិទ្យា</option>
                 <option value="ប្រវត្តិវិទ្យា">ប្រវត្តិវិទ្យា</option>
@@ -572,66 +622,75 @@
             </div>
 
             <div class="control-group">
-              <label for="inputDurationSelect" data-i18n="durationLabel">រយៈពេលបង្រៀន (Teaching Duration) <span class="req">*</span></label>
-              <select id="inputDurationSelect" class="form-control">
-                <option value="៥០ នាទី (១ ម៉ោងសិក្សា)" selected>៥០ នាទី (១ ម៉ោងសិក្សា)</option>
-                <option value="៤៥ នាទី (១ ម៉ោងសិក្សា)">៤៥ នាទី (១ ម៉ោងសិក្សា)</option>
-                <option value="៩០ នាទី (២ ម៉ោងសិក្សា)">៩០ នាទី (២ ម៉ោងសិក្សា)</option>
-                <option value="១០០ នាទី (២ ម៉ោងសិក្សា)">១០០ នាទី (២ ម៉ោងសិក្សា)</option>
-                <option value="១៣៥ នាទី (៣ ម៉ោងសិក្សា)">១៣៥ នាទី (៣ ម៉ោងសិក្សា)</option>
-                <option value="១៥០ នាទី (៣ ម៉ោងសិក្សា)">១៥០ នាទី (៣ ម៉ោងសិក្សា)</option>
-                <option value="១៨០ នាទី (៤ ម៉ោងសិក្សា / សិក្ខាសាលា)">១៨០ នាទី (៤ ម៉ោងសិក្សា / សិក្ខាសាលា)</option>
-                <option value="២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)">២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)</option>
-                <option value="custom">✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)</option>
+              <label for="inputMethod" data-i18n="methodLabel">វិធីសាស្ត្របង្រៀនចម្បង</label>
+              <select id="inputMethod" class="form-control">
+                <option value="សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)">សិស្សមជ្ឈមណ្ឌល (Student-Centered)</option>
+                <option value="វិធីសាស្ត្រសហការកម្រិតខ្ពស់ (Jigsaw, Concept Mapping, Role-Play)">វិធីសាស្ត្រសហការ (Jigsaw / Group)</option>
+                <option value="ការរិះរក និងពិសោធន៍ តាមបែប 5E (Inquiry-based / STEM)">ការរិះរក និងពិសោធន៍ 5E (STEM)</option>
+                <option value="ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា (Problem-Based)">ការដោះស្រាយបញ្ហា (Problem-Based)</option>
+                <option value="ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង (Direct Instruction)">ការពន្យល់បង្ហាញ (Direct Instruction)</option>
               </select>
+            </div>
+          </div>
 
-              <!-- Custom Duration Text Input (Hidden by default) -->
-              <div id="customDurationWrap" class="custom-sub-input-wrap" style="display: none;">
-                <div class="input-icon-wrap">
-                  <i class="fa-solid fa-clock"></i>
-                  <input type="text" id="inputCustomDurationText" class="form-control" placeholder="ឧ. ៦០ នាទី / ៣ ម៉ោង / ២ សប្តាហ៍...">
-                </div>
+          <!-- Teaching Duration Quick Chips -->
+          <div class="control-group mt-2">
+            <div class="label-with-action">
+              <label for="inputDurationSelect" data-i18n="durationLabel">រយៈពេលបង្រៀន (Duration) <span class="req">*</span></label>
+              <span id="activeDurationLabel" style="font-size: 0.76rem; font-weight: 700; color: #4f46e5;">៥០ នាទី (១ ម៉ោង)</span>
+            </div>
+            
+            <!-- Quick Chips Grid -->
+            <div class="duration-chips-grid" id="durationChipsGrid">
+              <button type="button" class="duration-chip active" data-duration="៥០ នាទី (១ ម៉ោងសិក្សា)" onclick="selectDurationChip('៥០ នាទី (១ ម៉ោងសិក្សា)')">៥០ នាទី</button>
+              <button type="button" class="duration-chip" data-duration="៩០ នាទី (២ ម៉ោងសិក្សា)" onclick="selectDurationChip('៩០ នាទី (២ ម៉ោងសិក្សា)')">៩០ នាទី</button>
+              <button type="button" class="duration-chip" data-duration="១០០ នាទី (២ ម៉ោងសិក្សា)" onclick="selectDurationChip('១០០ នាទី (២ ម៉ោងសិក្សា)')">១០០ នាទី</button>
+              <button type="button" class="duration-chip" data-duration="១៨០ នាទី (៤ ម៉ោងសិក្សា / សិក្ខាសាលា)" onclick="selectDurationChip('១៨០ នាទី (៤ ម៉ោងសិក្សា / សិក្ខាសាលា)')">១៨០ នាទី</button>
+              <button type="button" class="duration-chip" id="chipCustomDuration" data-duration="custom" onclick="selectDurationChip('custom')">✏️ ផ្ទាល់ខ្លួន</button>
+            </div>
+
+            <!-- Native select kept in DOM for 100% backward compatibility -->
+            <select id="inputDurationSelect" class="form-control" style="display: none;">
+              <option value="៥០ នាទី (១ ម៉ោងសិក្សា)" selected>៥០ នាទី (១ ម៉ោងសិក្សា)</option>
+              <option value="៤៥ នាទី (១ ម៉ោងសិក្សា)">៤៥ នាទី (១ ម៉ោងសិក្សា)</option>
+              <option value="៩០ នាទី (២ ម៉ោងសិក្សា)">៩០ នាទី (២ ម៉ោងសិក្សា)</option>
+              <option value="១០០ នាទី (២ ម៉ោងសិក្សា)">១០០ នាទី (២ ម៉ោងសិក្សា)</option>
+              <option value="១៣៥ នាទី (៣ ម៉ោងសិក្សា)">១៣៥ នាទី (៣ ម៉ោងសិក្សា)</option>
+              <option value="១៥០ នាទី (៣ ម៉ោងសិក្សា)">១៥០ នាទី (៣ ម៉ោងសិក្សា)</option>
+              <option value="១៨០ នាទី (៤ ម៉ោងសិក្សា / សិក្ខាសាលា)">១៨០ នាទី (៤ ម៉ោងសិក្សា / សិក្ខាសាលា)</option>
+              <option value="២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)">២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)</option>
+              <option value="custom">✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)</option>
+            </select>
+
+            <!-- Custom Duration Text Input (Smooth inline animation) -->
+            <div id="customDurationWrap" class="custom-sub-input-wrap" style="display: none;">
+              <div class="input-icon-wrap">
+                <i class="fa-solid fa-clock"></i>
+                <input type="text" id="inputCustomDurationText" class="form-control" placeholder="ឧ. ៦០ នាទី / ៣ ម៉ោង / ២ សប្តាហ៍...">
               </div>
             </div>
           </div>
 
-          <div class="control-group mt-2">
-            <label for="inputMethod" data-i18n="methodLabel">វិធីសាស្ត្របង្រៀនចម្បង</label>
-            <select id="inputMethod" class="form-control">
-              <option value="សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)">សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)</option>
-              <option value="វិធីសាស្ត្រសហការកម្រិតខ្ពស់ (Jigsaw, Concept Mapping, Role-Play)">វិធីសាស្ត្រសហការកម្រិតខ្ពស់ (Jigsaw, Concept Mapping, Role-Play)</option>
-              <option value="ការរិះរក និងពិសោធន៍ តាមបែប 5E (Inquiry-based / STEM)">ការរិះរក និងពិសោធន៍ តាមបែប 5E (Inquiry-based / STEM)</option>
-              <option value="ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា (Problem-Based)">ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា (Problem-Based)</option>
-              <option value="ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង (Direct Instruction)">ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង (Direct Instruction)</option>
-            </select>
-          </div>
-
-          <!-- Remember Profile Bar -->
-          <div class="remember-profile-bar">
-            <label class="remember-checkbox-label">
-              <input type="checkbox" id="chkAutoRememberAdmin" checked>
-              <span data-i18n="rememberAdminLabel">ចងចាំព័ត៌មានរដ្ឋបាលនេះសម្រាប់លើកក្រោយ (Remember for next time)</span>
-            </label>
-            <span id="savedProfileBadge" class="saved-profile-pill" style="display: none;">
-              <i class="fa-solid fa-check"></i> បានចងចាំ
-            </span>
-          </div>
-
-          <div class="form-grid-2 mt-3">
+          <!-- Chapter & Lesson Title (Clear, spacious inputs) -->
+          <div class="form-grid-2 mt-2">
             <div class="control-group">
               <label for="inputChapter" data-i18n="chapterLabel">ជំពូក</label>
-              <input type="text" id="inputChapter" class="form-control" placeholder="ឧ. ជំពូកទី ៣: ការងារ និងថាមពល">
+              <input type="text" id="inputChapter" class="form-control" placeholder="ឧ. ជំពូកទី ២: ទ្រឹស្ដីនៃការលូតលាស់">
             </div>
 
             <div class="control-group">
               <label for="inputLessonTitle" data-i18n="lessonTitleLabel">ចំណងជើងមេរៀន <span class="req">*</span></label>
-              <input type="text" id="inputLessonTitle" class="form-control" placeholder="ឧ. មេរៀនទី ២: ថាមពលមេកានិច">
+              <input type="text" id="inputLessonTitle" class="form-control" placeholder="ឧ. មេរៀនទី ១: ដំណាក់កាលលូតលាស់">
             </div>
           </div>
 
+          <!-- Prompt Customization -->
           <div class="control-group mt-2">
             <label for="inputCustomNotes" data-i18n="customNotesLabel">ចំណាំ ឬសំណូមពរបន្ថែម (Prompt Customization)</label>
-            <input type="text" id="inputCustomNotes" class="form-control" placeholder="ឧ. សុំផ្ដោតលើការពិសោធន៍ជាក់ស្ដែង និងមានល្បែងពង្រឹងពុទ្ធិ...">
+            <div class="input-icon-wrap">
+              <i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i>
+              <input type="text" id="inputCustomNotes" class="form-control" placeholder="ឧ. សុំផ្ដោតលើការពិសោធន៍ជាក់ស្ដែង និងមានល្បែងពង្រឹងពុទ្ធិ...">
+            </div>
           </div>
         </section>
 
@@ -1789,7 +1848,7 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261015_v15_ac_mart_logo"></script>
+  <script src="app.js?v=20261015_v16_modern_ui"></script>
 </body>
 </html>
 

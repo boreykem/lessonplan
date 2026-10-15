@@ -2567,3 +2567,267 @@ textarea.form-control {
   color: #059669;
   font-weight: 600;
 }
+
+/* ==========================================================================
+   Modern SaaS UI Refresh (Option B) - Left Studio Panel
+   ========================================================================== */
+
+/* Modernized Configuration Card */
+.config-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 6px 16px -4px rgba(79, 70, 229, 0.04);
+  transition: all 0.25s ease;
+}
+
+.config-card:hover {
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 4px 18px -2px rgba(79, 70, 229, 0.08);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+/* Modern Step Badge */
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(124, 58, 237, 0.1));
+  color: #4f46e5;
+  font-size: 0.76rem;
+  font-weight: 700;
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  white-space: nowrap;
+  width: auto;
+  height: auto;
+}
+
+[data-theme="dark"] .step-badge {
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.card-title-group h3 {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1px;
+}
+
+.card-title-group p {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+/* Teacher Profile Compact Card */
+.teacher-profile-card {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.04), rgba(124, 58, 237, 0.03));
+  border: 1.5px solid rgba(79, 70, 229, 0.16);
+  border-radius: 12px;
+  padding: 11px 14px;
+  margin-bottom: 12px;
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .teacher-profile-card {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.teacher-profile-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.teacher-profile-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.28);
+}
+
+.teacher-profile-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.teacher-profile-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.teacher-profile-sub {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+.btn-toggle-profile-edit {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #4f46e5;
+  background: #eef2ff;
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  border-radius: 6px;
+  padding: 3px 9px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s;
+  white-space: nowrap;
+  font-family: var(--font-khmer);
+}
+
+.btn-toggle-profile-edit:hover {
+  background: #e0e7ff;
+}
+
+[data-theme="dark"] .btn-toggle-profile-edit {
+  background: rgba(99, 102, 241, 0.25);
+  color: #c7d2fe;
+  border-color: rgba(99, 102, 241, 0.4);
+}
+
+.teacher-profile-fields {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(99, 102, 241, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  animation: fadeInDown 0.2s ease-out;
+}
+
+/* Modern Segmented Tabs for Lesson Material */
+.modern-segmented-tabs {
+  display: flex;
+  background: var(--bg-card-subtle, #f1f5f9);
+  padding: 3px;
+  border-radius: 10px;
+  gap: 4px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border-color, #e2e8f0);
+}
+
+[data-theme="dark"] .modern-segmented-tabs {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+.segmented-tab-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-khmer);
+  white-space: nowrap;
+}
+
+.segmented-tab-btn:hover {
+  color: var(--text-primary);
+}
+
+.segmented-tab-btn.active {
+  background: var(--bg-card, #ffffff);
+  color: #4f46e5;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .segmented-tab-btn.active {
+  background: #1e293b;
+  color: #818cf8;
+}
+
+/* Modern Duration Chips */
+.duration-chips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.duration-chip {
+  padding: 5px 11px;
+  border-radius: 8px;
+  border: 1.5px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: var(--font-khmer);
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.duration-chip:hover {
+  border-color: #6366f1;
+  color: #4f46e5;
+  background: rgba(99, 102, 241, 0.04);
+}
+
+.duration-chip.active {
+  border-color: #4f46e5;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+}
+
+/* Form Controls Refinement */
+.form-control {
+  border-radius: 10px;
+  border: 1.5px solid var(--border-color);
+  padding: 8px 12px;
+  font-size: 0.86rem;
+  transition: all 0.2s ease;
+}
+
+.form-control:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.control-group label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}

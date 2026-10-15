@@ -1429,7 +1429,154 @@ function setDurationValue(val) {
     if (customWrap) customWrap.style.display = 'block';
     if (customText) customText.value = val;
   }
+  if (typeof syncDurationChipsFromSelect === 'function') {
+    syncDurationChipsFromSelect();
+  }
 }
+
+// ==========================================================================
+// Modern SaaS UI Helper Functions (Option B)
+// ==========================================================================
+
+function syncDurationChipsFromSelect() {
+  const select = document.getElementById('inputDurationSelect');
+  const activeLabel = document.getElementById('activeDurationLabel');
+  if (!select) return;
+
+  const curVal = select.value;
+  document.querySelectorAll('.duration-chip').forEach(chip => {
+    const chipDur = chip.getAttribute('data-duration');
+    chip.classList.toggle('active', chipDur === curVal);
+  });
+
+  if (activeLabel) {
+    if (curVal === 'custom') {
+      const customText = document.getElementById('inputCustomDurationText');
+      activeLabel.textContent = (customText && customText.value.trim()) ? `🕒 ${customText.value.trim()}` : '✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់';
+    } else {
+      activeLabel.textContent = curVal.split('(')[0].trim();
+    }
+  }
+}
+window.syncDurationChipsFromSelect = syncDurationChipsFromSelect;
+
+function selectDurationChip(val) {
+  const select = document.getElementById('inputDurationSelect');
+  const customWrap = document.getElementById('customDurationWrap');
+  const customText = document.getElementById('inputCustomDurationText');
+  const activeLabel = document.getElementById('activeDurationLabel');
+
+  if (select) {
+    select.value = val;
+    select.dispatchEvent(new Event('change'));
+  }
+
+  document.querySelectorAll('.duration-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.getAttribute('data-duration') === val);
+  });
+
+  if (val === 'custom') {
+    if (customWrap) customWrap.style.display = 'block';
+    if (customText) customText.focus();
+    if (activeLabel) activeLabel.textContent = '✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់';
+  } else {
+    if (customWrap) customWrap.style.display = 'none';
+    if (activeLabel) {
+      activeLabel.textContent = val.split('(')[0].trim();
+    }
+  }
+
+  const chkAuto = document.getElementById('chkAutoRememberAdmin');
+  if (chkAuto && chkAuto.checked) {
+    saveAdminProfile(true);
+  }
+}
+window.selectDurationChip = selectDurationChip;
+
+function toggleTeacherProfileFields() {
+  const fields = document.getElementById('teacherProfileFields');
+  const btnText = document.getElementById('btnToggleProfileEditText');
+  if (!fields) return;
+  const isHidden = fields.style.display === 'none' || fields.style.display === '';
+  fields.style.display = isHidden ? 'flex' : 'none';
+  if (btnText) {
+    btnText.textContent = isHidden ? 'បង្រួម' : 'កែប្រែ';
+  }
+}
+window.toggleTeacherProfileFields = toggleTeacherProfileFields;
+
+function updateTeacherProfileSummaryLive() {
+  const teacherInput = document.getElementById('inputTeacher');
+  const schoolInput = document.getElementById('inputSchool');
+  const degreeSelect = document.getElementById('inputDegree');
+  const gradeSelect = document.getElementById('inputGrade');
+  const customGrade = document.getElementById('inputCustomGradeText');
+
+  const teacherName = (teacherInput && teacherInput.value.trim()) ? teacherInput.value.trim() : 'លោកគ្រូ / អ្នកគ្រូ';
+  const schoolName = (schoolInput && schoolInput.value.trim()) ? schoolInput.value.trim() : 'ឈ្មោះសាលារៀន ឬស្ថាប័ន';
+
+  let degreeText = 'អនុវិទ្យាល័យ';
+  if (degreeSelect && degreeSelect.selectedIndex >= 0) {
+    degreeText = degreeSelect.options[degreeSelect.selectedIndex].text.replace(/^[^\w\u1780-\u17FF]+/, '').split('(')[0].trim();
+  }
+
+  let gradeText = 'ថ្នាក់ទី ៨';
+  if (gradeSelect) {
+    if (gradeSelect.value === 'custom' && customGrade && customGrade.value.trim()) {
+      gradeText = customGrade.value.trim();
+    } else if (gradeSelect.value !== 'custom') {
+      gradeText = gradeSelect.value;
+    }
+  }
+
+  const summaryName = document.getElementById('summaryTeacherName');
+  const summarySchool = document.getElementById('summarySchoolName');
+  const summaryMeta = document.getElementById('summaryDegreeGrade');
+
+  if (summaryName) summaryName.textContent = teacherName;
+  if (summarySchool) summarySchool.textContent = schoolName;
+  if (summaryMeta) summaryMeta.textContent = `${degreeText} • ${gradeText}`;
+}
+window.updateTeacherProfileSummaryLive = updateTeacherProfileSummaryLive;
+
+function switchLessonMaterialTab(mode) {
+  const uploadTab = document.getElementById('tabBtnUploadMode');
+  const textTab = document.getElementById('tabBtnTextMode');
+  const dropzoneWrap = document.getElementById('dropzoneContainerWrapper');
+  const textareaWrap = document.getElementById('lessonTextareaWrapper');
+
+  if (mode === 'upload') {
+    if (uploadTab) uploadTab.classList.add('active');
+    if (textTab) textTab.classList.remove('active');
+    if (dropzoneWrap) dropzoneWrap.style.display = 'block';
+    if (textareaWrap) textareaWrap.style.display = 'none';
+  } else {
+    if (textTab) textTab.classList.add('active');
+    if (uploadTab) uploadTab.classList.remove('active');
+    if (dropzoneWrap) dropzoneWrap.style.display = 'none';
+    if (textareaWrap) textareaWrap.style.display = 'block';
+    const ta = document.getElementById('lessonContentText');
+    if (ta) ta.focus();
+  }
+}
+window.switchLessonMaterialTab = switchLessonMaterialTab;
+
+async function pasteToLessonContent() {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (text) {
+      const ta = document.getElementById('lessonContentText');
+      if (ta) {
+        ta.value = text;
+        ta.dispatchEvent(new Event('input'));
+        showToast('📋 បានបិទភ្ជាប់អត្ថបទពី Clipboard រួចរាល់!', 'success');
+      }
+    }
+  } catch (err) {
+    showToast('សូមចុច Ctrl+V ដើម្បីបិទភ្ជាប់អត្ថបទ', 'info');
+  }
+}
+window.pasteToLessonContent = pasteToLessonContent;
 
 function findDegreeKeyForGrade(gradeName) {
   if (!gradeName) return 'lower_sec';
@@ -6978,6 +7125,12 @@ function loadSavedAdminProfile() {
     updateGradeOptions(activeDegree, targetGrade);
 
     updateSavedProfileUI(true);
+    if (typeof updateTeacherProfileSummaryLive === 'function') updateTeacherProfileSummaryLive();
+    if (typeof syncDurationChipsFromSelect === 'function') syncDurationChipsFromSelect();
+    const fields = document.getElementById('teacherProfileFields');
+    const btnText = document.getElementById('btnToggleProfileEditText');
+    if (fields) fields.style.display = 'none';
+    if (btnText) btnText.textContent = 'កែប្រែ';
   } catch (err) {
     console.error('Error loading saved admin profile:', err);
     const degreeSelect = document.getElementById('inputDegree');
@@ -6988,6 +7141,11 @@ function loadSavedAdminProfile() {
 function clearSavedAdminProfile() {
   localStorage.removeItem(ADMIN_STORAGE_KEY);
   updateSavedProfileUI(false);
+  if (typeof updateTeacherProfileSummaryLive === 'function') updateTeacherProfileSummaryLive();
+  const fields = document.getElementById('teacherProfileFields');
+  const btnText = document.getElementById('btnToggleProfileEditText');
+  if (fields) fields.style.display = 'flex';
+  if (btnText) btnText.textContent = 'បង្រួម';
   showToast('បានលុបព័ត៌មានរដ្ឋបាលដែលបានចងចាំចេញរួចរាល់', 'info');
 }
 
@@ -7003,6 +7161,8 @@ function handleResetForm() {
   document.getElementById('inputSchool').value = '';
   document.getElementById('inputTeacher').value = '';
   setDurationValue('៥០ នាទី (១ ម៉ោងសិក្សា)');
+  if (typeof syncDurationChipsFromSelect === 'function') syncDurationChipsFromSelect();
+  if (typeof updateTeacherProfileSummaryLive === 'function') updateTeacherProfileSummaryLive();
   document.getElementById('inputLessonTitle').value = '';
   document.getElementById('inputChapter').value = '';
   document.getElementById('inputCustomNotes').value = '';
