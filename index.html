@@ -848,6 +848,25 @@
               <i class="fa-solid fa-book-bookmark" style="color: #0284c7;"></i> <span>បណ្ណាល័យកិច្ចតែងការ</span>
             </button>
           </div>
+          <script>
+            (function() {
+              try {
+                var k = localStorage.getItem('gemini_api_key') || (document.cookie.match(/(?:^|; )persistent_api_key=([^;]*)/) || [])[1];
+                if (k && k.trim() && !k.startsWith('AQ.')) {
+                  var b = document.getElementById('emptyStateApiBanner');
+                  var d = document.getElementById('emptyStateApiDot');
+                  var t = document.getElementById('emptyStateApiText');
+                  var btnB = document.getElementById('btnEmptyBannerConnectKey');
+                  var btnC = document.getElementById('btnEmptyConnectKey');
+                  if (b) { b.style.background = '#f0fdf4'; b.style.borderColor = '#86efac'; b.style.color = '#15803d'; }
+                  if (d) d.textContent = '🟢';
+                  if (t) t.innerHTML = '<strong>បានភ្ជាប់ API រួចរាល់</strong> (Online Mode)';
+                  if (btnB) btnB.style.display = 'none';
+                  if (btnC) btnC.style.display = 'none';
+                }
+              } catch(e){}
+            })();
+          </script>
         </div>
 
         <!-- Printable A4 Paper Sheet -->
@@ -1838,7 +1857,7 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261015_v19_syntax_fix"></script>
+  <script src="app.js?v=20261015_v20_runtime_fix"></script>
 </body>
 </html>
 

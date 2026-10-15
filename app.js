@@ -248,7 +248,10 @@ const PersistentKeyVault = {
 window.PersistentKeyVault = PersistentKeyVault;
 
 function getActiveGeminiApiKey() {
-  return state.geminiApiKey || PersistentKeyVault.getSync();
+  if (typeof state !== 'undefined' && state && state.geminiApiKey) {
+    return state.geminiApiKey;
+  }
+  return PersistentKeyVault.getSync();
 }
 
 const state = {
@@ -268,7 +271,7 @@ const state = {
   currentZoom: 1.0,
   language: localStorage.getItem('app_language') || 'km',
   aiProvider: PersistentKeyVault.getProviderSync(),
-  geminiApiKey: getActiveGeminiApiKey(),
+  geminiApiKey: PersistentKeyVault.getSync(),
   generatedPlanData: null
 };
 
@@ -4223,7 +4226,8 @@ function updateEmptyStateApiStatus() {
   const banner = document.getElementById('emptyStateApiBanner');
   const dot = document.getElementById('emptyStateApiDot');
   const text = document.getElementById('emptyStateApiText');
-  const btn = document.getElementById('btnEmptyBannerConnectKey');
+  const btnBanner = document.getElementById('btnEmptyBannerConnectKey');
+  const btnBottom = document.getElementById('btnEmptyConnectKey');
   if (!banner || !dot || !text) return;
 
   const key = (state.geminiApiKey || getActiveGeminiApiKey() || '').trim();
@@ -4234,15 +4238,18 @@ function updateEmptyStateApiStatus() {
     banner.style.borderColor = '#86efac';
     banner.style.color = '#15803d';
     dot.textContent = '🟢';
-    text.textContent = (provider === 'groq') ? 'Groq LLaMA 3.3 AI រួចរាល់ក្នុងការបង្កើត (Online Mode)' : 'Gemini AI រួចរាល់ក្នុងការបង្កើត (Online Mode)';
-    if (btn) btn.style.display = 'none';
+    const provName = (provider === 'groq') ? 'Groq LLaMA 3.3 AI' : (provider === 'openrouter' ? 'OpenRouter AI' : 'Google Gemini AI');
+    text.innerHTML = `<strong>បានភ្ជាប់ API រួចរាល់</strong> (${provName} — Online Mode)`;
+    if (btnBanner) btnBanner.style.display = 'none';
+    if (btnBottom) btnBottom.style.display = 'none';
   } else {
     banner.style.background = '#fefce8';
     banner.style.borderColor = '#fef08a';
     banner.style.color = '#854d0e';
     dot.textContent = '🟡';
     text.textContent = 'មិនទាន់ភ្ជាប់ API Key (កំពុងប្រើ Offline Mode)';
-    if (btn) btn.style.display = 'inline-flex';
+    if (btnBanner) btnBanner.style.display = 'inline-flex';
+    if (btnBottom) btnBottom.style.display = 'inline-flex';
   }
 }
 window.updateEmptyStateApiStatus = updateEmptyStateApiStatus;
