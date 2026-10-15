@@ -5489,6 +5489,8 @@ async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
 
   const isEn = (state.language === 'en');
   let wrapper = document.getElementById('preTestModuleWrapper');
+  const appendix = document.getElementById('appendixSectionWrapper');
+  if (appendix) appendix.style.display = 'block';
   const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');
   titleWrapper.forEach(el => el.style.display = 'flex');
 
@@ -5497,6 +5499,8 @@ async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
     const empty = document.getElementById('emptyState');
     if (empty) empty.style.display = 'none';
     wrapper = document.getElementById('preTestModuleWrapper');
+    const appEl = document.getElementById('appendixSectionWrapper');
+    if (appEl) appEl.style.display = 'block';
   }
 
   if (wrapper) {
@@ -5512,7 +5516,7 @@ async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
         </div>
       </div>
     `;
-    wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   showToast(isEn ? 'Generating Pre-Test QCM with AI...' : '🤖 កំពុងបង្កើតបុរេតេស្ត (Pre-Test QCM) តាម AI...', 'info');
@@ -5525,7 +5529,7 @@ async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
 
     if (wrapper) {
       wrapper.innerHTML = renderPreTestModule(plan, isEn);
-      wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     showToast(isEn ? '✨ Pre-Test QCM generated successfully!' : `✨ បានបង្កើតបុរេតេស្ត (${qList.length} សំណួរ) ដោយជោគជ័យ!`, 'success');
   } catch (err) {
@@ -5535,7 +5539,7 @@ async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
     state.generatedPlanData = plan;
     if (wrapper) {
       wrapper.innerHTML = renderPreTestModule(plan, isEn);
-      wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     showToast(isEn ? '✨ Pre-Test generated (Standard MoEYS Bank)' : '✨ បានរៀបចំបុរេតេស្តស្តង់ដារ MoEYS រួចរាល់!', 'success');
   } finally {
@@ -5570,6 +5574,8 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
 
   const isEn = (state.language === 'en');
   let wrapper = document.getElementById('postTestModuleWrapper');
+  const appendix = document.getElementById('appendixSectionWrapper');
+  if (appendix) appendix.style.display = 'block';
   const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');
   titleWrapper.forEach(el => el.style.display = 'flex');
 
@@ -5578,6 +5584,8 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
     const empty = document.getElementById('emptyState');
     if (empty) empty.style.display = 'none';
     wrapper = document.getElementById('postTestModuleWrapper');
+    const appEl = document.getElementById('appendixSectionWrapper');
+    if (appEl) appEl.style.display = 'block';
   }
 
   if (wrapper) {
@@ -5593,7 +5601,7 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
         </div>
       </div>
     `;
-    wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   showToast(isEn ? 'Generating Post-Test MCQ with AI...' : '🎓 កំពុងបង្កើតបច្ឆិមតេស្ត (Post-Test MCQ) តាម AI...', 'info');
@@ -5606,7 +5614,7 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
 
     if (wrapper) {
       wrapper.innerHTML = renderPostTestModule(plan, isEn);
-      wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     showToast(isEn ? '✨ Post-Test MCQ generated successfully!' : `✨ បានបង្កើតបច្ឆិមតេស្ត (${qList.length} សំណួរ) ដោយជោគជ័យ!`, 'success');
   } catch (err) {
@@ -5616,7 +5624,7 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
     state.generatedPlanData = plan;
     if (wrapper) {
       wrapper.innerHTML = renderPostTestModule(plan, isEn);
-      wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     showToast(isEn ? '✨ Post-Test generated (Standard MoEYS Bank)' : '✨ បានរៀបចំបច្ឆិមតេស្តស្តង់ដារ MoEYS រួចរាល់!', 'success');
   } finally {
@@ -5630,9 +5638,15 @@ function removePreTestModule() {
   if (plan) {
     plan.preTestQCM = null;
     const wrapper = document.getElementById('preTestModuleWrapper');
-  const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');
-  titleWrapper.forEach(el => el.style.display = 'flex');
-    if (wrapper) wrapper.innerHTML = renderPreTestModule(plan, state.language === 'en');
+    if (wrapper) wrapper.innerHTML = '';
+    const hasPre = Boolean(plan.preTestQCM && plan.preTestQCM.length > 0);
+    const hasPost = Boolean(plan.postTestMCQ && plan.postTestMCQ.length > 0);
+    if (!hasPre && !hasPost) {
+      const appendix = document.getElementById('appendixSectionWrapper');
+      if (appendix) appendix.style.display = 'none';
+      const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');
+      titleWrapper.forEach(el => el.style.display = 'none');
+    }
   }
 }
 window.removePreTestModule = removePreTestModule;
@@ -5642,9 +5656,15 @@ function removePostTestModule() {
   if (plan) {
     plan.postTestMCQ = null;
     const wrapper = document.getElementById('postTestModuleWrapper');
-  const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');
-  titleWrapper.forEach(el => el.style.display = 'flex');
-    if (wrapper) wrapper.innerHTML = renderPostTestModule(plan, state.language === 'en');
+    if (wrapper) wrapper.innerHTML = '';
+    const hasPre = Boolean(plan.preTestQCM && plan.preTestQCM.length > 0);
+    const hasPost = Boolean(plan.postTestMCQ && plan.postTestMCQ.length > 0);
+    if (!hasPre && !hasPost) {
+      const appendix = document.getElementById('appendixSectionWrapper');
+      if (appendix) appendix.style.display = 'none';
+      const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');
+      titleWrapper.forEach(el => el.style.display = 'none');
+    }
   }
 }
 window.removePostTestModule = removePostTestModule;
@@ -5820,20 +5840,8 @@ function renderLessonPlanToA4(data) {
         </tbody>
       </table>
 
-      <!-- Section 5: Assessment & Diagnostic Testing (On-Demand Pre-Test & Post-Test) -->
-      <div id="assessmentSectionTitle" class="doc-section-title flex justify-between items-center" style="margin-top: 22px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;' }">
-        <span>៥. តេស្តវាស់ស្ទង់សមត្ថភាព & កម្រងសំណួរ (Diagnostic & Mastery Assessments)</span>
-      </div>
-      <div class="test-modules-container" style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px; margin-bottom: 18px;">
-        <div id="preTestModuleWrapper">${renderPreTestModule(data, false)}</div>
-        <div id="postTestModuleWrapper">${renderPostTestModule(data, false)}</div>
-      </div>
-
-      <!-- Learning Gain & Reflection Block -->
-      ${renderLearningGainReflectionBlock(data)}
-
-      <!-- Signatures -->
-      <div class="doc-footer-signatures" style="margin-top: 24px;">
+      <!-- Signatures closing Lesson Plan -->
+      <div class="doc-footer-signatures" style="margin-top: 28px;">
         <div class="sig-box">
           <div>បានឃើញ និងឯកភាព</div>
           <div style="font-weight: bold; margin-top: 2px;">ប្រធានដេប៉ាតឺម៉ង់ / គណៈគ្រប់គ្រង</div>
@@ -5850,6 +5858,35 @@ function renderLessonPlanToA4(data) {
       <!-- Footnote License -->
       <div style="margin-top: 26px; padding-top: 10px; border-top: 1px dashed #cbd5e1; font-size: 9pt; color: #475569; font-style: italic;">
         * អាជ្ញាបណ្ណ និងកម្មសិទ្ធិ (License)： ខ្ញុំឈ្មោះកែម បូរី ជាគ្រូឧទ្ទេសមុខវិជ្ជាចិត្តវិទ្យាអប់រំ នៅវិទ្យាស្ថានគរុកោសល្យកំពង់ចាម
+      </div>
+
+      <!-- 📎 APPENDIX: Pre-Test & Post-Test on the page after signatures -->
+      <div id="appendixSectionWrapper" class="doc-appendix-wrapper" style="page-break-before: always; break-before: page; margin-top: 36px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;' }">
+        <div class="appendix-page-divider">
+          <span>📄 ទំព័របន្ទាប់ (Next Page) — ឯកសារឧបសម្ព័ន្ធ (Appendix)</span>
+        </div>
+
+        <div id="assessmentSectionTitle" class="doc-appendix-header">
+          <div>
+            <div style="font-size: 12.5pt; font-weight: 800; color: #1e3a8a; font-family: 'Kantumruy Pro', 'Khmer OS Siemreap', sans-serif;">
+              📎 ឯកសារឧបសម្ព័ន្ធ (Appendix)
+            </div>
+            <div style="font-size: 9.5pt; color: #475569; margin-top: 2px; font-weight: 600;">
+              វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test) និងតេស្តវាស់ស្ទង់សមត្ថភាព (Post-Test)
+            </div>
+          </div>
+          <span style="font-size: 8.5pt; background: #e0e7ff; color: #3730a3; padding: 4px 12px; border-radius: 12px; font-weight: 700;">
+            ឯកសារភ្ជាប់កិច្ចតែងការ
+          </span>
+        </div>
+
+        <div class="test-modules-container" style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;">
+          <div id="preTestModuleWrapper">${renderPreTestModule(data, false)}</div>
+          <div id="postTestModuleWrapper">${renderPostTestModule(data, false)}</div>
+        </div>
+
+        <!-- Learning Gain & Reflection Block -->
+        ${renderLearningGainReflectionBlock(data)}
       </div>
     `;
     return;
@@ -5936,19 +5973,37 @@ function renderLessonPlanToA4(data) {
         </tbody>
       </table>
 
-      <!-- Section IV: Assessment & Diagnostic Testing (On-Demand Pre-Test & Post-Test) -->
-      <div id="assessmentSectionTitle" class="doc-section-title flex justify-between items-center" style="margin-top: 22px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;' }">
-        <span>${isEn ? 'IV. Diagnostic & Mastery Assessments' : 'IV. តេស្តវាស់ស្ទង់សមត្ថភាព & កម្រងសំណួរ (Diagnostic & Mastery Assessments)'}</span>
-      </div>
-      <div class="test-modules-container" style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px; margin-bottom: 18px;">
-        <div id="preTestModuleWrapper">${renderPreTestModule(data, isEn)}</div>
-        <div id="postTestModuleWrapper">${renderPostTestModule(data, isEn)}</div>
-      </div>
-
-      <!-- Learning Gain & Reflection Block -->
-      ${renderLearningGainReflectionBlock(data)}
-
+      <!-- Signatures closing Lesson Plan -->
       ${signaturesHtml}
+
+      <!-- 📎 APPENDIX: Pre-Test & Post-Test on the page after signatures -->
+      <div id="appendixSectionWrapper" class="doc-appendix-wrapper" style="page-break-before: always; break-before: page; margin-top: 36px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;' }">
+        <div class="appendix-page-divider">
+          <span>📄 ទំព័របន្ទាប់ (Next Page) — ឯកសារឧបសម្ព័ន្ធ (Appendix)</span>
+        </div>
+
+        <div id="assessmentSectionTitle" class="doc-appendix-header">
+          <div>
+            <div style="font-size: 12.5pt; font-weight: 800; color: #1e3a8a; font-family: 'Kantumruy Pro', 'Khmer OS Siemreap', sans-serif;">
+              📎 ឯកសារឧបសម្ព័ន្ធ (Appendix)
+            </div>
+            <div style="font-size: 9.5pt; color: #475569; margin-top: 2px; font-weight: 600;">
+              ${isEn ? 'Diagnostic & Mastery Assessments (Pre-Test & Post-Test)' : 'វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test) និងតេស្តវាស់ស្ទង់សមត្ថភាព (Post-Test)'}
+            </div>
+          </div>
+          <span style="font-size: 8.5pt; background: #e0e7ff; color: #3730a3; padding: 4px 12px; border-radius: 12px; font-weight: 700;">
+            ${isEn ? 'Assessment Appendix' : 'ឯកសារភ្ជាប់កិច្ចតែងការ'}
+          </span>
+        </div>
+
+        <div class="test-modules-container" style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;">
+          <div id="preTestModuleWrapper">${renderPreTestModule(data, isEn)}</div>
+          <div id="postTestModuleWrapper">${renderPostTestModule(data, isEn)}</div>
+        </div>
+
+        <!-- Learning Gain & Reflection Block -->
+        ${renderLearningGainReflectionBlock(data)}
+      </div>
     `;
     return;
   }
@@ -6019,19 +6074,37 @@ function renderLessonPlanToA4(data) {
       </tbody>
     </table>
 
-    <!-- Section V: Assessment & Diagnostic Testing (On-Demand Pre-Test & Post-Test) -->
-    <div id="assessmentSectionTitle" class="doc-section-title flex justify-between items-center" style="margin-top: 22px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;' }">
-        <span>${isEn ? 'V. Diagnostic & Mastery Assessments' : 'V. តេស្តវាស់ស្ទង់សមត្ថភាព & កម្រងសំណួរ (Diagnostic & Mastery Assessments)'}</span>
-      </div>
-    <div class="test-modules-container" style="display: flex; flex-direction: column; gap: 14px; margin-top: 10px; margin-bottom: 18px;">
-      <div id="preTestModuleWrapper">${renderPreTestModule(data, isEn)}</div>
-      <div id="postTestModuleWrapper">${renderPostTestModule(data, isEn)}</div>
-    </div>
-
-    <!-- Learning Gain & Reflection Block -->
-    ${renderLearningGainReflectionBlock(data)}
-
+    <!-- Signatures closing Lesson Plan -->
     ${signaturesHtml}
+
+    <!-- 📎 APPENDIX: Pre-Test & Post-Test on the page after signatures -->
+    <div id="appendixSectionWrapper" class="doc-appendix-wrapper" style="page-break-before: always; break-before: page; margin-top: 36px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;' }">
+      <div class="appendix-page-divider">
+        <span>📄 ទំព័របន្ទាប់ (Next Page) — ឯកសារឧបសម្ព័ន្ធ (Appendix)</span>
+      </div>
+
+      <div id="assessmentSectionTitle" class="doc-appendix-header">
+        <div>
+          <div style="font-size: 12.5pt; font-weight: 800; color: #1e3a8a; font-family: 'Kantumruy Pro', 'Khmer OS Siemreap', sans-serif;">
+            📎 ឯកសារឧបសម្ព័ន្ធ (Appendix)
+          </div>
+          <div style="font-size: 9.5pt; color: #475569; margin-top: 2px; font-weight: 600;">
+            ${isEn ? 'Diagnostic & Mastery Assessments (Pre-Test & Post-Test)' : 'វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test) និងតេស្តវាស់ស្ទង់សមត្ថភាព (Post-Test)'}
+          </div>
+        </div>
+        <span style="font-size: 8.5pt; background: #e0e7ff; color: #3730a3; padding: 4px 12px; border-radius: 12px; font-weight: 700;">
+          ${isEn ? 'Assessment Appendix' : 'ឯកសារភ្ជាប់កិច្ចតែងការ'}
+        </span>
+      </div>
+
+      <div class="test-modules-container" style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;">
+        <div id="preTestModuleWrapper">${renderPreTestModule(data, isEn)}</div>
+        <div id="postTestModuleWrapper">${renderPostTestModule(data, isEn)}</div>
+      </div>
+
+      <!-- Learning Gain & Reflection Block -->
+      ${renderLearningGainReflectionBlock(data)}
+    </div>
   `;
 }
 
@@ -6608,14 +6681,6 @@ async function handleExportWord() {
         new Paragraph({ text: "" })
       );
 
-      // Append Pre-Test & Post-Test at bottom if generated
-      if (data.preTestQCM && data.preTestQCM.length > 0) {
-        docChildren.push(...buildDocxPreTest());
-      }
-      if (data.postTestMCQ && data.postTestMCQ.length > 0) {
-        docChildren.push(...buildDocxPostTest());
-      }
-
       // Signatures
       docChildren.push(
         new Paragraph({ text: "" }),
@@ -6654,6 +6719,34 @@ async function handleExportWord() {
           ]
         })
       );
+
+      // Appendix: Pre-Test & Post-Test on the page after signatures
+      const hasPreFlipped = Boolean(data.preTestQCM && data.preTestQCM.length > 0);
+      const hasPostFlipped = Boolean(data.postTestMCQ && data.postTestMCQ.length > 0);
+      if (hasPreFlipped || hasPostFlipped) {
+        docChildren.push(
+          new Paragraph({
+            pageBreakBefore: true,
+            alignment: AlignmentType.CENTER,
+            children: [
+              new TextRun({ text: "ឯកសារឧបសម្ព័ន្ធ (Appendix)", bold: true, size: 28 })
+            ]
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [
+              new TextRun({ text: "វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test) និងតេស្តវាស់ស្ទង់សមត្ថភាព (Post-Test)", bold: true, size: 22 })
+            ]
+          }),
+          new Paragraph({ text: "" })
+        );
+        if (hasPreFlipped) {
+          docChildren.push(...buildDocxPreTest());
+        }
+        if (hasPostFlipped) {
+          docChildren.push(...buildDocxPostTest());
+        }
+      }
 
       // Done for flipped learning export
       const blob = await Packer.toBlob(new Document({
@@ -6755,13 +6848,6 @@ async function handleExportWord() {
         new Paragraph({ text: "" })
       );
 
-      if (data.preTestQCM && data.preTestQCM.length > 0) {
-        docChildren.push(...buildDocxPreTest());
-      }
-      if (data.postTestMCQ && data.postTestMCQ.length > 0) {
-        docChildren.push(...buildDocxPostTest());
-      }
-
     } else {
       // 5-Step Process (MoEYS Standard, Flipped Learning, Primary School, STEM/5E)
       const steps = data.steps || [];
@@ -6803,8 +6889,7 @@ async function handleExportWord() {
             }),
             ...steps.map(step => new TableRow({
               children: [
-                new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${step.stepTitle}
-(${step.duration})`, bold: true, size: 22 })] })] }),
+                new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${step.stepTitle}\n(${step.duration})`, bold: true, size: 22 })] })] }),
                 new TableCell({ children: (step.teacherActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
                 new TableCell({ children: (step.contentSummary || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, bold: true, size: 22 })] })) }),
                 new TableCell({ children: (step.studentActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
@@ -6814,16 +6899,9 @@ async function handleExportWord() {
         }),
         new Paragraph({ text: "" })
       );
-
-      if (data.preTestQCM && data.preTestQCM.length > 0) {
-        docChildren.push(...buildDocxPreTest());
-      }
-      if (data.postTestMCQ && data.postTestMCQ.length > 0) {
-        docChildren.push(...buildDocxPostTest());
-      }
     }
 
-    // Signatures Table
+    // Signatures Table closing the Lesson Plan
     docChildren.push(
       new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
@@ -6854,6 +6932,34 @@ async function handleExportWord() {
         ]
       })
     );
+
+    // Appendix: Pre-Test & Post-Test on the page after signatures
+    const hasPreStd = Boolean(data.preTestQCM && data.preTestQCM.length > 0);
+    const hasPostStd = Boolean(data.postTestMCQ && data.postTestMCQ.length > 0);
+    if (hasPreStd || hasPostStd) {
+      docChildren.push(
+        new Paragraph({
+          pageBreakBefore: true,
+          alignment: AlignmentType.CENTER,
+          children: [
+            new TextRun({ text: "ឯកសារឧបសម្ព័ន្ធ (Appendix)", bold: true, size: 28 })
+          ]
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [
+            new TextRun({ text: "វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test) និងតេស្តវាស់ស្ទង់សមត្ថភាព (Post-Test)", bold: true, size: 22 })
+          ]
+        }),
+        new Paragraph({ text: "" })
+      );
+      if (hasPreStd) {
+        docChildren.push(...buildDocxPreTest());
+      }
+      if (hasPostStd) {
+        docChildren.push(...buildDocxPostTest());
+      }
+    }
 
     // Create Document
     const doc = new Document({

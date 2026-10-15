@@ -2246,11 +2246,6 @@ def export_docx():
 
         doc.add_paragraph()
 
-        if data.get("preTestQCM"):
-            _add_docx_pretest()
-        if data.get("postTestMCQ"):
-            _add_docx_posttest()
-
         # Signatures
         sig_table = doc.add_table(rows=1, cols=2)
         sig_table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -2267,6 +2262,23 @@ def export_docx():
         r_foot = p_foot.add_run("* អាជ្ញាបណ្ណ និងកម្មសិទ្ធិ (License)： ខ្ញុំឈ្មោះកែម បូរី ជាគ្រូឧទ្ទេសមុខវិជ្ជាចិត្តវិទ្យាអប់រំ នៅវិទ្យាស្ថានគរុកោសល្យកំពង់ចាម")
         r_foot.italic = True
         r_foot.font.size = Pt(9.5)
+
+        # Appendix: Pre-Test & Post-Test on the page after signatures
+        has_pre = bool(data.get("preTestQCM"))
+        has_post = bool(data.get("postTestMCQ"))
+        if has_pre or has_post:
+            doc.add_page_break()
+            p_app = doc.add_paragraph()
+            p_app.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            r_app = p_app.add_run("ឯកសារឧបសម្ព័ន្ធ (Appendix)\nវិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test) និងតេស្តវាស់ស្ទង់សមត្ថភាព (Post-Test)")
+            r_app.bold = True
+            r_app.font.size = Pt(13)
+            doc.add_paragraph()
+
+            if has_pre:
+                _add_docx_pretest()
+            if has_post:
+                _add_docx_posttest()
 
     
 
@@ -2332,8 +2344,6 @@ def export_docx():
             c3.text = step.get("studentActivity", "")
 
         doc.add_paragraph()
-        # Post-Test
-        _add_docx_posttest()
 
     else:
         # Standard 5-Step & Flipped
@@ -2398,13 +2408,9 @@ def export_docx():
             c3.text = step.get("studentActivity", "")
 
         doc.add_paragraph()
-        if data.get("preTestQCM"):
-            _add_docx_pretest()
-        if data.get("postTestMCQ"):
-            _add_docx_posttest()
 
     if not is_flipped:
-        # Signatures Table
+        # Signatures Table closing the Lesson Plan
         sig_table = doc.add_table(rows=1, cols=2)
         sig_table.alignment = WD_TABLE_ALIGNMENT.CENTER
 
@@ -2417,6 +2423,23 @@ def export_docx():
         p_sr = sig_right.paragraphs[0]
         p_sr.alignment = WD_ALIGN_PARAGRAPH.CENTER
         p_sr.add_run(f"{data.get('dateStr', '')}\nហត្ថលេខាគ្រូបង្រៀន\n\n\n\n\n{data.get('teacher', '')}").bold = True
+
+        # Appendix: Pre-Test & Post-Test on the page after signatures
+        has_pre = bool(data.get("preTestQCM"))
+        has_post = bool(data.get("postTestMCQ"))
+        if has_pre or has_post:
+            doc.add_page_break()
+            p_app = doc.add_paragraph()
+            p_app.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            r_app = p_app.add_run("ឯកសារឧបសម្ព័ន្ធ (Appendix)\nវិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test) និងតេស្តវាស់ស្ទង់សមត្ថភាព (Post-Test)")
+            r_app.bold = True
+            r_app.font.size = Pt(13)
+            doc.add_paragraph()
+
+            if has_pre:
+                _add_docx_pretest()
+            if has_post:
+                _add_docx_posttest()
 
     # Enforce 100% Khmer OS Siemreap Font across all Word elements
     apply_khmer_os_siemreap_to_all(doc)

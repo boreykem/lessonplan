@@ -1230,6 +1230,61 @@ textarea.form-control {
   height: 60px;
 }
 
+/* ==========================================================================
+   📎 Appendix (Pre-Test & Post-Test) Placed on Next Page After Signatures
+   ========================================================================== */
+.doc-appendix-wrapper {
+  margin-top: 36px;
+  page-break-before: always;
+  break-before: page;
+}
+
+.appendix-page-divider {
+  margin: 32px 0 20px;
+  text-align: center;
+  position: relative;
+}
+
+.appendix-page-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 2px dashed #94a3b8;
+  z-index: 1;
+}
+
+.appendix-page-divider span {
+  position: relative;
+  z-index: 2;
+  background: #f1f5f9;
+  padding: 6px 20px;
+  border-radius: 20px;
+  font-size: 9.5pt;
+  font-weight: 700;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.doc-appendix-header {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 1.5px solid #cbd5e1;
+  border-left: 6px solid #2563eb;
+  padding: 12px 18px;
+  border-radius: 8px;
+  margin-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 /* Pre-Test QCM Styling on A4 Sheet & Preview */
 .doc-pretest-container {
   background-color: #f8fafc;
@@ -2139,6 +2194,17 @@ textarea.form-control {
     width: 100% !important;
     min-height: auto !important;
     transform: none !important;
+  }
+
+  .doc-appendix-wrapper {
+    page-break-before: always !important;
+    break-before: page !important;
+    margin-top: 0 !important;
+    padding-top: 15mm !important;
+  }
+
+  .appendix-page-divider {
+    display: none !important;
   }
 }
 
