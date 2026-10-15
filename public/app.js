@@ -3824,6 +3824,34 @@ function closeApiKeyModal() {
 }
 window.closeApiKeyModal = closeApiKeyModal;
 
+function updateEmptyStateApiStatus() {
+  const banner = document.getElementById('emptyStateApiBanner');
+  const dot = document.getElementById('emptyStateApiDot');
+  const text = document.getElementById('emptyStateApiText');
+  const btn = document.getElementById('btnEmptyBannerConnectKey');
+  if (!banner || !dot || !text) return;
+
+  const key = (state.geminiApiKey || getActiveGeminiApiKey() || '').trim();
+  const provider = state.aiProvider || localStorage.getItem('ai_provider') || 'gemini';
+
+  if (key) {
+    banner.style.background = '#f0fdf4';
+    banner.style.borderColor = '#86efac';
+    banner.style.color = '#15803d';
+    dot.textContent = '🟢';
+    text.textContent = (provider === 'groq') ? 'Groq LLaMA 3.3 AI រួចរាល់ក្នុងការបង្កើត (Online Mode)' : 'Gemini AI រួចរាល់ក្នុងការបង្កើត (Online Mode)';
+    if (btn) btn.style.display = 'none';
+  } else {
+    banner.style.background = '#fefce8';
+    banner.style.borderColor = '#fef08a';
+    banner.style.color = '#854d0e';
+    dot.textContent = '🟡';
+    text.textContent = 'មិនទាន់ភ្ជាប់ API Key (កំពុងប្រើ Offline Mode)';
+    if (btn) btn.style.display = 'inline-flex';
+  }
+}
+window.updateEmptyStateApiStatus = updateEmptyStateApiStatus;
+
 function saveApiKeyFromModal() {
   const inputGeminiKey = document.getElementById('inputGeminiKey');
   const selectAiProvider = document.getElementById('selectAiProvider');
