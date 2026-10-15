@@ -1476,12 +1476,16 @@ def generate_lesson_plan():
     api_key = data.get("apiKey") or os.environ.get("GEMINI_API_KEY") or DEFAULT_SYSTEM_GEMINI_KEY
 
     try:
+        is_offline_draft = False
         if api_key:
             plan = generate_with_gemini_python(api_key, data)
         else:
             plan = synthesize_lesson_plan_python(data)
+            is_offline_draft = True
         
         if isinstance(plan, dict):
+            if is_offline_draft:
+                plan["isOfflineDraft"] = True
             for k in ["notebooklmGuide", "preClassPhase", "differentiatedPlan", "activeRubric", "exitTicket321", "postClassPhase", "selfEvaluation"]:
                 plan.pop(k, None)
             if "preTestQCM" not in plan or not isinstance(plan["preTestQCM"], list):
@@ -1508,17 +1512,18 @@ def generate_lesson_plan():
                 plan["postTestMCQ"] = plan["postTestMCQ"][:5]
             plan["postTestMCQ"] = randomize_quiz_list(plan["postTestMCQ"])
 
-        return jsonify({"success": True, "data": plan})
+        return jsonify({"success": True, "data": plan, "isOfflineDraft": is_offline_draft})
     except Exception as e:
         print("Generation error:", e)
         # Fallback to local python synthesizer
         fallback = synthesize_lesson_plan_python(data)
         if isinstance(fallback, dict):
+            fallback["isOfflineDraft"] = True
             if "preTestQCM" in fallback and isinstance(fallback["preTestQCM"], list):
                 fallback["preTestQCM"] = randomize_quiz_list(fallback["preTestQCM"])
             if "postTestMCQ" in fallback and isinstance(fallback["postTestMCQ"], list):
                 fallback["postTestMCQ"] = randomize_quiz_list(fallback["postTestMCQ"])
-        return jsonify({"success": True, "data": fallback, "warning": str(e)})
+        return jsonify({"success": True, "data": fallback, "isOfflineDraft": True, "warning": str(e)})
 
 
 # ==============================================================================

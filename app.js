@@ -2337,6 +2337,7 @@ function updateWordCount() {
 function checkApiKeyStatus() {
   const badge = document.getElementById('apiKeyBadge');
   const btn = document.getElementById('btnApiKey');
+  const label = document.getElementById('headerApiKeyLabel');
   const customKey = localStorage.getItem('gemini_api_key');
   if (!badge) return;
 
@@ -2345,19 +2346,34 @@ function checkApiKeyStatus() {
     badge.style.backgroundColor = '#10b981';
     badge.style.boxShadow = '0 0 6px #10b981';
     badge.title = 'Personal API Key ត្រូវបានភ្ជាប់';
-    if (btn) btn.title = '🔑 កំពុងប្រើ Personal API Key (ចុចដើម្បីកែប្រែ ឬ Reset)';
+    if (label) label.textContent = 'API Key';
+    if (btn) {
+      btn.title = '🔑 កំពុងប្រើ Personal API Key (ចុចដើម្បីកែប្រែ ឬ Reset)';
+      btn.style.borderColor = '#10b981';
+      btn.style.background = '';
+    }
   } else if (state.geminiApiKey && state.geminiApiKey.trim()) {
     badge.className = 'status-dot active';
     badge.style.backgroundColor = '#10b981';
     badge.style.boxShadow = '0 0 6px #10b981';
     badge.title = 'API Key ត្រូវបានភ្ជាប់';
-    if (btn) btn.title = '🔑 កំពុងប្រើ API Key (ចុចដើម្បីកែប្រែ ឬ Reset)';
+    if (label) label.textContent = 'API Key';
+    if (btn) {
+      btn.title = '🔑 កំពុងប្រើ API Key (ចុចដើម្បីកែប្រែ ឬ Reset)';
+      btn.style.borderColor = '#10b981';
+      btn.style.background = '';
+    }
   } else {
     badge.className = 'status-dot';
     badge.style.backgroundColor = '#ef4444';
-    badge.style.boxShadow = 'none';
-    badge.title = 'មិនទាន់ភ្ជាប់ API Key';
-    if (btn) btn.title = '⚠️ មិនទាន់ភ្ជាប់ API Key (ចុចដើម្បីកំណត់)';
+    badge.style.boxShadow = '0 0 6px rgba(239, 68, 68, 0.6)';
+    badge.title = 'មិនទាន់ភ្ជាប់ API Key (ចុចដើម្បីបញ្ចូល)';
+    if (label) label.textContent = 'បញ្ចូល API Key';
+    if (btn) {
+      btn.title = '⚠️ មិនទាន់ភ្ជាប់ API Key (សូមចុចដើម្បីបញ្ចូល API Key ឥតគិតថ្លៃ)';
+      btn.style.borderColor = '#f59e0b';
+      btn.style.background = '#fffbeb';
+    }
   }
 }
 
@@ -2450,12 +2466,16 @@ async function handleGenerateLessonPlan() {
       provider = 'openrouter';
     }
 
-    // Route generation: personal key → direct API; no key → backend server (uses env GEMINI_API_KEY)
+    // Explicit API Key requirement:
+    // If no API Key is configured, DO NOT silently generate a dummy template!
+    // Alert the user immediately with transparent explanation and guide them to enter their free API key.
     if (!key) {
-      // No personal key – use the server-side backend which has GEMINI_API_KEY configured
-      showToast('🤖 កំពុងដំណើរការដោយ AI Server (Gemini)...', 'info');
-      planData = await generateWithBackendAPI(genParams);
-    } else if (provider === 'groq' || key.startsWith('gsk_')) {
+      loadingOverlay.style.display = 'none';
+      openAiErrorModal('NO_KEY', genParams);
+      return;
+    }
+
+    if (provider === 'groq' || key.startsWith('gsk_')) {
       showToast('⚡ កំពុងដំណើរការដោយ Groq AI (Llama 3.3 70B & DeepSeek)...', 'info');
       planData = await generateWithGroqAPI(genParams);
     } else if (provider === 'openrouter' || key.startsWith('sk-or-')) {
@@ -2471,6 +2491,9 @@ async function handleGenerateLessonPlan() {
         try {
           showToast('🔄 Key ផ្ទាល់ខ្លួនជួបបញ្ហា... កំពុងប្តូរស្វ័យប្រវត្តទៅកាន់ AI Server បម្រុង...', 'info');
           planData = await generateWithBackendAPI(genParams);
+          if (planData && planData.isOfflineDraft) {
+            throw geminiErr;
+          }
         } catch (backendErr) {
           throw geminiErr;
         }
@@ -2564,18 +2587,19 @@ function openAiErrorModal(errOrType, genParams) {
   if (logEl) logEl.textContent = rawMsg || 'Unknown Error';
 
   if (isNoKey) {
-    if (titleEl) titleEl.textContent = 'មិនទាន់បានភ្ជាប់ Google Gemini API Key';
+    if (titleEl) titleEl.textContent = '⚠️ មិនទាន់បានបញ្ចូល Google Gemini API Key';
     if (reasonEl) {
       reasonEl.innerHTML = `
-        <div style="margin-bottom: 8px;">
-          <strong>🔍 មូលហេតុ៖</strong> កម្មវិធីមិនទាន់រកឃើញ <strong>Google Gemini API Key</strong> នៅឡើយទេ។
+        <div style="margin-bottom: 10px; font-size: 0.92rem; line-height: 1.6;">
+          <strong>🔍 មូលហេតុ៖</strong> កម្មវិធីមិនទាន់រកឃើញ <strong>Google Gemini API Key</strong> នៅក្នុងប្រព័ន្ធនៅឡើយទេ។
         </div>
-        <div style="margin-bottom: 8px;">
-          <strong>🛠️ អ្វីដែលលោកគ្រូ អ្នកគ្រូត្រូវធ្វើ៖</strong> 
-          សូមចុចប៊ូតុង <strong>«🔑 ពិនិត្យ / បញ្ចូល Gemini API Key»</strong> ខាងក្រោម ដើម្បី Paste API Key ដែលលោកគ្រូទទួលបានពី Google AI Studio (aistudio.google.com)។
+        <div style="margin-bottom: 10px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 10px 14px; font-size: 0.88rem; color: #1e40af; line-height: 1.6;">
+          <strong>💡 ហេតុអ្វីត្រូវមាន API Key?</strong><br>
+          ដើម្បីឱ្យបញ្ញាសិប្បនិម្មិត <strong>Google Gemini AI (2.5 Pro / Flash)</strong> អាចវិភាគចំណងជើង និងបង្កើតខ្លឹមសារកិច្ចតែងការ MoEYS ៥ ជំហានពេញលេញ មានគុណភាពខ្ពស់ និងឆ្លើយតបត្រូវតាមមុខវិជ្ជាជាក់ស្ដែង។
         </div>
-        <div style="color: #059669; font-size: 0.85rem;">
-          ✨ នៅពេលភ្ជាប់ Key រួច Google Gemini AI នឹងបង្កើតកិច្ចតែងការ MoEYS ៥ ជំហានពេញលេញ មានគុណភាពខ្ពស់ និងឆ្លើយតបត្រូវតាមខ្លឹមសារស្លាយ ឬឯកសារដែលបានបញ្ចូល។
+        <div style="margin-bottom: 6px; font-size: 0.88rem; color: #166534; line-height: 1.5;">
+          <strong>✨ តើ API Key គិតថ្លៃទេ?</strong><br>
+          <strong>ឥតគិតថ្លៃ ១០០% (Free 100%)</strong> ពី Google AI Studio ដោយប្រើត្រឹមតែគណនី Gmail ធម្មតារបស់លោកគ្រូ/អ្នកគ្រូប៉ុណ្ណោះ (ចំណាយពេលត្រឹម ៣០ វិនាទី)។
         </div>
       `;
     }
@@ -2633,6 +2657,56 @@ function openAiErrorModal(errOrType, genParams) {
     }
   }
 
+  // Adjust button styles and visibility based on error type
+  const btnOffline = document.getElementById('btnAiErrorOffline');
+  const btnKey = document.getElementById('btnAiErrorKey');
+  const btnClearKey = document.getElementById('btnAiErrorClearKey');
+  const btnRetry = document.getElementById('btnAiErrorRetry');
+
+  if (isNoKey) {
+    if (btnKey) {
+      btnKey.style.display = 'flex';
+      btnKey.style.background = 'linear-gradient(135deg, #2563eb, #4f46e5)';
+      btnKey.style.color = '#ffffff';
+      btnKey.style.border = 'none';
+      btnKey.style.fontWeight = '700';
+      btnKey.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.3)';
+      btnKey.innerHTML = '<i class="fa-solid fa-key" style="color: #fde047;"></i> 🔑 បញ្ចូល Gemini API Key ឥឡូវនេះ (ឥតគិតថ្លៃ Free)';
+    }
+    if (btnOffline) {
+      btnOffline.style.display = 'flex';
+      btnOffline.style.background = '#f8fafc';
+      btnOffline.style.color = '#475569';
+      btnOffline.style.border = '1px solid #cbd5e1';
+      btnOffline.style.fontWeight = '600';
+      btnOffline.style.boxShadow = 'none';
+      btnOffline.innerHTML = '<i class="fa-solid fa-file-lines"></i> 📋 មើលគ្រោងគំរូសេចក្ដីព្រាង (Offline Draft Template)';
+    }
+    if (btnClearKey) btnClearKey.style.display = 'none';
+    if (btnRetry) btnRetry.style.display = 'none';
+  } else {
+    if (btnKey) {
+      btnKey.style.display = 'flex';
+      btnKey.style.background = 'white';
+      btnKey.style.color = '#1d4ed8';
+      btnKey.style.border = '1.5px solid #3b82f6';
+      btnKey.style.fontWeight = '600';
+      btnKey.style.boxShadow = 'none';
+      btnKey.innerHTML = '<i class="fa-solid fa-key" style="color: #f59e0b;"></i> 🔑 ពិនិត្យ / បញ្ចូល API Key ថ្មី (Gemini / Groq)';
+    }
+    if (btnOffline) {
+      btnOffline.style.display = 'flex';
+      btnOffline.style.background = 'linear-gradient(135deg, #059669, #10b981)';
+      btnOffline.style.color = 'white';
+      btnOffline.style.border = 'none';
+      btnOffline.style.fontWeight = '700';
+      btnOffline.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.25)';
+      btnOffline.innerHTML = '<i class="fa-solid fa-bolt"></i> 🚀 បង្កើតភ្លាមៗតាម Smart Offline Engine (មិនបាច់រង់ចាំ / ឥតគិតថ្លៃ)';
+    }
+    if (btnClearKey) btnClearKey.style.display = (state.geminiApiKey || localStorage.getItem('gemini_api_key')) ? 'flex' : 'none';
+    if (btnRetry) btnRetry.style.display = 'flex';
+  }
+
   if (modal) {
     modal.style.display = 'flex';
   }
@@ -2684,11 +2758,12 @@ function proceedOfflineDeliberately() {
   setTimeout(() => {
     try {
       const fallbackData = synthesizeLessonPlanOffline(pendingGenParams);
+      fallbackData.isOfflineDraft = true;
       state.generatedPlanData = fallbackData;
       renderLessonPlanToA4(fallbackData);
       document.getElementById('emptyState').style.display = 'none';
       document.getElementById('printableDoc').style.display = 'block';
-      showToast('💡 បានបង្កើតកិច្ចតែងការតាម Smart Offline Engine (ជម្រើសបម្រុង)', 'info');
+      showToast('⚠️ នេះជាគ្រោងគំរូសេចក្ដីព្រាង (Offline Draft) - សូមបញ្ចូល API Key ដើម្បីបង្កើតដោយ AI ពិតប្រាកដ', 'warning');
     } catch (e) {
       console.error('Offline generation error:', e);
       showToast('មានបញ្ហាក្នុងការបង្កើតកិច្ចតែងការ Offline', 'error');
@@ -3760,6 +3835,13 @@ function saveApiKeyFromModal() {
   checkApiKeyStatus();
   updateApiKeyModalUI();
   if (apiKeyModal) apiKeyModal.style.display = 'none';
+
+  if (key && pendingGenParams) {
+    showToast('🚀 កំពុងដំណើរការបង្កើតកិច្ចតែងការដោយ AI ដោយស្វ័យប្រវត្តិ...', 'info');
+    setTimeout(() => {
+      handleGenerateLessonPlan();
+    }, 300);
+  }
 }
 window.saveApiKeyFromModal = saveApiKeyFromModal;
 
@@ -5695,6 +5777,26 @@ function renderLessonPlanToA4(data) {
 
   const isEn = (state.language === 'en');
 
+  // Offline Draft Warning Banner
+  const offlineWarningBanner = data.isOfflineDraft ? `
+    <div class="offline-warning-banner" id="offlineDraftWarningBanner">
+      <div style="display: flex; align-items: flex-start; gap: 12px;">
+        <span style="font-size: 1.6rem; line-height: 1;">⚠️</span>
+        <div>
+          <div style="font-weight: 700; color: #92400e; font-size: 10.5pt; margin-bottom: 3px;">
+            គ្រោងគំរូសេចក្ដីព្រាង (Offline Draft Template) — មិនទាន់បង្កើតដោយ AI ពិតប្រាកដនៅឡើយទេ
+          </div>
+          <div style="font-size: 9pt; color: #78350f; line-height: 1.45;">
+            ឯកសារខាងក្រោមនេះជាគ្រោងគំរូទូទៅ (Offline Template) ដោយសារមិនទាន់បានបញ្ចូល <strong>Gemini API Key</strong>។ សូមចុចប៊ូតុងខាងស្ដាំដើម្បីភ្ជាប់ Key ឥតគិតថ្លៃ (Free 100%) រួចបង្កើតខ្លឹមសារលម្អិតតាម AI Gemini ពិតប្រាកដ។
+          </div>
+        </div>
+      </div>
+      <button type="button" onclick="openApiKeyModal()" style="white-space: nowrap; padding: 8px 14px; background: linear-gradient(135deg, #d97706, #b45309); color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 9pt; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(217, 119, 6, 0.3);">
+        <i class="fa-solid fa-key" style="color: #fef08a;"></i> ភ្ជាប់ API Key ឥឡូវនេះ
+      </button>
+    </div>
+  ` : '';
+
   // Common Header HTML
   const headerHtml = `
     <!-- Top Emblem & Motto -->
@@ -5763,6 +5865,7 @@ function renderLessonPlanToA4(data) {
     });
 
     doc.innerHTML = `
+      ${offlineWarningBanner}
       <!-- Top Emblem & Motto -->
       <div class="doc-header-top">
         <div class="doc-motto-kh">ព្រះរាជាណាចក្រកម្ពុជា</div>
@@ -5911,6 +6014,7 @@ function renderLessonPlanToA4(data) {
     });
 
     doc.innerHTML = `
+      ${offlineWarningBanner}
       ${headerHtml}
 
       <!-- Stage 1: Desired Results -->
@@ -6022,6 +6126,7 @@ function renderLessonPlanToA4(data) {
   });
 
   doc.innerHTML = `
+    ${offlineWarningBanner}
     ${headerHtml}
 
     <!-- Section I: Objectives -->
