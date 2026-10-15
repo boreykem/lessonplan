@@ -2450,15 +2450,12 @@ async function handleGenerateLessonPlan() {
       provider = 'openrouter';
     }
 
-    // Check if user has an AI Provider Key
+    // Route generation: personal key → direct API; no key → backend server (uses env GEMINI_API_KEY)
     if (!key) {
-      // User expects Gemini AI! Do NOT silently synthesize an offline template!
-      loadingOverlay.style.display = 'none';
-      openAiErrorModal('NO_KEY', genParams);
-      return;
-    }
-
-    if (provider === 'groq' || key.startsWith('gsk_')) {
+      // No personal key – use the server-side backend which has GEMINI_API_KEY configured
+      showToast('🤖 កំពុងដំណើរការដោយ AI Server (Gemini)...', 'info');
+      planData = await generateWithBackendAPI(genParams);
+    } else if (provider === 'groq' || key.startsWith('gsk_')) {
       showToast('⚡ កំពុងដំណើរការដោយ Groq AI (Llama 3.3 70B & DeepSeek)...', 'info');
       planData = await generateWithGroqAPI(genParams);
     } else if (provider === 'openrouter' || key.startsWith('sk-or-')) {
@@ -2836,6 +2833,53 @@ async function discoverGeminiModels(apiKey) {
   return null;
 }
 window.discoverGeminiModels = discoverGeminiModels;
+
+// 🌐 Backend Server API Generator (uses Vercel GEMINI_API_KEY env var - no personal key needed)
+async function generateWithBackendAPI(params) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 90000); // 90s timeout
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        subject: params.subject,
+        grade: params.grade,
+        lessonTitle: params.lessonTitle,
+        chapter: params.chapter,
+        school: params.school,
+        teacher: params.teacher,
+        duration: params.duration,
+        method: params.method,
+        customNotes: params.customNotes,
+        lessonContent: params.lessonContent,
+        language: params.language,
+        templateMode: params.templateMode,
+        presetId: params.presetId,
+        customTemplate: params.customTemplate,
+        apiKey: '' // server uses its own env key
+      }),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Server error ${res.status}: ${errText}`);
+    }
+
+    const json = await res.json();
+    if (!json.success) {
+      throw new Error(json.error || 'Server generation failed');
+    }
+    return json.data;
+  } catch (err) {
+    clearTimeout(timeoutId);
+    throw err;
+  }
+}
+window.generateWithBackendAPI = generateWithBackendAPI;
 
 // 🤖 Google Gemini API Generator
 async function generateWithGeminiAPI(params) {
