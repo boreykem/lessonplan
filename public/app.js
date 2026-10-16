@@ -8753,105 +8753,125 @@ function importPlansFromJson(file) {
   reader.readAsText(file);
 }
 
-// Google NotebookLM & Gemini Notebook Studio Actions
-let currentNotebookLmSourceText = '';
-let currentNotebookLmShortPrompt = '';
+// Google NotebookLM & Gemini Notebook Studio Actions - Flipped Classroom Video Micro-Lecture
+let currentNotebookLmFlippedPrompt = '';
 
-function prepareNotebookLmSource() {
+function prepareNotebookLmFlippedVideoPrompt() {
   const data = state.generatedPlanData || state.currentPlan;
   
-  const subject = data?.subject || document.getElementById('txtSubject')?.value?.trim() || 'វិទ្យាសាស្ត្រ';
-  const grade = data?.grade || document.getElementById('txtGrade')?.value?.trim() || 'ទី១០';
+  const subject = data?.subject || document.getElementById('txtSubject')?.value?.trim() || 'ចិត្តវិទ្យាអប់រំ';
+  const grade = data?.grade || document.getElementById('txtGrade')?.value?.trim() || 'គរុនិស្សិត';
   const title = data?.lessonTitle || document.getElementById('txtLessonTitle')?.value?.trim() || 'មេរៀន';
-  const duration = data?.duration || document.getElementById('txtDuration')?.value?.trim() || '៥០ នាទី';
-  const method = data?.method || document.getElementById('selectMethod')?.value || '5E';
 
-  let src = `=======================================================\n`;
-  src += `ឯកសារប្រភពសម្រាប់ GOOGLE NOTEBOOKLM (SOURCE MATERIAL)\n`;
-  src += `LANGUAGE: 100% KHMER (ភាសាខ្មែរ)\n`;
-  src += `=======================================================\n`;
-  src += `• មុខវិជ្ជា៖ ${subject}\n`;
-  src += `• ថ្នាក់៖ ${grade}\n`;
-  src += `• មេរៀន៖ ${title}\n`;
-  src += `• រយៈពេល៖ ${duration}\n`;
-  src += `• វិធីសាស្ត្របង្រៀន៖ ${method}\n\n`;
+  // 1. Prioritize Attached Lesson Content (ឯកសារមេរៀនដែលបានភ្ជាប់)
+  let lessonBody = '';
+  const attachedContent = data?.lessonContent || document.getElementById('txtLessonContent')?.value || '';
+  if (attachedContent && attachedContent.trim().length > 15) {
+    lessonBody = attachedContent.trim();
+  } else {
+    // Fallback: extract academic theories and concepts from Step 3 & 4 contentSummary only
+    const concepts = [];
+    if (data?.steps && Array.isArray(data.steps)) {
+      data.steps.forEach(st => {
+        // Exclude step 1 (admin) and step 5 (homework), focus on academic content
+        if (st.contentSummary && st.contentSummary.trim().length > 15) {
+          const titleClean = st.stepTitle || 'ខ្លឹមសារស្នូល';
+          if (!titleClean.includes('រដ្ឋបាល') && !titleClean.includes('កិច្ចការផ្ទះ')) {
+            concepts.push(`• ${titleClean}៖\n${st.contentSummary.trim()}`);
+          }
+        }
+      });
+    }
+    lessonBody = concepts.join('\n\n');
+  }
 
+  // 2. Learning Objectives (Knowledge & Skills only)
+  let objText = '';
   if (data?.objectives) {
-    src += `[វត្ថុបំណងមេរៀន]\n`;
-    if (data.objectives.knowledge?.length) {
-      src += `- វិជ្ជាសម្បទា៖ ` + data.objectives.knowledge.join('; ') + `\n`;
-    }
-    if (data.objectives.skills?.length) {
-      src += `- បំណិនសម្បទា៖ ` + data.objectives.skills.join('; ') + `\n`;
-    }
-    if (data.objectives.attitudes?.length) {
-      src += `- ចរិយាសម្បទា៖ ` + data.objectives.attitudes.join('; ') + `\n`;
-    }
-    src += `\n`;
+    const list = [];
+    if (data.objectives.knowledge?.length) list.push(...data.objectives.knowledge);
+    if (data.objectives.skills?.length) list.push(...data.objectives.skills);
+    if (list.length) objText = list.map(o => `- ${o}`).join('\n');
   }
 
-  if (data?.materials) {
-    src += `[សម្ភារឧបទេស]\n${data.materials}\n\n`;
+  // 3. Build the 100% Khmer Pre-Class Flipped Classroom Video Prompt
+  let prompt = `=======================================================\n`;
+  prompt += `PROMPT វីដេអូស្វ័យសិក្សាត្រៀមមុនម៉ោង (FLIPPED CLASSROOM MICRO-LECTURE)\n`;
+  prompt += `ភាសានិយាយ និងអក្សរលើស្លាយ៖ ភាសាខ្មែរ ១០០% (FONT: KANTUMRUY PRO)\n`;
+  prompt += `=======================================================\n\n`;
+  prompt += `សូមដើរតួជាសាស្ត្រាចារ្យគរុកោសល្យ និងជាអ្នកជំនាញផលិតវីដេអូអប់រំឌីជីថល។ សូមផលិតវីដេអូពន្យល់មេរៀនខ្នាតខ្លី (Educational Explainer Video / Micro-Lecture) រយៈពេល ៥ ទៅ ៨ នាទី សម្រាប់សិស្ស/គរុនិស្សិតស្វ័យសិក្សាត្រៀមមុនចូលរៀនក្នុងថ្នាក់ (Pre-Class Phase ក្នុងគំរូ Flipped Classroom) សម្រាប់មេរៀន «${title}» មុខវិជ្ជា ${subject} ${grade}។\n\n`;
+
+  prompt += `⚠️ លក្ខខណ្ឌតម្រូវចាំបាច់បំផុត (CRITICAL REQUIREMENTS)៖\n`;
+  prompt += `១. ភាសានិយាយ និងអក្សរលើស្លាយ (Language):\n`;
+  prompt += `   • ទាំងសំឡេងគ្រូអត្ថាធិប្បាយ (Narration Voiceover) និងអក្សរសង្ខេបបង្ហាញលើស្លាយវីដេអូ (On-Screen Text) ត្រូវតែជា «ភាសាខ្មែរ ១០០%» (Font 'Kantumruy Pro')។\n`;
+  prompt += `   • ទឹកដមសំឡេងត្រូវមានភាពរស់រវើក ទាក់ទាញ ច្បាស់ៗ រលូន និងមានលក្ខណៈអប់រំកម្រិតខ្ពស់។ ដាច់ខាតកុំប្រើប្រាស់ភាសាអង់គ្លេសលើស្លាយ ឬក្នុងសំឡេងនិយាយ!\n\n`;
+
+  prompt += `២. រចនាសម្ព័ន្ធវីដេអូ ៤ ឈុត (4-Scene Micro-Lecture Structure)៖\n`;
+  prompt += `   • ឈុតទី១ (អារម្ភកថា & ចំណុចចាប់អារម្មណ៍ - ១ នាទី)៖ បង្ហាញពីសារៈសំខាន់នៃមេរៀនក្នុងជីវភាពរស់នៅជាក់ស្តែង និងចោទជាបញ្ហា ឬភាពចង់ដឹង ដើម្បីទាក់ទាញការយកចិត្តទុកដាក់របស់សិស្ស។\n`;
+  prompt += `   • ឈុតទី២ (ទ្រឹស្តី និងបញ្ញត្តិស្នូល - ៣ នាទី)៖ ពន្យល់និយមន័យ បញ្ញត្តិ និងទ្រឹស្តីគន្លឹះជាភាសាខ្មែរឱ្យច្បាស់លាស់ និងងាយយល់ អមដោយដ្យាក្រាម រូបភាព ឬគំនូរជីវចលពន្យល់។\n`;
+  prompt += `   • ឈុតទី៣ (ករណីសិក្សា និងការអនុវត្តជាក់ស្តែង - ២ នាទី)៖ លើកករណីសិក្សាជាក់ស្តែងក្នុងបរិបទសង្គម និងការអប់រំនៅកម្ពុជា ដើម្បីបង្ហាញពីរបៀបដោះស្រាយបញ្ហាតាមក្បួនចិត្តវិទ្យា/គរុកោសល្យ។\n`;
+  prompt += `   • ឈុតទី៤ (សង្ខេប & សំណួរត្រិះរិះត្រៀមចូលថ្នាក់ - ១ នាទី)៖ សង្ខេបចំណុចសំខាន់ៗដែលបានរៀន និងដាក់សំណួរពិចារណា ២-៣ សំណួរ ដើម្បីឱ្យសិស្សត្រិះរិះទុកជាមុន និងត្រៀមយកមកពិភាក្សាដេញដោលក្នុងថ្នាក់រៀន (In-Class Active Learning)។\n\n`;
+
+  prompt += `៣. ខ្លឹមសារត្រូវផ្តោតតែលើ «ចំណេះដឹងមេរៀន» (Content Only)៖\n`;
+  prompt += `   • វីដេអូនេះសម្រាប់សិស្សរៀន ដូច្នេះហាមដាច់ខាតមិនឱ្យនិយាយពីរឿងរដ្ឋបាលថ្នាក់ ការសម្រង់វត្តមាន អនាម័យថ្នាក់ ឬការបែងចែកក្រុមឡើយ!\n\n`;
+
+  if (objText) {
+    prompt += `=======================================================\n`;
+    prompt += `[វត្ថុបំណងនៃការរៀនសូត្រ]\n`;
+    prompt += `${objText}\n\n`;
   }
 
-  if (data?.steps && Array.isArray(data.steps)) {
-    src += `[ដំណើរការបង្រៀន និងរៀន ៥ ជំហាន]\n`;
-    data.steps.forEach((st, idx) => {
-      src += `\n${st.stepTitle || `ជំហានទី ${idx + 1}`} (${st.duration || ''})៖\n`;
-      if (st.teacherActivity) src += `• សកម្មភាពគ្រូ៖ ${st.teacherActivity}\n`;
-      if (st.contentSummary) src += `• ខ្លឹមសារមេរៀន៖ ${st.contentSummary}\n`;
-      if (st.studentActivity) src += `• សកម្មភាពសិស្ស៖ ${st.studentActivity}\n`;
-    });
-    src += `\n`;
-  }
-
-  const lessonContent = data?.lessonContent || document.getElementById('txtLessonContent')?.value || '';
-  if (lessonContent && lessonContent.trim().length > 10) {
-    src += `[ឯកសារ និងខ្លឹមសារលម្អិតបន្ថែម]\n${lessonContent.trim()}\n\n`;
+  if (lessonBody) {
+    prompt += `=======================================================\n`;
+    prompt += `[ខ្លឹមសារឯកសារមេរៀនសម្រាប់ផលិតវីដេអូ]\n`;
+    prompt += `=======================================================\n`;
+    prompt += `${lessonBody}\n\n`;
   }
 
   if (data?.notebooklmGuide?.keyTakeaways?.length) {
-    src += `[ចំណុចគន្លឹះសំខាន់ៗ (Key Concepts)]\n`;
-    data.notebooklmGuide.keyTakeaways.forEach(k => src += `• ${k}\n`);
-    src += `\n`;
+    prompt += `[ចំណុចគន្លឹះបន្ថែម]\n`;
+    data.notebooklmGuide.keyTakeaways.forEach(k => prompt += `• ${k}\n`);
+    prompt += `\n`;
   }
 
-  if (data?.notebooklmGuide?.scriptSegments?.length) {
-    src += `[អត្ថបទសន្ទនាពន្យល់មេរៀន (Audio Explainer Script)]\n`;
-    data.notebooklmGuide.scriptSegments.forEach(seg => {
-      src += `[${seg.speaker || 'Host'} - ${seg.timestamp || ''}]: ${seg.dialogue || ''}\n`;
-    });
-    src += `\n`;
-  }
-
-  return src;
-}
-
-function prepareNotebookLmShortPrompt() {
-  const data = state.generatedPlanData || state.currentPlan;
-  const subject = data?.subject || document.getElementById('txtSubject')?.value?.trim() || 'មុខវិជ្ជា';
-  const grade = data?.grade || document.getElementById('txtGrade')?.value?.trim() || '';
-  const title = data?.lessonTitle || document.getElementById('txtLessonTitle')?.value?.trim() || 'មេរៀន';
-  
-  return `សូមផលិត Audio Overview (Podcast សំឡេង) ឬ Video Explainer ជាភាសាខ្មែរ ១០០% សម្រាប់មេរៀន «${title}» (${subject} ${grade}) ដោយពន្យល់ចំណុចគន្លឹះ និយមន័យសំខាន់ៗ និងលើកឧទាហរណ៍ជាក់ស្តែងក្នុងបរិបទកម្ពុជា។`;
+  return prompt;
 }
 
 function prepareNotebookLmText() {
-  return prepareNotebookLmSource();
+  return prepareNotebookLmFlippedVideoPrompt();
 }
+function prepareNotebookLmSource() {
+  return prepareNotebookLmFlippedVideoPrompt();
+}
+function prepareNotebookLmShortPrompt() {
+  return prepareNotebookLmFlippedVideoPrompt();
+}
+
+async function copyNotebookLMFlippedPrompt(e) {
+  if (e) e.stopPropagation();
+  const text = currentNotebookLmFlippedPrompt || prepareNotebookLmFlippedVideoPrompt();
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('✨ បានចម្លង Prompt វីដេអូ Flipped Classroom (ភាសាខ្មែរ ១០០%) រួចរាល់!', 'success');
+  } catch (err) {
+    showToast('មិនអាចចម្លងបានទេ: ' + err.message, 'error');
+  }
+}
+window.copyNotebookLMFlippedPrompt = copyNotebookLMFlippedPrompt;
+window.copyNotebookLMShortPrompt = copyNotebookLMFlippedPrompt;
+window.copyNotebookLMSourceOnly = copyNotebookLMFlippedPrompt;
+window.copyNotebookLMPromptAgain = copyNotebookLMFlippedPrompt;
 
 async function openNotebookLM() {
   try {
-    const sourceText = prepareNotebookLmSource();
-    const shortPrompt = prepareNotebookLmShortPrompt();
-    currentNotebookLmSourceText = sourceText;
-    currentNotebookLmShortPrompt = shortPrompt;
+    const flippedPrompt = prepareNotebookLmFlippedVideoPrompt();
+    currentNotebookLmFlippedPrompt = flippedPrompt;
 
-    // Pre-copy Source text into clipboard for instant paste into "+ Sources -> Copied text"
+    // Auto-copy Flipped Classroom Video Prompt to clipboard
     let copied = false;
     if (navigator.clipboard && navigator.clipboard.writeText) {
       try {
-        await navigator.clipboard.writeText(sourceText);
+        await navigator.clipboard.writeText(flippedPrompt);
         copied = true;
       } catch (cErr) {
         console.warn('Clipboard API error, trying fallback:', cErr);
@@ -8860,7 +8880,7 @@ async function openNotebookLM() {
     if (!copied) {
       try {
         const ta = document.createElement('textarea');
-        ta.value = sourceText;
+        ta.value = flippedPrompt;
         ta.style.position = 'fixed';
         ta.style.opacity = '0';
         document.body.appendChild(ta);
@@ -8877,14 +8897,14 @@ async function openNotebookLM() {
     // Populate preview text in modal
     const previewEl = document.getElementById('notebookLmCopiedPreview');
     if (previewEl) {
-      previewEl.textContent = sourceText;
+      previewEl.textContent = flippedPrompt;
     }
 
     // Open modal popup
     const modal = document.getElementById('notebookLmModal');
     if (modal) {
       modal.style.display = 'flex';
-      showToast('📋 បានចម្លងឯកសារប្រភពរួចរាល់! សូមចុច "+ Sources" ក្នុង NotebookLM។', 'info');
+      showToast('✨ បានចម្លង Prompt វីដេអូ Flipped Classroom ចូល Clipboard រួចរាល់!', 'success');
     } else {
       window.open('https://notebooklm.google.com/', '_blank');
     }
@@ -8909,50 +8929,26 @@ function proceedToNotebookLMWeb() {
   if (!win || win.closed || typeof win.closed === 'undefined') {
     window.location.href = 'https://notebooklm.google.com/';
   } else {
-    showToast('🚀 កំពុងបើក Google NotebookLM... សូមចុច "+ Sources" ដើម្បីបញ្ចូលឯកសារ!', 'success');
+    showToast('🚀 កំពុងបើក Google NotebookLM... សូមចុច Ctrl+V ដើម្បីបិទភ្ជាប់ Prompt!', 'success');
   }
 }
 window.proceedToNotebookLMWeb = proceedToNotebookLMWeb;
 
-async function copyNotebookLMSourceOnly(e) {
-  if (e) e.stopPropagation();
-  const text = currentNotebookLmSourceText || prepareNotebookLmSource();
-  try {
-    await navigator.clipboard.writeText(text);
-    showToast('📋 បានចម្លងឯកសារប្រភព! យកទៅ Paste ក្នុង «+ Sources ➔ Copied text»', 'success');
-  } catch (err) {
-    showToast('មិនអាចចម្លងបានទេ: ' + err.message, 'error');
+function proceedToGeminiWeb() {
+  closeNotebookLmModal();
+  const win = window.open('https://gemini.google.com/', '_blank');
+  if (!win || win.closed || typeof win.closed === 'undefined') {
+    window.location.href = 'https://gemini.google.com/';
+  } else {
+    showToast('🚀 កំពុងបើក Google Gemini... សូមចុច Ctrl+V ដើម្បីបិទភ្ជាប់ Prompt!', 'success');
   }
 }
-window.copyNotebookLMSourceOnly = copyNotebookLMSourceOnly;
-window.copyNotebookLMPromptAgain = copyNotebookLMSourceOnly;
-
-async function copyNotebookLMShortPrompt(e) {
-  if (e) e.stopPropagation();
-  const prompt = currentNotebookLmShortPrompt || prepareNotebookLmShortPrompt();
-  try {
-    await navigator.clipboard.writeText(prompt);
-    showToast('✨ បានចម្លង Prompt ខ្លី! អាចយកទៅ Paste ក្នុង Chat ឬ Studio Customize បានយ៉ាងងាយ។', 'success');
-  } catch (err) {
-    showToast('មិនអាចចម្លងបានទេ: ' + err.message, 'error');
-  }
-}
-window.copyNotebookLMShortPrompt = copyNotebookLMShortPrompt;
+window.proceedToGeminiWeb = proceedToGeminiWeb;
 
 function downloadNotebookLMSourceFile() {
-  const data = state.generatedPlanData || state.currentPlan;
-  const sourceText = currentNotebookLmSourceText || prepareNotebookLmSource();
-  
-  const subject = (data?.subject || 'មុខវិជ្ជា').replace(/[\\/:*?"<>|]/g, '_');
-  const title = (data?.lessonTitle || 'មេរៀន').substring(0, 20).replace(/[\\/:*?"<>|]/g, '_');
-
-  const blob = new Blob(['\uFEFF' + sourceText], { type: 'text/plain;charset=utf-8;' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = `NotebookLM_Source_${subject}_${title}.txt`;
-  link.click();
-  showToast('📥 បានទាញយក File ប្រភព (.txt) រួចរាល់! Upload ចូល «+ Sources» ក្នុង NotebookLM។', 'success');
+  copyNotebookLMFlippedPrompt();
 }
+window.downloadNotebookLMSourceFile = downloadNotebookLMSourceFile;
 window.downloadNotebookLMSourceFile = downloadNotebookLMSourceFile;
 
 async function copyVideoAIScriptPrompt() {

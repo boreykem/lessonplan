@@ -1255,115 +1255,86 @@
     </div>
   </div>
 
-  <!-- 🎬 Gemini Notebook (Google NotebookLM) Prompt & Document Copied Modal -->
+  <!-- 🎬 Flipped Classroom Video Micro-Lecture Prompt Modal -->
   <div id="notebookLmModal" class="modal-overlay" style="display: none;">
-    <div class="modal-card" style="max-width: 660px; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.2);">
-      <div class="modal-header" style="background: linear-gradient(135deg, #15803d 0%, #16a34a 100%); color: white; padding: 14px 20px;">
+    <div class="modal-card" style="max-width: 680px; border-radius: 16px; overflow: hidden; box-shadow: 0 20px 45px rgba(0,0,0,0.22);">
+      <div class="modal-header" style="background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%); color: white; padding: 14px 20px;">
         <div class="modal-title-wrap" style="display: flex; align-items: center; gap: 10px;">
-          <div style="background: white; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
-            <i class="fa-brands fa-google" style="color: #16a34a; font-size: 1.1rem;"></i>
+          <div style="background: white; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+            <i class="fa-solid fa-video" style="color: #7c3aed; font-size: 1.05rem;"></i>
           </div>
           <div>
-            <h4 style="color: white; font-weight: 700; margin: 0; font-size: 1.05rem;">Google NotebookLM & Gemini Notebook Guide</h4>
-            <div style="font-size: 0.78rem; opacity: 0.9; color: #dcfce7;">បង្កើត AI Audio Overview / Video / Slide Deck / Quiz ដោយឥតគិតថ្លៃ</div>
+            <h4 style="color: white; font-weight: 700; margin: 0; font-size: 1.05rem;">Prompt វីដេអូស្វ័យសិក្សា (Flipped Classroom Video)</h4>
+            <div style="font-size: 0.78rem; opacity: 0.9; color: #ede9fe;">ផលិតវីដេអូពន្យល់មេរៀន ៥-៨ នាទី ជាភាសាខ្មែរ ១០០% សម្រាប់សិស្សរៀនមុនចូលថ្នាក់</div>
           </div>
         </div>
         <button type="button" class="btn-close-modal" onclick="closeNotebookLmModal()" style="color: white; opacity: 0.85;"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="modal-body" style="padding: 18px 20px; max-height: 75vh; overflow-y: auto;">
-        <!-- CRITICAL WARNING BANNER -->
-        <div style="background: #fffbeb; border: 1.5px solid #f59e0b; border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 12px;">
-          <div style="width: 32px; height: 32px; border-radius: 50%; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0;">
-            <i class="fa-solid fa-triangle-exclamation"></i>
+        <!-- HERO ACTION CARD: ONLY BUTTON 3 -->
+        <div style="background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%); border: 2px solid #c084fc; border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(124, 58, 237, 0.08);">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px;">
+            <div>
+              <div style="font-weight: 700; color: #581c87; font-size: 1rem; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color: #9333ea;"></i> Prompt វីដេអូពន្យល់មេរៀនស្វ័យសិក្សា (ភាសាខ្មែរ ១០០%)
+              </div>
+              <div style="font-size: 0.85rem; color: #6b21a8; line-height: 1.5;">
+                បង្កើតឡើងដោយផ្អែកលើ <strong>«ខ្លឹមសារឯកសារមេរៀនដែលបានភ្ជាប់»</strong> (គ្មានសកម្មភាពរដ្ឋបាលថ្នាក់ ឬសម្រង់វត្តមាន)។ រចនាឡើងជាពិសេសសម្រាប់សិស្សស្វ័យសិក្សាត្រៀមមុនម៉ោងក្នុងគំរូ <strong>Flipped Classroom</strong>។
+              </div>
+            </div>
           </div>
-          <div style="font-size: 0.88rem; color: #92400e; line-height: 1.5;">
-            <strong style="color: #b45309; display: block; margin-bottom: 2px;">⚠️ ចំណាំសំខាន់បំផុត៖ កុំបិទភ្ជាប់ (Paste) ក្នុងប្រអប់ Chat ខាងក្រោម!</strong>
-            NotebookLM តម្រូវឱ្យបញ្ចូលឯកសារទៅក្នុង <strong>«+ Sources»</strong> (នៅជួរខាងឆ្វេង) ជាមុនសិន។ បើគ្មាន Source ទេ ប្រអប់ Chat នឹងបង្ហាញ <strong>«0 sources»</strong> ហើយជាប់សោរមិនអាចផ្ញើបានឡើយ។
-          </div>
+
+          <button type="button" onclick="copyNotebookLMFlippedPrompt()" style="width: 100%; background: linear-gradient(135deg, #7c3aed, #6d28d9); color: white; border: none; font-weight: 700; padding: 12px 18px; font-size: 0.98rem; border-radius: 10px; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3); display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; transition: all 0.2s;">
+            <i class="fa-solid fa-clipboard-check" style="font-size: 1.15rem;"></i> ចម្លង Prompt វីដេអូស្វ័យសិក្សា (Copy Prompt)
+          </button>
         </div>
 
-        <!-- FAST ACTION BUTTONS -->
-        <div style="margin-bottom: 16px;">
-          <div style="font-weight: 700; color: #1e293b; font-size: 0.92rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-bolt" style="color: #eab308;"></i> ជ្រើសរើសវិធីបញ្ចូលឯកសារទៅកាន់ NotebookLM៖
+        <!-- 3-STEP QUICK WORKFLOW -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 16px; margin-bottom: 14px;">
+          <div style="font-weight: 700; color: #1e293b; font-size: 0.88rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-circle-info" style="color: #4f46e5;"></i> របៀបប្រើប្រាស់ Prompt នេះជាមួយ AI៖
           </div>
-          
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-            <!-- Option 1: Download .txt -->
-            <button type="button" onclick="downloadNotebookLMSourceFile()" style="background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 10px; padding: 12px; text-align: left; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; gap: 4px;">
-              <div style="display: flex; align-items: center; gap: 8px; color: #15803d; font-weight: 700; font-size: 0.9rem;">
-                <i class="fa-solid fa-download" style="font-size: 1.05rem;"></i> ១. ទាញយកឯកសារ (.txt)
-              </div>
-              <div style="font-size: 0.78rem; color: #4b5563; line-height: 1.4;">
-                <span style="background: #dcfce7; color: #166534; padding: 1px 6px; border-radius: 4px; font-weight: 600;">ណែនាំបំផុត</span> រួចទម្លាក់ file ចូល «+ Sources»
-              </div>
-            </button>
-
-            <!-- Option 2: Copy Source Text -->
-            <button type="button" onclick="copyNotebookLMSourceOnly()" style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 12px; text-align: left; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; gap: 4px;">
-              <div style="display: flex; align-items: center; gap: 8px; color: #1e293b; font-weight: 700; font-size: 0.9rem;">
-                <i class="fa-regular fa-copy" style="font-size: 1.05rem; color: #2563eb;"></i> ២. ចម្លងអត្ថបទប្រភព
-              </div>
-              <div style="font-size: 0.78rem; color: #4b5563; line-height: 1.4;">
-                សម្រាប់យកទៅ Paste ក្នុង <code style="background: #e2e8f0; padding: 1px 4px; border-radius: 3px;">+ Sources ➔ Copied text</code>
-              </div>
-            </button>
-          </div>
-
-          <!-- Option 3: Short Prompt for Chat / Studio Customize -->
-          <div style="background: #f1f5f9; border: 1px dashed #94a3b8; border-radius: 8px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-            <div style="font-size: 0.82rem; color: #334155;">
-              <i class="fa-solid fa-sparkles" style="color: #8b5cf6;"></i> <strong>Prompt ខ្លី (Short Prompt)៖</strong> សម្រាប់ Paste ក្នុង Studio Customize ឬ Chat box ក្រោយពេលដាក់ Source រួច
+          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.84rem; color: #334155; line-height: 1.5;">
+            <div style="display: flex; align-items: flex-start; gap: 8px;">
+              <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #ede9fe; color: #6d28d9; font-weight: 700; font-size: 0.76rem; flex-shrink: 0;">១</span>
+              <span>ចុចប៊ូតុង <strong>«ចម្លង Prompt»</strong> ខាងលើ (ប្រព័ន្ធបាន Copy ចូល Clipboard រួចរាល់ជាស្រេច)។</span>
             </div>
-            <button type="button" class="btn-ghost" onclick="copyNotebookLMShortPrompt()" style="font-size: 0.8rem; padding: 4px 10px; background: white; border: 1px solid #cbd5e1; color: #6d28d9; font-weight: 600; border-radius: 6px; white-space: nowrap; cursor: pointer;">
-              <i class="fa-regular fa-copy"></i> Copy Prompt ខ្លី
-            </button>
-          </div>
-        </div>
-
-        <!-- 3-STEP VISUAL WORKFLOW -->
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px 16px; margin-bottom: 14px;">
-          <div style="font-weight: 700; color: #1e293b; font-size: 0.9rem; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-list-check" style="color: #16a34a;"></i> របៀបបង្កើតក្នុង Google NotebookLM (៣ ជំហានងាយៗ)៖
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 10px; font-size: 0.86rem; color: #334155; line-height: 1.5;">
-            <div style="display: flex; align-items: flex-start; gap: 10px;">
-              <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #16a34a; color: white; font-weight: 700; font-size: 0.78rem; flex-shrink: 0;">១</span>
-              <div>
-                ចុចប៊ូតុង <strong>«🚀 បន្តទៅកាន់ Google NotebookLM»</strong> ខាងក្រោម។ នៅពេលទំព័រ NotebookLM បើកឡើង សូមចុចត្រង់ <strong>«+ Sources»</strong> (នៅជួរខាងឆ្វេង) ➔ ជ្រើសរើស <strong>«Upload a file»</strong> (ទម្លាក់ឯកសារ .txt ចូល) ឬ <strong>«Copied text»</strong> (Ctrl+V)។
-              </div>
+            <div style="display: flex; align-items: flex-start; gap: 8px;">
+              <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #ede9fe; color: #6d28d9; font-weight: 700; font-size: 0.76rem; flex-shrink: 0;">២</span>
+              <span>ចុចបើក <strong>Google Gemini</strong> ឬ <strong>NotebookLM</strong> (ត្រង់ Customize) ឬ ChatGPT / AI Video Generator។</span>
             </div>
-            <div style="display: flex; align-items: flex-start; gap: 10px;">
-              <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #16a34a; color: white; font-weight: 700; font-size: 0.78rem; flex-shrink: 0;">២</span>
-              <div>
-                នៅពេល Source ត្រូវបានបញ្ចូលរួចរាល់ សូមក្រឡេកមើលផ្ទាំង <strong>«Studio»</strong> នៅខាងស្តាំដៃ។
-              </div>
-            </div>
-            <div style="display: flex; align-items: flex-start; gap: 10px;">
-              <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: #16a34a; color: white; font-weight: 700; font-size: 0.78rem; flex-shrink: 0;">៣</span>
-              <div>
-                ចុចលើ <strong>Audio Overview</strong> (បង្កើតសំឡេងពិភាក្សា Podcast), <strong>Video Overview</strong> (វីដេអូបង្រៀន), <strong>Slide Deck</strong> ឬ <strong>Quiz</strong> នោះ AI នឹងបង្កើតមាតិកាដោយស្វ័យប្រវត្តិភ្លាមៗ <strong>ដោយមិនបាច់សរសេរ Prompt អ្វីទាំងអស់!</strong>
-              </div>
+            <div style="display: flex; align-items: flex-start; gap: 8px;">
+              <span style="display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%; background: #ede9fe; color: #6d28d9; font-weight: 700; font-size: 0.76rem; flex-shrink: 0;">៣</span>
+              <span>ចុច <strong>Ctrl + V (Paste)</strong> ដើម្បីឱ្យ AI ផលិតវីដេអូ ឬ Script ពន្យល់មេរៀន ៥-៨ នាទី ជាភាសាខ្មែរ ១០០%!</span>
             </div>
           </div>
         </div>
 
-        <!-- Preview of Copied Text -->
-        <details style="background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; font-size: 0.82rem;">
-          <summary style="cursor: pointer; font-weight: 600; color: #475569; display: flex; align-items: center; justify-content: space-between; user-select: none;">
-            <span><i class="fa-solid fa-file-lines text-primary"></i> មើលខ្លឹមសារឯកសារប្រភព (Source Content)</span>
-            <span style="font-size: 0.75rem; color: #64748b;">ចុចដើម្បីបើក/បិទ</span>
-          </summary>
-          <pre id="notebookLmCopiedPreview" style="white-space: pre-wrap; word-break: break-word; max-height: 140px; overflow-y: auto; background: #f8fafc; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0; font-family: inherit; font-size: 0.8rem; margin: 8px 0 0 0; color: #1e293b;"></pre>
-        </details>
+        <!-- LIVE PREVIEW OF THE PROMPT -->
+        <div style="background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 12px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-weight: 700; color: #334155; font-size: 0.84rem;">
+              <i class="fa-solid fa-file-lines text-primary"></i> ខ្លឹមសារ Prompt ជាក់ស្តែង (Live Preview)៖
+            </span>
+            <button type="button" class="btn-ghost" onclick="copyNotebookLMFlippedPrompt(event)" style="padding: 3px 10px; font-size: 0.78rem; color: #7c3aed; font-weight: 600; background: #faf5ff; border: 1px solid #d8b4fe; border-radius: 6px; cursor: pointer;">
+              <i class="fa-regular fa-copy"></i> ចម្លងម្តងទៀត
+            </button>
+          </div>
+          <pre id="notebookLmCopiedPreview" style="white-space: pre-wrap; word-break: break-word; max-height: 180px; overflow-y: auto; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; font-family: inherit; font-size: 0.8rem; margin: 0; color: #1e293b; line-height: 1.6;"></pre>
+        </div>
       </div>
 
       <div class="modal-footer" style="padding: 12px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
         <button type="button" class="btn-ghost" onclick="closeNotebookLmModal()" style="font-size: 0.88rem; padding: 8px 16px;">បិទ</button>
-        <button type="button" id="btnConfirmProceedNotebookLM" class="btn-primary" onclick="proceedToNotebookLMWeb()" style="background: linear-gradient(135deg, #16a34a, #15803d); color: white; border: none; font-weight: 700; padding: 10px 22px; font-size: 0.95rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25); display: flex; align-items: center; gap: 8px; cursor: pointer;">
-          <i class="fa-brands fa-google"></i> 🚀 បន្តទៅកាន់ Google NotebookLM <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.82rem;"></i>
-        </button>
+        <div style="display: flex; gap: 8px;">
+          <button type="button" onclick="proceedToGeminiWeb()" style="background: #f1f5f9; color: #0f172a; border: 1px solid #cbd5e1; font-weight: 600; padding: 9px 16px; font-size: 0.88rem; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <i class="fa-solid fa-sparkles" style="color: #2563eb;"></i> បន្តទៅ Google Gemini
+          </button>
+          <button type="button" id="btnConfirmProceedNotebookLM" class="btn-primary" onclick="proceedToNotebookLMWeb()" style="background: linear-gradient(135deg, #16a34a, #15803d); color: white; border: none; font-weight: 700; padding: 9px 18px; font-size: 0.88rem; border-radius: 8px; box-shadow: 0 3px 10px rgba(22, 163, 74, 0.25); display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <i class="fa-brands fa-google"></i> បន្តទៅ NotebookLM
+          </button>
+        </div>
       </div>
     </div>
   </div>
