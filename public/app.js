@@ -8754,9 +8754,10 @@ function importPlansFromJson(file) {
 }
 
 // Google NotebookLM & Gemini Notebook Studio Actions
-let currentNotebookLmText = '';
+let currentNotebookLmSourceText = '';
+let currentNotebookLmShortPrompt = '';
 
-function prepareNotebookLmText() {
+function prepareNotebookLmSource() {
   const data = state.generatedPlanData || state.currentPlan;
   
   const subject = data?.subject || document.getElementById('txtSubject')?.value?.trim() || 'វិទ្យាសាស្ត្រ';
@@ -8765,75 +8766,92 @@ function prepareNotebookLmText() {
   const duration = data?.duration || document.getElementById('txtDuration')?.value?.trim() || '៥០ នាទី';
   const method = data?.method || document.getElementById('selectMethod')?.value || '5E';
 
-  let fullDoc = `=======================================================\n`;
-  fullDoc += `PROMPT សម្រាប់ GEMINI NOTEBOOK / GOOGLE NOTEBOOKLM\n`;
-  fullDoc += `=======================================================\n`;
-  fullDoc += `សូមផលិតវីដេអូពន្យល់មេរៀន (Explainer Video Overview / Micro-Lecture) រយៈពេល ៦ ទៅ ១០ នាទី សម្រាប់មេរៀន «${title}» មុខវិជ្ជា ${subject} ${grade}។\n\n`;
-  fullDoc += `⚠️ លក្ខខណ្ឌចាំបាច់បំផុត (CRITICAL INSTRUCTIONS):\n`;
-  fullDoc += `១. ភាសានិយាយ និងអក្សរលើស្លាយ (Language): ទាំងសំឡេងអត្ថាធិប្បាយ (Narration) និងអក្សរបង្ហាញលើស្លាយវីដេអូ (On-Screen Text / Slides) ត្រូវតែជា «ភាសាខ្មែរ ១០០%» (Khmer Language Only)។ ដាច់ខាតកុំប្រើប្រាស់ភាសាអង់គ្លេសលើស្លាយ ឬក្នុងសំឡេងនិយាយ!\n`;
-  fullDoc += `២. ខ្លឹមសារវីដេអូ (Video Content):\n`;
-  fullDoc += `   - ឈុតទី១ (អារម្ភកថា & ចំណុចចាប់អារម្មណ៍): បង្ហាញពីសារៈសំខាន់នៃមេរៀនក្នុងជីវភាពរស់នៅជាក់ស្តែង\n`;
-  fullDoc += `   - ឈុតទី២ (ទ្រឹស្តី និងគោលការណ៍គន្លឹះ): ពន្យល់និយមន័យ ក្បួនច្បាប់ រូបមន្ត ឬទ្រឹស្តីស្នូលជាភាសាខ្មែរច្បាស់ៗ\n`;
-  fullDoc += `   - ឈុតទី៣ (ឧទាហរណ៍ជាក់ស្តែង): លើកឧទាហរណ៍ក្នុងបរិបទសង្គម និងការអប់រំនៅកម្ពុជា\n`;
-  fullDoc += `   - ឈុតទី៤ (សង្ខេប & សំណួរត្រិះរិះ): សង្ខេបខ្លឹមសារសំខាន់ និងដាក់សំណួរពិភាក្សាសម្រាប់សិស្ស\n`;
-  fullDoc += `៣. រចនាបថ (Style): Explainer Video, រូបភាព ឬដ្យាក្រាមច្បាស់ៗ អមដោយអក្សររត់ភាសាខ្មែរងាយស្រួលអាន Font Kantumruy Pro។\n\n`;
-
-  fullDoc += `=======================================================\n`;
-  fullDoc += `ខ្លឹមសារឯកសារមេរៀនទាំងស្រុង (FULL LESSON PLAN DOCUMENT)\n`;
-  fullDoc += `=======================================================\n`;
-  fullDoc += `• មុខវិជ្ជា៖ ${subject}\n`;
-  fullDoc += `• ថ្នាក់៖ ${grade}\n`;
-  fullDoc += `• មេរៀន៖ ${title}\n`;
-  fullDoc += `• រយៈពេល៖ ${duration}\n`;
-  fullDoc += `• វិធីសាស្ត្របង្រៀន៖ ${method}\n\n`;
+  let src = `=======================================================\n`;
+  src += `ឯកសារប្រភពសម្រាប់ GOOGLE NOTEBOOKLM (SOURCE MATERIAL)\n`;
+  src += `LANGUAGE: 100% KHMER (ភាសាខ្មែរ)\n`;
+  src += `=======================================================\n`;
+  src += `• មុខវិជ្ជា៖ ${subject}\n`;
+  src += `• ថ្នាក់៖ ${grade}\n`;
+  src += `• មេរៀន៖ ${title}\n`;
+  src += `• រយៈពេល៖ ${duration}\n`;
+  src += `• វិធីសាស្ត្របង្រៀន៖ ${method}\n\n`;
 
   if (data?.objectives) {
-    fullDoc += `[វត្ថុបំណងមេរៀន]\n`;
+    src += `[វត្ថុបំណងមេរៀន]\n`;
     if (data.objectives.knowledge?.length) {
-      fullDoc += `- វិជ្ជាសម្បទា៖ ` + data.objectives.knowledge.join('; ') + `\n`;
+      src += `- វិជ្ជាសម្បទា៖ ` + data.objectives.knowledge.join('; ') + `\n`;
     }
     if (data.objectives.skills?.length) {
-      fullDoc += `- បំណិនសម្បទា៖ ` + data.objectives.skills.join('; ') + `\n`;
+      src += `- បំណិនសម្បទា៖ ` + data.objectives.skills.join('; ') + `\n`;
     }
     if (data.objectives.attitudes?.length) {
-      fullDoc += `- ចរិយាសម្បទា៖ ` + data.objectives.attitudes.join('; ') + `\n`;
+      src += `- ចរិយាសម្បទា៖ ` + data.objectives.attitudes.join('; ') + `\n`;
     }
-    fullDoc += `\n`;
+    src += `\n`;
   }
 
   if (data?.materials) {
-    fullDoc += `[សម្ភារឧបទេស]\n${data.materials}\n\n`;
+    src += `[សម្ភារឧបទេស]\n${data.materials}\n\n`;
   }
 
   if (data?.steps && Array.isArray(data.steps)) {
-    fullDoc += `[ដំណើរការបង្រៀន និងរៀន ៥ ជំហាន]\n`;
+    src += `[ដំណើរការបង្រៀន និងរៀន ៥ ជំហាន]\n`;
     data.steps.forEach((st, idx) => {
-      fullDoc += `\n${st.stepTitle || `ជំហានទី ${idx + 1}`} (${st.duration || ''})៖\n`;
-      if (st.teacherActivity) fullDoc += `• សកម្មភាពគ្រូ៖ ${st.teacherActivity}\n`;
-      if (st.contentSummary) fullDoc += `• ខ្លឹមសារមេរៀន៖ ${st.contentSummary}\n`;
-      if (st.studentActivity) fullDoc += `• សកម្មភាពសិស្ស៖ ${st.studentActivity}\n`;
+      src += `\n${st.stepTitle || `ជំហានទី ${idx + 1}`} (${st.duration || ''})៖\n`;
+      if (st.teacherActivity) src += `• សកម្មភាពគ្រូ៖ ${st.teacherActivity}\n`;
+      if (st.contentSummary) src += `• ខ្លឹមសារមេរៀន៖ ${st.contentSummary}\n`;
+      if (st.studentActivity) src += `• សកម្មភាពសិស្ស៖ ${st.studentActivity}\n`;
     });
-    fullDoc += `\n`;
+    src += `\n`;
   }
 
   const lessonContent = data?.lessonContent || document.getElementById('txtLessonContent')?.value || '';
   if (lessonContent && lessonContent.trim().length > 10) {
-    fullDoc += `[ឯកសារ និងខ្លឹមសារលម្អិតបន្ថែម]\n${lessonContent.trim()}\n\n`;
+    src += `[ឯកសារ និងខ្លឹមសារលម្អិតបន្ថែម]\n${lessonContent.trim()}\n\n`;
   }
 
-  return fullDoc;
+  if (data?.notebooklmGuide?.keyTakeaways?.length) {
+    src += `[ចំណុចគន្លឹះសំខាន់ៗ (Key Concepts)]\n`;
+    data.notebooklmGuide.keyTakeaways.forEach(k => src += `• ${k}\n`);
+    src += `\n`;
+  }
+
+  if (data?.notebooklmGuide?.scriptSegments?.length) {
+    src += `[អត្ថបទសន្ទនាពន្យល់មេរៀន (Audio Explainer Script)]\n`;
+    data.notebooklmGuide.scriptSegments.forEach(seg => {
+      src += `[${seg.speaker || 'Host'} - ${seg.timestamp || ''}]: ${seg.dialogue || ''}\n`;
+    });
+    src += `\n`;
+  }
+
+  return src;
+}
+
+function prepareNotebookLmShortPrompt() {
+  const data = state.generatedPlanData || state.currentPlan;
+  const subject = data?.subject || document.getElementById('txtSubject')?.value?.trim() || 'មុខវិជ្ជា';
+  const grade = data?.grade || document.getElementById('txtGrade')?.value?.trim() || '';
+  const title = data?.lessonTitle || document.getElementById('txtLessonTitle')?.value?.trim() || 'មេរៀន';
+  
+  return `សូមផលិត Audio Overview (Podcast សំឡេង) ឬ Video Explainer ជាភាសាខ្មែរ ១០០% សម្រាប់មេរៀន «${title}» (${subject} ${grade}) ដោយពន្យល់ចំណុចគន្លឹះ និយមន័យសំខាន់ៗ និងលើកឧទាហរណ៍ជាក់ស្តែងក្នុងបរិបទកម្ពុជា។`;
+}
+
+function prepareNotebookLmText() {
+  return prepareNotebookLmSource();
 }
 
 async function openNotebookLM() {
   try {
-    const fullText = prepareNotebookLmText();
-    currentNotebookLmText = fullText;
+    const sourceText = prepareNotebookLmSource();
+    const shortPrompt = prepareNotebookLmShortPrompt();
+    currentNotebookLmSourceText = sourceText;
+    currentNotebookLmShortPrompt = shortPrompt;
 
-    // Copy Prompt and full document to Clipboard with multi-tier fallback
+    // Pre-copy Source text into clipboard for instant paste into "+ Sources -> Copied text"
     let copied = false;
     if (navigator.clipboard && navigator.clipboard.writeText) {
       try {
-        await navigator.clipboard.writeText(fullText);
+        await navigator.clipboard.writeText(sourceText);
         copied = true;
       } catch (cErr) {
         console.warn('Clipboard API error, trying fallback:', cErr);
@@ -8842,7 +8860,7 @@ async function openNotebookLM() {
     if (!copied) {
       try {
         const ta = document.createElement('textarea');
-        ta.value = fullText;
+        ta.value = sourceText;
         ta.style.position = 'fixed';
         ta.style.opacity = '0';
         document.body.appendChild(ta);
@@ -8859,17 +8877,15 @@ async function openNotebookLM() {
     // Populate preview text in modal
     const previewEl = document.getElementById('notebookLmCopiedPreview');
     if (previewEl) {
-      previewEl.textContent = fullText;
+      previewEl.textContent = sourceText;
     }
 
     // Open modal popup
     const modal = document.getElementById('notebookLmModal');
     if (modal) {
       modal.style.display = 'flex';
-      showToast('📋 បានចម្លង Prompt & ឯកសារមេរៀនចូល Clipboard រួចរាល់!', 'success');
+      showToast('📋 បានចម្លងឯកសារប្រភពរួចរាល់! សូមចុច "+ Sources" ក្នុង NotebookLM។', 'info');
     } else {
-      // Fallback if modal DOM element is not present
-      showToast('🚀 កំពុងបើក Google NotebookLM...', 'info');
       window.open('https://notebooklm.google.com/', '_blank');
     }
   } catch (err) {
@@ -8893,67 +8909,51 @@ function proceedToNotebookLMWeb() {
   if (!win || win.closed || typeof win.closed === 'undefined') {
     window.location.href = 'https://notebooklm.google.com/';
   } else {
-    showToast('🚀 កំពុងបើក Google NotebookLM... សូមចុច Ctrl+V (Paste) ដើម្បីបិទភ្ជាប់!', 'success');
+    showToast('🚀 កំពុងបើក Google NotebookLM... សូមចុច "+ Sources" ដើម្បីបញ្ចូលឯកសារ!', 'success');
   }
 }
 window.proceedToNotebookLMWeb = proceedToNotebookLMWeb;
 
-async function copyNotebookLMPromptAgain(e) {
+async function copyNotebookLMSourceOnly(e) {
   if (e) e.stopPropagation();
-  if (currentNotebookLmText) {
-    try {
-      await navigator.clipboard.writeText(currentNotebookLmText);
-      showToast('📋 បានចម្លង Prompt & ឯកសារម្តងទៀតដោយជោគជ័យ!', 'success');
-    } catch (err) {
-      showToast('មិនអាចចម្លងបានទេ: ' + err.message, 'error');
-    }
+  const text = currentNotebookLmSourceText || prepareNotebookLmSource();
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('📋 បានចម្លងឯកសារប្រភព! យកទៅ Paste ក្នុង «+ Sources ➔ Copied text»', 'success');
+  } catch (err) {
+    showToast('មិនអាចចម្លងបានទេ: ' + err.message, 'error');
   }
 }
-window.copyNotebookLMPromptAgain = copyNotebookLMPromptAgain;
+window.copyNotebookLMSourceOnly = copyNotebookLMSourceOnly;
+window.copyNotebookLMPromptAgain = copyNotebookLMSourceOnly;
+
+async function copyNotebookLMShortPrompt(e) {
+  if (e) e.stopPropagation();
+  const prompt = currentNotebookLmShortPrompt || prepareNotebookLmShortPrompt();
+  try {
+    await navigator.clipboard.writeText(prompt);
+    showToast('✨ បានចម្លង Prompt ខ្លី! អាចយកទៅ Paste ក្នុង Chat ឬ Studio Customize បានយ៉ាងងាយ។', 'success');
+  } catch (err) {
+    showToast('មិនអាចចម្លងបានទេ: ' + err.message, 'error');
+  }
+}
+window.copyNotebookLMShortPrompt = copyNotebookLMShortPrompt;
 
 function downloadNotebookLMSourceFile() {
-  const data = state.generatedPlanData;
-  if (!data) {
-    showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
-    return;
-  }
+  const data = state.generatedPlanData || state.currentPlan;
+  const sourceText = currentNotebookLmSourceText || prepareNotebookLmSource();
+  
+  const subject = (data?.subject || 'មុខវិជ្ជា').replace(/[\\/:*?"<>|]/g, '_');
+  const title = (data?.lessonTitle || 'មេរៀន').substring(0, 20).replace(/[\\/:*?"<>|]/g, '_');
 
-  let text = `=======================================================\n`;
-  text += `LANGUAGE DIRECTIVE FOR NOTEBOOKLM / AI VIDEO CREATOR: 100% KHMER (ភាសាខ្មែរ)\n`;
-  text += `FORMAT: Educational Video Micro-Lecture Script (5-8 Minutes) with On-Screen Captions in Font "Kantumruy Pro"\n`;
-  text += `=======================================================\n`;
-  text += `ឯកសារប្រភពសម្រាប់ GOOGLE NOTEBOOKLM (SOURCE MATERIAL)\n`;
-  text += `មុខវិជ្ជា៖ ${data.subject || ''} | កម្រិត៖ ${data.grade || ''}\n`;
-  text += `មេរៀន៖ ${data.lessonTitle || ''} (${data.chapter || ''})\n`;
-  text += `=======================================================\n\n`;
-
-  text += `១. វត្ថុបំណងមេរៀន៖\n`;
-  (data.objectives?.knowledge || []).forEach(k => text += `- ${k}\n`);
-  (data.objectives?.skills || []).forEach(s => text += `- ${s}\n`);
-
-  if (data.notebooklmGuide?.keyTakeaways) {
-    text += `\n២. ចំណុចគន្លឹះសំខាន់ៗ (Key Takeaways)៖\n`;
-    data.notebooklmGuide.keyTakeaways.forEach(k => text += `• ${k}\n`);
-  }
-
-  if (data.notebooklmGuide?.scriptSegments) {
-    text += `\n៣. អត្ថបទសន្ទនា Podcast (Script Overview - ភាសាខ្មែរ)៖\n`;
-    data.notebooklmGuide.scriptSegments.forEach(seg => {
-      text += `[${seg.speaker || 'Host'} - ${seg.timestamp || ''}]: ${seg.dialogue || ''}\n`;
-    });
-  }
-
-  if (state.lessonContent) {
-    text += `\n៤. ខ្លឹមសារមេរៀនលម្អិតបន្ថែម៖\n${state.lessonContent}\n`;
-  }
-
-  const blob = new Blob(['\uFEFF' + text], { type: 'text/plain;charset=utf-8;' });
+  const blob = new Blob(['\uFEFF' + sourceText], { type: 'text/plain;charset=utf-8;' });
   const link = document.createElement('a');
   link.href = URL.createObjectURL(blob);
-  link.download = `NotebookLM_Source_${data.subject}_${data.lessonTitle.substring(0, 15)}.txt`;
+  link.download = `NotebookLM_Source_${subject}_${title}.txt`;
   link.click();
-  showToast('📥 បានទាញយក Source File រួចរាល់! Upload ឯកសារនេះចូល NotebookLM ដើម្បីបង្កើត Audio Podcast ជាភាសាខ្មែរ។', 'success');
+  showToast('📥 បានទាញយក File ប្រភព (.txt) រួចរាល់! Upload ចូល «+ Sources» ក្នុង NotebookLM។', 'success');
 }
+window.downloadNotebookLMSourceFile = downloadNotebookLMSourceFile;
 
 async function copyVideoAIScriptPrompt() {
   const data = state.generatedPlanData || state.currentPlan;
