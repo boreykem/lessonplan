@@ -2899,6 +2899,31 @@ async function handleGenerateLessonPlan() {
 
     if (planData) {
       planData = normalizeLessonPlanData(planData, genParams);
+
+      // Auto-generate authentic AI Pre-Test and Post-Test if not present in planData
+      if (!planData.preTestQCM || !Array.isArray(planData.preTestQCM) || planData.preTestQCM.length === 0) {
+        try {
+          setLoadingOverlayStatus('🎯 AI កំពុងបង្កើតវិញ្ញាសា Pre-Test ជាក់ស្តែង...', `ផ្អែកលើខ្លឹមសារមេរៀន «${planData.lessonTitle || ''}»...`);
+          const preQuestions = await callAiForSingleTest('pre', planData, 5, null, true);
+          if (preQuestions && preQuestions.length > 0) {
+            planData.preTestQCM = preQuestions;
+          }
+        } catch (preErr) {
+          console.warn('AI Pre-test generation error:', preErr);
+        }
+      }
+
+      if (!planData.postTestMCQ || !Array.isArray(planData.postTestMCQ) || planData.postTestMCQ.length === 0) {
+        try {
+          setLoadingOverlayStatus('🎯 AI កំពុងបង្កើតវិញ្ញាសា Post-Test ជាក់ស្តែង...', `ផ្អែកលើខ្លឹមសារមេរៀន «${planData.lessonTitle || ''}»...`);
+          const postQuestions = await callAiForSingleTest('post', planData, 5, null, true);
+          if (postQuestions && postQuestions.length > 0) {
+            planData.postTestMCQ = postQuestions;
+          }
+        } catch (postErr) {
+          console.warn('AI Post-test generation error:', postErr);
+        }
+      }
     }
 
     if (state.savedLearningGain && !planData.selfEvaluation) {
@@ -5053,6 +5078,13 @@ function generateNotebookLMScriptOffline(subject, grade, lessonTitle, mainPoints
 function distributeAndBalanceQuizList(list) {
   if (!Array.isArray(list) || list.length === 0) return list;
 
+  // If the list is already well-distributed and authentic from AI (has at least 2 distinct answer keys),
+  // preserve AI questions, options, and explanations without scrambling!
+  const keys = new Set(list.map(q => (q && q.correctAnswer ? String(q.correctAnswer).trim().toUpperCase() : 'A')));
+  if (keys.size > 1) {
+    return list;
+  }
+
   const letters = ['A', 'B', 'C', 'D'];
   const khmerLetters = ['ក', 'ខ', 'គ', 'ឃ'];
   const n = list.length;
@@ -5358,7 +5390,7 @@ function generatePreTestQCMOffline(subject, grade, lessonTitle, mainPoints = [])
         A: `ការយល់ដឹងពីគោលការណ៍គ្រឹះ និងបម្រាប់ទូទៅនៃ ${subject}`,
         B: `ការទន្ទេញរូបមន្តកម្រិតខ្ពស់ដោយមិនបាច់យល់ន័យ`,
         C: `ការរំលងទ្រឹស្តីគ្រឹះចូលទៅអនុវត្តលំហាត់ស្មុគស្មាញភ្លាម`,
-        D: `មិនត្រូវការចំណេះដឹងអ្វីទាំងអស់`
+        D: `ការសិក្សាដោយមិនចាំបាច់មានចំណេះដឹងត្រៀមជាមុន`
       },
       correctAnswer: "A",
       explanation: `ចំណេះដឹងត្រៀមជាមុនជួយភ្ជាប់ស្ពានទៅរកការយល់ដឹងមេរៀនថ្មីបានយ៉ាងរលូន។`
@@ -5384,9 +5416,9 @@ function generatePreTestQCMOffline(subject, grade, lessonTitle, mainPoints = [])
       question: `តើគោលបំណងចម្បងនៃការរៀន «${cleanTitle}» ក្នុងកម្រិតថ្នាក់នេះ គឺដើម្បីអ្វី?`,
       options: {
         A: `កសាងមូលដ្ឋានគ្រឹះក្នុងការយល់ដឹង និងដោះស្រាយបញ្ហាស្របតាម ${p1}`,
-        B: `គ្រាន់តែដើម្បីប្រឡងឱ្យជាប់ដោយមិនចាំបាច់យកទៅប្រើ`,
-        C: `ដើម្បីទន្ទេញចាំមាត់មួយគ្រា`,
-        D: `ដើម្បីបោះបង់ការស្រាវជ្រាវបន្ថែម`
+        B: `ការរៀនទន្ទេញដើម្បីតែប្រឡងមួយគ្រា`,
+        C: `ការផ្តោតតែលើការចងចាំពាក្យដោយមិនយល់ន័យ`,
+        D: `ការកាត់បន្ថយពេលវេលាសិក្សាដោយមិនគិតវិភាគ`
       },
       correctAnswer: "A",
       explanation: `គោលបំណងគរុកោសល្យគឺដើម្បីកសាងសមត្ថភាពគ្រឹះសម្រាប់បន្តទៅកម្រិតខ្ពស់។`
@@ -6396,16 +6428,18 @@ function renderLearningGainReflectionBlock(data) {
 // Separates diagnostic/mastery assessments from core lesson plan generation
 // ==========================================================================
 
-async function callAiForSingleTest(testType, plan, numQuestions = 10, scale = null) {
-  showLoadingOverlay();
+async function callAiForSingleTest(testType, plan, numQuestions = 10, scale = null, skipOverlay = false) {
+  if (!skipOverlay) {
+    showLoadingOverlay();
+    const isPre = testType === 'pre';
+    setLoadingOverlayStatus(
+      isPre ? '📝 AI កំពុងបង្កើតកម្រងសំណួរ Pre-Test (៦០% - ៣០% - ១០%)...' : '📝 AI កំពុងបង្កើតកម្រងសំណួរ Post-Test (២០% - ៦០% - ២០%)...',
+      `កំពុងវិភាគខ្លឹមសារមេរៀន «${plan.lessonTitle || ''}» ដើម្បីបង្កើតសំណួរឆ្លាតវៃ...`,
+      '🤖 ដំណើរការដោយ Advanced Pedagogical AI Engine'
+    );
+  }
   const isPre = testType === 'pre';
   const isEn = (state.language === 'en');
-
-  setLoadingOverlayStatus(
-    isPre ? '📝 AI កំពុងបង្កើតកម្រងសំណួរ Pre-Test (៦០% - ៣០% - ១០%)...' : '📝 AI កំពុងបង្កើតកម្រងសំណួរ Post-Test (២០% - ៦០% - ២០%)...',
-    `កំពុងវិភាគខ្លឹមសារមេរៀន «${plan.lessonTitle || ''}» ដើម្បីបង្កើតសំណួរឆ្លាតវៃ...`,
-    '🤖 ដំណើរការដោយ Advanced Pedagogical AI Engine'
-  );
 
   try {
     const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || '').trim();
@@ -6425,10 +6459,37 @@ async function callAiForSingleTest(testType, plan, numQuestions = 10, scale = nu
     }
 
     if (!apiKey) {
+      // 1. Try Backend Server proxy (/api/generate/test) first if client has no direct key
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 90000);
+        const serverResp = await fetch('/api/generate/test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            testType,
+            plan,
+            numQuestions,
+            scale: { e, m, h }
+          })
+        });
+        clearTimeout(timeoutId);
+        if (serverResp.ok) {
+          const serverData = await serverResp.json();
+          if (serverData.success && Array.isArray(serverData.data) && serverData.data.length > 0 && !serverData.fallback) {
+            return distributeAndBalanceQuizList(serverData.data.slice(0, numQuestions));
+          }
+        }
+      } catch (srvErr) {
+        console.warn('Backend test call without client apiKey error:', srvErr);
+      }
+
       showToast('💡 មិនទាន់មាន API Key - កំពុងរៀបចំតាមកម្រងសំណួរគំរូស្តង់ដារ MoEYS...', 'info');
-      return isPre 
+      const offlineFallback = isPre 
         ? generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, [])
         : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []);
+      return distributeAndBalanceQuizList(offlineFallback.slice(0, numQuestions));
     }
 
     // Extract rich teaching context to give Gemini deep awareness of lesson
@@ -6486,7 +6547,7 @@ ${testTypeDescription}
 ៣. ជម្រើសចម្លើយនីមួយៗ (A, B, C, D) ត្រូវតែជាជម្រើសសមហេតុផលក្នុងវិស័យអប់រំ (Plausible distractors) មិនត្រូវដាក់ចម្លើយកំប្លែង ឬមិនទំនងឡើយ។
 ៤. ការបែងចែកចម្លើយត្រឹមត្រូវ (MANDATORY BALANCED ANSWER KEY ROTATION - ហាមដាច់ខាតដាក់ A ទាំងអស់):
    - ដាច់ខាតមិនត្រូវដាក់ចម្លើយត្រឹមត្រូវ A ទាំងអស់ ឬដាក់ A ច្រើនពេកឡើយ! (DO NOT default to option A for all questions).
-   - ចម្លើយត្រឹមត្រូវ (correctAnswer) ត្រូវតែឆ្លាស់គ្នាយ៉ាងស្មើភាព និងចៃដន្យរវាង A, B, C, D ពេញមួយកម្រងសំណួរទាំង ${numQuestions} (ឧទាហរណ៍៖ សំណួរទី១: C, សំណួរទី២: A, សំណួរទី៣: D, សំណួរទី៤: B, សំណួរទី៥: C, សំណួរទី៦: B, សំណួរទី៧: D, សំណួរទី៨: A, សំណួរទី៩: C, សំណួរទី១០: B...)។
+   - ចម្លើយត្រឹមត្រូវ (correctAnswer) ត្រូវតែឆ្លាស់គ្នាយ៉ាងស្មើភាព និងចៃដន្យរវាង A, B, C, D ពេញមួយកម្រងសំណួរទាំង ${numQuestions} (ឧទាហរណ៍៖ សំណួរទី១: C, សំណួរទី២: A, សំណួរទី៣: D, សំណួរទី៤: B, សំណួរទី៥: C...)។
    - ក្នុងចំណោម ${numQuestions} សំណួរ ចម្លើយនីមួយៗ (A, B, C, D) គួរតែមានប្រហាក់ប្រហែល ២៥% ស្មើៗគ្នា (ប្រហែល ២ ទៅ ៣ សំណួរក្នុងមួយអក្សរ)។
    - ទីតាំងនៃចម្លើយត្រឹមត្រូវពិតប្រាកដក្នុង options ត្រូវដាក់ខ្លឹមសារត្រឹមត្រូវឱ្យត្រូវគ្នានឹងតម្លៃនៃ correctAnswer នោះ។
 ៥. ការពន្យល់ (explanation) ត្រូវបញ្ជាក់ឱ្យបានច្បាស់លាស់ពីមូលហេតុដែលចម្លើយនោះត្រឹមត្រូវតាមក្បួនគរុកោសល្យ។
@@ -6500,54 +6561,12 @@ ${testTypeDescription}
     "difficultyLevel": "easy",
     "question": "ខ្លឹមសារសំណួរជាក់លាក់ទី១...",
     "options": {
-      "A": "ជម្រើសទី ១ (ខុស)",
-      "B": "ជម្រើសទី ២ (ខុស)",
-      "C": "ជម្រើសទី ៣ (ត្រឹមត្រូវ)",
-      "D": "ជម្រើសទី ៤ (ខុស)"
+      "A": "ជម្រើសទី ១",
+      "B": "ជម្រើសទី ២",
+      "C": "ជម្រើសទី ៣",
+      "D": "ជម្រើសទី ៤"
     },
     "correctAnswer": "C",
-    "explanation": "ការពន្យល់គរុកោសល្យលម្អិត..."
-  },
-  {
-    "number": 2,
-    "difficulty": "ងាយ (Easy)",
-    "difficultyLevel": "easy",
-    "question": "ខ្លឹមសារសំណួរជាក់លាក់ទី២...",
-    "options": {
-      "A": "ជម្រើសទី ១ (ត្រឹមត្រូវ)",
-      "B": "ជម្រើសទី ២ (ខុស)",
-      "C": "ជម្រើសទី ៣ (ខុស)",
-      "D": "ជម្រើសទី ៤ (ខុស)"
-    },
-    "correctAnswer": "A",
-    "explanation": "ការពន្យល់គរុកោសល្យលម្អិត..."
-  },
-  {
-    "number": 3,
-    "difficulty": "មធ្យម (Medium)",
-    "difficultyLevel": "medium",
-    "question": "ខ្លឹមសារសំណួរជាក់លាក់ទី៣...",
-    "options": {
-      "A": "ជម្រើសទី ១ (ខុស)",
-      "B": "ជម្រើសទី ២ (ខុស)",
-      "C": "ជម្រើសទី ៣ (ខុស)",
-      "D": "ជម្រើសទី ៤ (ត្រឹមត្រូវ)"
-    },
-    "correctAnswer": "D",
-    "explanation": "ការពន្យល់គរុកោសល្យលម្អិត..."
-  },
-  {
-    "number": 4,
-    "difficulty": "ពិបាក (Hard)",
-    "difficultyLevel": "hard",
-    "question": "ខ្លឹមសារសំណួរជាក់លាក់ទី៤...",
-    "options": {
-      "A": "ជម្រើសទី ១ (ខុស)",
-      "B": "ជម្រើសទី ២ (ត្រឹមត្រូវ)",
-      "C": "ជម្រើសទី ៣ (ខុស)",
-      "D": "ជម្រើសទី ៤ (ខុស)"
-    },
-    "correctAnswer": "B",
     "explanation": "ការពន្យល់គរុកោសល្យលម្អិត..."
   }
 ]`;
@@ -6613,7 +6632,7 @@ ${testTypeDescription}
       }
     }
 
-    // 3. Try Google Gemini AI Models
+    // 3. Try Google Gemini AI Models with 90-second timeout
     const geminiModels = [];
     if (state.verifiedGeminiModel && state.verifiedGeminiModel.name) {
       geminiModels.push(state.verifiedGeminiModel.name);
@@ -6622,19 +6641,23 @@ ${testTypeDescription}
     const uniqueModels = [...new Set(geminiModels)];
 
     for (const model of uniqueModels) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 90000);
       try {
         const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
           body: JSON.stringify({
             contents: [{ role: 'user', parts: [{ text: systemPrompt }] }],
             generationConfig: {
               responseMimeType: 'application/json',
-              temperature: 0.4,
+              temperature: 0.35,
               maxOutputTokens: 8192
             }
           })
         });
+        clearTimeout(timeoutId);
         if (resp.ok) {
           const data = await resp.json();
           const txt = data.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -6646,15 +6669,19 @@ ${testTypeDescription}
           console.warn(`Model ${model} returned status ${resp.status}:`, errText);
         }
       } catch (e) {
+        clearTimeout(timeoutId);
         console.warn(`Model ${model} single test generator error:`, e);
       }
     }
 
     // 4. Try Backend Server proxy (/api/generate/test)
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 90000);
       const serverResp = await fetch('/api/generate/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           testType,
           plan,
@@ -6663,9 +6690,10 @@ ${testTypeDescription}
           apiKey
         })
       });
+      clearTimeout(timeoutId);
       if (serverResp.ok) {
         const serverData = await serverResp.json();
-        if (serverData.success && Array.isArray(serverData.data) && serverData.data.length > 0) {
+        if (serverData.success && Array.isArray(serverData.data) && serverData.data.length > 0 && !serverData.fallback) {
           return distributeAndBalanceQuizList(serverData.data.slice(0, numQuestions));
         }
       }
@@ -6679,7 +6707,9 @@ ${testTypeDescription}
       : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []);
     return distributeAndBalanceQuizList(offlineFallback.slice(0, numQuestions));
   } finally {
-    hideLoadingOverlay();
+    if (!skipOverlay) {
+      hideLoadingOverlay();
+    }
   }
 }
 

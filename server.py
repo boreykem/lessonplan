@@ -503,9 +503,9 @@ def generate_pretest_qcm_python(subject, grade, lesson_title, main_points, count
             "question": f"ហេតុអ្វីបានជាការយល់ដឹងអំពី «{clean_title}» មានសារៈសំខាន់ជាមូលដ្ឋានគ្រឹះសម្រាប់ការសិក្សាបន្ត?",
             "options": {
                 "A": f"ជួយកសាងចំណេះដឹងគ្រឹះរឹងមាំសម្រាប់ភ្ជាប់ទៅកាន់ {p3}",
-                "B": "គ្រាន់តែជាការបំពេញម៉ោងសិក្សាដោយគ្មានប្រយោជន៍",
-                "C": "មិនមានសារៈសំខាន់អ្វីទាំងអស់",
-                "D": "ជួយកាត់បន្ថយពេលវេលាដោយមិនបាច់គិត"
+                "B": "ការរៀនទន្ទេញដោយមិនបានយល់ពីទំនាក់ទំនងនៃគំនិត",
+                "C": "ការផ្តោតតែលើការចងចាំពាក្យគន្លឹះដាច់ដោយឡែក",
+                "D": "ការកាត់បន្ថយពេលវេលាសិក្សាដោយមិនគិតវិភាគ"
             },
             "correctAnswer": "A",
             "explanation": f"ចំណេះដឹងគ្រឹះនៃ {clean_title} ជួយឱ្យអ្នកសិក្សាមានទុនគំនិតរឹងមាំក្នុងការឈានទៅអនុវត្ត {p3}។"
@@ -519,7 +519,7 @@ def generate_pretest_qcm_python(subject, grade, lesson_title, main_points, count
                 "A": "ការកំណត់អត្តសញ្ញាណ និងការយល់ច្បាស់ពីពាក្យគន្លឹះគ្រឹះ",
                 "B": "ការទាយចម្លើយភ្លាមៗដោយមិនពិនិត្យខ្លឹមសារ",
                 "C": "ការរំលងនិយមន័យទៅធ្វើលំហាត់ស្មុគស្មាញភ្លាម",
-                "D": "ការបិទសៀវភៅមិនស្វែងយល់"
+                "D": "ការផ្តោតតែលើរូបមន្តដោយមិនពិនិត្យលក្ខខណ្ឌគ្រឹះ"
             },
             "correctAnswer": "A",
             "explanation": "ការយល់ច្បាស់លើនិយមន័យ និងពាក្យគន្លឹះគ្រឹះ គឺជាជំហានដំបូងនៃដំណើរការរៀនសូត្រប្រកបដោយប្រសិទ្ធភាព។"
@@ -1921,6 +1921,12 @@ def distribute_and_balance_quiz_list(quiz_list):
     if not isinstance(quiz_list, list) or len(quiz_list) == 0:
         return quiz_list
 
+    # If the list is already well-distributed and authentic from AI (has at least 2 distinct answer keys),
+    # preserve AI questions, options, and explanations without scrambling!
+    keys = set(str(q.get("correctAnswer", "A")).strip().upper() for q in quiz_list if isinstance(q, dict))
+    if len(keys) > 1:
+        return quiz_list
+
     n = len(quiz_list)
     letters = ["A", "B", "C", "D"]
     khmer_letters = ["ក", "ខ", "គ", "ឃ"]
@@ -2187,7 +2193,7 @@ Return ONLY a valid JSON array:
                 }
                 req = urllib.request.Request(url, data=json.dumps(req_data).encode("utf-8"), headers={"Content-Type": "application/json"})
                 try:
-                    with urllib.request.urlopen(req, timeout=45) as resp:
+                    with urllib.request.urlopen(req, timeout=90) as resp:
                         res_json = json.loads(resp.read().decode("utf-8"))
                         txt = res_json["candidates"][0]["content"]["parts"][0]["text"]
                         parsed = json.loads(txt)
