@@ -5020,54 +5020,99 @@ function generateNotebookLMScriptOffline(subject, grade, lessonTitle, mainPoints
   };
 }
 
-function randomizeQuestionOptions(q) {
-  if (!q || !q.options) return q;
+function distributeAndBalanceQuizList(list) {
+  if (!Array.isArray(list) || list.length === 0) return list;
 
-  const opts = q.options;
-  const optA = opts.A || opts['ក'] || '';
-  const optB = opts.B || opts['ខ'] || '';
-  const optC = opts.C || opts['គ'] || '';
-  const optD = opts.D || opts['ឃ'] || '';
+  const letters = ['A', 'B', 'C', 'D'];
+  const khmerLetters = ['ក', 'ខ', 'គ', 'ឃ'];
+  const n = list.length;
 
-  let rawCorrect = (q.correctAnswer || 'A').toString().trim().toUpperCase();
-  let correctText = optA;
-  if (rawCorrect === 'B' || rawCorrect === 'ខ' || rawCorrect === '2' || rawCorrect === '២' || rawCorrect === optB) {
-    correctText = optB;
-  } else if (rawCorrect === 'C' || rawCorrect === 'គ' || rawCorrect === '3' || rawCorrect === '៣' || rawCorrect === optC) {
-    correctText = optC;
-  } else if (rawCorrect === 'D' || rawCorrect === 'ឃ' || rawCorrect === '4' || rawCorrect === '៤' || rawCorrect === optD) {
-    correctText = optD;
-  }
-
-  // Shuffle the choices
-  const items = [optA, optB, optC, optD];
-  for (let i = items.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [items[i], items[j]] = [items[j], items[i]];
-  }
-
-  const keys = ['A', 'B', 'C', 'D'];
-  const khmerKeys = ['ក', 'ខ', 'គ', 'ឃ'];
-  let newCorrect = 'A';
-  const newOpts = {};
-
+  // Generate balanced target keys across A, B, C, D (~25% each)
+  const pool = [];
+  const baseCount = Math.floor(n / 4);
+  const remainder = n % 4;
   for (let i = 0; i < 4; i++) {
-    newOpts[keys[i]] = items[i];
-    newOpts[khmerKeys[i]] = items[i];
-    if (items[i] === correctText) {
-      newCorrect = keys[i];
+    for (let c = 0; c < baseCount; c++) {
+      pool.push(letters[i]);
+    }
+  }
+  const remLetters = [...letters].sort(() => Math.random() - 0.5);
+  for (let i = 0; i < remainder; i++) {
+    pool.push(remLetters[i]);
+  }
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  // Prevent adjacent duplicate keys where possible
+  for (let i = 1; i < pool.length; i++) {
+    if (pool[i] === pool[i - 1]) {
+      for (let j = i + 1; j < pool.length; j++) {
+        if (pool[j] !== pool[i] && (j === pool.length - 1 || pool[j] !== pool[j + 1])) {
+          [pool[i], pool[j]] = [pool[j], pool[i]];
+          break;
+        }
+      }
     }
   }
 
-  q.options = newOpts;
-  q.correctAnswer = newCorrect;
-  return q;
+  return list.map((q, idx) => {
+    if (!q || typeof q !== 'object') return q;
+    const item = { ...q };
+    const opts = item.options || {};
+    const optA = opts.A || opts['ក'] || '';
+    const optB = opts.B || opts['ខ'] || '';
+    const optC = opts.C || opts['គ'] || '';
+    const optD = opts.D || opts['ឃ'] || '';
+
+    let rawCorrect = (item.correctAnswer || 'A').toString().trim().toUpperCase();
+    let correctText = optA;
+    if (rawCorrect === 'B' || rawCorrect === 'ខ' || rawCorrect === '2' || rawCorrect === '២' || (optB && rawCorrect === optB)) {
+      correctText = optB;
+    } else if (rawCorrect === 'C' || rawCorrect === 'គ' || rawCorrect === '3' || rawCorrect === '៣' || (optC && rawCorrect === optC)) {
+      correctText = optC;
+    } else if (rawCorrect === 'D' || rawCorrect === 'ឃ' || rawCorrect === '4' || rawCorrect === '៤' || (optD && rawCorrect === optD)) {
+      correctText = optD;
+    }
+
+    const allOptions = [optA, optB, optC, optD];
+    const correctIdx = allOptions.indexOf(correctText);
+    const distractors = allOptions.filter((_, i) => i !== (correctIdx >= 0 ? correctIdx : 0));
+
+    // Shuffle distractors randomly
+    for (let i = distractors.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [distractors[i], distractors[j]] = [distractors[j], distractors[i]];
+    }
+
+    const targetKey = pool[idx % pool.length];
+    const targetIdx = letters.indexOf(targetKey);
+
+    const newOpts = {};
+    let distractorIdx = 0;
+    for (let i = 0; i < 4; i++) {
+      const val = (i === targetIdx) ? correctText : (distractors[distractorIdx++] || '');
+      newOpts[letters[i]] = val;
+      newOpts[khmerLetters[i]] = val;
+    }
+
+    item.options = newOpts;
+    item.correctAnswer = targetKey;
+    return item;
+  });
+}
+
+function randomizeQuestionOptions(q) {
+  if (!q || !q.options) return q;
+  const res = distributeAndBalanceQuizList([q]);
+  return res[0] || q;
 }
 
 function randomizeQuizList(list) {
-  if (!Array.isArray(list)) return list;
-  return list.map(q => randomizeQuestionOptions(q));
+  return distributeAndBalanceQuizList(list);
 }
+window.distributeAndBalanceQuizList = distributeAndBalanceQuizList;
+window.randomizeQuizList = distributeAndBalanceQuizList;
 
 // Generate Pre-Test QCM 10 Questions following strict 60% - 30% - 10% MoEYS Standard
 function generatePreTestQCMOffline(subject, grade, lessonTitle, mainPoints = []) {
@@ -6146,9 +6191,19 @@ window.normalizeLessonPlanData = normalizeLessonPlanData;
 
 
 function renderPreTestHtmlBlock(data) {
-  const qcmList = (data.preTestQCM && data.preTestQCM.length > 0)
+  let qcmList = (data.preTestQCM && data.preTestQCM.length > 0)
     ? data.preTestQCM
     : generatePreTestQCMOffline(data.subject, data.grade, data.lessonTitle, []);
+
+  // Auto-heal uniform answer keys (e.g., if all answers are A from legacy drafts)
+  if (Array.isArray(qcmList) && qcmList.length > 1) {
+    const isUniform = qcmList.every(q => (q.correctAnswer || 'A') === (qcmList[0].correctAnswer || 'A'));
+    if (isUniform) {
+      qcmList = distributeAndBalanceQuizList(qcmList);
+      data.preTestQCM = qcmList;
+    }
+  }
+
   let preQcmHtml = '';
   let preAnswerKeyList = [];
 
@@ -6210,9 +6265,19 @@ function renderPreTestHtmlBlock(data) {
 }
 
 function renderPostTestHtmlBlock(data) {
-  const postTestList = (data.postTestMCQ && data.postTestMCQ.length > 0)
+  let postTestList = (data.postTestMCQ && data.postTestMCQ.length > 0)
     ? data.postTestMCQ
     : generatePostTestMCQOffline(data.subject, data.grade, data.lessonTitle, []);
+
+  // Auto-heal uniform answer keys (e.g., if all answers are A from legacy drafts)
+  if (Array.isArray(postTestList) && postTestList.length > 1) {
+    const isUniformPost = postTestList.every(q => (q.correctAnswer || 'A') === (postTestList[0].correctAnswer || 'A'));
+    if (isUniformPost) {
+      postTestList = distributeAndBalanceQuizList(postTestList);
+      data.postTestMCQ = postTestList;
+    }
+  }
+
   let postQcmHtml = '';
   let postAnswerKeyList = [];
 
@@ -6387,22 +6452,68 @@ ${testTypeDescription}
    ❌ «តើសារពារពាក់ព័ន្ធណាដែលរងផលប៉ះពាល់ពី [ចំណងជើងមេរៀន]?»
 ២. សំណួរនីមួយៗត្រូវតែចោទសួរអំពី «គំនិតស្នូលជាក់ស្ដែង» នៃមុខវិជ្ជា (Authentic Scientific / Pedagogical Concepts, Real Theories, Practical Classroom Scenarios, Case Studies)។ ឧទាហរណ៍ ប្រសិនបើមេរៀន «យន្តការនៃការទទួលបានព័ត៌មាន» (Information Processing in Psychology) សំណួរត្រូវសួរអំពី៖ ការទទួលដឹងតាមឥន្ទ្រិយារម្មណ៍ (Sensory Register), ការជ្រើសរើសយកចិត្តទុកដាក់ (Attention), អង្គចងចាំដំណើរការ (Working Memory), ការកូដទុក (Encoding), អង្គចងចាំវែង (Long-term Memory), ការរំលឹក (Retrieval), ឬបន្ទុកនៃការយល់ដឹង (Cognitive Load)!
 ៣. ជម្រើសចម្លើយនីមួយៗ (A, B, C, D) ត្រូវតែជាជម្រើសសមហេតុផលក្នុងវិស័យអប់រំ (Plausible distractors) មិនត្រូវដាក់ចម្លើយកំប្លែង ឬមិនទំនងឡើយ។
-៤. ចម្លើយត្រឹមត្រូវ (correctAnswer) ត្រូវតែឆ្លាស់គ្នារវាង A, B, C, D (កុំដាក់ A រហូត)។
+៤. ការបែងចែកចម្លើយត្រឹមត្រូវ (MANDATORY BALANCED ANSWER KEY ROTATION - ហាមដាច់ខាតដាក់ A ទាំងអស់):
+   - ដាច់ខាតមិនត្រូវដាក់ចម្លើយត្រឹមត្រូវ A ទាំងអស់ ឬដាក់ A ច្រើនពេកឡើយ! (DO NOT default to option A for all questions).
+   - ចម្លើយត្រឹមត្រូវ (correctAnswer) ត្រូវតែឆ្លាស់គ្នាយ៉ាងស្មើភាព និងចៃដន្យរវាង A, B, C, D ពេញមួយកម្រងសំណួរទាំង ${numQuestions} (ឧទាហរណ៍៖ សំណួរទី១: C, សំណួរទី២: A, សំណួរទី៣: D, សំណួរទី៤: B, សំណួរទី៥: C, សំណួរទី៦: B, សំណួរទី៧: D, សំណួរទី៨: A, សំណួរទី៩: C, សំណួរទី១០: B...)។
+   - ក្នុងចំណោម ${numQuestions} សំណួរ ចម្លើយនីមួយៗ (A, B, C, D) គួរតែមានប្រហាក់ប្រហែល ២៥% ស្មើៗគ្នា (ប្រហែល ២ ទៅ ៣ សំណួរក្នុងមួយអក្សរ)។
+   - ទីតាំងនៃចម្លើយត្រឹមត្រូវពិតប្រាកដក្នុង options ត្រូវដាក់ខ្លឹមសារត្រឹមត្រូវឱ្យត្រូវគ្នានឹងតម្លៃនៃ correctAnswer នោះ។
 ៥. ការពន្យល់ (explanation) ត្រូវបញ្ជាក់ឱ្យបានច្បាស់លាស់ពីមូលហេតុដែលចម្លើយនោះត្រឹមត្រូវតាមក្បួនគរុកោសល្យ។
 
 ទម្រង់លទ្ធផលត្រឡប់មកវិញ (JSON ARRAY ONLY):
-ត្រឡប់មកវិញតែ JSON Array សុទ្ធដែលមាន ${numQuestions} objects ដូចទម្រង់នេះ (គ្មានអក្សរបន្ថែមក្រៅពី JSON):
+ត្រឡប់មកវិញតែ JSON Array សុទ្ធដែលមាន ${numQuestions} objects ដូចទម្រង់នេះ (ចម្លើយត្រូវឆ្លាស់គ្នា A, B, C, D គ្មានអក្សរបន្ថែមក្រៅពី JSON):
 [
   {
     "number": 1,
     "difficulty": "ងាយ (Easy)",
     "difficultyLevel": "easy",
-    "question": "ខ្លឹមសារសំណួរជាក់លាក់...",
+    "question": "ខ្លឹមសារសំណួរជាក់លាក់ទី១...",
     "options": {
-      "A": "ជម្រើសទី ១",
-      "B": "ជម្រើសទី ២",
-      "C": "ជម្រើសទី ៣",
-      "D": "ជម្រើសទី ៤"
+      "A": "ជម្រើសទី ១ (ខុស)",
+      "B": "ជម្រើសទី ២ (ខុស)",
+      "C": "ជម្រើសទី ៣ (ត្រឹមត្រូវ)",
+      "D": "ជម្រើសទី ៤ (ខុស)"
+    },
+    "correctAnswer": "C",
+    "explanation": "ការពន្យល់គរុកោសល្យលម្អិត..."
+  },
+  {
+    "number": 2,
+    "difficulty": "ងាយ (Easy)",
+    "difficultyLevel": "easy",
+    "question": "ខ្លឹមសារសំណួរជាក់លាក់ទី២...",
+    "options": {
+      "A": "ជម្រើសទី ១ (ត្រឹមត្រូវ)",
+      "B": "ជម្រើសទី ២ (ខុស)",
+      "C": "ជម្រើសទី ៣ (ខុស)",
+      "D": "ជម្រើសទី ៤ (ខុស)"
+    },
+    "correctAnswer": "A",
+    "explanation": "ការពន្យល់គរុកោសល្យលម្អិត..."
+  },
+  {
+    "number": 3,
+    "difficulty": "មធ្យម (Medium)",
+    "difficultyLevel": "medium",
+    "question": "ខ្លឹមសារសំណួរជាក់លាក់ទី៣...",
+    "options": {
+      "A": "ជម្រើសទី ១ (ខុស)",
+      "B": "ជម្រើសទី ២ (ខុស)",
+      "C": "ជម្រើសទី ៣ (ខុស)",
+      "D": "ជម្រើសទី ៤ (ត្រឹមត្រូវ)"
+    },
+    "correctAnswer": "D",
+    "explanation": "ការពន្យល់គរុកោសល្យលម្អិត..."
+  },
+  {
+    "number": 4,
+    "difficulty": "ពិបាក (Hard)",
+    "difficultyLevel": "hard",
+    "question": "ខ្លឹមសារសំណួរជាក់លាក់ទី៤...",
+    "options": {
+      "A": "ជម្រើសទី ១ (ខុស)",
+      "B": "ជម្រើសទី ២ (ត្រឹមត្រូវ)",
+      "C": "ជម្រើសទី ៣ (ខុស)",
+      "D": "ជម្រើសទី ៤ (ខុស)"
     },
     "correctAnswer": "B",
     "explanation": "ការពន្យល់គរុកោសល្យលម្អិត..."
@@ -6421,7 +6532,7 @@ ${testTypeDescription}
           body: JSON.stringify({
             model: 'llama-3.3-70b-versatile',
             messages: [
-              { role: 'system', content: 'You are an elite MoEYS curriculum examiner. Return ONLY a valid JSON array of test questions.' },
+              { role: 'system', content: 'You are an elite MoEYS curriculum examiner. Return ONLY a valid JSON array of test questions with balanced answer keys (A, B, C, D).' },
               { role: 'user', content: systemPrompt }
             ],
             temperature: 0.3,
@@ -6433,7 +6544,7 @@ ${testTypeDescription}
           const content = resJson.choices?.[0]?.message?.content;
           const parsed = extractAndParseJson(content);
           const list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || parsed.test || []);
-          if (list && list.length > 0) return list.slice(0, numQuestions);
+          if (list && list.length > 0) return distributeAndBalanceQuizList(list.slice(0, numQuestions));
         }
       } catch (groqErr) {
         console.warn('Groq single test generator error:', groqErr);
@@ -6452,7 +6563,7 @@ ${testTypeDescription}
           body: JSON.stringify({
             model: 'google/gemini-2.0-flash-001',
             messages: [
-              { role: 'system', content: 'You are an elite MoEYS curriculum examiner. Return ONLY a valid JSON array of test questions.' },
+              { role: 'system', content: 'You are an elite MoEYS curriculum examiner. Return ONLY a valid JSON array of test questions with balanced answer keys (A, B, C, D).' },
               { role: 'user', content: systemPrompt }
             ],
             temperature: 0.3
@@ -6463,7 +6574,7 @@ ${testTypeDescription}
           const content = resJson.choices?.[0]?.message?.content;
           const parsed = extractAndParseJson(content);
           const list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || parsed.test || []);
-          if (list && list.length > 0) return list.slice(0, numQuestions);
+          if (list && list.length > 0) return distributeAndBalanceQuizList(list.slice(0, numQuestions));
         }
       } catch (orErr) {
         console.warn('OpenRouter test generator error:', orErr);
@@ -6497,7 +6608,7 @@ ${testTypeDescription}
           const txt = data.candidates?.[0]?.content?.parts?.[0]?.text;
           const parsed = extractAndParseJson(txt);
           const list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || parsed.test || []);
-          if (list && list.length > 0) return list.slice(0, numQuestions);
+          if (list && list.length > 0) return distributeAndBalanceQuizList(list.slice(0, numQuestions));
         }
       } catch (e) {
         console.warn(`Model ${model} single test generator error:`, e);
@@ -6520,7 +6631,7 @@ ${testTypeDescription}
       if (serverResp.ok) {
         const serverData = await serverResp.json();
         if (serverData.success && Array.isArray(serverData.data) && serverData.data.length > 0) {
-          return serverData.data.slice(0, numQuestions);
+          return distributeAndBalanceQuizList(serverData.data.slice(0, numQuestions));
         }
       }
     } catch (srvErr) {
@@ -6528,9 +6639,10 @@ ${testTypeDescription}
     }
 
     // 5. Fallback to High-Quality Subject-Aware Offline Bank
-    return isPre 
+    const offlineFallback = isPre 
       ? generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, [])
       : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []);
+    return distributeAndBalanceQuizList(offlineFallback.slice(0, numQuestions));
   } finally {
     hideLoadingOverlay();
   }
@@ -10969,7 +11081,7 @@ window.openNotebookLM = openNotebookLM;
 window.autoOpenNotebookLMWithPrompt = openNotebookLM;
 window.closeNotebookLmModal = closeNotebookLmModal;
 window.proceedToNotebookLMWeb = proceedToNotebookLMWeb;
-window.copyNotebookLMPromptAgain = copyNotebookLMPromptAgain;
+window.copyNotebookLMPromptAgain = copyNotebookLMFlippedPrompt;
 window.downloadNotebookLMSourceFile = downloadNotebookLMSourceFile;
 window.copyVideoAIScriptPrompt = copyVideoAIScriptPrompt;
 window.exportTestToCSV = exportTestToCSV;

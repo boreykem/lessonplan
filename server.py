@@ -1351,6 +1351,7 @@ Pedagogical Principles & Step Guidelines for Flipped Learning:
 2. Diagnostic Assessment (វិញ្ញាសា Pre-Test QCM ៥ សំណួរ បង្កើតដោយ Gemini AI - កម្រិតស្តង់ដារ ២-៦-២):
    - Strictly 5 multiple-choice questions with choices (A, B, C, D / ក, ខ, គ, ឃ), correct answer, and explanation.
    - Questions 1-2 (Easy), Questions 3-4 (Medium), Question 5 (Hard).
+   - correctAnswer must be evenly distributed and rotated across A, B, C, D (NEVER make 'A' the answer for all questions).
 3. In-Class 5-Step Process (ដំណើរការបង្រៀន ៥ ជំហាន: ៥% - ១០% - ១០% - ៧០% - ៥%):
    - ជំហានទី ១ : រដ្ឋបាលថ្នាក់ & ការរៀបចំ (៥%): គ្មានសំណួរចោទសួរទេ! គ្រូស្វាគមន៍ ពិនិត្យវត្តមាន សណ្ដាប់ធ្នាប់ អនាម័យ និងរៀបចំបរិយាកាសសិក្សាសកម្ម។
    - ជំហានទី ២ : ត្រួតពិនិត្យការស្វ័យសិក្សាពីផ្ទះ & ដោះស្រាយចម្ងល់ Muddiest Points (Engage & Explore) (១០%): គ្រូផ្សារភ្ជាប់លទ្ធផល Pre-Test, ចោទសួរផ្ទាល់មាត់បំផុសស្មារតី ២ សំណួរខ្លីៗ, ហៅសិស្សលើកឡើង Muddiest Points, និងបង្ហាញការវាយតម្លៃ Pre-Test។
@@ -1414,7 +1415,7 @@ Return ONLY valid JSON matching this schema:
       "difficultyLevel": "easy",
       "question": "សំណួរ Pre-Test ទី១...",
       "options": {{ "A": "...", "B": "...", "C": "...", "D": "..." }},
-      "correctAnswer": "A",
+      "correctAnswer": "B",
       "explanation": "..."
     }},
     {{
@@ -1423,7 +1424,7 @@ Return ONLY valid JSON matching this schema:
       "difficultyLevel": "easy",
       "question": "សំណួរ Pre-Test ទី២...",
       "options": {{ "A": "...", "B": "...", "C": "...", "D": "..." }},
-      "correctAnswer": "B",
+      "correctAnswer": "D",
       "explanation": "..."
     }},
     {{
@@ -1441,7 +1442,7 @@ Return ONLY valid JSON matching this schema:
       "difficultyLevel": "medium",
       "question": "សំណួរ Pre-Test ទី៤...",
       "options": {{ "A": "...", "B": "...", "C": "...", "D": "..." }},
-      "correctAnswer": "A",
+      "correctAnswer": "C",
       "explanation": "..."
     }},
     {{
@@ -1450,7 +1451,7 @@ Return ONLY valid JSON matching this schema:
       "difficultyLevel": "hard",
       "question": "សំណួរ Pre-Test ទី៥...",
       "options": {{ "A": "...", "B": "...", "C": "...", "D": "..." }},
-      "correctAnswer": "A",
+      "correctAnswer": "B",
       "explanation": "..."
     }}
   ],
@@ -1504,7 +1505,7 @@ Return ONLY valid JSON matching this schema:
       "difficultyLevel": "easy",
       "question": "សំណួរ Post-Test ទី១...",
       "options": {{ "A": "...", "B": "...", "C": "...", "D": "..." }},
-      "correctAnswer": "A",
+      "correctAnswer": "C",
       "explanation": "..."
     }}
   ]
@@ -1914,46 +1915,94 @@ def upload_lesson():
     })
 
 
+def distribute_and_balance_quiz_list(quiz_list):
+    """
+    Intelligently balances and rotates multiple-choice answer keys (A, B, C, D)
+    so that correct answers are evenly distributed (~25% each) and never monopolized
+    by option A, while preserving the true correct answer text perfectly.
+    """
+    if not isinstance(quiz_list, list) or len(quiz_list) == 0:
+        return quiz_list
+
+    n = len(quiz_list)
+    letters = ["A", "B", "C", "D"]
+    khmer_letters = ["ក", "ខ", "គ", "ឃ"]
+
+    pool = []
+    base_count = n // 4
+    remainder = n % 4
+    for letter in letters:
+        pool.extend([letter] * base_count)
+    rem_letters = letters[:]
+    random.shuffle(rem_letters)
+    pool.extend(rem_letters[:remainder])
+    random.shuffle(pool)
+
+    # Avoid adjacent identical keys where possible
+    for i in range(1, len(pool)):
+        if pool[i] == pool[i - 1]:
+            for j in range(i + 1, len(pool)):
+                if pool[j] != pool[i] and (j == len(pool) - 1 or pool[j] != pool[j + 1]):
+                    pool[i], pool[j] = pool[j], pool[i]
+                    break
+
+    balanced = []
+    for idx, raw_q in enumerate(quiz_list):
+        if not isinstance(raw_q, dict):
+            balanced.append(raw_q)
+            continue
+        q = dict(raw_q)
+        opts = q.get("options") or {}
+        opt_a = opts.get("A", opts.get("ក", ""))
+        opt_b = opts.get("B", opts.get("ខ", ""))
+        opt_c = opts.get("C", opts.get("គ", ""))
+        opt_d = opts.get("D", opts.get("ឃ", ""))
+
+        raw_correct = str(q.get("correctAnswer", "A")).strip().upper()
+        correct_text = opt_a
+        if raw_correct in ["B", "ខ", "2", "២"] or (opt_b and raw_correct == opt_b):
+            correct_text = opt_b
+        elif raw_correct in ["C", "គ", "3", "៣"] or (opt_c and raw_correct == opt_c):
+            correct_text = opt_c
+        elif raw_correct in ["D", "ឃ", "4", "៤"] or (opt_d and raw_correct == opt_d):
+            correct_text = opt_d
+
+        all_options = [opt_a, opt_b, opt_c, opt_d]
+        try:
+            c_idx = all_options.index(correct_text)
+        except ValueError:
+            c_idx = 0
+        distractors = [all_options[i] for i in range(4) if i != c_idx]
+        random.shuffle(distractors)
+
+        target_key = pool[idx % len(pool)]
+        target_idx = letters.index(target_key)
+
+        new_opts = {}
+        d_idx = 0
+        for i in range(4):
+            val = correct_text if i == target_idx else (distractors[d_idx] if d_idx < len(distractors) else "")
+            if i != target_idx:
+                d_idx += 1
+            new_opts[letters[i]] = val
+            new_opts[khmer_letters[i]] = val
+
+        q["options"] = new_opts
+        q["correctAnswer"] = target_key
+        balanced.append(q)
+
+    return balanced
+
+
 def randomize_question_options(q):
     if not q or not isinstance(q, dict) or "options" not in q:
         return q
-    
-    opts = q.get("options", {})
-    opt_a = opts.get("A", opts.get("ក", ""))
-    opt_b = opts.get("B", opts.get("ខ", ""))
-    opt_c = opts.get("C", opts.get("គ", ""))
-    opt_d = opts.get("D", opts.get("ឃ", ""))
-    
-    raw_correct = str(q.get("correctAnswer", "A")).strip().upper()
-    correct_text = opt_a
-    if raw_correct in ["B", "ខ", "2", "២"] or raw_correct == opt_b:
-        correct_text = opt_b
-    elif raw_correct in ["C", "គ", "3", "៣"] or raw_correct == opt_c:
-        correct_text = opt_c
-    elif raw_correct in ["D", "ឃ", "4", "៤"] or raw_correct == opt_d:
-        correct_text = opt_d
-        
-    items = [opt_a, opt_b, opt_c, opt_d]
-    random.shuffle(items)
-    
-    keys = ["A", "B", "C", "D"]
-    khmer_keys = ["ក", "ខ", "គ", "ឃ"]
-    new_correct = "A"
-    new_opts = {}
-    for idx, item in enumerate(items):
-        new_opts[keys[idx]] = item
-        new_opts[khmer_keys[idx]] = item
-        if item == correct_text:
-            new_correct = keys[idx]
-            
-    q["options"] = new_opts
-    q["correctAnswer"] = new_correct
-    return q
+    res = distribute_and_balance_quiz_list([q])
+    return res[0] if res else q
+
 
 def randomize_quiz_list(quiz_list):
-    if not isinstance(quiz_list, list):
-        return quiz_list
-    return [randomize_question_options(q) for q in quiz_list]
+    return distribute_and_balance_quiz_list(quiz_list)
 
 
 @app.route("/api/generate", methods=["POST"])
@@ -2050,7 +2099,7 @@ CRITICAL RULES:
 - Never use robotic template stems like "តើ [ចំណងជើង] មានឥទ្ធិពលយ៉ាងណា?", "តើការអនុវត្តរូបមន្ត... ក្នុង [ចំណងជើង]", "តើសារពារពាក់ព័ន្ធ...".
 - Base all questions on authentic curriculum concepts, real scientific/psychological mechanisms, and practical classroom scenarios.
 - Options must be plausible (no obvious jokes).
-- correctAnswer must vary across A, B, C, D.
+- MANDATORY BALANCED ANSWER ROTATION (DO NOT make 'A' the correct answer for all questions): The correct answers MUST be evenly distributed and rotated across options A, B, C, and D (approx 25% each: ~2-3 A's, ~2-3 B's, ~2-3 C's, ~2-3 D's). The correct fact inside 'options' must match the designated 'correctAnswer' letter.
 
 Return ONLY a valid JSON array:
 [
@@ -2060,7 +2109,34 @@ Return ONLY a valid JSON array:
     "difficultyLevel": "easy",
     "question": "...",
     "options": {{ "A": "...", "B": "...", "C": "...", "D": "..." }},
+    "correctAnswer": "C",
+    "explanation": "..."
+  }},
+  {{
+    "number": 2,
+    "difficulty": "ងាយ (Easy)",
+    "difficultyLevel": "easy",
+    "question": "...",
+    "options": {{ "A": "...", "B": "...", "C": "...", "D": "..." }},
     "correctAnswer": "A",
+    "explanation": "..."
+  }},
+  {{
+    "number": 3,
+    "difficulty": "មធ្យម (Medium)",
+    "difficultyLevel": "medium",
+    "question": "...",
+    "options": {{ "A": "...", "B": "...", "C": "...", "D": "..." }},
+    "correctAnswer": "D",
+    "explanation": "..."
+  }},
+  {{
+    "number": 4,
+    "difficulty": "ពិបាក (Hard)",
+    "difficultyLevel": "hard",
+    "question": "...",
+    "options": {{ "A": "...", "B": "...", "C": "...", "D": "..." }},
+    "correctAnswer": "B",
     "explanation": "..."
   }}
 ]"""
@@ -2071,7 +2147,7 @@ Return ONLY a valid JSON array:
                     groq_body = {
                         "model": "llama-3.3-70b-versatile",
                         "messages": [
-                            {"role": "system", "content": "You are an elite MoEYS curriculum examiner. Return ONLY a valid JSON array of test questions."},
+                            {"role": "system", "content": "You are an elite MoEYS curriculum examiner. Return ONLY a valid JSON array of test questions with balanced answer keys (A, B, C, D)."},
                             {"role": "user", "content": prompt}
                         ],
                         "temperature": 0.3,
@@ -2087,7 +2163,8 @@ Return ONLY a valid JSON array:
                         parsed = json.loads(txt)
                         q_list = parsed if isinstance(parsed, list) else (parsed.get("questions") or parsed.get("test") or [])
                         if q_list and len(q_list) > 0:
-                            return jsonify({"success": True, "data": q_list[:num_questions]})
+                            balanced_list = distribute_and_balance_quiz_list(q_list[:num_questions])
+                            return jsonify({"success": True, "data": balanced_list})
                 except Exception as ge:
                     print("Groq test generator error:", ge)
 
@@ -2106,7 +2183,8 @@ Return ONLY a valid JSON array:
                         parsed = json.loads(txt)
                         q_list = parsed if isinstance(parsed, list) else (parsed.get("questions") or parsed.get("test") or [])
                         if q_list and len(q_list) > 0:
-                            return jsonify({"success": True, "data": q_list[:num_questions]})
+                            balanced_list = distribute_and_balance_quiz_list(q_list[:num_questions])
+                            return jsonify({"success": True, "data": balanced_list})
                 except Exception:
                     continue
         except Exception as e:
@@ -2116,7 +2194,8 @@ Return ONLY a valid JSON array:
         synth = generate_pretest_qcm_python(subject, grade, lesson_title, [], count=num_questions)
     else:
         synth = generate_posttest_mcq_python(subject, grade, lesson_title, [], count=num_questions)
-    return jsonify({"success": True, "data": synth, "fallback": True})
+    balanced_synth = distribute_and_balance_quiz_list(synth[:num_questions])
+    return jsonify({"success": True, "data": balanced_synth, "fallback": True})
 
 
 # ==============================================================================
