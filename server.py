@@ -1702,12 +1702,9 @@ Return ONLY valid JSON matching this schema:
     }
 
     candidate_endpoints = [
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}",
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key={api_key}",
     ]
 
     last_error = None
@@ -2086,12 +2083,25 @@ def generate_single_test_api():
 
     if api_key:
         try:
+            plan_obj = plan.get("objectives") or {}
+            obj_desc = ""
+            if isinstance(plan_obj, dict):
+                k = "; ".join(plan_obj.get("knowledge", [])) if isinstance(plan_obj.get("knowledge"), list) else str(plan_obj.get("knowledge", ""))
+                s = "; ".join(plan_obj.get("skills", [])) if isinstance(plan_obj.get("skills"), list) else str(plan_obj.get("skills", ""))
+                if k or s:
+                    obj_desc = f"\nObjectives: Knowledge: {k} | Skills: {s}"
+            
+            content_desc = ""
+            lesson_cnt = plan.get("lessonContent") or data.get("lessonContent") or ""
+            if lesson_cnt:
+                content_desc = f"\nLesson Reference Content:\n{str(lesson_cnt)[:2500]}"
+
             diff_desc = f"{e} ងាយ (Easy), {m} មធ្យម (Medium), {h} ពិបាក (Hard)"
             prompt = f"""You are an elite pedagogical examiner and assessment specialist for MoEYS Cambodia.
 Generate {num_questions} Multiple Choice Questions (4 options: A, B, C, D) in Khmer for:
 Subject: {subject}
 Grade: {grade}
-Lesson Title: {lesson_title}
+Lesson Title: {lesson_title}{obj_desc}{content_desc}
 Assessment Type: {"Pre-Test Diagnostic (60% Easy, 30% Med, 10% Hard)" if is_pre else "Post-Test Mastery (20% Easy, 60% Med, 20% Hard)"}
 Standard Distribution: {diff_desc}
 
@@ -2169,11 +2179,11 @@ Return ONLY a valid JSON array:
                     print("Groq test generator error:", ge)
 
             # Try Gemini models
-            for model in ["gemini-2.5-pro", "gemini-2.0-flash", "gemini-1.5-pro"]:
+            for model in ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
                 req_data = {
                     "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-                    "generationConfig": {"response_mime_type": "application/json", "temperature": 0.3}
+                    "generationConfig": {"responseMimeType": "application/json", "temperature": 0.4}
                 }
                 req = urllib.request.Request(url, data=json.dumps(req_data).encode("utf-8"), headers={"Content-Type": "application/json"})
                 try:
@@ -2185,7 +2195,8 @@ Return ONLY a valid JSON array:
                         if q_list and len(q_list) > 0:
                             balanced_list = distribute_and_balance_quiz_list(q_list[:num_questions])
                             return jsonify({"success": True, "data": balanced_list})
-                except Exception:
+                except Exception as ex:
+                    print(f"Server Gemini {model} error:", ex)
                     continue
         except Exception as e:
             print("Server test generator error:", e)

@@ -4111,22 +4111,52 @@ function extractAndParseJson(text) {
   if (!text) throw new Error("Empty response text from Gemini AI");
   let clean = text.trim();
   clean = clean.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/, '').trim();
-  const firstBrace = clean.indexOf('{');
-  if (firstBrace === -1) throw new Error("No JSON object found in Gemini response");
-  clean = clean.substring(firstBrace);
 
-  // 1. Direct standard parse
+  // 1. Direct standard parse first (handles pristine arrays or objects)
+  try {
+    return JSON.parse(clean);
+  } catch (e) {
+    // continue to extract and repair
+  }
+
+  const firstBrace = clean.indexOf('{');
+  const firstBracket = clean.indexOf('[');
+
+  let startIdx = -1;
+  let isArray = false;
+
+  if (firstBrace !== -1 && firstBracket !== -1) {
+    if (firstBracket < firstBrace) {
+      startIdx = firstBracket;
+      isArray = true;
+    } else {
+      startIdx = firstBrace;
+      isArray = false;
+    }
+  } else if (firstBracket !== -1) {
+    startIdx = firstBracket;
+    isArray = true;
+  } else if (firstBrace !== -1) {
+    startIdx = firstBrace;
+    isArray = false;
+  } else {
+    throw new Error("No JSON object or array found in Gemini response");
+  }
+
+  clean = clean.substring(startIdx);
+
+  // 2. Direct parse of extracted substring
   try {
     return JSON.parse(clean);
   } catch (e) {
     // try fallback repairs
   }
 
-  // 2. Substring up to last closing brace
-  const lastBrace = clean.lastIndexOf('}');
-  if (lastBrace > 0) {
+  // 3. Substring up to last closing brace or bracket
+  const lastCloser = isArray ? clean.lastIndexOf(']') : clean.lastIndexOf('}');
+  if (lastCloser > 0) {
     try {
-      return JSON.parse(clean.substring(0, lastBrace + 1));
+      return JSON.parse(clean.substring(0, lastCloser + 1));
     } catch (e) {}
   }
 
@@ -6419,7 +6449,9 @@ async function callAiForSingleTest(testType, plan, numQuestions = 10, scale = nu
 
     let docSnippet = '';
     if (state.extractedText) {
-      docSnippet = state.extractedText.slice(0, 1500).replace(/\s+/g, ' ');
+      docSnippet = state.extractedText.slice(0, 2500).replace(/\s+/g, ' ');
+    } else if (plan.lessonContent) {
+      docSnippet = String(plan.lessonContent).slice(0, 2500).replace(/\s+/g, ' ');
     }
 
     const testTypeDescription = isPre
@@ -6586,7 +6618,7 @@ ${testTypeDescription}
     if (state.verifiedGeminiModel && state.verifiedGeminiModel.name) {
       geminiModels.push(state.verifiedGeminiModel.name);
     }
-    geminiModels.push('gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash');
+    geminiModels.push('gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro');
     const uniqueModels = [...new Set(geminiModels)];
 
     for (const model of uniqueModels) {
@@ -6597,9 +6629,9 @@ ${testTypeDescription}
           body: JSON.stringify({
             contents: [{ role: 'user', parts: [{ text: systemPrompt }] }],
             generationConfig: {
-              response_mime_type: 'application/json',
-              temperature: 0.3,
-              maxOutputTokens: 4096
+              responseMimeType: 'application/json',
+              temperature: 0.4,
+              maxOutputTokens: 8192
             }
           })
         });
@@ -6609,6 +6641,9 @@ ${testTypeDescription}
           const parsed = extractAndParseJson(txt);
           const list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || parsed.test || []);
           if (list && list.length > 0) return distributeAndBalanceQuizList(list.slice(0, numQuestions));
+        } else {
+          const errText = await resp.text().catch(() => '');
+          console.warn(`Model ${model} returned status ${resp.status}:`, errText);
         }
       } catch (e) {
         console.warn(`Model ${model} single test generator error:`, e);
