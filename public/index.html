@@ -851,7 +851,7 @@
           <script>
             (function() {
               try {
-                var k = localStorage.getItem('gemini_api_key') || (document.cookie.match(/(?:^|; )persistent_api_key=([^;]*)/) || [])[1];
+                var k = localStorage.getItem('gemini_api_key') || (document.cookie.match(/(?:^|; )(?:gemini_api_key|persistent_api_key)=([^;]*)/) || [])[1];
                 if (k && k.trim()) {
                   var b = document.getElementById('emptyStateApiBanner');
                   var d = document.getElementById('emptyStateApiDot');
@@ -1051,6 +1051,14 @@
           <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" id="linkGetApiKey" style="color: #4f46e5; font-weight: 600;">
             <i class="fa-solid fa-arrow-up-right-from-square"></i> យក Gemini API Key ពី Google AI Studio (aistudio.google.com/app/apikey)
           </a>
+        </div>
+
+        <!-- Cache Clear Safe Tip -->
+        <div style="margin-top: 10px; padding: 8px 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; font-size: 0.78rem; color: #1e40af; line-height: 1.45; display: flex; align-items: flex-start; gap: 8px;">
+          <i class="fa-solid fa-shield-halved" style="color: #2563eb; margin-top: 2px; font-size: 0.9rem;"></i>
+          <div>
+            <strong>គន្លឹះការពារកុំឱ្យបាត់ Key៖</strong> នៅពេលសម្អាត Cache ក្នុង Browser Chrome សូម <strong>ដោះគ្រីស (Uncheck)</strong> ចេញពី <em>"Cookies and other site data"</em>។ ជ្រើសរើសតែ <em>"Cached images and files"</em> នោះ Key របស់អ្នកនឹងមិនបាត់ឡើយ។
+          </div>
         </div>
       </div>
 
@@ -1870,7 +1878,7 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261015_v21_key_connected_fix"></script>
+  <script src="app.js?v=20261017_v22_vault_fix"></script>
 </body>
 </html>
 

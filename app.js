@@ -27,7 +27,7 @@ const PersistentKeyVault = {
     try {
       const fromLocal = (localStorage.getItem('gemini_api_key') || '').trim();
       if (fromLocal) return fromLocal;
-      const fromCookie = this.getCookie('gemini_api_key');
+      const fromCookie = this.getCookie('gemini_api_key') || this.getCookie('persistent_api_key');
       if (fromCookie) {
         try { localStorage.setItem('gemini_api_key', fromCookie); } catch (e) {}
         return fromCookie;
@@ -177,6 +177,7 @@ const PersistentKeyVault = {
     } catch (e) {}
 
     this.setCookie('gemini_api_key', cleanKey);
+    this.setCookie('persistent_api_key', cleanKey);
     this.setCookie('ai_provider', cleanProv);
 
     await this.setToIndexedDB('gemini_api_key', cleanKey);
@@ -200,6 +201,7 @@ const PersistentKeyVault = {
     } catch (e) {}
 
     this.deleteCookie('gemini_api_key');
+    this.deleteCookie('persistent_api_key');
     this.deleteCookie('ai_provider');
 
     await this.deleteFromIndexedDB('gemini_api_key');
@@ -1823,6 +1825,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try { initPdfJs(); } catch (e) { console.error('initPdfJs err:', e); }
   try { initEventListeners(); } catch (e) { console.error('initEventListeners err:', e); }
   try { initDropzones(); } catch (e) { console.error('initDropzones err:', e); }
+  try { PersistentKeyVault.requestPersistentStorage(); } catch (e) {}
   try {
     PersistentKeyVault.restore().then((restored) => {
       if (restored) {
