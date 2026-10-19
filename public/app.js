@@ -5151,8 +5151,8 @@ function randomizeQuizList(list) {
 window.distributeAndBalanceQuizList = distributeAndBalanceQuizList;
 window.randomizeQuizList = distributeAndBalanceQuizList;
 
-// Generate Pre-Test QCM 10 Questions following strict 60% - 30% - 10% MoEYS Standard
-function generatePreTestQCMOffline(subject, grade, lessonTitle, mainPoints = []) {
+// Generate Pre-Test QCM Questions following strict 60% - 30% - 10% MoEYS Standard
+function generatePreTestQCMOffline(subject, grade, lessonTitle, mainPoints = [], count = 10) {
   const cleanTitle = (lessonTitle || "មេរៀន").trim();
   const subj = (subject || "").toLowerCase();
   const isPsychOrInfo = subj.includes('ចិត្តវិទ្យា') || cleanTitle.includes('ព័ត៌មាន') || cleanTitle.includes('ចងចាំ') || subj.includes('psychology');
@@ -5303,7 +5303,14 @@ function generatePreTestQCMOffline(subject, grade, lessonTitle, mainPoints = [])
         explanation: "ការមើលឃើញ (Sensory) ដោយគ្មានការយកចិត្តទុកដាក់ និងការកូដទុក (Elaborative Encoding) មិនអាចបង្កើតជាការយល់ដឹងបានឡើយ។ គ្រូត្រូវរៀបចំសកម្មភាព Active Learning ដើម្បីជួយជំរុញដំណើរការនេះ។"
       }
     ];
-    return randomizeQuizList(psychList);
+    if (count === 5) {
+      const selected = [psychList[0], psychList[1], psychList[3], psychList[6], psychList[9]];
+      selected.forEach((q, idx) => { q.number = idx + 1; });
+      return randomizeQuizList(selected);
+    }
+    const sliced = psychList.slice(0, count);
+    sliced.forEach((q, idx) => { q.number = idx + 1; });
+    return randomizeQuizList(sliced);
   }
 
   // General Subject Bank (Strict 60% Easy, 30% Medium, 10% Hard)
@@ -5459,11 +5466,18 @@ function generatePreTestQCMOffline(subject, grade, lessonTitle, mainPoints = [])
       explanation: `ការត្រិះរិះពិចារណាកម្រិតខ្ពស់តម្រូវឱ្យវិភាគរកឫសគល់នៃកំហុស និងកែតម្រូវតាមក្បួនវិធីសាស្ត្រវិទ្យាសាស្ត្រ។`
     }
   ];
-  return randomizeQuizList(rawList);
+  if (count === 5) {
+    const selected = [rawList[0], rawList[1], rawList[2], rawList[6], rawList[9]];
+    selected.forEach((q, idx) => { q.number = idx + 1; });
+    return randomizeQuizList(selected);
+  }
+  const sliced = rawList.slice(0, count);
+  sliced.forEach((q, idx) => { q.number = idx + 1; });
+  return randomizeQuizList(sliced);
 }
 
-// Generate Post-Test MCQ 10 Questions following strict 20% - 60% - 20% MoEYS Bloom Standard
-function generatePostTestMCQOffline(subject, grade, lessonTitle, mainPoints = []) {
+// Generate Post-Test MCQ Questions following strict 20% - 60% - 20% MoEYS Bloom Standard
+function generatePostTestMCQOffline(subject, grade, lessonTitle, mainPoints = [], count = 10) {
   const cleanTitle = (lessonTitle || "មេរៀន").trim();
   const subj = (subject || "").toLowerCase();
   const isPsychOrInfo = subj.includes('ចិត្តវិទ្យា') || cleanTitle.includes('ព័ត៌មាន') || cleanTitle.includes('ចងចាំ') || subj.includes('psychology');
@@ -5624,7 +5638,14 @@ function generatePostTestMCQOffline(subject, grade, lessonTitle, mainPoints = []
         explanation: "Flipped Learning បង្វែរការទទួលព័ត៌មានដំបូង (Lower Bloom) ទៅផ្ទះតាមល្បឿនផ្ទាល់ខ្លួនរបស់សិស្ស និងទុកពេលក្នុងថ្នាក់សម្រាប់សកម្មភាពកម្រិតខ្ពស់ (Higher Bloom) ជាមួយគ្រូ។"
       }
     ];
-    return randomizeQuizList(psychPostList);
+    if (count === 5) {
+      const selected = [psychPostList[0], psychPostList[2], psychPostList[3], psychPostList[5], psychPostList[8]];
+      selected.forEach((q, idx) => { q.number = idx + 1; });
+      return randomizeQuizList(selected);
+    }
+    const sliced = psychPostList.slice(0, count);
+    sliced.forEach((q, idx) => { q.number = idx + 1; });
+    return randomizeQuizList(sliced);
   }
 
   // General Subject Bank (Strict 20% Easy, 60% Medium, 20% Hard)
@@ -5790,7 +5811,14 @@ function generatePostTestMCQOffline(subject, grade, lessonTitle, mainPoints = []
       explanation: `កម្រិតខ្ពស់បំផុតនៃ Bloom គឺការសំយោគចំណេះដឹងពហុវិស័យទៅបង្កើតជានវានុវត្តន៍មានប្រយោជន៍។`
     }
   ];
-  return randomizeQuizList(rawPostList);
+  if (count === 5) {
+    const selected = [rawPostList[0], rawPostList[2], rawPostList[3], rawPostList[5], rawPostList[8]];
+    selected.forEach((q, idx) => { q.number = idx + 1; });
+    return randomizeQuizList(selected);
+  }
+  const sliced = rawPostList.slice(0, count);
+  sliced.forEach((q, idx) => { q.number = idx + 1; });
+  return randomizeQuizList(sliced);
 }
 
 function generateActiveRubric(lessonTitle, subject) {
@@ -6230,7 +6258,7 @@ window.normalizeLessonPlanData = normalizeLessonPlanData;
 function renderPreTestHtmlBlock(data) {
   let qcmList = (data.preTestQCM && data.preTestQCM.length > 0)
     ? data.preTestQCM
-    : generatePreTestQCMOffline(data.subject, data.grade, data.lessonTitle, []);
+    : generatePreTestQCMOffline(data.subject, data.grade, data.lessonTitle, [], (data.preTestQCM?.length || 5));
 
   // Auto-heal uniform answer keys (e.g., if all answers are A from legacy drafts)
   if (Array.isArray(qcmList) && qcmList.length > 1) {
@@ -6245,7 +6273,7 @@ function renderPreTestHtmlBlock(data) {
   let preAnswerKeyList = [];
 
   qcmList.forEach((q, idx) => {
-    const qNum = q.number || (idx + 1);
+    const qNum = idx + 1;
     preAnswerKeyList.push(`<strong>ស.${qNum}:</strong> ${escapeHtml(q.correctAnswer || 'A')}`);
     const opts = q.options || {};
     preQcmHtml += `
@@ -6267,7 +6295,7 @@ function renderPreTestHtmlBlock(data) {
   return `
     <!-- Pre-Test QCM -->
     <div class="doc-section-title flex justify-between items-center" style="flex-wrap: wrap; gap: 6px; margin-top: 8px;">
-      <span>វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test QCM ៥ សំណួរ)</span>
+      <span>វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test QCM ${qcmList.length} សំណួរ)</span>
       <div class="flex items-center gap-2" style="flex-wrap: wrap;">
         <button type="button" class="btn-copy-notebooklm" onclick="openGoogleFormModal('pre')" style="background: #7c3aed; color: white; border: none; font-weight: bold;" title="បង្កើតជា Google Form ដោយស្វ័យប្រវត្តក្នុង Google Drive">
           <i class="fa-solid fa-square-poll-vertical"></i> 📝 បង្កើត Google Form
@@ -6275,7 +6303,7 @@ function renderPreTestHtmlBlock(data) {
         <button type="button" class="btn-csv-action" onclick="exportTestToCSV('pre')" title="ទាញយក Pre-Test ជា Excel/CSV (Google Sheets 5 Columns)">
           <i class="fa-solid fa-file-csv"></i> ទាញយក Pre-Test CSV
         </button>
-        <button type="button" class="btn-tool-action" onclick="generatePreTestOnDemand()" style="background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; font-weight: 600; padding: 4px 10px; border-radius: 6px; cursor: pointer;" title="បង្កើតបុរេតេស្តឡើងវិញ">
+        <button type="button" class="btn-tool-action" onclick="promptGenerateTest('pre')" style="background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; font-weight: 600; padding: 4px 10px; border-radius: 6px; cursor: pointer;" title="បង្កើតបុរេតេស្តឡើងវិញ">
           <i class="fa-solid fa-arrows-rotate"></i> បង្កើតឡើងវិញ
         </button>
         <button type="button" class="btn-tool-action" onclick="removePreTestModule()" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="លាក់កម្រងសំណួរ">
@@ -6304,7 +6332,7 @@ function renderPreTestHtmlBlock(data) {
 function renderPostTestHtmlBlock(data) {
   let postTestList = (data.postTestMCQ && data.postTestMCQ.length > 0)
     ? data.postTestMCQ
-    : generatePostTestMCQOffline(data.subject, data.grade, data.lessonTitle, []);
+    : generatePostTestMCQOffline(data.subject, data.grade, data.lessonTitle, [], (data.postTestMCQ?.length || 5));
 
   // Auto-heal uniform answer keys (e.g., if all answers are A from legacy drafts)
   if (Array.isArray(postTestList) && postTestList.length > 1) {
@@ -6319,7 +6347,7 @@ function renderPostTestHtmlBlock(data) {
   let postAnswerKeyList = [];
 
   postTestList.forEach((q, idx) => {
-    const qNum = q.number || (idx + 1);
+    const qNum = idx + 1;
     postAnswerKeyList.push(`<strong>ស.${qNum}:</strong> ${escapeHtml(q.correctAnswer || 'A')}`);
     const opts = q.options || {};
     postQcmHtml += `
@@ -6341,7 +6369,7 @@ function renderPostTestHtmlBlock(data) {
   return `
     <!-- Post-Test MCQ -->
     <div class="doc-section-title flex justify-between items-center" style="margin-top: 8px; flex-wrap: wrap; gap: 6px;">
-      <span>វិញ្ញាសាវាយតម្លៃបញ្ចប់ Post-Test (MCQ ៥ សំណួរ)</span>
+      <span>វិញ្ញាសាវាយតម្លៃបញ្ចប់ Post-Test (MCQ ${postTestList.length} សំណួរ)</span>
       <div class="flex items-center gap-2" style="flex-wrap: wrap;">
         <button type="button" class="btn-copy-notebooklm" onclick="openGoogleFormModal('post')" style="background: #7c3aed; color: white; border: none; font-weight: bold;" title="បង្កើតជា Google Form ដោយស្វ័យប្រវត្តក្នុង Google Drive">
           <i class="fa-solid fa-square-poll-vertical"></i> 📝 បង្កើត Google Form
@@ -6349,7 +6377,7 @@ function renderPostTestHtmlBlock(data) {
         <button type="button" class="btn-csv-action" onclick="exportTestToCSV('post')" title="ទាញយក Post-Test ជា Excel/CSV (Google Sheets 5 Columns)">
           <i class="fa-solid fa-file-csv"></i> ទាញយក Post-Test CSV
         </button>
-        <button type="button" class="btn-tool-action" onclick="generatePostTestOnDemand()" style="background: #f0fdf4; color: #166534; border: 1px solid #86efac; font-weight: 600; padding: 4px 10px; border-radius: 6px; cursor: pointer;" title="បង្កើតបច្ឆិមតេស្តឡើងវិញ">
+        <button type="button" class="btn-tool-action" onclick="promptGenerateTest('post')" style="background: #f0fdf4; color: #166534; border: 1px solid #86efac; font-weight: 600; padding: 4px 10px; border-radius: 6px; cursor: pointer;" title="បង្កើតបច្ឆិមតេស្តឡើងវិញ">
           <i class="fa-solid fa-arrows-rotate"></i> បង្កើតឡើងវិញ
         </button>
         <button type="button" class="btn-tool-action" onclick="removePostTestModule()" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="លាក់កម្រងសំណួរ">
@@ -6748,6 +6776,9 @@ async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
 
   try {
     const qList = await callAiForSingleTest('pre', plan, numQuestions, scale);
+    if (Array.isArray(qList)) {
+      qList.forEach((q, idx) => { q.number = idx + 1; });
+    }
     plan.preTestQCM = qList;
     state.currentPlan = plan;
     state.generatedPlanData = plan;
@@ -6759,14 +6790,17 @@ async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
     showToast(isEn ? '✨ Pre-Test QCM generated successfully!' : `✨ បានបង្កើតបុរេតេស្ត (${qList.length} សំណួរ) ដោយជោគជ័យ!`, 'success');
   } catch (err) {
     console.error('Pre-Test generation error:', err);
-    plan.preTestQCM = generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, []);
+    const offlineList = generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, [], numQuestions);
+    const balanced = distributeAndBalanceQuizList(offlineList.slice(0, numQuestions));
+    balanced.forEach((q, idx) => { q.number = idx + 1; });
+    plan.preTestQCM = balanced;
     state.currentPlan = plan;
     state.generatedPlanData = plan;
     if (wrapper) {
       wrapper.innerHTML = renderPreTestModule(plan, isEn);
       wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    showToast(isEn ? '✨ Pre-Test generated (Standard MoEYS Bank)' : '✨ បានរៀបចំបុរេតេស្តស្តង់ដារ MoEYS រួចរាល់!', 'success');
+    showToast(isEn ? `✨ Pre-Test (${balanced.length} questions) generated (Standard MoEYS Bank)` : `✨ បានរៀបចំបុរេតេស្ត (${balanced.length} សំណួរ) ស្តង់ដារ MoEYS រួចរាល់!`, 'success');
   } finally {
     hideLoadingOverlay();
   }
@@ -6833,6 +6867,9 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
 
   try {
     const qList = await callAiForSingleTest('post', plan, numQuestions, scale);
+    if (Array.isArray(qList)) {
+      qList.forEach((q, idx) => { q.number = idx + 1; });
+    }
     plan.postTestMCQ = qList;
     state.currentPlan = plan;
     state.generatedPlanData = plan;
@@ -6844,14 +6881,17 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
     showToast(isEn ? '✨ Post-Test MCQ generated successfully!' : `✨ បានបង្កើតបច្ឆិមតេស្ត (${qList.length} សំណួរ) ដោយជោគជ័យ!`, 'success');
   } catch (err) {
     console.error('Post-Test generation error:', err);
-    plan.postTestMCQ = generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []);
+    const offlinePost = generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, [], numQuestions);
+    const balancedPost = distributeAndBalanceQuizList(offlinePost.slice(0, numQuestions));
+    balancedPost.forEach((q, idx) => { q.number = idx + 1; });
+    plan.postTestMCQ = balancedPost;
     state.currentPlan = plan;
     state.generatedPlanData = plan;
     if (wrapper) {
       wrapper.innerHTML = renderPostTestModule(plan, isEn);
       wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-    showToast(isEn ? '✨ Post-Test generated (Standard MoEYS Bank)' : '✨ បានរៀបចំបច្ឆិមតេស្តស្តង់ដារ MoEYS រួចរាល់!', 'success');
+    showToast(isEn ? `✨ Post-Test (${balancedPost.length} questions) generated (Standard MoEYS Bank)` : `✨ បានរៀបចំបច្ឆិមតេស្ត (${balancedPost.length} សំណួរ) ស្តង់ដារ MoEYS រួចរាល់!`, 'success');
   } finally {
     hideLoadingOverlay();
   }
@@ -7735,14 +7775,14 @@ async function handleExportWord() {
     const buildDocxPreTest = () => {
       const qcmList = (data.preTestQCM && data.preTestQCM.length > 0)
         ? data.preTestQCM
-        : generatePreTestQCMOffline(data.subject, data.grade, data.lessonTitle, []);
+        : generatePreTestQCMOffline(data.subject, data.grade, data.lessonTitle, [], (data.preTestQCM?.length || 5));
       let pList = [
-        new Paragraph({ children: [new TextRun({ text: "វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test QCM ៥ សំណួរ)", bold: true, size: 24 })] }),
-        new Paragraph({ children: [new TextRun({ text: "កម្រិតលំបាក៖ 🟢 ៣ ងាយ (Easy) | 🟡 ១ មធ្យម (Medium) | 🔴 ១ ពិបាក (Hard)", italics: true, size: 24 })] })
+        new Paragraph({ children: [new TextRun({ text: "វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test QCM " + qcmList.length + " សំណួរ)", bold: true, size: 24 })] }),
+        new Paragraph({ children: [new TextRun({ text: "កម្រិតលំបាក៖ 🟢 ងាយ (Easy) | 🟡 មធ្យម (Medium) | 🔴 ពិបាក (Hard)", italics: true, size: 24 })] })
       ];
       let answerKeys = [];
       qcmList.forEach((q, idx) => {
-        const qNum = q.number || (idx + 1);
+        const qNum = idx + 1;
         const opts = q.options || {};
         answerKeys.push(`ស.${qNum}: ${q.correctAnswer || 'A'}`);
         pList.push(
@@ -7779,14 +7819,14 @@ async function handleExportWord() {
     const buildDocxPostTest = () => {
       const postTestList = (data.postTestMCQ && data.postTestMCQ.length > 0)
         ? data.postTestMCQ
-        : generatePostTestMCQOffline(data.subject, data.grade, data.lessonTitle, []);
+        : generatePostTestMCQOffline(data.subject, data.grade, data.lessonTitle, [], (data.postTestMCQ?.length || 5));
       let pList = [
-        new Paragraph({ children: [new TextRun({ text: "វិញ្ញាសាវាយតម្លៃបញ្ចប់ Post-Test (MCQ ៥ សំណួរ)", bold: true, size: 24 })] }),
+        new Paragraph({ children: [new TextRun({ text: "វិញ្ញាសាវាយតម្លៃបញ្ចប់ Post-Test (MCQ " + postTestList.length + " សំណួរ)", bold: true, size: 24 })] }),
         new Paragraph({ children: [new TextRun({ text: "  (វាស់ស្ទង់សមត្ថភាពក្រោយរៀន Bloom's Taxonomy)", italics: true, size: 24 })] })
       ];
       let postAnswerKeys = [];
       postTestList.forEach((q, idx) => {
-        const qNum = q.number || (idx + 1);
+        const qNum = idx + 1;
         const opts = q.options || {};
         postAnswerKeys.push(`ស.${qNum}: ${q.correctAnswer || 'A'}`);
         pList.push(
@@ -11321,12 +11361,18 @@ window.promptGenerateTest = async function(type) {
   const isEn = (state.language === 'en');
   const isPre = type === 'pre';
   
+  const curPlan = state.generatedPlanData || state.currentPlan;
+  const existingCount = isPre 
+    ? (curPlan?.preTestQCM?.length) 
+    : (curPlan?.postTestMCQ?.length);
+  const defaultTotal = (existingCount && existingCount > 0) ? existingCount : 10;
+  
   // Standardized Assessment Distribution:
-  // Pre-Test (Diagnostic): 60% Easy, 30% Medium, 10% Hard (6 - 3 - 1 for 10 Qs)
-  // Post-Test (Mastery):   20% Easy, 60% Medium, 20% Hard (2 - 6 - 2 for 10 Qs)
-  const defEasy = isPre ? 6 : 2;
-  const defMed = isPre ? 3 : 6;
-  const defHard = isPre ? 1 : 2;
+  // Pre-Test (Diagnostic): 60% Easy, 30% Medium, 10% Hard
+  // Post-Test (Mastery):   20% Easy, 60% Medium, 20% Hard
+  const defEasy = isPre ? Math.round(defaultTotal * 0.60) : Math.round(defaultTotal * 0.20);
+  const defMed = isPre ? Math.round(defaultTotal * 0.30) : Math.round(defaultTotal * 0.60);
+  const defHard = Math.max(0, defaultTotal - defEasy - defMed);
 
   // Clean any old open config modals
   document.querySelectorAll('.test-config-modal-overlay').forEach(el => el.remove());
@@ -11376,7 +11422,7 @@ window.promptGenerateTest = async function(type) {
 
         <div class="form-group">
           <label style="font-weight: 700; color: #334155; margin-bottom: 6px; display: block; font-size: 9.5pt;">${isEn ? 'Total Questions:' : 'ចំនួនសំណួរសរុប៖'}</label>
-          <input type="number" id="testTotalQ" class="form-control" value="10" min="1" max="30" oninput="window.updateScaleInputs()">
+          <input type="number" id="testTotalQ" class="form-control" value="${defaultTotal}" min="1" max="30" oninput="window.updateScaleInputs()">
         </div>
         <div style="font-weight: 700; font-size: 9.5pt; margin-top: 16px; margin-bottom: 10px; color: #475569; padding-bottom: 5px; border-bottom: 2px solid #e2e8f0; display: flex; justify-content: space-between;">
           <span>${isEn ? 'Difficulty Distribution:' : 'កម្រិតលំបាកសំណួរ (ផលបូកស្មើចំនួនសរុប):'}</span>

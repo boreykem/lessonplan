@@ -40,13 +40,27 @@ def test_synthesizer_all_templates():
         assert res.status_code == 200, f"Failed for {tmpl['name']}: {res.text}"
         data = res.json().get("data", {})
 
-        # Verify Pre-Test QCM
-        pre_test = data.get("preTestQCM")
-        assert pre_test and len(pre_test) == 5, f"Expected 5 Pre-Test questions for {tmpl['name']}, got {len(pre_test) if pre_test else 0}"
-        
-        # Verify Post-Test MCQ
-        post_test = data.get("postTestMCQ")
-        assert post_test and len(post_test) == 5, f"Expected 5 Post-Test questions for {tmpl['name']}, got {len(post_test) if post_test else 0}"
+        # On-Demand Pre-Test Generation (e.g. 5 questions)
+        pre_res = requests.post(f"{BASE_URL}/api/generate/test", json={
+            "testType": "pre",
+            "numQuestions": 5,
+            "plan": data
+        })
+        assert pre_res.status_code == 200, f"Failed Pre-test generation: {pre_res.text}"
+        pre_test = pre_res.json().get("data", [])
+        assert len(pre_test) == 5, f"Expected 5 Pre-Test questions for {tmpl['name']}, got {len(pre_test)}"
+        data["preTestQCM"] = pre_test
+
+        # On-Demand Post-Test Generation (e.g. 5 questions)
+        post_res = requests.post(f"{BASE_URL}/api/generate/test", json={
+            "testType": "post",
+            "numQuestions": 5,
+            "plan": data
+        })
+        assert post_res.status_code == 200, f"Failed Post-test generation: {post_res.text}"
+        post_test = post_res.json().get("data", [])
+        assert len(post_test) == 5, f"Expected 5 Post-Test questions for {tmpl['name']}, got {len(post_test)}"
+        data["postTestMCQ"] = post_test
 
         # Verify Lesson Plan Steps / Activities
         steps = data.get("steps") or (data.get("stage3", {}).get("learningActivities"))
