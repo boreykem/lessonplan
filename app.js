@@ -5303,14 +5303,21 @@ function generatePreTestQCMOffline(subject, grade, lessonTitle, mainPoints = [],
         explanation: "ការមើលឃើញ (Sensory) ដោយគ្មានការយកចិត្តទុកដាក់ និងការកូដទុក (Elaborative Encoding) មិនអាចបង្កើតជាការយល់ដឹងបានឡើយ។ គ្រូត្រូវរៀបចំសកម្មភាព Active Learning ដើម្បីជួយជំរុញដំណើរការនេះ។"
       }
     ];
+    let result = [...psychList];
     if (count === 5) {
-      const selected = [psychList[0], psychList[1], psychList[3], psychList[6], psychList[9]];
-      selected.forEach((q, idx) => { q.number = idx + 1; });
-      return randomizeQuizList(selected);
+      result = [psychList[0], psychList[1], psychList[3], psychList[6], psychList[9]];
+    } else if (count <= psychList.length) {
+      result = psychList.slice(0, count);
+    } else {
+      while (result.length < count) {
+        const base = psychList[result.length % psychList.length];
+        const copy = JSON.parse(JSON.stringify(base));
+        copy.question = `[អនុវត្តបន្ថែម] ` + copy.question;
+        result.push(copy);
+      }
     }
-    const sliced = psychList.slice(0, count);
-    sliced.forEach((q, idx) => { q.number = idx + 1; });
-    return randomizeQuizList(sliced);
+    result.forEach((q, idx) => { q.number = idx + 1; });
+    return randomizeQuizList(result);
   }
 
   // General Subject Bank (Strict 60% Easy, 30% Medium, 10% Hard)
@@ -5466,14 +5473,21 @@ function generatePreTestQCMOffline(subject, grade, lessonTitle, mainPoints = [],
       explanation: `ការត្រិះរិះពិចារណាកម្រិតខ្ពស់តម្រូវឱ្យវិភាគរកឫសគល់នៃកំហុស និងកែតម្រូវតាមក្បួនវិធីសាស្ត្រវិទ្យាសាស្ត្រ។`
     }
   ];
+  let result = [...rawList];
   if (count === 5) {
-    const selected = [rawList[0], rawList[1], rawList[2], rawList[6], rawList[9]];
-    selected.forEach((q, idx) => { q.number = idx + 1; });
-    return randomizeQuizList(selected);
+    result = [rawList[0], rawList[1], rawList[2], rawList[6], rawList[9]];
+  } else if (count <= rawList.length) {
+    result = rawList.slice(0, count);
+  } else {
+    while (result.length < count) {
+      const base = rawList[result.length % rawList.length];
+      const copy = JSON.parse(JSON.stringify(base));
+      copy.question = `[អនុវត្តបន្ថែម] ` + copy.question;
+      result.push(copy);
+    }
   }
-  const sliced = rawList.slice(0, count);
-  sliced.forEach((q, idx) => { q.number = idx + 1; });
-  return randomizeQuizList(sliced);
+  result.forEach((q, idx) => { q.number = idx + 1; });
+  return randomizeQuizList(result);
 }
 
 // Generate Post-Test MCQ Questions following strict 20% - 60% - 20% MoEYS Bloom Standard
@@ -5638,14 +5652,21 @@ function generatePostTestMCQOffline(subject, grade, lessonTitle, mainPoints = []
         explanation: "Flipped Learning បង្វែរការទទួលព័ត៌មានដំបូង (Lower Bloom) ទៅផ្ទះតាមល្បឿនផ្ទាល់ខ្លួនរបស់សិស្ស និងទុកពេលក្នុងថ្នាក់សម្រាប់សកម្មភាពកម្រិតខ្ពស់ (Higher Bloom) ជាមួយគ្រូ។"
       }
     ];
+    let result = [...psychPostList];
     if (count === 5) {
-      const selected = [psychPostList[0], psychPostList[2], psychPostList[3], psychPostList[5], psychPostList[8]];
-      selected.forEach((q, idx) => { q.number = idx + 1; });
-      return randomizeQuizList(selected);
+      result = [psychPostList[0], psychPostList[2], psychPostList[3], psychPostList[5], psychPostList[8]];
+    } else if (count <= psychPostList.length) {
+      result = psychPostList.slice(0, count);
+    } else {
+      while (result.length < count) {
+        const base = psychPostList[result.length % psychPostList.length];
+        const copy = JSON.parse(JSON.stringify(base));
+        copy.question = `[អនុវត្តបន្ថែម] ` + copy.question;
+        result.push(copy);
+      }
     }
-    const sliced = psychPostList.slice(0, count);
-    sliced.forEach((q, idx) => { q.number = idx + 1; });
-    return randomizeQuizList(sliced);
+    result.forEach((q, idx) => { q.number = idx + 1; });
+    return randomizeQuizList(result);
   }
 
   // General Subject Bank (Strict 20% Easy, 60% Medium, 20% Hard)
@@ -5811,14 +5832,21 @@ function generatePostTestMCQOffline(subject, grade, lessonTitle, mainPoints = []
       explanation: `កម្រិតខ្ពស់បំផុតនៃ Bloom គឺការសំយោគចំណេះដឹងពហុវិស័យទៅបង្កើតជានវានុវត្តន៍មានប្រយោជន៍។`
     }
   ];
+  let result = [...rawPostList];
   if (count === 5) {
-    const selected = [rawPostList[0], rawPostList[2], rawPostList[3], rawPostList[5], rawPostList[8]];
-    selected.forEach((q, idx) => { q.number = idx + 1; });
-    return randomizeQuizList(selected);
+    result = [rawPostList[0], rawPostList[2], rawPostList[3], rawPostList[5], rawPostList[8]];
+  } else if (count <= rawPostList.length) {
+    result = rawPostList.slice(0, count);
+  } else {
+    while (result.length < count) {
+      const base = rawPostList[result.length % rawPostList.length];
+      const copy = JSON.parse(JSON.stringify(base));
+      copy.question = `[អនុវត្តបន្ថែម] ` + copy.question;
+      result.push(copy);
+    }
   }
-  const sliced = rawPostList.slice(0, count);
-  sliced.forEach((q, idx) => { q.number = idx + 1; });
-  return randomizeQuizList(sliced);
+  result.forEach((q, idx) => { q.number = idx + 1; });
+  return randomizeQuizList(result);
 }
 
 function generateActiveRubric(lessonTitle, subject) {
@@ -6490,8 +6518,8 @@ async function callAiForSingleTest(testType, plan, numQuestions = 10, scale = nu
 
       showToast('💡 មិនទាន់មាន API Key - កំពុងរៀបចំតាមកម្រងសំណួរគំរូស្តង់ដារ MoEYS...', 'info');
       const offlineFallback = isPre 
-        ? generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, [])
-        : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []);
+        ? generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, [], numQuestions)
+        : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, [], numQuestions);
       return distributeAndBalanceQuizList(offlineFallback.slice(0, numQuestions));
     }
 
@@ -6706,8 +6734,8 @@ ${testTypeDescription}
 
     // 5. Fallback to High-Quality Subject-Aware Offline Bank
     const offlineFallback = isPre 
-      ? generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, [])
-      : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []);
+      ? generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, [], numQuestions)
+      : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, [], numQuestions);
     return distributeAndBalanceQuizList(offlineFallback.slice(0, numQuestions));
   } finally {
     if (!skipOverlay) {
@@ -11268,14 +11296,46 @@ window.addEventListener('appinstalled', () => {
 // Register Service Worker for PWA with auto-update
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then((reg) => {
+    navigator.serviceWorker.register('sw.js').then((reg) => {
       console.log('[PWA] ServiceWorker registered:', reg.scope);
       reg.update();
+      if (reg.waiting) {
+        reg.waiting.postMessage({ action: 'skipWaiting' });
+      }
+      reg.onupdatefound = () => {
+        const installingWorker = reg.installing;
+        if (installingWorker) {
+          installingWorker.onstatechange = () => {
+            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('[PWA] New version ready.');
+            }
+          };
+        }
+      };
     }).catch((err) => {
       console.warn('[PWA] ServiceWorker registration failed:', err);
     });
   });
 }
+
+// Clear all app caches and reload
+window.clearAppCacheAndReload = async function() {
+  try {
+    if ('caches' in window) {
+      const keys = await caches.keys();
+      await Promise.all(keys.map(k => caches.delete(k)));
+    }
+    if ('serviceWorker' in navigator) {
+      const regs = await navigator.serviceWorker.getRegistrations();
+      for (const r of regs) {
+        await r.unregister();
+      }
+    }
+  } catch (e) {
+    console.warn('Error clearing caches:', e);
+  }
+  window.location.reload(true);
+};
 
 // Ensure unwanted widgets remain hidden
 function enforceHiddenWidgets() {

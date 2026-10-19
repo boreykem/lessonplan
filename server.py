@@ -453,12 +453,18 @@ def generate_pretest_qcm_python(subject, grade, lesson_title, main_points, count
             }
         ]
         if count == 5:
-            # 3 Easy (60%), 1 Med (20%), 1 Hard (20%)
             selected = [full_list[0], full_list[1], full_list[3], full_list[6], full_list[9]]
-            for idx, q in enumerate(selected, 1):
-                q["number"] = idx
-            return selected
-        return full_list[:count]
+        elif count <= len(full_list):
+            selected = full_list[:count]
+        else:
+            selected = list(full_list)
+            while len(selected) < count:
+                base = dict(full_list[len(selected) % len(full_list)])
+                base["question"] = f"[អនុវត្តបន្ថែម] {base.get('question', '')}"
+                selected.append(base)
+        for idx, q in enumerate(selected, 1):
+            q["number"] = idx
+        return selected
 
     # Authentic General Subject Bank (No formulaic template phrases)
     p1 = main_points[0] if len(main_points) > 0 else f"គោលគំនិតចម្បង និងនិយមន័យគ្រឹះនៃ {clean_title}"
@@ -613,12 +619,18 @@ def generate_pretest_qcm_python(subject, grade, lesson_title, main_points, count
     ]
 
     if count == 5:
-        # 3 Easy (60%), 1 Med (20%), 1 Hard (20%)
         selected = [gen_list[0], gen_list[1], gen_list[2], gen_list[6], gen_list[9]]
-        for idx, q in enumerate(selected, 1):
-            q["number"] = idx
-        return selected
-    return gen_list[:count]
+    elif count <= len(gen_list):
+        selected = gen_list[:count]
+    else:
+        selected = list(gen_list)
+        while len(selected) < count:
+            base = dict(gen_list[len(selected) % len(gen_list)])
+            base["question"] = f"[អនុវត្តបន្ថែម] {base.get('question', '')}"
+            selected.append(base)
+    for idx, q in enumerate(selected, 1):
+        q["number"] = idx
+    return selected
 
 
 # Generate Post-Test MCQ with standardized 20%-60%-20% distribution (Mastery Assessment)
@@ -787,12 +799,18 @@ def generate_posttest_mcq_python(subject, grade, lesson_title, main_points=None,
             }
         ]
         if count == 5:
-            # 1 Easy (20%), 3 Med (60%), 1 Hard (20%)
             selected = [full_post[0], full_post[2], full_post[3], full_post[5], full_post[8]]
-            for idx, q in enumerate(selected, 1):
-                q["number"] = idx
-            return selected
-        return full_post[:count]
+        elif count <= len(full_post):
+            selected = full_post[:count]
+        else:
+            selected = list(full_post)
+            while len(selected) < count:
+                base = dict(full_post[len(selected) % len(full_post)])
+                base["question"] = f"[អនុវត្តបន្ថែម] {base.get('question', '')}"
+                selected.append(base)
+        for idx, q in enumerate(selected, 1):
+            q["number"] = idx
+        return selected
 
     # Authentic General Subject Bank (Mastery Bloom 20%-60%-20%)
     p1 = main_points[0] if len(main_points) > 0 else f"ទ្រឹស្តី និងគោលការណ៍គ្រឹះនៃ {clean_title}"
@@ -957,12 +975,18 @@ def generate_posttest_mcq_python(subject, grade, lesson_title, main_points=None,
     ]
 
     if count == 5:
-        # 1 Easy (20%), 3 Med (60%), 1 Hard (20%)
         selected = [gen_post[0], gen_post[2], gen_post[3], gen_post[5], gen_post[8]]
-        for idx, q in enumerate(selected, 1):
-            q["number"] = idx
-        return selected
-    return gen_post[:count]
+    elif count <= len(gen_post):
+        selected = gen_post[:count]
+    else:
+        selected = list(gen_post)
+        while len(selected) < count:
+            base = dict(gen_post[len(selected) % len(gen_post)])
+            base["question"] = f"[អនុវត្តបន្ថែម] {base.get('question', '')}"
+            selected.append(base)
+    for idx, q in enumerate(selected, 1):
+        q["number"] = idx
+    return selected
 
 def generate_active_rubric_python(lesson_title, subject):
     return [

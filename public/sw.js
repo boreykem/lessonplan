@@ -1,14 +1,14 @@
-const CACHE_NAME = 'lessonplan-cache-v68';
+const CACHE_NAME = 'lessonplan-cache-v70';
 const ASSETS_TO_CACHE = [
-  '/',
-  '/index.html',
-  '/style.css',
-  '/app.js',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
-  '/ac-mart-logo-1.jpg',
-  '/ac-mart-logo-circle.png'
+  './',
+  'index.html',
+  'style.css',
+  'app.js',
+  'manifest.json',
+  'icon-192.png',
+  'icon-512.png',
+  'ac-mart-logo-1.jpg',
+  'ac-mart-logo-circle.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -30,16 +30,33 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
+  if (event.data && event.data.action === 'clearCache') {
+    caches.keys().then((keys) => {
+      return Promise.all(keys.map((k) => caches.delete(k)));
+    });
+  }
+});
+
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Never cache API calls or external dynamic requests
-  if (url.pathname.startsWith('/api') || url.hostname.includes('googleapis') || event.request.method !== 'GET') {
+  // Never cache backend API calls or external AI service requests
+  if (
+    url.pathname.startsWith('/api') || 
+    url.hostname.includes('googleapis') || 
+    url.hostname.includes('groq.com') || 
+    url.hostname.includes('openrouter.ai') || 
+    event.request.method !== 'GET'
+  ) {
     return;
   }
 
-  // 1. Navigation & HTML Requests: NETWORK-FIRST so users always see latest UI updates
-  if (event.request.mode === 'navigate' || event.request.destination === 'document' || url.pathname.endsWith('.html') || url.pathname === '/') {
+  // 1. Navigation & HTML Requests: NETWORK-FIRST so users always get newest build
+  if (event.request.mode === 'navigate' || event.request.destination === 'document' || url.pathname.endsWith('.html') || url.pathname.endsWith('/')) {
     event.respondWith(
       fetch(event.request).then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
@@ -48,7 +65,7 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch(() => {
-        return caches.match(event.request).then((cached) => cached || caches.match('/index.html'));
+        return caches.match(event.request).then((cached) => cached || caches.match('index.html') || caches.match('./'));
       })
     );
     return;
@@ -81,4 +98,3 @@ self.addEventListener('fetch', (event) => {
     }).catch(() => fetch(event.request))
   );
 });
-
