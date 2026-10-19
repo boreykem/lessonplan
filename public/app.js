@@ -2899,31 +2899,6 @@ async function handleGenerateLessonPlan() {
 
     if (planData) {
       planData = normalizeLessonPlanData(planData, genParams);
-
-      // Auto-generate authentic AI Pre-Test and Post-Test if not present in planData
-      if (!planData.preTestQCM || !Array.isArray(planData.preTestQCM) || planData.preTestQCM.length === 0) {
-        try {
-          setLoadingOverlayStatus('🎯 AI កំពុងបង្កើតវិញ្ញាសា Pre-Test ជាក់ស្តែង...', `ផ្អែកលើខ្លឹមសារមេរៀន «${planData.lessonTitle || ''}»...`);
-          const preQuestions = await callAiForSingleTest('pre', planData, 5, null, true);
-          if (preQuestions && preQuestions.length > 0) {
-            planData.preTestQCM = preQuestions;
-          }
-        } catch (preErr) {
-          console.warn('AI Pre-test generation error:', preErr);
-        }
-      }
-
-      if (!planData.postTestMCQ || !Array.isArray(planData.postTestMCQ) || planData.postTestMCQ.length === 0) {
-        try {
-          setLoadingOverlayStatus('🎯 AI កំពុងបង្កើតវិញ្ញាសា Post-Test ជាក់ស្តែង...', `ផ្អែកលើខ្លឹមសារមេរៀន «${planData.lessonTitle || ''}»...`);
-          const postQuestions = await callAiForSingleTest('post', planData, 5, null, true);
-          if (postQuestions && postQuestions.length > 0) {
-            planData.postTestMCQ = postQuestions;
-          }
-        } catch (postErr) {
-          console.warn('AI Post-test generation error:', postErr);
-        }
-      }
     }
 
     if (state.savedLearningGain && !planData.selfEvaluation) {
@@ -4807,9 +4782,9 @@ function synthesizeLessonPlanOffline(params) {
     `សៀវភៅសរសេរ ប៊ិច ខ្មៅដៃ បន្ទាត់ ក្ដារឆ្នួន`
   ];
 
-  // Generate 5 Pre-Test and 5 Post-Test questions for all templates
-  const preTestQCM = generatePreTestQCMOffline(subject, grade, lessonTitle, mainPoints);
-  const postTestMCQ = generatePostTestMCQOffline(subject, grade, lessonTitle, mainPoints);
+  // Pre-Test and Post-Test are created separately on-demand when requested by the user
+  const preTestQCM = [];
+  const postTestMCQ = [];
 
   if (isFlipped) {
     const flippedSteps = [

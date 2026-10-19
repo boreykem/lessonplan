@@ -1252,8 +1252,8 @@ def synthesize_lesson_plan_python(data):
                 "learningActivities": learning_activities
             },
             "steps": learning_activities,
-            "preTestQCM": generate_pretest_qcm_python(subject, grade, lesson_title, main_points),
-            "postTestMCQ": generate_posttest_mcq_python(subject, grade, lesson_title, main_points)
+            "preTestQCM": [],
+            "postTestMCQ": []
         }
 
     # Default 5-Step standard
@@ -1314,8 +1314,8 @@ def synthesize_lesson_plan_python(data):
         "objectives": {"knowledge": knowledge, "skills": skills, "attitudes": attitudes},
         "materials": {"teacher": teacher_materials, "student": student_materials},
         "steps": steps,
-        "preTestQCM": generate_pretest_qcm_python(subject, grade, lesson_title, main_points),
-        "postTestMCQ": generate_posttest_mcq_python(subject, grade, lesson_title, main_points)
+        "preTestQCM": [],
+        "postTestMCQ": []
     }
 
 
@@ -1348,10 +1348,7 @@ Pedagogical Principles & Step Guidelines for Flipped Learning:
 1. Pre-Class Phase (សកម្មភាពស្វ័យសិក្សាត្រៀមមុនម៉ោង):
    - Key takeaways and diagnostic tasks.
    - Muddiest Point prompt (សិស្សកត់ត្រាចំណុចឆ្ងល់យ៉ាងតិច ១ យកមកដោះស្រាយក្នុងជំហានទី២).
-2. Diagnostic Assessment (វិញ្ញាសា Pre-Test QCM ៥ សំណួរ បង្កើតដោយ Gemini AI - កម្រិតស្តង់ដារ ២-៦-២):
-   - Strictly 5 multiple-choice questions with choices (A, B, C, D / ក, ខ, គ, ឃ), correct answer, and explanation.
-   - Questions 1-2 (Easy), Questions 3-4 (Medium), Question 5 (Hard).
-   - correctAnswer must be evenly distributed and rotated across A, B, C, D (NEVER make 'A' the answer for all questions).
+2. Core Focus: Focus 100% of your pedagogical output on Objectives, Materials, and the 5-Step Teaching Process (5%-10%-10%-70%-5%). Do NOT generate pre-test or post-test question arrays in this JSON (they are generated separately on-demand).
 3. In-Class 5-Step Process (ដំណើរការបង្រៀន ៥ ជំហាន: ៥% - ១០% - ១០% - ៧០% - ៥%):
    - ជំហានទី ១ : រដ្ឋបាលថ្នាក់ & ការរៀបចំ (៥%): គ្មានសំណួរចោទសួរទេ! គ្រូស្វាគមន៍ ពិនិត្យវត្តមាន សណ្ដាប់ធ្នាប់ អនាម័យ និងរៀបចំបរិយាកាសសិក្សាសកម្ម។
    - ជំហានទី ២ : ត្រួតពិនិត្យការស្វ័យសិក្សាពីផ្ទះ & ដោះស្រាយចម្ងល់ Muddiest Points (Engage & Explore) (១០%): គ្រូផ្សារភ្ជាប់លទ្ធផល Pre-Test, ចោទសួរផ្ទាល់មាត់បំផុសស្មារតី ២ សំណួរខ្លីៗ, ហៅសិស្សលើកឡើង Muddiest Points, និងបង្ហាញការវាយតម្លៃ Pre-Test។
@@ -1408,53 +1405,6 @@ Return ONLY valid JSON matching this schema:
     "teacher": ["កិច្ចតែងការបង្រៀន", "វីដេអូបង្រៀន", "ស្លាយបង្រៀន", "សន្លឹកកិច្ចការករណីសិក្សា"],
     "student": ["សៀវភៅគោល", "សៀវភៅកត់ត្រា", "ផ្ទាំងក្រដាសធំ Flipchart", "ប៊ិចហ្វឺតពណ៌"]
   }},
-  "preTestQCM": [
-    {{
-      "number": 1,
-      "difficulty": "ងាយ (Easy)",
-      "difficultyLevel": "easy",
-      "question": "សំណួរ Pre-Test ទី១...",
-      "options": {{ "A": "...", "B": "...", "C": "...", "D": "..." }},
-      "correctAnswer": "B",
-      "explanation": "..."
-    }},
-    {{
-      "number": 2,
-      "difficulty": "ងាយ (Easy)",
-      "difficultyLevel": "easy",
-      "question": "សំណួរ Pre-Test ទី២...",
-      "options": {{ "A": "...", "B": "...", "C": "...", "D": "..." }},
-      "correctAnswer": "D",
-      "explanation": "..."
-    }},
-    {{
-      "number": 3,
-      "difficulty": "ងាយ (Easy)",
-      "difficultyLevel": "easy",
-      "question": "សំណួរ Pre-Test ទី៣...",
-      "options": {{ "A": "...", "B": "...", "C": "...", "D": "..." }},
-      "correctAnswer": "A",
-      "explanation": "..."
-    }},
-    {{
-      "number": 4,
-      "difficulty": "មធ្យម (Medium)",
-      "difficultyLevel": "medium",
-      "question": "សំណួរ Pre-Test ទី៤...",
-      "options": {{ "A": "...", "B": "...", "C": "...", "D": "..." }},
-      "correctAnswer": "C",
-      "explanation": "..."
-    }},
-    {{
-      "number": 5,
-      "difficulty": "ពិបាក (Hard)",
-      "difficultyLevel": "hard",
-      "question": "សំណួរ Pre-Test ទី៥...",
-      "options": {{ "A": "...", "B": "...", "C": "...", "D": "..." }},
-      "correctAnswer": "B",
-      "explanation": "..."
-    }}
-  ],
   "steps": [
     {{
       "stepNumber": 1,
@@ -1495,18 +1445,6 @@ Return ONLY valid JSON matching this schema:
       "teacherActivity": "ណែនាំការធ្វើតេស្តបញ្ចប់ (Post-Test ៥ សំណួរ) និងដាក់កិច្ចការស្រាវជ្រាវបន្ត",
       "contentSummary": "ការវាយតម្លៃ Post-Test និងកិច្ចការស្រាវជ្រាវសម្រាប់ម៉ោងក្រោយ",
       "studentActivity": "ធ្វើ Post-Test ភ្លាមៗ និងកត់ត្រាកិច្ចការផ្ទះ"
-    }}
-  ],
-  "postTestMCQ": [
-    {{
-      "number": 1,
-      "bloom": "Remember & Understand",
-      "difficulty": "ងាយ (Easy)",
-      "difficultyLevel": "easy",
-      "question": "សំណួរ Post-Test ទី១...",
-      "options": {{ "A": "...", "B": "...", "C": "...", "D": "..." }},
-      "correctAnswer": "C",
-      "explanation": "..."
     }}
   ]
 }}
@@ -1730,10 +1668,6 @@ Return ONLY valid JSON matching this schema:
                 parsed["duration"] = duration or parsed.get("duration")
                 parsed["chapter"] = chapter or parsed.get("chapter")
                 parsed["lessonTitle"] = lesson_title or parsed.get("lessonTitle")
-                if not parsed.get("preTestQCM"):
-                    parsed["preTestQCM"] = generate_pretest_qcm_python(parsed["subject"], parsed["grade"], parsed["lessonTitle"], [])
-                if not parsed.get("postTestMCQ"):
-                    parsed["postTestMCQ"] = generate_posttest_mcq_python(parsed["subject"], parsed["grade"], parsed["lessonTitle"], [])
                 return parsed
         except urllib.error.HTTPError as he:
             err_body = he.read().decode("utf-8", errors="ignore")
@@ -2026,29 +1960,6 @@ def generate_lesson_plan():
                 plan["isOfflineDraft"] = True
             for k in ["notebooklmGuide", "preClassPhase", "differentiatedPlan", "activeRubric", "exitTicket321", "postClassPhase", "selfEvaluation"]:
                 plan.pop(k, None)
-            if "preTestQCM" not in plan or not isinstance(plan["preTestQCM"], list):
-                plan["preTestQCM"] = []
-            if len(plan["preTestQCM"]) < 5:
-                synth = generate_pretest_qcm_python(plan.get("subject", ""), plan.get("grade", ""), plan.get("lessonTitle", ""), [])
-                for q in synth:
-                    if len(plan["preTestQCM"]) >= 5:
-                        break
-                    plan["preTestQCM"].append(q)
-            elif len(plan["preTestQCM"]) > 5:
-                plan["preTestQCM"] = plan["preTestQCM"][:5]
-            plan["preTestQCM"] = randomize_quiz_list(plan["preTestQCM"])
-
-            if "postTestMCQ" not in plan or not isinstance(plan["postTestMCQ"], list):
-                plan["postTestMCQ"] = []
-            if len(plan["postTestMCQ"]) < 5:
-                synth = generate_posttest_mcq_python(plan.get("subject", ""), plan.get("grade", ""), plan.get("lessonTitle", ""), [])
-                for q in synth:
-                    if len(plan["postTestMCQ"]) >= 5:
-                        break
-                    plan["postTestMCQ"].append(q)
-            elif len(plan["postTestMCQ"]) > 5:
-                plan["postTestMCQ"] = plan["postTestMCQ"][:5]
-            plan["postTestMCQ"] = randomize_quiz_list(plan["postTestMCQ"])
 
         return jsonify({"success": True, "data": plan, "isOfflineDraft": is_offline_draft})
     except Exception as e:
@@ -2057,10 +1968,6 @@ def generate_lesson_plan():
         fallback = synthesize_lesson_plan_python(data)
         if isinstance(fallback, dict):
             fallback["isOfflineDraft"] = True
-            if "preTestQCM" in fallback and isinstance(fallback["preTestQCM"], list):
-                fallback["preTestQCM"] = randomize_quiz_list(fallback["preTestQCM"])
-            if "postTestMCQ" in fallback and isinstance(fallback["postTestMCQ"], list):
-                fallback["postTestMCQ"] = randomize_quiz_list(fallback["postTestMCQ"])
         return jsonify({"success": True, "data": fallback, "isOfflineDraft": True, "warning": str(e)})
 
 
