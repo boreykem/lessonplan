@@ -3861,15 +3861,15 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
     discovered.sort((a, b) => {
       const score = (m) => {
         const name = (m.name || '').toLowerCase();
+        if (name === 'gemini-3.5-flash-lite') return 300;
         if (name === 'gemini-2.5-pro') return 250;
         if (name === 'gemini-3.8-flash') return 240;
         if (name === 'gemini-3.6-flash') return 230;
-        if (name === 'gemini-3.5-flash-lite') return 210;
         if (name === 'gemini-2.5-flash-lite') return 200;
+        if (name.includes('flash-lite')) return 198;
         if (name.includes('2.5-pro')) return 195;
         if (name.includes('3.8-flash')) return 190;
         if (name.includes('3.6-flash')) return 185;
-        if (name.includes('flash-lite')) return 175;
         if (name === 'gemini-2.0-flash') return 150;
         if (name.includes('flash') && !name.includes('tts') && !name.includes('image')) return 140;
         if (name.includes('pro') && !name.includes('tts') && !name.includes('image')) return 130;
@@ -3887,11 +3887,11 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
 
   if (candidateModels.length === 0) {
     candidateModels = [
+      { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
+      { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
       { ver: 'v1beta', name: 'gemini-2.5-pro' },
       { ver: 'v1beta', name: 'gemini-3.8-flash' },
       { ver: 'v1beta', name: 'gemini-3.6-flash' },
-      { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
-      { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
       { ver: 'v1beta', name: 'gemini-2.0-flash' }
     ];
   }
@@ -6683,14 +6683,35 @@ ${testTypeDescription}
       }
     }
 
-    // 3. Try Google Gemini AI Models with 90-second timeout
+    // 3. Try Google Gemini AI Models with SSE Streaming (Prioritizing gemini-3.5-flash-lite)
     let candidateModels = [];
-    if (state.verifiedGeminiModel && state.verifiedGeminiModel.name) {
+
+    // Always place gemini-3.5-flash-lite as #1 priority (the confirmed high-reliability model)
+    candidateModels.push({ ver: 'v1beta', name: 'gemini-3.5-flash-lite' });
+
+    if (state.verifiedGeminiModel && state.verifiedGeminiModel.name && state.verifiedGeminiModel.name !== 'gemini-3.5-flash-lite') {
       candidateModels.push(state.verifiedGeminiModel);
     }
+
     try {
       const discovered = await discoverGeminiModels(apiKey);
       if (discovered && Array.isArray(discovered)) {
+        discovered.sort((a, b) => {
+          const score = (m) => {
+            const name = (m.name || '').toLowerCase();
+            if (name === 'gemini-3.5-flash-lite') return 300;
+            if (name === 'gemini-2.5-flash-lite') return 250;
+            if (name === 'gemini-2.5-flash') return 240;
+            if (name === 'gemini-3.8-flash') return 230;
+            if (name === 'gemini-3.6-flash') return 220;
+            if (name.includes('flash-lite')) return 210;
+            if (name === 'gemini-2.0-flash') return 180;
+            if (name.includes('flash') && !name.includes('tts') && !name.includes('image')) return 160;
+            if (name.includes('pro') && !name.includes('tts') && !name.includes('image')) return 140;
+            return 10;
+          };
+          return score(b) - score(a);
+        });
         for (const m of discovered) {
           if (!candidateModels.some(c => c.name === m.name)) {
             candidateModels.push(m);
@@ -6701,39 +6722,140 @@ ${testTypeDescription}
       console.warn('Model discovery failed in test generator:', discErr);
     }
 
-    if (candidateModels.length === 0) {
-      candidateModels = [
-        { ver: 'v1beta', name: 'gemini-2.5-flash' },
-        { ver: 'v1beta', name: 'gemini-2.0-flash' },
-        { ver: 'v1beta', name: 'gemini-1.5-flash' },
-        { ver: 'v1beta', name: 'gemini-1.5-pro' }
-      ];
+    const defaultFallbacks = [
+      { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
+      { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
+      { ver: 'v1beta', name: 'gemini-2.5-flash' },
+      { ver: 'v1beta', name: 'gemini-3.8-flash' },
+      { ver: 'v1beta', name: 'gemini-2.0-flash' },
+      { ver: 'v1beta', name: 'gemini-1.5-flash' }
+    ];
+    for (const fb of defaultFallbacks) {
+      if (!candidateModels.some(c => c.name === fb.name)) {
+        candidateModels.push(fb);
+      }
     }
 
     let lastAiError = null;
-    for (const item of candidateModels) {
+    const cleanKey = apiKey.trim();
+
+    for (let i = 0; i < candidateModels.length; i++) {
+      const item = candidateModels[i];
       const modelVer = item.ver || 'v1beta';
       const modelName = item.name;
+
+      if (!skipOverlay) {
+        setLoadingOverlayStatus(
+          isPre ? 'AI កំពុងបង្កើតកម្រងសំណួរ Pre-Test (Streaming Real-Time)...' : 'AI កំពុងបង្កើតកម្រងសំណួរ Post-Test (Streaming Real-Time)...',
+          `កំពុងទាក់ទង ${modelName} តាម Google Gemini... សូមរង់ចាំបន្តិច!`,
+          `🤖 ម៉ូដែល ${i + 1}/${candidateModels.length} (${modelName}) ⚡`
+        );
+      }
+
+      const streamUrl = `https://generativelanguage.googleapis.com/${modelVer}/models/${modelName}:streamGenerateContent?alt=sse&key=${cleanKey}`;
+      const directUrl = `https://generativelanguage.googleapis.com/${modelVer}/models/${modelName}:generateContent?key=${cleanKey}`;
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 90000);
-      try {
-        const cleanKey = apiKey.trim();
-        const requestBody = {
-          contents: [{ role: 'user', parts: [{ text: systemPrompt }] }],
-          safetySettings: [
-            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
-            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
-            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
-            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" }
-          ],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            temperature: 0.35,
-            maxOutputTokens: 8192
-          }
-        };
 
-        const resp = await fetch(`https://generativelanguage.googleapis.com/${modelVer}/models/${modelName}:generateContent?key=${cleanKey}`, {
+      const requestBody = {
+        contents: [{ role: 'user', parts: [{ text: systemPrompt }] }],
+        safetySettings: [
+          { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
+          { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
+          { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
+          { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" }
+        ],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.35,
+          maxOutputTokens: 8192
+        }
+      };
+
+      let responseText = '';
+
+      // ⚡ Step 1: Real-time SSE Streaming (Server-Sent Events) - reliable, streaming real-time
+      try {
+        const streamResp = await fetch(streamUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify(requestBody)
+        });
+
+        if (streamResp.ok && streamResp.body) {
+          const reader = streamResp.body.getReader();
+          const decoder = new TextDecoder('utf-8');
+          let buffer = '';
+          let totalChars = 0;
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+
+            const lines = buffer.split('\n');
+            buffer = lines.pop(); // keep partial line
+
+            for (const line of lines) {
+              const trimmed = line.trim();
+              if (trimmed.startsWith('data:')) {
+                const jsonStr = trimmed.slice(5).trim();
+                if (jsonStr && jsonStr !== '[DONE]') {
+                  try {
+                    const chunkData = JSON.parse(jsonStr);
+                    const chunkText = chunkData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+                    if (chunkText) {
+                      responseText += chunkText;
+                      totalChars += chunkText.length;
+                      const progressPct = Math.min(95, Math.round(15 + (totalChars / 25)));
+                      const progressEl = document.getElementById('progressBarFill');
+                      if (progressEl) progressEl.style.width = `${progressPct}%`;
+                      if (!skipOverlay) {
+                        setLoadingOverlayStatus(
+                          isPre ? 'AI កំពុងបង្កើតកម្រងសំណួរ Pre-Test (Streaming Real-Time)...' : 'AI កំពុងបង្កើតកម្រងសំណួរ Post-Test (Streaming Real-Time)...',
+                          `⚡ កំពុងទទួលទិន្នន័យផ្ទាល់ (SSE)៖ ទទួលបាន ${totalChars.toLocaleString()} តួអក្សរ...`,
+                          `🤖 ${modelName} (${progressPct}% - SSE Active ⚡)`
+                        );
+                      }
+                    }
+                  } catch (_) {}
+                }
+              }
+            }
+          }
+        }
+      } catch (streamErr) {
+        console.warn(`SSE stream for ${modelName} assessment failed, falling back to direct REST:`, streamErr);
+      }
+
+      // ⚡ Step 2: If SSE streaming yielded response text, parse questions
+      if (responseText && responseText.trim().length > 0) {
+        clearTimeout(timeoutId);
+        const parsed = extractAndParseJson(responseText);
+        let list = null;
+        if (Array.isArray(parsed)) {
+          list = parsed;
+        } else if (parsed && typeof parsed === 'object') {
+          const possible = parsed.questions || parsed.preTestQCM || parsed.postTestMCQ ||
+                           parsed.test || parsed.quiz || parsed.preTest || parsed.postTest ||
+                           parsed.mcqs || parsed.data || parsed.items || parsed.assessment;
+          if (Array.isArray(possible) && possible.length > 0) {
+            list = possible;
+          } else {
+            const found = Object.values(parsed).find(v => Array.isArray(v) && v.length > 0 && typeof v[0] === 'object');
+            if (found) list = found;
+          }
+        }
+        if (list && list.length > 0) {
+          console.log(`[Gemini SSE ${modelName}] Successfully generated ${list.length} questions`);
+          return distributeAndBalanceQuizList(list.slice(0, numQuestions));
+        }
+      }
+
+      // ⚡ Step 3: Direct REST fallback for this model if SSE did not return full JSON
+      try {
+        const resp = await fetch(directUrl, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           signal: controller.signal,
@@ -6743,28 +6865,26 @@ ${testTypeDescription}
         if (resp.ok) {
           const data = await resp.json();
           const txt = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (!txt) {
-            console.warn(`[Gemini ${modelName}] Candidate returned empty text:`, data.candidates?.[0]);
-            continue;
-          }
-          const parsed = extractAndParseJson(txt);
-          let list = null;
-          if (Array.isArray(parsed)) {
-            list = parsed;
-          } else if (parsed && typeof parsed === 'object') {
-            const possible = parsed.questions || parsed.preTestQCM || parsed.postTestMCQ ||
-                             parsed.test || parsed.quiz || parsed.preTest || parsed.postTest ||
-                             parsed.mcqs || parsed.data || parsed.items || parsed.assessment;
-            if (Array.isArray(possible) && possible.length > 0) {
-              list = possible;
-            } else {
-              const found = Object.values(parsed).find(v => Array.isArray(v) && v.length > 0 && typeof v[0] === 'object');
-              if (found) list = found;
+          if (txt) {
+            const parsed = extractAndParseJson(txt);
+            let list = null;
+            if (Array.isArray(parsed)) {
+              list = parsed;
+            } else if (parsed && typeof parsed === 'object') {
+              const possible = parsed.questions || parsed.preTestQCM || parsed.postTestMCQ ||
+                               parsed.test || parsed.quiz || parsed.preTest || parsed.postTest ||
+                               parsed.mcqs || parsed.data || parsed.items || parsed.assessment;
+              if (Array.isArray(possible) && possible.length > 0) {
+                list = possible;
+              } else {
+                const found = Object.values(parsed).find(v => Array.isArray(v) && v.length > 0 && typeof v[0] === 'object');
+                if (found) list = found;
+              }
             }
-          }
-          if (list && list.length > 0) {
-            console.log(`[Gemini ${modelName}] Successfully generated ${list.length} questions`);
-            return distributeAndBalanceQuizList(list.slice(0, numQuestions));
+            if (list && list.length > 0) {
+              console.log(`[Gemini REST ${modelName}] Successfully generated ${list.length} questions`);
+              return distributeAndBalanceQuizList(list.slice(0, numQuestions));
+            }
           }
         } else {
           const errText = await resp.text().catch(() => '');
@@ -6779,7 +6899,7 @@ ${testTypeDescription}
       } catch (e) {
         clearTimeout(timeoutId);
         lastAiError = e;
-        console.warn(`Model ${modelName} single test generator error:`, e);
+        console.warn(`Model ${modelName} REST test generator error:`, e);
       }
     }
 

@@ -2173,8 +2173,8 @@ Return ONLY a valid JSON array:
                 except Exception as ge:
                     print("Groq test generator error:", ge)
 
-            # Try Gemini models
-            for model in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]:
+            # Try Gemini models (Prioritizing gemini-3.5-flash-lite)
+            for model in ["gemini-3.5-flash-lite", "gemini-2.5-flash-lite", "gemini-2.5-flash", "gemini-3.8-flash", "gemini-2.0-flash", "gemini-1.5-flash"]:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
                 req_data = {
                     "contents": [{"role": "user", "parts": [{"text": prompt}]}],
