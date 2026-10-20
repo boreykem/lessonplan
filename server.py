@@ -2153,9 +2153,20 @@ Return ONLY a valid JSON array:
                         parsed = extract_json_from_text(txt)
                         if isinstance(parsed, list):
                             q_list = parsed
-                        else:
+                        elif isinstance(parsed, dict):
                             q_list = (parsed.get("questions") or parsed.get("preTestQCM")
-                                      or parsed.get("postTestMCQ") or parsed.get("test") or [])
+                                      or parsed.get("postTestMCQ") or parsed.get("test")
+                                      or parsed.get("quiz") or parsed.get("items")
+                                      or parsed.get("preTest") or parsed.get("postTest")
+                                      or parsed.get("mcqs") or parsed.get("data")
+                                      or parsed.get("assessment") or [])
+                            if not q_list:
+                                for v in parsed.values():
+                                    if isinstance(v, list) and len(v) > 0 and isinstance(v[0], dict):
+                                        q_list = v
+                                        break
+                        else:
+                            q_list = []
                         if q_list and len(q_list) > 0:
                             balanced_list = distribute_and_balance_quiz_list(q_list[:num_questions])
                             return jsonify({"success": True, "data": balanced_list})
@@ -2163,7 +2174,7 @@ Return ONLY a valid JSON array:
                     print("Groq test generator error:", ge)
 
             # Try Gemini models
-            for model in ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]:
+            for model in ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash-lite"]:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
                 req_data = {
                     "contents": [{"role": "user", "parts": [{"text": prompt}]}],
@@ -2181,9 +2192,20 @@ Return ONLY a valid JSON array:
                         parsed = extract_json_from_text(txt)
                         if isinstance(parsed, list):
                             q_list = parsed
-                        else:
+                        elif isinstance(parsed, dict):
                             q_list = (parsed.get("questions") or parsed.get("preTestQCM")
-                                      or parsed.get("postTestMCQ") or parsed.get("test") or [])
+                                      or parsed.get("postTestMCQ") or parsed.get("test")
+                                      or parsed.get("quiz") or parsed.get("items")
+                                      or parsed.get("preTest") or parsed.get("postTest")
+                                      or parsed.get("mcqs") or parsed.get("data")
+                                      or parsed.get("assessment") or [])
+                            if not q_list:
+                                for v in parsed.values():
+                                    if isinstance(v, list) and len(v) > 0 and isinstance(v[0], dict):
+                                        q_list = v
+                                        break
+                        else:
+                            q_list = []
                         if q_list and len(q_list) > 0:
                             balanced_list = distribute_and_balance_quiz_list(q_list[:num_questions])
                             print(f"Server Gemini {model} test success: {len(balanced_list)} questions")
@@ -2196,14 +2218,19 @@ Return ONLY a valid JSON array:
         except Exception as e:
             print("Server test generator error:", e)
 
-    print(f"[generate/test] All AI attempts failed for {test_type}-test '{lesson_title}'. Using offline fallback.")
-    if is_pre:
-        synth = generate_pretest_qcm_python(subject, grade, lesson_title, [], count=num_questions)
-    else:
-        synth = generate_posttest_mcq_python(subject, grade, lesson_title, [], count=num_questions)
-    balanced_synth = distribute_and_balance_quiz_list(synth[:num_questions])
-    return jsonify({"success": True, "data": balanced_synth, "fallback": True,
-                    "fallbackReason": "All AI providers failed or no API key configured"})
+    if not api_key:
+        return jsonify({
+            "success": False,
+            "error": "No API key configured. Please provide a Gemini API Key to generate authentic questions.",
+            "needsApiKey": True
+        }), 400
+
+    print(f"[generate/test] All AI attempts failed for {test_type}-test '{lesson_title}'.")
+    return jsonify({
+        "success": False,
+        "error": f"Failed to generate {test_type}-test via AI. Please verify API key quota and connectivity.",
+        "needsApiKey": False
+    }), 502
 
 
 # ==============================================================================
@@ -3257,6 +3284,8 @@ def vercel_entry_dispatch():
         return create_desktop_shortcut_api()
     elif v_clean in ["upload/lesson", "upload/template", "upload/parse"]:
         return upload_and_parse_file()
+    elif v_clean in ["generate/test", "generate_test"]:
+        return generate_single_test_api()
     elif v_clean == "generate":
         return generate_lesson_plan()
     elif v_clean == "system/version":

@@ -6473,8 +6473,8 @@ async function callAiForSingleTest(testType, plan, numQuestions = 10, scale = nu
   const isEn = (state.language === 'en');
 
   try {
-    const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || '').trim();
-    const provider = state.aiProvider || localStorage.getItem('ai_provider') || 'gemini';
+    let apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || sessionStorage.getItem('gemini_api_key') || '').trim();
+    let provider = state.aiProvider || localStorage.getItem('ai_provider') || 'gemini';
     
     // Standard Distribution:
     // Pre-Test: 60% Easy, 30% Medium, 10% Hard
@@ -6516,11 +6516,8 @@ async function callAiForSingleTest(testType, plan, numQuestions = 10, scale = nu
         console.warn('Backend test call without client apiKey error:', srvErr);
       }
 
-      showToast('💡 មិនទាន់មាន API Key - កំពុងរៀបចំតាមកម្រងសំណួរគំរូស្តង់ដារ MoEYS...', 'info');
-      const offlineFallback = isPre 
-        ? generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, [], numQuestions)
-        : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, [], numQuestions);
-      return distributeAndBalanceQuizList(offlineFallback.slice(0, numQuestions));
+      // No API key available anywhere: Require API key connection to generate authentic AI questions
+      throw new Error("NEED_API_KEY");
     }
 
     // Extract rich teaching context to give Gemini deep awareness of lesson
@@ -6574,7 +6571,10 @@ ${testTypeDescription}
    ❌ «តើ [ចំណងជើងមេរៀន] មានឥទ្ធិពលយ៉ាងណា?»
    ❌ «តើការអនុវត្ត [ចំណងជើងមេរៀន] ត្រូវធ្វើតាមដំណាក់កាលណា?»
    ❌ «តើសារពារពាក់ព័ន្ធណាដែលរងផលប៉ះពាល់ពី [ចំណងជើងមេរៀន]?»
-២. សំណួរនីមួយៗត្រូវតែចោទសួរអំពី «គំនិតស្នូលជាក់ស្ដែង» នៃមុខវិជ្ជា (Authentic Scientific / Pedagogical Concepts, Real Theories, Practical Classroom Scenarios, Case Studies)។ ឧទាហរណ៍ ប្រសិនបើមេរៀន «យន្តការនៃការទទួលបានព័ត៌មាន» (Information Processing in Psychology) សំណួរត្រូវសួរអំពី៖ ការទទួលដឹងតាមឥន្ទ្រិយារម្មណ៍ (Sensory Register), ការជ្រើសរើសយកចិត្តទុកដាក់ (Attention), អង្គចងចាំដំណើរការ (Working Memory), ការកូដទុក (Encoding), អង្គចងចាំវែង (Long-term Memory), ការរំលឹក (Retrieval), ឬបន្ទុកនៃការយល់ដឹង (Cognitive Load)!
+២. សំណួរនីមួយៗត្រូវតែចោទសួរអំពី «គំនិតស្នូលជាក់ស្ដែង» នៃមុខវិជ្ជា (Authentic Scientific / Pedagogical Concepts, Real Theories, Practical Classroom Scenarios, Case Studies)។
+   - ប្រសិនបើមុខវិជ្ជា «រូបវិទ្យា» (Physics) សំណួរត្រូវសួរអំពីច្បាប់រូបវិទ្យា ចលនា កម្លាំង ថាមពល រូបមន្តគណនា និងបាតុភូតពិសោធន៍ជាក់ស្តែង។
+   - ប្រសិនបើមុខវិជ្ជា «ចិត្តវិទ្យា» (Psychology) សំណួរត្រូវសួរអំពីយន្តការចងចាំ ឥរិយាបថ ការអភិវឌ្ឍបញ្ញាស្មារតី ការលើកទឹកចិត្ត ឬការយល់ដឹង។
+   - សម្រាប់មុខវិជ្ជាដទៃទៀត សំណួរត្រូវផ្អែកលើវិទ្យាសាស្ត្រ និងទ្រឹស្តីពិតនៃមុខវិជ្ជានោះ។
 ៣. ជម្រើសចម្លើយនីមួយៗ (A, B, C, D) ត្រូវតែជាជម្រើសសមហេតុផលក្នុងវិស័យអប់រំ (Plausible distractors) មិនត្រូវដាក់ចម្លើយកំប្លែង ឬមិនទំនងឡើយ។
 ៤. ការបែងចែកចម្លើយត្រឹមត្រូវ (MANDATORY BALANCED ANSWER KEY ROTATION - ហាមដាច់ខាតដាក់ A ទាំងអស់):
    - ដាច់ខាតមិនត្រូវដាក់ចម្លើយត្រឹមត្រូវ A ទាំងអស់ ឬដាក់ A ច្រើនពេកឡើយ! (DO NOT default to option A for all questions).
@@ -6625,7 +6625,11 @@ ${testTypeDescription}
           const resJson = await groqResp.json();
           const content = resJson.choices?.[0]?.message?.content;
           const parsed = extractAndParseJson(content);
-          const list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || parsed.test || []);
+          let list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || parsed.test || parsed.quiz || parsed.items || []);
+          if (!list || list.length === 0) {
+            const found = Object.values(parsed || {}).find(v => Array.isArray(v) && v.length > 0 && typeof v[0] === 'object');
+            if (found) list = found;
+          }
           if (list && list.length > 0) return distributeAndBalanceQuizList(list.slice(0, numQuestions));
         }
       } catch (groqErr) {
@@ -6655,7 +6659,11 @@ ${testTypeDescription}
           const resJson = await orResp.json();
           const content = resJson.choices?.[0]?.message?.content;
           const parsed = extractAndParseJson(content);
-          const list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || parsed.test || []);
+          let list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || parsed.test || parsed.quiz || parsed.items || []);
+          if (!list || list.length === 0) {
+            const found = Object.values(parsed || {}).find(v => Array.isArray(v) && v.length > 0 && typeof v[0] === 'object');
+            if (found) list = found;
+          }
           if (list && list.length > 0) return distributeAndBalanceQuizList(list.slice(0, numQuestions));
         }
       } catch (orErr) {
@@ -6668,14 +6676,16 @@ ${testTypeDescription}
     if (state.verifiedGeminiModel && state.verifiedGeminiModel.name) {
       geminiModels.push(state.verifiedGeminiModel.name);
     }
-    geminiModels.push('gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro');
+    geminiModels.push('gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-lite');
     const uniqueModels = [...new Set(geminiModels)];
 
+    let lastAiError = null;
     for (const model of uniqueModels) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 90000);
       try {
-        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+        const cleanKey = apiKey.trim();
+        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cleanKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           signal: controller.signal,
@@ -6693,19 +6703,37 @@ ${testTypeDescription}
           const data = await resp.json();
           const txt = data.candidates?.[0]?.content?.parts?.[0]?.text;
           const parsed = extractAndParseJson(txt);
-          const list = Array.isArray(parsed) ? parsed : (parsed.questions || parsed.preTestQCM || parsed.postTestMCQ || parsed.test || []);
-          if (list && list.length > 0) return distributeAndBalanceQuizList(list.slice(0, numQuestions));
+          let list = null;
+          if (Array.isArray(parsed)) {
+            list = parsed;
+          } else if (parsed && typeof parsed === 'object') {
+            const possible = parsed.questions || parsed.preTestQCM || parsed.postTestMCQ ||
+                             parsed.test || parsed.quiz || parsed.preTest || parsed.postTest ||
+                             parsed.mcqs || parsed.data || parsed.items || parsed.assessment;
+            if (Array.isArray(possible) && possible.length > 0) {
+              list = possible;
+            } else {
+              const found = Object.values(parsed).find(v => Array.isArray(v) && v.length > 0 && typeof v[0] === 'object');
+              if (found) list = found;
+            }
+          }
+          if (list && list.length > 0) {
+            console.log(`[Gemini ${model}] Successfully generated ${list.length} questions`);
+            return distributeAndBalanceQuizList(list.slice(0, numQuestions));
+          }
         } else {
           const errText = await resp.text().catch(() => '');
+          lastAiError = new Error(`Gemini ${model} (${resp.status}): ${errText.slice(0, 80)}`);
           console.warn(`Model ${model} returned status ${resp.status}:`, errText);
         }
       } catch (e) {
         clearTimeout(timeoutId);
+        lastAiError = e;
         console.warn(`Model ${model} single test generator error:`, e);
       }
     }
 
-    // 4. Try Backend Server proxy (/api/generate/test)
+    // 4. Try Backend Server proxy (/api/generate/test) with client apiKey
     try {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 90000);
@@ -6732,11 +6760,7 @@ ${testTypeDescription}
       console.warn('Server test generator fallback error:', srvErr);
     }
 
-    // 5. Fallback to High-Quality Subject-Aware Offline Bank
-    const offlineFallback = isPre 
-      ? generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, [], numQuestions)
-      : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, [], numQuestions);
-    return distributeAndBalanceQuizList(offlineFallback.slice(0, numQuestions));
+    throw lastAiError || new Error("Failed to generate test via Gemini AI. Please check your API key.");
   } finally {
     if (!skipOverlay) {
       hideLoadingOverlay();
@@ -6818,17 +6842,49 @@ async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
     showToast(isEn ? '✨ Pre-Test QCM generated successfully!' : `✨ បានបង្កើតបុរេតេស្ត (${qList.length} សំណួរ) ដោយជោគជ័យ!`, 'success');
   } catch (err) {
     console.error('Pre-Test generation error:', err);
-    const offlineList = generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, [], numQuestions);
-    const balanced = distributeAndBalanceQuizList(offlineList.slice(0, numQuestions));
-    balanced.forEach((q, idx) => { q.number = idx + 1; });
-    plan.preTestQCM = balanced;
-    state.currentPlan = plan;
-    state.generatedPlanData = plan;
-    if (wrapper) {
-      wrapper.innerHTML = renderPreTestModule(plan, isEn);
-      wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (err.message === 'NEED_API_KEY') {
+      if (wrapper) {
+        wrapper.innerHTML = `
+          <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 10px; padding: 22px; text-align: center;">
+            <div style="font-size: 2rem; margin-bottom: 8px;">🔑</div>
+            <div style="font-weight: 700; color: #92400e; font-size: 11pt; margin-bottom: 6px;">
+              ${isEn ? 'Gemini API Key Required' : 'តម្រូវឱ្យភ្ជាប់ Gemini API Key'}
+            </div>
+            <div style="font-size: 9pt; color: #78350f; max-width: 480px; margin: 0 auto 14px; line-height: 1.5;">
+              ${isEn ? 'To generate authentic, curriculum-based questions with Google Gemini AI (no robotic templates), please connect your free API key.' : 'ដើម្បីឱ្យ AI បង្កើតកម្រងសំណួរពិតប្រាកដ និងឆ្លាតវៃតាមក្បួនគរុកោសល្យ (គ្មានពុម្ពគំរូទូទៅ) សូមភ្ជាប់ Gemini API Key ឥតគិតថ្លៃ (100% Free)។'}
+            </div>
+            <button type="button" onclick="openApiKeyModal()" style="padding: 9px 18px; background: linear-gradient(135deg, #4f46e5, #4338ca); color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 9.5pt; cursor: pointer; box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);">
+              <i class="fa-solid fa-key" style="margin-right: 6px;"></i> ${isEn ? 'Connect API Key Now' : 'ភ្ជាប់ API Key ឥឡូវនេះ'}
+            </button>
+          </div>
+        `;
+      }
+      openApiKeyModal();
+      showToast(isEn ? '⚠️ Please connect your Gemini API Key first.' : '⚠️ សូមភ្ជាប់ Google Gemini API Key ដើម្បីបង្កើតសំណួរឆ្លាតវៃតាម AI!', 'warning', 6000);
+    } else {
+      if (wrapper) {
+        wrapper.innerHTML = `
+          <div style="background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 10px; padding: 22px; text-align: center;">
+            <div style="font-size: 2rem; margin-bottom: 8px;">❌</div>
+            <div style="font-weight: 700; color: #991b1b; font-size: 11pt; margin-bottom: 6px;">
+              ${isEn ? 'Gemini AI Pre-Test Generation Failed' : 'ការបង្កើតបុរេតេស្តតាម Gemini AI មិនជោគជ័យ'}
+            </div>
+            <div style="font-size: 9pt; color: #7f1d1d; max-width: 480px; margin: 0 auto 14px; line-height: 1.5;">
+              ${escapeHtml(err.message || 'Error communicating with AI service')}
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+              <button type="button" onclick="openApiKeyModal()" style="padding: 8px 16px; background: #64748b; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 9pt; cursor: pointer;">
+                <i class="fa-solid fa-key" style="margin-right: 6px;"></i> ${isEn ? 'Check / Change API Key' : 'ពិនិត្យ / ប្តូរ API Key'}
+              </button>
+              <button type="button" onclick="generatePreTestOnDemand(${numQuestions}, ${JSON.stringify(scale)})" style="padding: 8px 16px; background: #4f46e5; color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 9pt; cursor: pointer;">
+                <i class="fa-solid fa-rotate-right" style="margin-right: 6px;"></i> ${isEn ? 'Retry with AI' : 'ព្យាយាមបង្កើតម្តងទៀត'}
+              </button>
+            </div>
+          </div>
+        `;
+      }
+      showToast(isEn ? '❌ AI generation error: ' + (err.message || 'Failed') : `❌ បរាជ័យក្នុងការបង្កើតតាម AI៖ ${err.message || 'សូមពិនិត្យ API Key'}`, 'error', 7000);
     }
-    showToast(isEn ? `✨ Pre-Test (${balanced.length} questions) generated (Standard MoEYS Bank)` : `✨ បានរៀបចំបុរេតេស្ត (${balanced.length} សំណួរ) ស្តង់ដារ MoEYS រួចរាល់!`, 'success');
   } finally {
     hideLoadingOverlay();
   }
@@ -6909,17 +6965,49 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
     showToast(isEn ? '✨ Post-Test MCQ generated successfully!' : `✨ បានបង្កើតបច្ឆិមតេស្ត (${qList.length} សំណួរ) ដោយជោគជ័យ!`, 'success');
   } catch (err) {
     console.error('Post-Test generation error:', err);
-    const offlinePost = generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, [], numQuestions);
-    const balancedPost = distributeAndBalanceQuizList(offlinePost.slice(0, numQuestions));
-    balancedPost.forEach((q, idx) => { q.number = idx + 1; });
-    plan.postTestMCQ = balancedPost;
-    state.currentPlan = plan;
-    state.generatedPlanData = plan;
-    if (wrapper) {
-      wrapper.innerHTML = renderPostTestModule(plan, isEn);
-      wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (err.message === 'NEED_API_KEY') {
+      if (wrapper) {
+        wrapper.innerHTML = `
+          <div style="background: #fffbeb; border: 1.5px solid #fde68a; border-radius: 10px; padding: 22px; text-align: center;">
+            <div style="font-size: 2rem; margin-bottom: 8px;">🔑</div>
+            <div style="font-weight: 700; color: #92400e; font-size: 11pt; margin-bottom: 6px;">
+              ${isEn ? 'Gemini API Key Required' : 'តម្រូវឱ្យភ្ជាប់ Gemini API Key'}
+            </div>
+            <div style="font-size: 9pt; color: #78350f; max-width: 480px; margin: 0 auto 14px; line-height: 1.5;">
+              ${isEn ? 'To generate authentic, curriculum-based questions with Google Gemini AI (no robotic templates), please connect your free API key.' : 'ដើម្បីឱ្យ AI បង្កើតកម្រងសំណួរពិតប្រាកដ និងឆ្លាតវៃតាមក្បួនគរុកោសល្យ (គ្មានពុម្ពគំរូទូទៅ) សូមភ្ជាប់ Gemini API Key ឥតគិតថ្លៃ (100% Free)។'}
+            </div>
+            <button type="button" onclick="openApiKeyModal()" style="padding: 9px 18px; background: linear-gradient(135deg, #10b981, #059669); color: white; border: none; border-radius: 8px; font-weight: 700; font-size: 9.5pt; cursor: pointer; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);">
+              <i class="fa-solid fa-key" style="margin-right: 6px;"></i> ${isEn ? 'Connect API Key Now' : 'ភ្ជាប់ API Key ឥឡូវនេះ'}
+            </button>
+          </div>
+        `;
+      }
+      openApiKeyModal();
+      showToast(isEn ? '⚠️ Please connect your Gemini API Key first.' : '⚠️ សូមភ្ជាប់ Google Gemini API Key ដើម្បីបង្កើតសំណួរឆ្លាតវៃតាម AI!', 'warning', 6000);
+    } else {
+      if (wrapper) {
+        wrapper.innerHTML = `
+          <div style="background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 10px; padding: 22px; text-align: center;">
+            <div style="font-size: 2rem; margin-bottom: 8px;">❌</div>
+            <div style="font-weight: 700; color: #991b1b; font-size: 11pt; margin-bottom: 6px;">
+              ${isEn ? 'Gemini AI Post-Test Generation Failed' : 'ការបង្កើតបច្ឆិមតេស្តតាម Gemini AI មិនជោគជ័យ'}
+            </div>
+            <div style="font-size: 9pt; color: #7f1d1d; max-width: 480px; margin: 0 auto 14px; line-height: 1.5;">
+              ${escapeHtml(err.message || 'Error communicating with AI service')}
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+              <button type="button" onclick="openApiKeyModal()" style="padding: 8px 16px; background: #64748b; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 9pt; cursor: pointer;">
+                <i class="fa-solid fa-key" style="margin-right: 6px;"></i> ${isEn ? 'Check / Change API Key' : 'ពិនិត្យ / ប្តូរ API Key'}
+              </button>
+              <button type="button" onclick="generatePostTestOnDemand(${numQuestions}, ${JSON.stringify(scale)})" style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 9pt; cursor: pointer;">
+                <i class="fa-solid fa-rotate-right" style="margin-right: 6px;"></i> ${isEn ? 'Retry with AI' : 'ព្យាយាមបង្កើតម្តងទៀត'}
+              </button>
+            </div>
+          </div>
+        `;
+      }
+      showToast(isEn ? '❌ AI generation error: ' + (err.message || 'Failed') : `❌ បរាជ័យក្នុងការបង្កើតតាម AI៖ ${err.message || 'សូមពិនិត្យ API Key'}`, 'error', 7000);
     }
-    showToast(isEn ? `✨ Post-Test (${balancedPost.length} questions) generated (Standard MoEYS Bank)` : `✨ បានរៀបចំបច្ឆិមតេស្ត (${balancedPost.length} សំណួរ) ស្តង់ដារ MoEYS រួចរាល់!`, 'success');
   } finally {
     hideLoadingOverlay();
   }
@@ -11578,6 +11666,14 @@ window.promptGenerateTest = async function(type) {
       errBox.style.display = 'block';
       return;
     }
+    const key = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || sessionStorage.getItem('gemini_api_key') || '').trim();
+    if (!key) {
+      overlay.remove();
+      openApiKeyModal();
+      showToast(isEn ? '⚠️ Please connect your Gemini API Key first to generate authentic AI questions.' : '⚠️ សូមភ្ជាប់ Google Gemini API Key (100% Free) ជាមុនសិន ដើម្បីឱ្យ AI បង្កើតកម្រងសំណួរឆ្លាតវៃពិតប្រាកដ (គ្មានពុម្ពគំរូ)!', 'warning', 6000);
+      return;
+    }
+
     overlay.remove();
 
     if (type === 'pre') {
