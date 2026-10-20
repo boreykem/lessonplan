@@ -6684,36 +6684,69 @@ ${testTypeDescription}
     }
 
     // 3. Try Google Gemini AI Models with 90-second timeout
-    const geminiModels = [];
+    let candidateModels = [];
     if (state.verifiedGeminiModel && state.verifiedGeminiModel.name) {
-      geminiModels.push(state.verifiedGeminiModel.name);
+      candidateModels.push(state.verifiedGeminiModel);
     }
-    geminiModels.push('gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-lite');
-    const uniqueModels = [...new Set(geminiModels)];
+    try {
+      const discovered = await discoverGeminiModels(apiKey);
+      if (discovered && Array.isArray(discovered)) {
+        for (const m of discovered) {
+          if (!candidateModels.some(c => c.name === m.name)) {
+            candidateModels.push(m);
+          }
+        }
+      }
+    } catch (discErr) {
+      console.warn('Model discovery failed in test generator:', discErr);
+    }
+
+    if (candidateModels.length === 0) {
+      candidateModels = [
+        { ver: 'v1beta', name: 'gemini-2.5-flash' },
+        { ver: 'v1beta', name: 'gemini-2.0-flash' },
+        { ver: 'v1beta', name: 'gemini-1.5-flash' },
+        { ver: 'v1beta', name: 'gemini-1.5-pro' }
+      ];
+    }
 
     let lastAiError = null;
-    for (const model of uniqueModels) {
+    for (const item of candidateModels) {
+      const modelVer = item.ver || 'v1beta';
+      const modelName = item.name;
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 90000);
       try {
         const cleanKey = apiKey.trim();
-        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${cleanKey}`, {
+        const requestBody = {
+          contents: [{ role: 'user', parts: [{ text: systemPrompt }] }],
+          safetySettings: [
+            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
+            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
+            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
+            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" }
+          ],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            temperature: 0.35,
+            maxOutputTokens: 8192
+          }
+        };
+
+        const resp = await fetch(`https://generativelanguage.googleapis.com/${modelVer}/models/${modelName}:generateContent?key=${cleanKey}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           signal: controller.signal,
-          body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: systemPrompt }] }],
-            generationConfig: {
-              responseMimeType: 'application/json',
-              temperature: 0.35,
-              maxOutputTokens: 8192
-            }
-          })
+          body: JSON.stringify(requestBody)
         });
         clearTimeout(timeoutId);
         if (resp.ok) {
           const data = await resp.json();
           const txt = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (!txt) {
+            console.warn(`[Gemini ${modelName}] Candidate returned empty text:`, data.candidates?.[0]);
+            continue;
+          }
           const parsed = extractAndParseJson(txt);
           let list = null;
           if (Array.isArray(parsed)) {
@@ -6730,18 +6763,23 @@ ${testTypeDescription}
             }
           }
           if (list && list.length > 0) {
-            console.log(`[Gemini ${model}] Successfully generated ${list.length} questions`);
+            console.log(`[Gemini ${modelName}] Successfully generated ${list.length} questions`);
             return distributeAndBalanceQuizList(list.slice(0, numQuestions));
           }
         } else {
           const errText = await resp.text().catch(() => '');
-          lastAiError = new Error(`Gemini ${model} (${resp.status}): ${errText.slice(0, 80)}`);
-          console.warn(`Model ${model} returned status ${resp.status}:`, errText);
+          let shortMsg = errText;
+          try {
+            const errJson = JSON.parse(errText);
+            shortMsg = errJson.error?.message || errText;
+          } catch (_) {}
+          lastAiError = new Error(`Gemini ${modelName} (${resp.status}): ${shortMsg.slice(0, 90)}`);
+          console.warn(`Model ${modelName} returned status ${resp.status}:`, errText);
         }
       } catch (e) {
         clearTimeout(timeoutId);
         lastAiError = e;
-        console.warn(`Model ${model} single test generator error:`, e);
+        console.warn(`Model ${modelName} single test generator error:`, e);
       }
     }
 
