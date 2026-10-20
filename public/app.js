@@ -2647,7 +2647,7 @@ async function extractTextFromFile(file) {
     }
     // 3. Image OCR using Gemini Vision AI
     if (['png', 'jpg', 'jpeg', 'webp', 'bmp'].includes(extension)) {
-      const apiKey = (state.geminiApiKey || '').trim();
+      const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
       if (!apiKey) {
         showToast('⚠️ ដើម្បីអានអត្ថបទពីរូបភាព (OCR) សូមបញ្ចូល API Key ជាមុនសិន!', 'warning');
         return '';
@@ -2662,7 +2662,7 @@ async function extractTextFromFile(file) {
       const mimeType = file.type || (extension === 'png' ? 'image/png' : 'image/jpeg');
       const rawBase64 = base64Data.split(',')[1];
 
-      const ocrCandidateModels = ['gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-2.5-pro', 'gemini-3.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-2.0-flash'];
+      const ocrCandidateModels = ['gemini-3.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-2.0-flash'];
       for (const model of ocrCandidateModels) {
         try {
           const ocrUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -2865,7 +2865,7 @@ async function handleGenerateLessonPlan() {
 
   try {
     let planData;
-    const key = (state.geminiApiKey || '').trim();
+    const key = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
     let provider = state.aiProvider || 'gemini';
     if (key.startsWith('AIza') || key.startsWith('AQ.')) {
       provider = 'gemini';
@@ -3195,7 +3195,7 @@ window.proceedOfflineDeliberately = proceedOfflineDeliberately;
 
 // ⚡ Groq Cloud Generator (Llama 3.3 70B & DeepSeek R1 - Ultra Fast)
 async function generateWithGroqAPI(params) {
-  const apiKey = (state.geminiApiKey || '').trim();
+  const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
   const isFlipped = isFlippedLearningRequest(params);
   const isBd = !isFlipped && isBackwardDesignRequest(params);
   const totalMin = parseDurationToMinutes(params.duration);
@@ -3260,7 +3260,7 @@ async function generateWithGroqAPI(params) {
 
 // 🌐 OpenRouter Universal AI Generator (DeepSeek, Llama 3.3, Claude)
 async function generateWithOpenRouterAPI(params) {
-  const apiKey = (state.geminiApiKey || '').trim();
+  const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
   const isFlipped = isFlippedLearningRequest(params);
   const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS'} Lesson Plan in Khmer for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}). Return strictly valid JSON.`;
 
@@ -3402,7 +3402,7 @@ window.generateWithBackendAPI = generateWithBackendAPI;
 
 // 🤖 Google Gemini API Generator
 async function generateWithGeminiAPI(params) {
-  const apiKey = state.geminiApiKey;
+  const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
   const isFlipped = isFlippedLearningRequest(params);
   const isBd = !isFlipped && isBackwardDesignRequest(params);
 
@@ -4625,15 +4625,15 @@ async function testCurrentAiProviderKey() {
       discovered.sort((a, b) => {
         const score = (m) => {
           const name = (m.name || '').toLowerCase();
+          if (name === 'gemini-3.5-flash-lite') return 300;
           if (name === 'gemini-2.5-pro') return 250;
           if (name === 'gemini-3.8-flash') return 240;
           if (name === 'gemini-3.6-flash') return 230;
-          if (name === 'gemini-3.5-flash-lite') return 210;
           if (name === 'gemini-2.5-flash-lite') return 200;
-          if (name.includes('2.5-pro')) return 195;
-          if (name.includes('3.8-flash')) return 190;
-          if (name.includes('3.6-flash')) return 185;
-          if (name.includes('flash-lite')) return 175;
+          if (name.includes('flash-lite')) return 195;
+          if (name.includes('2.5-pro')) return 190;
+          if (name.includes('3.8-flash')) return 185;
+          if (name.includes('3.6-flash')) return 180;
           if (name === 'gemini-2.0-flash') return 150;
           if (name.includes('flash') && !name.includes('tts') && !name.includes('image')) return 140;
           if (name.includes('pro') && !name.includes('tts') && !name.includes('image')) return 130;
@@ -4644,11 +4644,11 @@ async function testCurrentAiProviderKey() {
       modelsToTest = discovered.slice(0, 4);
     } else {
       modelsToTest = [
+        { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
+        { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
         { ver: 'v1beta', name: 'gemini-2.5-pro' },
         { ver: 'v1beta', name: 'gemini-3.8-flash' },
         { ver: 'v1beta', name: 'gemini-3.6-flash' },
-        { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
-        { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
         { ver: 'v1beta', name: 'gemini-2.0-flash' }
       ];
     }
@@ -6701,7 +6701,6 @@ ${testTypeDescription}
             const name = (m.name || '').toLowerCase();
             if (name === 'gemini-3.5-flash-lite') return 300;
             if (name === 'gemini-2.5-flash-lite') return 250;
-            if (name === 'gemini-2.5-flash') return 240;
             if (name === 'gemini-3.8-flash') return 230;
             if (name === 'gemini-3.6-flash') return 220;
             if (name.includes('flash-lite')) return 210;
@@ -6725,7 +6724,6 @@ ${testTypeDescription}
     const defaultFallbacks = [
       { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
       { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
-      { ver: 'v1beta', name: 'gemini-2.5-flash' },
       { ver: 'v1beta', name: 'gemini-3.8-flash' },
       { ver: 'v1beta', name: 'gemini-2.0-flash' },
       { ver: 'v1beta', name: 'gemini-1.5-flash' }
@@ -13221,11 +13219,11 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
             disc.sort((a, b) => {
               const sc = (m) => {
                 const n = (m.name || '').toLowerCase();
+                if (n.includes('3.5-flash-lite')) return 120;
+                if (n.includes('2.5-flash-lite')) return 115;
                 if (n.includes('2.5-pro')) return 110;
                 if (n.includes('3.8-flash')) return 105;
                 if (n.includes('3.6-flash')) return 100;
-                if (n.includes('3.5-flash-lite')) return 95;
-                if (n.includes('2.5-flash-lite')) return 90;
                 if (n.includes('flash-latest')) return 85;
                 if (n.includes('pro-latest')) return 80;
                 if (n.includes('2.0-flash')) return 75;
@@ -13241,11 +13239,11 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
 
       if (candidateModels.length === 0) {
         candidateModels = [
+          { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
+          { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
           { ver: 'v1beta', name: 'gemini-2.5-pro' },
           { ver: 'v1beta', name: 'gemini-3.8-flash' },
           { ver: 'v1beta', name: 'gemini-3.6-flash' },
-          { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
-          { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
           { ver: 'v1beta', name: 'gemini-2.0-flash' }
         ];
       }
