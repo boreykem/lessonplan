@@ -250,10 +250,22 @@ const PersistentKeyVault = {
 window.PersistentKeyVault = PersistentKeyVault;
 
 function getActiveGeminiApiKey() {
-  if (typeof state !== 'undefined' && state && state.geminiApiKey) {
-    return state.geminiApiKey;
+  if (typeof state !== 'undefined' && state && state.geminiApiKey && state.geminiApiKey.trim()) {
+    return state.geminiApiKey.trim();
   }
-  return PersistentKeyVault.getSync();
+  const fromVault = PersistentKeyVault.getSync();
+  if (fromVault && fromVault.trim()) {
+    if (typeof state !== 'undefined' && state) state.geminiApiKey = fromVault.trim();
+    return fromVault.trim();
+  }
+  try {
+    const fromLocal = (localStorage.getItem('gemini_api_key') || sessionStorage.getItem('gemini_api_key') || '').trim();
+    if (fromLocal) {
+      if (typeof state !== 'undefined' && state) state.geminiApiKey = fromLocal;
+      return fromLocal;
+    }
+  } catch (e) {}
+  return '';
 }
 
 const state = {
