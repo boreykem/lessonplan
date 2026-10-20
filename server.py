@@ -1870,6 +1870,49 @@ def upload_lesson():
     })
 
 
+def extract_json_from_text(text):
+    """
+    Robustly extracts and parses a JSON array or object from AI response text.
+    Handles markdown code fences, leading/trailing text, and object-wrapped arrays.
+    """
+    if not text:
+        raise ValueError("Empty response text from AI")
+    clean = text.strip()
+    # Strip markdown code fences
+    import re as _re
+    clean = _re.sub(r'^```(?:json)?\s*', '', clean, flags=_re.IGNORECASE)
+    clean = _re.sub(r'```\s*$', '', clean).strip()
+
+    # 1. Direct parse first
+    try:
+        return json.loads(clean)
+    except Exception:
+        pass
+
+    # 2. Find the first JSON array or object
+    first_bracket = clean.find('[')
+    first_brace = clean.find('{')
+
+    if first_bracket != -1 and (first_brace == -1 or first_bracket < first_brace):
+        start = first_bracket
+        end = clean.rfind(']') + 1
+        if end > start:
+            try:
+                return json.loads(clean[start:end])
+            except Exception:
+                pass
+    if first_brace != -1:
+        start = first_brace
+        end = clean.rfind('}') + 1
+        if end > start:
+            try:
+                return json.loads(clean[start:end])
+            except Exception:
+                pass
+
+    raise ValueError(f"No valid JSON found in AI response (len={len(text)})")
+
+
 def distribute_and_balance_quiz_list(quiz_list):
     """
     Intelligently balances and rotates multiple-choice answer keys (A, B, C, D)
@@ -2107,8 +2150,12 @@ Return ONLY a valid JSON array:
                     with urllib.request.urlopen(groq_req, timeout=30) as resp:
                         res_json = json.loads(resp.read().decode("utf-8"))
                         txt = res_json["choices"][0]["message"]["content"]
-                        parsed = json.loads(txt)
-                        q_list = parsed if isinstance(parsed, list) else (parsed.get("questions") or parsed.get("test") or [])
+                        parsed = extract_json_from_text(txt)
+                        if isinstance(parsed, list):
+                            q_list = parsed
+                        else:
+                            q_list = (parsed.get("questions") or parsed.get("preTestQCM")
+                                      or parsed.get("postTestMCQ") or parsed.get("test") or [])
                         if q_list and len(q_list) > 0:
                             balanced_list = distribute_and_balance_quiz_list(q_list[:num_questions])
                             return jsonify({"success": True, "data": balanced_list})
@@ -2120,30 +2167,43 @@ Return ONLY a valid JSON array:
                 url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
                 req_data = {
                     "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-                    "generationConfig": {"responseMimeType": "application/json", "temperature": 0.4}
+                    "generationConfig": {
+                        "responseMimeType": "application/json",
+                        "temperature": 0.4,
+                        "maxOutputTokens": 8192
+                    }
                 }
                 req = urllib.request.Request(url, data=json.dumps(req_data).encode("utf-8"), headers={"Content-Type": "application/json"})
                 try:
                     with urllib.request.urlopen(req, timeout=90) as resp:
                         res_json = json.loads(resp.read().decode("utf-8"))
                         txt = res_json["candidates"][0]["content"]["parts"][0]["text"]
-                        parsed = json.loads(txt)
-                        q_list = parsed if isinstance(parsed, list) else (parsed.get("questions") or parsed.get("test") or [])
+                        parsed = extract_json_from_text(txt)
+                        if isinstance(parsed, list):
+                            q_list = parsed
+                        else:
+                            q_list = (parsed.get("questions") or parsed.get("preTestQCM")
+                                      or parsed.get("postTestMCQ") or parsed.get("test") or [])
                         if q_list and len(q_list) > 0:
                             balanced_list = distribute_and_balance_quiz_list(q_list[:num_questions])
+                            print(f"Server Gemini {model} test success: {len(balanced_list)} questions")
                             return jsonify({"success": True, "data": balanced_list})
+                        else:
+                            print(f"Server Gemini {model}: empty question list from response")
                 except Exception as ex:
                     print(f"Server Gemini {model} error:", ex)
                     continue
         except Exception as e:
             print("Server test generator error:", e)
 
+    print(f"[generate/test] All AI attempts failed for {test_type}-test '{lesson_title}'. Using offline fallback.")
     if is_pre:
         synth = generate_pretest_qcm_python(subject, grade, lesson_title, [], count=num_questions)
     else:
         synth = generate_posttest_mcq_python(subject, grade, lesson_title, [], count=num_questions)
     balanced_synth = distribute_and_balance_quiz_list(synth[:num_questions])
-    return jsonify({"success": True, "data": balanced_synth, "fallback": True})
+    return jsonify({"success": True, "data": balanced_synth, "fallback": True,
+                    "fallbackReason": "All AI providers failed or no API key configured"})
 
 
 # ==============================================================================
