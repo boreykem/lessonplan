@@ -796,8 +796,8 @@ const I18N_DICTIONARY = {
     loadingDesc: "កំពុងបង្កើតវត្ថុបំណង ៣ ផ្នែក សម្ភារឧបទេស និងដំណើរការបង្រៀន ៥ ជំហាន",
 
     // Step 1
-    step1Title: "ទម្រង់កិច្ចតែងការ (Template)",
-    step1Desc: "ជ្រើសរើសប្រភេទកិច្ចតែងការស្តង់ដារ MoEYS",
+    step1Title: "ទម្រង់ & វិធីសាស្ត្របង្រៀន (Framework & Method)",
+    step1Desc: "ជ្រើសរើសប្រភេទកិច្ចតែងការ MoEYS និងវិធីសាស្ត្រគរុកោសល្យចម្បង",
     labelPresetTemplate: "ជ្រើសរើសប្រភេទកិច្ចតែងការ MoEYS៖",
     optPresetStandard: "កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)",
     optPresetFlipped: "⚡ កិច្ចតែងការតាមបែបត្រឡប់ (Flipped Learning)",
@@ -807,14 +807,14 @@ const I18N_DICTIONARY = {
 
     // Step 2
     step2Title: "ឯកសារ និងខ្លឹមសារមេរៀន (Lesson Material)",
-    step2Desc: "Upload ឬបញ្ចូលឯកសារមេរៀន ស្លាយ ឬអត្ថបទ",
+    step2Desc: "បញ្ចូលខ្លឹមសារ ឬភ្ជាប់ឯកសារមេរៀន ស្លាយ រូបភាព (DOCX, PDF, PPTX)",
     dropPrimary: 'ទម្លាក់ឯកសារមេរៀន/ស្លាយ/រូបភាព នៅទីនេះ ឬ <span class="browse-link">ចុចដើម្បីរើសឯកសារ</span>',
     dropHint: "គាំទ្រ PowerPoint (.pptx), Word (.docx), PDF (.pdf), រូបភាពថតសៀវភៅ (.png, .jpg), TXT",
     lessonContentLabel: "ខ្លឹមសារមេរៀន / ចំណុចសំខាន់ៗ",
     lessonContentPlaceholder: "បញ្ចូល ឬបិទភ្ជាប់ខ្លឹមសារមេរៀន និយមន័យ រូបមន្ត លំហាត់ ឧទាហរណ៍ ឬអត្ថបទដកស្រង់ពីសៀវភៅពុម្ពនៅទីនេះ...",
 
     // Step 3
-    step3Title: "ព័ត៌មានរដ្ឋបាល និងវិធីសាស្ត្របង្រៀន",
+    step3Title: "ព័ត៌មានរដ្ឋបាល និងខ្លឹមសារបង្រៀន",
     step3Desc: "កំណត់ព័ត៌មានលម្អិតសម្រាប់ក្បាលកិច្ចតែងការ",
     btnSaveAdminInfo: "រក្សាទុក",
     schoolLabel: "ឈ្មោះសាលារៀន",
@@ -938,8 +938,8 @@ const I18N_DICTIONARY = {
     loadingDesc: "Formulating 3-domain learning objectives, teaching aids, and 5-step active pedagogy",
 
     // Step 1
-    step1Title: "Lesson Plan Template",
-    step1Desc: "Select MoEYS Standard Official Template",
+    step1Title: "Framework & Teaching Method",
+    step1Desc: "Select MoEYS template type and core pedagogical methodology",
     labelPresetTemplate: "Select Lesson Plan Format:",
     optPresetStandard: "Standard 5-Step Lesson Plan (General / Secondary)",
     optPresetFlipped: "⚡ Flipped Learning Lesson Plan",
@@ -949,15 +949,15 @@ const I18N_DICTIONARY = {
 
     // Step 2
     step2Title: "Lesson Material & Content",
-    step2Desc: "Upload or paste lesson files, slides, or textbook excerpts",
+    step2Desc: "Type content or attach lesson document/slides (DOCX, PDF, PPTX)",
     dropPrimary: 'Drop lesson files/slides/images here or <span class="browse-link">browse files</span>',
     dropHint: "Supports PowerPoint (.pptx), Word (.docx), PDF (.pdf), Book photos (.png, .jpg), TXT",
     lessonContentLabel: "Lesson Content / Key Concepts",
     lessonContentPlaceholder: "Enter or paste lesson text, definitions, formulas, exercises, examples, or textbook excerpts here...",
 
     // Step 3
-    step3Title: "Administrative Details & Teaching Method",
-    step3Desc: "Configure lesson header information and class details",
+    step3Title: "Administrative Details & Lesson Title",
+    step3Desc: "Configure header metadata for your lesson plan",
     btnSaveAdminInfo: "Save Profile",
     schoolLabel: "School / Institution Name",
     schoolPlaceholder: "e.g., Preah Sisowath High School / Institute...",
@@ -1189,16 +1189,16 @@ function setLanguage(lang, showNotification = false) {
 
   // 9. Translate Duration
   const durSelect = document.getElementById('inputDurationSelect');
-  if (durSelect && durSelect.options.length >= 9) {
+  if (durSelect && durSelect.options.length >= 6) {
     const durEn = [
-      "50 mins (1 period)", "45 mins (1 period)", "90 mins (2 periods)",
-      "100 mins (2 periods)", "135 mins (3 periods)", "150 mins (3 periods)",
-      "180 mins (4 periods / workshop)", "240 mins (1 day / short course)", "✏️ Custom"
+      "50 mins (1 period)", "60 mins (1 full hour)", "90 mins (2 periods)",
+      "100 mins (2 periods)", "120 mins (2 full hours)", "135 mins (3 periods)", "150 mins (3 periods)",
+      "180 mins (3 periods / workshop)", "240 mins (1 day / short course)", "✏️ Custom"
     ];
     const durKm = [
-      "៥០ នាទី (១ ម៉ោងសិក្សា)", "៤៥ នាទី (១ ម៉ោងសិក្សា)", "៩០ នាទី (២ ម៉ោងសិក្សា)",
-      "១០០ នាទី (២ ម៉ោងសិក្សា)", "១៣៥ នាទី (៣ ម៉ោងសិក្សា)", "១៥០ នាទី (៣ ម៉ោងសិក្សា)",
-      "១៨០ នាទី (៤ ម៉ោងសិក្សា / សិក្ខាសាលា)", "២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)", "✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)"
+      "៥០ នាទី (១ ម៉ោងសិក្សា)", "៦០ នាទី (១ ម៉ោងពេញ)", "៩០ នាទី (២ ម៉ោងសិក្សា)",
+      "១០០ នាទី (២ ម៉ោងសិក្សា)", "១២០ នាទី (២ ម៉ោងពេញ)", "១៣៥ នាទី (៣ ម៉ោងសិក្សា)", "១៥០ នាទី (៣ ម៉ោងសិក្សា)",
+      "១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)", "២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)", "✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)"
     ];
     const targetDur = isEn ? durEn : durKm;
     for (let i = 0; i < targetDur.length; i++) {
@@ -1780,19 +1780,17 @@ window.updateTeacherProfileSummaryLive = updateTeacherProfileSummaryLive;
 function switchLessonMaterialTab(mode) {
   const uploadTab = document.getElementById('tabBtnUploadMode');
   const textTab = document.getElementById('tabBtnTextMode');
-  const dropzoneWrap = document.getElementById('dropzoneContainerWrapper');
   const textareaWrap = document.getElementById('lessonTextareaWrapper');
+  if (textareaWrap) textareaWrap.style.display = 'block';
 
   if (mode === 'upload') {
     if (uploadTab) uploadTab.classList.add('active');
     if (textTab) textTab.classList.remove('active');
-    if (dropzoneWrap) dropzoneWrap.style.display = 'block';
-    if (textareaWrap) textareaWrap.style.display = 'none';
+    const fileInput = document.getElementById('lessonFileInput');
+    if (fileInput) fileInput.click();
   } else {
     if (textTab) textTab.classList.add('active');
     if (uploadTab) uploadTab.classList.remove('active');
-    if (dropzoneWrap) dropzoneWrap.style.display = 'none';
-    if (textareaWrap) textareaWrap.style.display = 'block';
     const ta = document.getElementById('lessonContentText');
     if (ta) ta.focus();
   }
@@ -2489,6 +2487,46 @@ function initDropzones() {
       // keep current text or let user edit
     }
   );
+
+  // Direct Drag & Drop onto Lesson Content Textarea
+  const directTa = document.getElementById('lessonContentText');
+  const directStatusEl = document.getElementById('lessonFileStatus');
+  if (directTa && directStatusEl) {
+    directTa.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      directTa.classList.add('textarea-dragover');
+    });
+    directTa.addEventListener('dragleave', () => {
+      directTa.classList.remove('textarea-dragover');
+    });
+    directTa.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      directTa.classList.remove('textarea-dragover');
+      const file = e.dataTransfer.files[0];
+      if (file) {
+        handleFileSelected(file, directStatusEl, async (f) => {
+          showToast(`កំពុងអានឯកសារមេរៀន: ${f.name}...`, 'info');
+          const text = await extractTextFromFile(f);
+          if (text && text.trim().length > 0) {
+            state.lessonContent = text.trim();
+            state.lessonFileName = f.name;
+            directTa.value = text.trim();
+            updateWordCount();
+            const baseName = f.name.replace(/\.[^/.]+$/, "");
+            const nameInput = document.getElementById('inputSaveLessonName');
+            if (nameInput) nameInput.value = baseName;
+            const lessonTitleInput = document.getElementById('inputLessonTitle');
+            if (lessonTitleInput && !lessonTitleInput.value.trim()) {
+              lessonTitleInput.value = baseName;
+            }
+            showToast(`✅ បានស្រង់ខ្លឹមសារពី ${f.name} រួចរាល់!`, 'success');
+          } else {
+            showToast(`⚠️ មិនអាចស្រង់អត្ថបទពី ${f.name} បានទេ`, 'warning');
+          }
+        });
+      }
+    });
+  }
 }
 
 // Generic Dropzone Helper

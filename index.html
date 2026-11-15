@@ -21,7 +21,7 @@
   <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
-  <link rel="stylesheet" href="style.css?v=20261020_v73">
+  <link rel="stylesheet" href="style.css?v=20261115_v80">
   
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -197,13 +197,13 @@
     <aside class="sidebar-panel">
       <div class="sidebar-content">
         
-        <!-- STEP 1: Upload / Select Template -->
+        <!-- STEP 1: Upload / Select Template & Methodology -->
         <section class="config-card">
           <div class="card-header">
             <span class="step-badge" data-i18n="stepBadge1"><i class="fa-solid fa-file-lines"></i> ជំហានទី ១</span>
             <div class="card-title-group">
-              <h3 data-i18n="step1Title">ទម្រង់កិច្ចតែងការ (Template)</h3>
-              <p data-i18n="step1Desc">ជ្រើសរើសប្រភេទកិច្ចតែងការស្តង់ដារ MoEYS</p>
+              <h3 data-i18n="step1Title">ទម្រង់ & វិធីសាស្ត្របង្រៀន (Framework & Method)</h3>
+              <p data-i18n="step1Desc">ជ្រើសរើសប្រភេទកិច្ចតែងការ MoEYS និងវិធីសាស្ត្រគរុកោសល្យចម្បង</p>
             </div>
           </div>
           
@@ -235,13 +235,30 @@
               </label>
             </div>
 
-            <!-- 1. Preset Selector Dropdown -->
-            <div id="presetTemplateWrapper" class="control-group">
-              <label for="presetTemplateSelect" data-i18n="labelPresetTemplate">ជ្រើសរើសប្រភេទកិច្ចតែងការ MoEYS៖</label>
-              <select id="presetTemplateSelect" class="form-control">
-                <option value="moeys_standard_5step">កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)</option>
-                <option value="flipped_learning_5step">⚡ កិច្ចតែងការតាមបែបត្រឡប់ (Flipped Learning)</option>
-              </select>
+            <!-- 1. Preset Selector & Main Teaching Method Side-by-Side (User Request 1) -->
+            <div class="form-grid-2">
+              <div id="presetTemplateWrapper" class="control-group">
+                <label for="presetTemplateSelect" data-i18n="labelPresetTemplate">
+                  <i class="fa-solid fa-award text-primary" style="margin-right: 4px;"></i> ប្រភេទកិច្ចតែងការ MoEYS៖
+                </label>
+                <select id="presetTemplateSelect" class="form-control">
+                  <option value="moeys_standard_5step" selected>កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)</option>
+                  <option value="flipped_learning_5step">⚡ កិច្ចតែងការតាមបែបត្រឡប់ (Flipped Learning)</option>
+                </select>
+              </div>
+
+              <div class="control-group">
+                <label for="inputMethod" data-i18n="methodLabel">
+                  <i class="fa-solid fa-lightbulb text-warning" style="margin-right: 4px; color: #f59e0b;"></i> វិធីសាស្ត្របង្រៀនចម្បង៖
+                </label>
+                <select id="inputMethod" class="form-control">
+                  <option value="សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)">សិស្សមជ្ឈមណ្ឌល (Student-Centered)</option>
+                  <option value="វិធីសាស្ត្រសហការកម្រិតខ្ពស់ (Jigsaw, Concept Mapping, Role-Play)">វិធីសាស្ត្រសហការ (Jigsaw / Group)</option>
+                  <option value="ការរិះរក និងពិសោធន៍ តាមបែប 5E (Inquiry-based / STEM)">ការរិះរក និងពិសោធន៍ 5E (STEM)</option>
+                  <option value="ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា (Problem-Based)">ការដោះស្រាយបញ្ហា (Problem-Based)</option>
+                  <option value="ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង (Direct Instruction)">ការពន្យល់បង្ហាញ (Direct Instruction)</option>
+                </select>
+              </div>
             </div>
 
             <!-- 2. Saved Templates Library Wrapper -->
@@ -327,20 +344,20 @@
           </div>
         </section>
 
-        <!-- STEP 2: Upload Lesson Content & Documents -->
+        <!-- STEP 2: Lesson Content & Document Attachment -->
         <section class="config-card">
           <div class="card-header">
             <span class="step-badge" data-i18n="stepBadge2"><i class="fa-solid fa-book-open"></i> ជំហានទី ២</span>
             <div class="card-title-group">
               <h3 data-i18n="step2Title">ឯកសារ និងខ្លឹមសារមេរៀន (Lesson Material)</h3>
-              <p data-i18n="step2Desc">Upload ឬបញ្ចូលឯកសារមេរៀន ស្លាយ ឬអត្ថបទ</p>
+              <p data-i18n="step2Desc">បញ្ចូលខ្លឹមសារ ឬភ្ជាប់ឯកសារមេរៀន ស្លាយ រូបភាព (DOCX, PDF, PPTX)</p>
             </div>
           </div>
 
-          <!-- Modern Segmented Tabs: Upload File vs Type/Paste Text -->
-          <div class="modern-segmented-tabs">
+          <!-- Hidden Segmented Tabs (Kept for backward compatibility) -->
+          <div class="modern-segmented-tabs" style="display: none;">
             <button type="button" id="tabBtnUploadMode" class="segmented-tab-btn active" onclick="switchLessonMaterialTab('upload')">
-              <i class="fa-solid fa-cloud-arrow-up"></i> Upload ឯកសារ (DOCX/PDF/PPTX)
+              <i class="fa-solid fa-cloud-arrow-up"></i> Upload
             </button>
             <button type="button" id="tabBtnTextMode" class="segmented-tab-btn" onclick="switchLessonMaterialTab('text')">
               <i class="fa-solid fa-pen-to-square"></i> ខ្លឹមសារអត្ថបទ
@@ -417,38 +434,54 @@
               </div>
             </div>
 
-            <!-- 2. Upload / Input Lesson Material Container -->
+            <!-- 2. Unified Lesson Material Studio Container -->
             <div id="uploadLessonWrapper">
-              <!-- Lesson Material Dropzone Container -->
-              <div id="dropzoneContainerWrapper">
-                <div class="dropzone mt-1" id="lessonDropzone">
-                  <input type="file" id="lessonFileInput" accept=".docx,.pdf,.txt,.doc,.pptx,.ppt,.png,.jpg,.jpeg,.webp" class="file-input-hidden">
+              
+              <!-- Hidden File Input & Container elements required by setupDropzone in app.js -->
+              <input type="file" id="lessonFileInput" accept=".docx,.pdf,.txt,.doc,.pptx,.ppt,.png,.jpg,.jpeg,.webp" class="file-input-hidden">
+              <div id="dropzoneContainerWrapper" style="display: none;">
+                <div class="dropzone" id="lessonDropzone">
                   <div class="dropzone-content">
-                    <div class="drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
-                    <p class="drop-primary" id="dropPrimaryText" data-i18n="dropPrimary">ទម្លាក់ឯកសារមេរៀន/ស្លាយ/រូបភាព នៅទីនេះ ឬ <span class="browse-link">ចុចដើម្បីរើសឯកសារ</span></p>
-                    <p class="drop-hint" id="dropHintText" data-i18n="dropHint">គាំទ្រ PowerPoint (.pptx), Word (.docx), PDF (.pdf), រូបភាពថតសៀវភៅ (.png, .jpg), TXT</p>
-                  </div>
-                  <!-- File Status Pill -->
-                  <div id="lessonFileStatus" class="file-status-pill" style="display: none;">
-                    <i class="fa-solid fa-circle-check"></i>
-                    <span class="file-name">lesson_chapter.pdf</span>
-                    <button type="button" class="btn-remove-file" id="btnRemoveLessonFile"><i class="fa-solid fa-xmark"></i></button>
+                    <p class="drop-primary" id="dropPrimaryText" data-i18n="dropPrimary">ទម្លាក់ឯកសារ</p>
+                    <p class="drop-hint" id="dropHintText" data-i18n="dropHint"></p>
                   </div>
                 </div>
               </div>
 
-              <!-- Lesson Text Box -->
-              <div id="lessonTextareaWrapper" class="control-group mt-2">
-                <div class="label-with-action">
-                  <label for="lessonContentText" data-i18n="lessonContentLabel">ខ្លឹមសារមេរៀន / ចំណុចសំខាន់ៗ <span class="req">*</span></label>
-                  <div style="display: flex; gap: 8px; align-items: center;">
-                    <span class="badge-tag" id="charCount">0 ពាក្យ</span>
-                    <button type="button" class="btn-link-action" onclick="pasteToLessonContent()" title="Paste ពីក្តារចុច" style="font-size: 0.76rem; color: #4f46e5; background: none; border: none; cursor: pointer; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
-                      <i class="fa-solid fa-paste"></i> Paste
+              <!-- Sleek Integrated Action Toolbar (User Request 2) -->
+              <div class="lesson-unified-box">
+                <div class="label-with-action" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                  <label for="lessonContentText" data-i18n="lessonContentLabel" style="margin: 0; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-file-lines text-primary"></i> <span>ខ្លឹមសារមេរៀន / ចំណុចសំខាន់ៗ</span> <span class="req">*</span>
+                  </label>
+                  
+                  <div class="lesson-actions-toolbar" style="display: flex; gap: 6px; align-items: center;">
+                    <!-- Attachment button: user's request "រូបទី២ គ្រាន់តែដាក់សញ្ញា ដាក់បញ្ចូលឯកសារ បានហើយ!" -->
+                    <button type="button" id="btnAttachLessonFile" class="btn-attach-pill" onclick="document.getElementById('lessonFileInput').click()" title="ភ្ជាប់ឯកសារមេរៀន (PowerPoint, Word, PDF, ឬ រូបភាពសៀវភៅ)">
+                      <i class="fa-solid fa-paperclip"></i> <span>ភ្ជាប់ឯកសារ</span>
                     </button>
+                    
+                    <button type="button" class="btn-paste-pill" onclick="pasteToLessonContent()" title="Paste ពី Clipboard">
+                      <i class="fa-solid fa-paste"></i> <span>Paste</span>
+                    </button>
+                    
+                    <span class="badge-tag" id="charCount">0 ពាក្យ</span>
                   </div>
                 </div>
-                <textarea id="lessonContentText" class="form-control" rows="5" placeholder="បញ្ចូល ឬបិទភ្ជាប់ខ្លឹមសារមេរៀន និយមន័យ រូបមន្ត លំហាត់ ឧទាហរណ៍ ឬអត្ថបទដកស្រង់ពីសៀវភៅពុម្ពនៅទីនេះ..."></textarea>
+
+                <!-- File Status Pill (Visible when file is loaded) -->
+                <div id="lessonFileStatus" class="file-status-pill mb-2" style="display: none; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(99, 102, 241, 0.08); border: 1.5px solid #6366f1; border-radius: 8px; color: #4338ca; font-weight: 600; font-size: 0.8rem;">
+                  <i class="fa-solid fa-file-circle-check" style="font-size: 1rem; color: #4f46e5;"></i>
+                  <span class="file-name" style="font-family: var(--font-khmer);">lesson_chapter.pdf</span>
+                  <button type="button" class="btn-remove-file" id="btnRemoveLessonFile" title="ដកឯកសារនេះចេញ" style="background: none; border: none; cursor: pointer; color: #ef4444; font-size: 0.95rem; margin-left: auto;">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+
+                <!-- Lesson Text Box (Direct, always visible, drag & drop aware) -->
+                <div id="lessonTextareaWrapper" class="control-group">
+                  <textarea id="lessonContentText" class="form-control" rows="5" placeholder="បញ្ចូល ឬបិទភ្ជាប់ខ្លឹមសារមេរៀន និយមន័យ រូបមន្ត លំហាត់ ឧទាហរណ៍ ឬអត្ថបទដកស្រង់ពីសៀវភៅពុម្ពនៅទីនេះ (ឬចុច «ភ្ជាប់ឯកសារ» ខាងលើ)..."></textarea>
+                </div>
               </div>
 
               <!-- Remember / Auto-Save Lesson Bar (Hidden as requested) -->
@@ -591,10 +624,12 @@
             </div>
           </div>
 
-          <!-- Subject & Method -->
+          <!-- Subject & Chapter Side-by-Side in Modern Grid -->
           <div class="form-grid-2">
             <div class="control-group">
-              <label for="inputSubject" data-i18n="subjectLabel">មុខវិជ្ជា <span class="req">*</span></label>
+              <label for="inputSubject" data-i18n="subjectLabel">
+                <i class="fa-solid fa-shapes text-primary" style="margin-right: 4px;"></i> មុខវិជ្ជា <span class="req">*</span>
+              </label>
               <select id="inputSubject" class="form-control">
                 <option value="រូបវិទ្យា">រូបវិទ្យា</option>
                 <option value="គណិតវិទ្យា">គណិតវិទ្យា</option>
@@ -612,42 +647,53 @@
             </div>
 
             <div class="control-group">
-              <label for="inputMethod" data-i18n="methodLabel">វិធីសាស្ត្របង្រៀនចម្បង</label>
-              <select id="inputMethod" class="form-control">
-                <option value="សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)">សិស្សមជ្ឈមណ្ឌល (Student-Centered)</option>
-                <option value="វិធីសាស្ត្រសហការកម្រិតខ្ពស់ (Jigsaw, Concept Mapping, Role-Play)">វិធីសាស្ត្រសហការ (Jigsaw / Group)</option>
-                <option value="ការរិះរក និងពិសោធន៍ តាមបែប 5E (Inquiry-based / STEM)">ការរិះរក និងពិសោធន៍ 5E (STEM)</option>
-                <option value="ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា (Problem-Based)">ការដោះស្រាយបញ្ហា (Problem-Based)</option>
-                <option value="ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង (Direct Instruction)">ការពន្យល់បង្ហាញ (Direct Instruction)</option>
-              </select>
+              <label for="inputChapter" data-i18n="chapterLabel">
+                <i class="fa-solid fa-bookmark text-muted" style="margin-right: 4px;"></i> ជំពូក
+              </label>
+              <input type="text" id="inputChapter" class="form-control" placeholder="ឧ. ជំពូកទី ២: ទ្រឹស្ដីនៃការលូតលាស់">
             </div>
           </div>
 
-          <!-- Teaching Duration Quick Chips -->
+          <!-- Lesson Title (Spacious Full Width) -->
+          <div class="control-group mt-2">
+            <label for="inputLessonTitle" data-i18n="lessonTitleLabel">
+              <i class="fa-solid fa-book-bookmark text-primary" style="margin-right: 4px;"></i> ចំណងជើងមេរៀន <span class="req">*</span>
+            </label>
+            <div class="input-icon-wrap">
+              <i class="fa-solid fa-pen-nib"></i>
+              <input type="text" id="inputLessonTitle" class="form-control" placeholder="ឧ. មេរៀនទី ២: ការអភិវឌ្ឍខួរក្បាលរបស់កុមារ">
+            </div>
+          </div>
+
+          <!-- Teaching Duration Quick Chips (User Request 3: ៦០ នាទី, ១២០ នាទី, ១៨០ នាទី) -->
           <div class="control-group mt-2">
             <div class="label-with-action">
-              <label for="inputDurationSelect" data-i18n="durationLabel">រយៈពេលបង្រៀន (Duration) <span class="req">*</span></label>
-              <span id="activeDurationLabel" style="font-size: 0.76rem; font-weight: 700; color: #4f46e5;">៥០ នាទី (១ ម៉ោង)</span>
+              <label for="inputDurationSelect" data-i18n="durationLabel">
+                <i class="fa-solid fa-clock text-primary" style="margin-right: 4px;"></i> រយៈពេលបង្រៀន (Duration) <span class="req">*</span>
+              </label>
+              <span id="activeDurationLabel" style="font-size: 0.76rem; font-weight: 700; color: #4f46e5;">៦០ នាទី (១ ម៉ោងពេញ)</span>
             </div>
             
             <!-- Quick Chips Grid -->
             <div class="duration-chips-grid" id="durationChipsGrid">
-              <button type="button" class="duration-chip active" data-duration="៥០ នាទី (១ ម៉ោងសិក្សា)" onclick="selectDurationChip('៥០ នាទី (១ ម៉ោងសិក្សា)')">៥០ នាទី</button>
+              <button type="button" class="duration-chip" data-duration="៥០ នាទី (១ ម៉ោងសិក្សា)" onclick="selectDurationChip('៥០ នាទី (១ ម៉ោងសិក្សា)')">៥០ នាទី</button>
+              <button type="button" class="duration-chip active" data-duration="៦០ នាទី (១ ម៉ោងពេញ)" onclick="selectDurationChip('៦០ នាទី (១ ម៉ោងពេញ)')">៦០ នាទី</button>
               <button type="button" class="duration-chip" data-duration="៩០ នាទី (២ ម៉ោងសិក្សា)" onclick="selectDurationChip('៩០ នាទី (២ ម៉ោងសិក្សា)')">៩០ នាទី</button>
-              <button type="button" class="duration-chip" data-duration="១០០ នាទី (២ ម៉ោងសិក្សា)" onclick="selectDurationChip('១០០ នាទី (២ ម៉ោងសិក្សា)')">១០០ នាទី</button>
-              <button type="button" class="duration-chip" data-duration="១៨០ នាទី (៤ ម៉ោងសិក្សា / សិក្ខាសាលា)" onclick="selectDurationChip('១៨០ នាទី (៤ ម៉ោងសិក្សា / សិក្ខាសាលា)')">១៨០ នាទី</button>
+              <button type="button" class="duration-chip" data-duration="១២០ នាទី (២ ម៉ោងពេញ)" onclick="selectDurationChip('១២០ នាទី (២ ម៉ោងពេញ)')">១២០ នាទី</button>
+              <button type="button" class="duration-chip" data-duration="១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)" onclick="selectDurationChip('១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)')">១៨០ នាទី</button>
               <button type="button" class="duration-chip" id="chipCustomDuration" data-duration="custom" onclick="selectDurationChip('custom')">✏️ ផ្ទាល់ខ្លួន</button>
             </div>
 
             <!-- Native select kept in DOM for 100% backward compatibility -->
             <select id="inputDurationSelect" class="form-control" style="display: none;">
-              <option value="៥០ នាទី (១ ម៉ោងសិក្សា)" selected>៥០ នាទី (១ ម៉ោងសិក្សា)</option>
-              <option value="៤៥ នាទី (១ ម៉ោងសិក្សា)">៤៥ នាទី (១ ម៉ោងសិក្សា)</option>
+              <option value="៥០ នាទី (១ ម៉ោងសិក្សា)">៥០ នាទី (១ ម៉ោងសិក្សា)</option>
+              <option value="៦០ នាទី (១ ម៉ោងពេញ)" selected>៦០ នាទី (១ ម៉ោងពេញ)</option>
               <option value="៩០ នាទី (២ ម៉ោងសិក្សា)">៩០ នាទី (២ ម៉ោងសិក្សា)</option>
               <option value="១០០ នាទី (២ ម៉ោងសិក្សា)">១០០ នាទី (២ ម៉ោងសិក្សា)</option>
+              <option value="១២០ នាទី (២ ម៉ោងពេញ)">១២០ នាទី (២ ម៉ោងពេញ)</option>
               <option value="១៣៥ នាទី (៣ ម៉ោងសិក្សា)">១៣៥ នាទី (៣ ម៉ោងសិក្សា)</option>
               <option value="១៥០ នាទី (៣ ម៉ោងសិក្សា)">១៥០ នាទី (៣ ម៉ោងសិក្សា)</option>
-              <option value="១៨០ នាទី (៤ ម៉ោងសិក្សា / សិក្ខាសាលា)">១៨០ នាទី (៤ ម៉ោងសិក្សា / សិក្ខាសាលា)</option>
+              <option value="១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)">១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)</option>
               <option value="២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)">២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)</option>
               <option value="custom">✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)</option>
             </select>
@@ -658,19 +704,6 @@
                 <i class="fa-solid fa-clock"></i>
                 <input type="text" id="inputCustomDurationText" class="form-control" placeholder="ឧ. ៦០ នាទី / ៣ ម៉ោង / ២ សប្តាហ៍...">
               </div>
-            </div>
-          </div>
-
-          <!-- Chapter & Lesson Title (Clear, spacious inputs) -->
-          <div class="form-grid-2 mt-2">
-            <div class="control-group">
-              <label for="inputChapter" data-i18n="chapterLabel">ជំពូក</label>
-              <input type="text" id="inputChapter" class="form-control" placeholder="ឧ. ជំពូកទី ២: ទ្រឹស្ដីនៃការលូតលាស់">
-            </div>
-
-            <div class="control-group">
-              <label for="inputLessonTitle" data-i18n="lessonTitleLabel">ចំណងជើងមេរៀន <span class="req">*</span></label>
-              <input type="text" id="inputLessonTitle" class="form-control" placeholder="ឧ. មេរៀនទី ១: ដំណាក់កាលលូតលាស់">
             </div>
           </div>
 
@@ -2028,7 +2061,7 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261020_v73"></script>
+  <script src="app.js?v=20261115_v80"></script>
 </body>
 </html>
 
