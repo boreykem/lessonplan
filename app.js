@@ -837,7 +837,7 @@ const I18N_DICTIONARY = {
     lessonContentPlaceholder: "បញ្ចូល ឬបិទភ្ជាប់ខ្លឹមសារមេរៀន និយមន័យ រូបមន្ត លំហាត់ ឧទាហរណ៍ ឬអត្ថបទដកស្រង់ពីសៀវភៅពុម្ពនៅទីនេះ...",
 
     // Action buttons
-    btnGenerate: "បង្កើតកិច្ចតែងការស្វ័យប្រវត្តិ (Generate)",
+    btnGenerate: "បង្កើតកិច្ចតែងការស្វ័យប្រវត្តិ",
     btnReset: "សម្អាត",
 
     // Preview

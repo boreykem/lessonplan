@@ -702,27 +702,95 @@ textarea.form-control {
   background: linear-gradient(135deg, #4f46e5, #4338ca);
   color: #ffffff;
   border: none;
-  padding: 9px 16px;
+  padding: 10px 14px;
   border-radius: var(--radius-md);
   font-family: var(--font-khmer);
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-weight: 700;
+  font-size: 0.88rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.4);
-  transition: var(--transition);
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.45);
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+  animation: generateBtnBlink 2.2s infinite ease-in-out;
+}
+
+.btn-primary-glow i {
+  animation: wandSparkleWiggle 2.2s infinite ease-in-out;
+  display: inline-block;
+  font-size: 0.95rem;
+}
+
+.btn-primary-glow::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.28),
+    transparent
+  );
+  transform: rotate(25deg);
+  animation: shimmerSweep 3.5s infinite;
+  pointer-events: none;
+}
+
+@keyframes generateBtnBlink {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.45);
+  }
+  50% {
+    transform: scale(1.025);
+    box-shadow: 0 0 22px 6px rgba(99, 102, 241, 0.7), 0 6px 20px rgba(79, 70, 229, 0.6);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 4px 14px rgba(79, 70, 229, 0.45);
+  }
+}
+
+@keyframes wandSparkleWiggle {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  25% {
+    transform: rotate(-14deg) scale(1.2);
+  }
+  50% {
+    transform: rotate(14deg) scale(1.26);
+  }
+  75% {
+    transform: rotate(-6deg) scale(1.12);
+  }
+}
+
+@keyframes shimmerSweep {
+  0% {
+    left: -60%;
+  }
+  30%, 100% {
+    left: 140%;
+  }
 }
 
 .btn-primary-glow:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.5);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.65);
+  animation-play-state: paused;
 }
 
 .btn-primary-glow:active {
-  transform: translateY(0);
+  transform: translateY(0) scale(0.98);
 }
 
 .btn-secondary {
