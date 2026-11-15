@@ -8477,9 +8477,18 @@ function saveAdminProfile(silent = false) {
 
   localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(profile));
   updateSavedProfileUI(true);
+  if (typeof updateTeacherProfileSummaryLive === 'function') {
+    updateTeacherProfileSummaryLive();
+  }
 
   if (!silent) {
-    showToast('💾 បានរក្សាទុកព័ត៌មានរដ្ឋបាលសម្រាប់លើកក្រោយរួចរាល់!', 'success');
+    // Automatically collapse Section 1 profile fields drawer back after clicking Save
+    const fields = document.getElementById('teacherProfileFields');
+    const btnText = document.getElementById('btnToggleProfileEditText');
+    if (fields) fields.style.display = 'none';
+    if (btnText) btnText.textContent = 'កែប្រែ';
+
+    showToast('💾 បានរក្សាទុកព័ត៌មានរដ្ឋបាលរួចរាល់!', 'success');
   }
 }
 
