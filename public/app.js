@@ -8559,34 +8559,39 @@ function updateSavedProfileUI(hasSaved) {
   if (btnClear) btnClear.style.display = hasSaved ? 'inline-flex' : 'none';
 }
 
-// Reset Form Handler
+// Reset Form Handler (Clears lesson content and uploaded files, preserving Section 1 admin profile info)
 function handleResetForm() {
-  document.getElementById('inputSchool').value = '';
-  document.getElementById('inputTeacher').value = '';
-  setDurationValue('៥០ នាទី (១ ម៉ោងសិក្សា)');
-  if (typeof syncDurationChipsFromSelect === 'function') syncDurationChipsFromSelect();
-  if (typeof updateTeacherProfileSummaryLive === 'function') updateTeacherProfileSummaryLive();
-  document.getElementById('inputLessonTitle').value = '';
-  document.getElementById('inputChapter').value = '';
-  document.getElementById('inputCustomNotes').value = '';
-  document.getElementById('inputCustomGradeText').value = '';
-  document.getElementById('customGradeInputWrap').style.display = 'none';
-  document.getElementById('lessonContentText').value = '';
-  document.getElementById('customTemplateText').value = '';
-  document.getElementById('samplePicker').value = '';
+  // Clear Lesson Details & Material (Sections 2 & 3)
+  const lessonTitleEl = document.getElementById('inputLessonTitle');
+  if (lessonTitleEl) lessonTitleEl.value = '';
 
-  const inputDegree = document.getElementById('inputDegree');
-  if (inputDegree) {
-    inputDegree.value = 'lower_sec';
-    updateGradeOptions('lower_sec');
-  }
+  const chapterEl = document.getElementById('inputChapter');
+  if (chapterEl) chapterEl.value = '';
+
+  const notesEl = document.getElementById('inputCustomNotes');
+  if (notesEl) notesEl.value = '';
+
+  const lessonContentEl = document.getElementById('lessonContentText');
+  if (lessonContentEl) lessonContentEl.value = '';
+
+  const customTemplateEl = document.getElementById('customTemplateText');
+  if (customTemplateEl) customTemplateEl.value = '';
+
+  const samplePickerEl = document.getElementById('samplePicker');
+  if (samplePickerEl) samplePickerEl.value = '';
 
   // Reset file inputs and pills
-  document.getElementById('templateFileInput').value = '';
-  document.getElementById('templateFileStatus').style.display = 'none';
-  document.getElementById('lessonFileInput').value = '';
-  document.getElementById('lessonFileStatus').style.display = 'none';
+  const templateFileInput = document.getElementById('templateFileInput');
+  if (templateFileInput) templateFileInput.value = '';
+  const templateFileStatus = document.getElementById('templateFileStatus');
+  if (templateFileStatus) templateFileStatus.style.display = 'none';
 
+  const lessonFileInput = document.getElementById('lessonFileInput');
+  if (lessonFileInput) lessonFileInput.value = '';
+  const lessonFileStatus = document.getElementById('lessonFileStatus');
+  if (lessonFileStatus) lessonFileStatus.style.display = 'none';
+
+  // Reset lesson content state
   state.lessonContent = '';
   state.customTemplateText = '';
   state.customTemplateFileName = '';
@@ -8597,7 +8602,13 @@ function handleResetForm() {
   if (savedLessonBadge) savedLessonBadge.style.display = 'none';
 
   updateWordCount();
-  showToast('បានសម្អាតទិន្នន័យទាំងអស់រួចរាល់', 'info');
+
+  // Keep Section 1 intact and update summary bar live
+  if (typeof updateTeacherProfileSummaryLive === 'function') {
+    updateTeacherProfileSummaryLive();
+  }
+
+  showToast('បានសម្អាតខ្លឹមសារមេរៀនរួចរាល់ (រក្សាទុកព័ត៌មានរដ្ឋបាល)', 'info');
 }
 
 // Zoom Handlers
