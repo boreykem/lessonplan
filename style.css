@@ -149,7 +149,31 @@ html, body {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 5px;
+  flex-shrink: 0;
+}
+
+.header-actions .btn-secondary,
+.header-actions .btn-primary {
+  padding: 5px 8px !important;
+  font-size: 0.78rem !important;
+  gap: 4px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0;
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.header-actions .btn-icon {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  flex-shrink: 0;
+}
+
+.header-actions .status-dot {
+  width: 7px;
+  height: 7px;
 }
 
 .sample-picker-wrapper {
@@ -1002,47 +1026,49 @@ textarea.form-control {
 }
 
 .preview-toolbar {
-  min-height: 50px;
+  min-height: 42px;
   height: auto;
   background-color: var(--bg-sidebar);
   border-bottom: 1px solid var(--border-color);
-  padding: 6px 16px;
+  padding: 4px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px 12px;
-  flex-wrap: wrap;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: thin;
   z-index: 15;
 }
 
 .toolbar-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 6px;
   flex-shrink: 0;
   white-space: nowrap;
 }
 
 .preview-badge {
-  font-size: 0.83rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: var(--text-primary);
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .editable-indicator {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--accent);
   background: var(--accent-light);
-  padding: 3px 8px;
+  padding: 2px 6px;
   border-radius: var(--radius-full);
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   white-space: nowrap;
   flex-shrink: 0;
   font-weight: 500;
@@ -1051,9 +1077,10 @@ textarea.form-control {
 .toolbar-right {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 4px;
+  flex-wrap: nowrap;
   justify-content: flex-end;
+  flex-shrink: 0;
 }
 
 .zoom-controls {
@@ -1090,26 +1117,29 @@ textarea.form-control {
 
 .toolbar-divider {
   width: 1px;
-  height: 22px;
+  height: 18px;
   background-color: var(--border-color);
-  margin: 0 2px;
+  margin: 0 1px;
   flex-shrink: 0;
 }
 
 .btn-tool-action {
-  padding: 5px 10px;
-  border-radius: var(--radius-md);
+  padding: 4px 7px;
+  border-radius: 6px;
   font-family: var(--font-khmer);
-  font-size: 0.78rem;
+  font-size: 0.73rem;
   font-weight: 600;
   border: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   white-space: nowrap;
   flex-shrink: 0;
   transition: var(--transition);
+  height: 28px;
+  line-height: 1.1;
+  box-sizing: border-box;
 }
 
 .btn-word {
@@ -2341,14 +2371,23 @@ textarea.form-control {
     display: none;
   }
   .btn-tool-action {
-    padding: 4px 8px;
-    font-size: 0.75rem;
+    padding: 3px 6px;
+    font-size: 0.71rem;
+    gap: 3px;
+  }
+  .header-actions {
+    gap: 4px;
+  }
+  .header-actions .btn-secondary,
+  .header-actions .btn-primary {
+    padding: 4px 6px !important;
+    font-size: 0.75rem !important;
   }
 }
 
 @media (max-width: 992px) {
   .preview-toolbar {
-    padding: 6px 10px;
+    padding: 4px 8px;
   }
 }
 

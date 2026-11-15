@@ -221,12 +221,12 @@
 
         <!-- Saved Plans Library Button (Visible) -->
         <button id="btnOpenSavedPlans" class="btn-secondary"
-          style="border-color: #0284c7; color: #0284c7; display: inline-flex; align-items: center; gap: 6px;"
+          style="border-color: #0284c7; color: #0284c7; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;"
           onclick="openSavedPlansModal()" title="បើកបណ្ណាល័យកិច្ចតែងការដែលបានរក្សាទុក (Saved Lesson Plans Library)">
           <i class="fa-solid fa-book-bookmark" style="color: #0284c7;"></i>
           <span class="btn-text">បណ្ណាល័យ</span>
           <span id="savedPlansCountBadge" class="count-badge"
-            style="background: #0284c7; color: white; padding: 1px 7px; border-radius: 10px; font-size: 0.75rem; font-weight: 700;">០</span>
+            style="background: #0284c7; color: white; padding: 1px 6px; border-radius: 10px; font-size: 0.72rem; font-weight: 700;">០</span>
         </button>
 
         <!-- History Button -->
@@ -238,7 +238,7 @@
 
         <!-- Install App / Add to Screen Button -->
         <button id="btnInstallApp" class="btn-primary"
-          style="display: inline-flex; align-items: center; gap: 7px; padding: 7px 15px; font-size: 0.88rem; font-weight: 700; border-radius: 8px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; border: none; cursor: pointer; box-shadow: 0 2px 10px rgba(79, 70, 229, 0.35);"
+          style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 9px; font-size: 0.78rem; font-weight: 700; border-radius: 8px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; border: none; cursor: pointer; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3); white-space: nowrap; height: 32px; box-sizing: border-box;"
           onclick="handleInstallPwaClick()"
           title="ដំឡើងកម្មវិធីលើអេក្រង់កុំព្យូទ័រ ឬទូរស័ព្ទ (Install App / Add to Screen)">
           <i class="fa-solid fa-download"></i>
@@ -248,9 +248,9 @@
         <!-- Language Switcher Button (Khmer / English) -->
         <button id="btnLanguageToggle" class="btn-secondary" onclick="toggleLanguage()"
           title="ប្តូរភាសា / Switch Language (Khmer / English)"
-          style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; font-weight: 700; border-radius: 8px; border: 1.5px solid var(--border-color, #cbd5e1); cursor: pointer; background: var(--bg-card); color: var(--text-primary); transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.06);">
-          <i class="fa-solid fa-globe" style="color: #4f46e5; font-size: 1.05rem;"></i>
-          <span id="langSwitchLabel" style="font-size: 0.86rem; font-weight: 700;">🇰🇭 ខ្មែរ</span>
+          style="display: inline-flex; align-items: center; gap: 5px; padding: 5px 8px; font-weight: 700; border-radius: 8px; border: 1.5px solid var(--border-color, #cbd5e1); cursor: pointer; background: var(--bg-card); color: var(--text-primary); transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.06); white-space: nowrap; height: 32px; box-sizing: border-box;">
+          <i class="fa-solid fa-globe" style="color: #4f46e5; font-size: 0.95rem;"></i>
+          <span id="langSwitchLabel" style="font-size: 0.78rem; font-weight: 700;">🇰🇭 ខ្មែរ</span>
         </button>
 
         <!-- Theme Toggle -->
@@ -643,7 +643,8 @@
 
         <!-- STEP 3: Lesson Content & Document Attachment -->
         <section class="config-card">
-          <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+          <div class="card-header"
+            style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
             <div style="display: flex; align-items: center; gap: 8px;">
               <span class="step-badge" data-i18n="stepBadge3"><i class="fa-solid fa-book-open"></i> ជំហានទី ៣</span>
               <div class="card-title-group">
@@ -652,15 +653,15 @@
             </div>
 
             <!-- Action Toolbar (Moved next to ខ្លឹមសារមេរៀន as requested) -->
-            <div class="lesson-actions-toolbar" style="display: flex; gap: 6px; align-items: center; margin-left: auto;">
+            <div class="lesson-actions-toolbar"
+              style="display: flex; gap: 6px; align-items: center; margin-left: auto;">
               <button type="button" id="btnAttachLessonFile" class="btn-attach-pill"
                 onclick="document.getElementById('lessonFileInput').click()"
                 title="ភ្ជាប់ឯកសារមេរៀន (PowerPoint, Word, PDF, ឬ រូបភាពសៀវភៅ)">
                 <i class="fa-solid fa-paperclip"></i> <span>ភ្ជាប់ឯកសារ</span>
               </button>
 
-              <button type="button" class="btn-paste-pill" onclick="pasteToLessonContent()"
-                title="Paste ពី Clipboard">
+              <button type="button" class="btn-paste-pill" onclick="pasteToLessonContent()" title="Paste ពី Clipboard">
                 <i class="fa-solid fa-paste"></i> <span>Paste</span>
               </button>
 
