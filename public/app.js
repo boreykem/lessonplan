@@ -2822,6 +2822,164 @@ function isBackwardDesignRequest(params) {
   return false;
 }
 
+// ==========================================================================
+// 🧭 Pedagogical Strategy Matrix: Template Mode × Teaching Method
+// Harmonizes 5 Primary Teaching Methods across MoEYS Standard & Flipped Learning
+// ==========================================================================
+function detectMethodType(method) {
+  const m = (method || '').toLowerCase();
+  if (m.includes('5e') || m.includes('inquiry') || m.includes('stem') || m.includes('រិះរក') || m.includes('ពិសោធ')) return '5e';
+  if (m.includes('jigsaw') || m.includes('concept map') || m.includes('role-play') || m.includes('សហការ') || m.includes('collaborative') || m.includes('cooperative')) return 'jigsaw';
+  if (m.includes('problem') || m.includes('pbl') || m.includes('ដោះស្រាយបញ្ហា')) return 'pbl';
+  if (m.includes('direct') || m.includes('ពន្យល់បង្ហាញ') || m.includes('i do')) return 'direct';
+  return 'student_centered';
+}
+
+function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '') {
+  const methodType = detectMethodType(method);
+  const methodName = method || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)';
+  const titleStr = lessonTitle ? `នៃ «${lessonTitle}»` : '';
+
+  if (isFlipped) {
+    switch (methodType) {
+      case 'pbl':
+        return `
+10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា (Problem-Based Learning - PBL)» ក្នុងទម្រង់ Flipped Classroom៖
+   - ដោយសារទ្រឹស្តីគោលសិស្សបានមើលវីដេអូរៀនមុនម៉ោងរួចហើយ ដំណើរការក្នុងថ្នាក់ត្រូវផ្តោត ១០០% លើការដោះស្រាយបញ្ហាជាក់ស្តែង (Real-World Problem Scenario)៖
+     • ជំហានទី ២ (១០%): ពិនិត្យការយល់ដឹងពីផ្ទះ ស្រាយចម្ងល់ Muddiest Points និងភ្ជាប់ទ្រឹស្តីទៅនឹងបញ្ហាប្រឈមក្នុងសង្គម/វិជ្ជាជីវៈ។
+     • ជំហានទី ៣ (១០%): គ្រូចោទសំណួរតម្រង់ទិស ៤ សំណួរ និងប្រគល់ «សន្លឹកបេសកកម្មដោះស្រាយបញ្ហា (Problem Challenge Scenario)» ជាក់ស្តែងមួយដែលមានឧបសគ្គស្មុគស្មាញ${titleStr}។
+     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): ត្រូវរៀបចំជា ៤ ដំណាក់កាល PBL យ៉ាងច្បាស់លាស់៖
+       + ដំណាក់កាល ១ (វិភាគបញ្ហា & ស្វែងរកឫសគល់): ក្រុមនីមួយៗវិភាគសេណារីយ៉ូបញ្ហា កំណត់ឫសគល់ និងទិន្នន័យចាំបាច់ [ការគិតស៊ីជម្រៅ]
+       + ដំណាក់កាល ២ (បង្កើតសម្មតិកម្ម & ដំណោះស្រាយច្នៃប្រឌិត): សហការរៀបចំយុទ្ធសាស្ត្រដោះស្រាយ និងសរសេរផែនការសកម្មភាពលើផ្ទាំង Flipchart A0 [ការសហការ & ភាពច្នៃប្រឌិត]
+       + ដំណាក់កាល ៣ (ការពារដំណោះស្រាយ & ដេញដោល): តំណាងក្រុមឡើងការពារដំណោះស្រាយ ឆ្លើយតបសំណួរជំទាស់ពីក្រុមដទៃ [ការប្រាស្រ័យទាក់ទង]
+       + ដំណាក់កាល ៤ (វាយតម្លៃ & សំយោគក្បួន): វាយតម្លៃដំណោះស្រាយតាម Rubric ៤ កម្រិត និងគ្រូជួយសំយោគក្បួនដោះស្រាយរួមថ្នាក់
+     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 ឆ្លុះបញ្ចាំងពីដំណោះស្រាយបញ្ហា និងកិច្ចការស្រាវជ្រាវបន្ត។`;
+
+      case 'jigsaw':
+        return `
+10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្រសហការកម្រិតខ្ពស់ (Jigsaw, Concept Mapping, Role-Play)» ក្នុងទម្រង់ Flipped Classroom៖
+   - រៀបចំដំណើរការក្នុងថ្នាក់ដោយប្រើបច្ចេកទេស Jigsaw និងផែនទីគំនិតឱ្យមានអន្តរកម្មកម្រិតខ្ពស់បំផុត៖
+     • ជំហានទី ២ (១០%): ពិនិត្យលទ្ធផល Pre-Test ស្រាយចម្ងល់ Muddiest Points និងផ្ទៀងផ្ទាត់ចំណេះដឹងជាមូលដ្ឋាន។
+     • ជំហានទី ៣ (១០%): គ្រូចោទសំណួរគន្លឹះ ៤ សំណួរ បែងចែកសិស្សជា «ក្រុមដើម (Home Groups)» រួចបញ្ជូនតំណាងទៅកាន់ «ក្រុមអ្នកជំនាញ (Expert Groups)» តាមប្រធានបទរងនៃមេរៀន${titleStr}។
+     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): ត្រូវរៀបចំជា ៤ ដំណាក់កាលសហការស៊ីជម្រៅ៖
+       + ដំណាក់កាល ១ (ក្រុមអ្នកជំនាញស្រាវជ្រាវស៊ីជម្រៅ): Expert Groups ប្រជុំវិភាគឯកសារ ស្វែងយល់ផ្នែកជំនាញរបស់ខ្លួន និងរៀបចំយុទ្ធសាស្ត្របង្រៀនបន្ត [ការគិតស៊ីជម្រៅ]
+       + ដំណាក់កាល ២ (ត្រឡប់ទៅក្រុមដើមដើម្បីបង្រៀនគ្នា - Jigsaw Sharing): សមាជិកត្រឡប់ទៅ Home Groups វិញ បង្រៀនគ្នាទៅវិញទៅមកលើគ្រប់ផ្នែកនៃមេរៀន [ការប្រាស្រ័យទាក់ទង & សហការ]
+       + ដំណាក់កាល ៣ (សំយោគគំនិតរួមលើ Concept Map / Flipchart): ក្រុមដើមរួមគ្នាចងក្រងជា «ផែនទីគំនិតរួម (Comprehensive Concept Map)» ឬសេណារីយ៉ូ Role-Play [ភាពច្នៃប្រឌិត]
+       + ដំណាក់កាល ៤ (Gallery Walk & វាយតម្លៃគ្នាទៅវិញទៅមក): ដើរទស្សនាស្នាដៃក្រុមដទៃ ផ្តល់ Feedback និងវាយតម្លៃតាម Rubric
+     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 សង្ខេបចំណេះដឹងពីក្រុមអ្នកជំនាញ និងកិច្ចការផ្ទះ។`;
+
+      case '5e':
+        return `
+10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «ការរិះរក និងពិសោធន៍ តាមបែប 5E (Inquiry-based / STEM)» ក្នុងទម្រង់ Flipped Classroom៖
+   - ត្រូវរៀបចំដំណាក់កាលទាំង ៥ នៃ 5E ឱ្យឆ្លុះបញ្ចាំងយ៉ាងច្បាស់ក្នុង ៥ ជំហាន៖
+     • ជំហានទី ១ & ២: ផ្សារភ្ជាប់ដំណាក់កាល Engage (ឈានចូល & បំផុសចំណាប់អារម្មណ៍ តាមរយៈលទ្ធផល Pre-Test QCM & ដោះស្រាយ Muddiest Points ពីផ្ទះ)
+     • ជំហានទី ៣: ផ្សារភ្ជាប់ដំណាក់កាល Explore (រុករក & ពិសោធន៍ តាមសន្លឹកបេសកកម្ម Challenge Scenario / ឧបករណ៍ពិសោធន៍ STEM${titleStr})
+     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): ផ្សារភ្ជាប់ដំណាក់កាល Explain & Elaborate៖
+       + Explain: ក្រុមនីមួយៗពន្យល់ និងការពារទិន្នន័យ/របកគំហើញដែលបានរកឃើញ គ្រូបូកសរុបគោលការណ៍គន្លឹះ
+       + Elaborate: សិស្សយកចំណេះដឹងទៅពង្រីកអនុវត្តដោះស្រាយបញ្ហាប្រឈមថ្មី (Transfer of Learning) លើផ្ទាំង Flipchart A0
+     • ជំហានទី ៥: ផ្សារភ្ជាប់ដំណាក់កាល Evaluate (វាយតម្លៃសមត្ថភាព តាមរយៈ Exit Ticket 3-2-1, Rubric និង Post-Test)។`;
+
+      case 'direct':
+        return `
+10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង (Direct Instruction / I Do - We Do - You Do)» ក្នុងទម្រង់ Flipped Classroom៖
+   - ដោយសារដំណាក់កាល "I Do" (ការពន្យល់ទ្រឹស្តីមូលដ្ឋាន) សិស្សបានរៀនតាមវីដេអូមុនម៉ោងរួចហើយ ម៉ោងក្នុងថ្នាក់ត្រូវប្រែក្លាយទៅជា "Advanced We Do" និង "Intensive You Do (៧០%)"៖
+     • ជំហានទី ២ (១០%): ត្រួតពិនិត្យ Pre-Test ស្រាយចម្ងល់ Muddiest Points និងធ្វើ Mini-Modeling (I Do បំភ្លឺចំណុចពិបាកបំផុត ២-៣ នាទី)។
+     • ជំហានទី ៣ (១០%): ដំណាក់កាល Guided Practice (We Do) គ្រូនាំសិស្សអនុវត្តគំរូលំហាត់គន្លឹះរួមគ្នា ៤ សំណួរ ដើម្បីពង្រឹងក្បួនខ្នាត${titleStr}។
+     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): ដំណាក់កាល Intensive Independent & Collaborative Practice (You Do)៖
+       + ដំណាក់កាល ១ (អនុវត្តជាគូ): សិស្សដោះស្រាយលំហាត់កម្រិតមធ្យមជាដៃគូ និងត្រួតពិនិត្យចម្លើយគ្នាទៅវិញទៅមក
+       + ដំណាក់កាល ២ (អនុវត្តកម្រិតខ្ពស់ជាក្រុម): ដោះស្រាយលំហាត់ស្មុគស្មាញ ឬស្ថានភាពអនុវត្តជាក់ស្តែងលើ Flipchart A0 [ការដោះស្រាយបញ្ហា]
+       + ដំណាក់កាល ៣ (បង្ហាញលទ្ធផល & ពិនិត្យកែកំហុស): ឡើងបង្ហាញដំណោះស្រាយលើក្តារខៀន គ្រូនិងសិស្សពិនិត្យកំហុសទូទៅ (Error Analysis)
+       + ដំណាក់កាល ៤ (ស្វ័យវាយតម្លៃ): សិស្សផ្ទៀងផ្ទាត់ចម្លើយផ្ទាល់ខ្លួន និងកែសម្រួលឱ្យបាន ១០០% ត្រឹមត្រូវ
+     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 វាស់ស្ទង់ភាពស្ទាត់ជំនាញ និងលំហាត់ពង្រឹងសមត្ថភាពនៅផ្ទះ។`;
+
+      default: // student_centered
+        return `
+10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)» ក្នុងទម្រង់ Flipped Classroom៖
+   - អនុវត្តយ៉ាងម៉ឺងម៉ាត់នូវគោលការណ៍ TTT 30% / STT 70% និងជំនាញសតវត្សទី២១ (4Cs)៖
+     • ជំហានទី ២ (១០%): សិស្សជាអ្នកលើកឡើង Muddiest Points ពីផ្ទះ គ្រូដើរតួជាអ្នកសម្របសម្រួល (Facilitator) បំផុសឱ្យសិស្សឆ្លើយបំភ្លឺគ្នាទៅវិញទៅមក។
+     • ជំហានទី ៣ (១០%): គ្រូចោទសួរ ៤ សំណួរដាស់ការត្រិះរិះ និងប្រគល់កិច្ចការស្វ័យសិក្សាជាក្រុម${titleStr}។
+     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): សិស្សគ្រប់គ្រងការរៀនដោយខ្លួនឯង (Learner Autonomy)៖
+       + ដំណាក់កាល ១ (រិះរកដោយស្វ័យភាព): ក្រុមសិស្សពិភាក្សា វិភាគទិន្នន័យ និងស្រង់ខ្លឹមសារដោយសេរីតាមទស្សនៈផ្ទាល់ខ្លួន [ការគិតស៊ីជម្រៅ]
+       + ដំណាក់កាល ២ (សហការផលិតស្នាដៃ): ផលិតលទ្ធផលរួមលើ Flipchart A0 ដោយបែងចែកតួនាទីច្បាស់លាស់ [ការសហការ]
+       + ដំណាក់កាល ៣ (បទបង្ហាញដឹកនាំដោយសិស្ស): សិស្សដឹកនាំការធ្វើបទបង្ហាញ និងសួរសំណួរដេញដោលគ្នា [ការប្រាស្រ័យទាក់ទង]
+       + ដំណាក់កាល ៤ (ការឆ្លុះបញ្ចាំងរួម): ឆ្លុះបញ្ចាំងលើដំណើរការរៀន (Metacognition) និងវាយតម្លៃតាម Rubric
+     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 ស្ទង់មតិសិស្សលើការយល់ដឹង និងកិច្ចការស្វ័យសិក្សាបន្ត។`;
+    }
+  } else {
+    // Standard 5-Step MoEYS Format
+    switch (methodType) {
+      case 'pbl':
+        return `
+៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
+   - ជំហានទី ២ (រំលឹកមេរៀន): គ្រូចោទសួរសំណួររំលឹកដែលជាស្ពានចម្លងផ្សារភ្ជាប់ទៅកាន់ស្ថានភាពបញ្ហាជាក់ស្តែងនៃមេរៀនថ្មី។
+   - ជំហានទី ៣ (មេរៀនថ្មី - Problem Presentation & Knowledge Acquisition):
+     • គ្រូលើកយក «ស្ថានភាពបញ្ហាជាក់ស្តែង (Real-World Problem Scenario)» មួយដែលពាក់ព័ន្ធនឹង «${lessonTitle || 'មេរៀនថ្មី'}» មកបង្ហាញលើក្តារខៀន ឬស្លាយ។
+     • គ្រូចោទសួរសំណួរគន្លឹះដាស់ការត្រិះរិះ ដើម្បីឱ្យសិស្សវិភាគរកឫសគល់នៃបញ្ហា និងរកឃើញតម្រូវការនៃទ្រឹស្តី/រូបមន្តថ្មី។
+     • គ្រូសម្របសម្រួល និងពន្យល់ទ្រឹស្តីគន្លឹះដែលជាឧបករណ៍សម្រាប់ដោះស្រាយបញ្ហានោះ។
+   - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - Collaborative Problem-Solving & Defense ៧០% STT):
+     • [សកម្មភាព PBL ជាក្រុម]: គ្រូបែងចែកសិស្សជាក្រុម ដាក់សេណារីយ៉ូបញ្ហាជាក់ស្តែងឱ្យក្រុមនីមួយៗរៀបចំយុទ្ធសាស្ត្រដោះស្រាយលើផ្ទាំង Flipchart ឬក្ដារឆ្នួន។
+     • សិស្សពិភាក្សា ដោះស្រាយ ធ្វើតេស្តសម្មតិកម្ម និងឡើងការពារដំណោះស្រាយរបស់ក្រុម [ជំនាញដោះស្រាយបញ្ហា និងការគិតស៊ីជម្រៅ]។
+     • គ្រូនិងសិស្សវាយតម្លៃដំណោះស្រាយតាមលក្ខណៈវិនិច្ឆ័យរួម។
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ): ដាក់កិច្ចការបញ្ហាជាក់ស្តែងថ្មីមួយសម្រាប់សិស្សដោះស្រាយនៅផ្ទះ។`;
+
+      case 'jigsaw':
+        return `
+៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
+   - ជំហានទី ២ (រំលឹកមេរៀន): រំលឹកចំណេះដឹងគ្រឹះដែលជាមូលដ្ឋានសម្រាប់បែងចែកប្រធានបទជំនាញ។
+   - ជំហានទី ៣ (មេរៀនថ្មី - Jigsaw Phase 1: Expert Groups):
+     • គ្រូណែនាំប្រធានបទមេរៀន «${lessonTitle || 'មេរៀនថ្មី'}» និងបែងចែកខ្លឹមសារជាផ្នែករងតូចៗ។
+     • គ្រូបែងចែកសិស្សជា «ក្រុមអ្នកជំនាញ (Expert Groups)» ទៅតាមផ្នែករងនីមួយៗ ដើម្បីអាន ពិភាក្សា និងយល់ឱ្យស៊ីជម្រៅលើផ្នែករបស់ខ្លួន។
+     • គ្រូដើរសម្របសម្រួល និងផ្ទៀងផ្ទាត់ការយល់ដឹងរបស់ក្រុមអ្នកជំនាញនីមួយៗ។
+   - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - Jigsaw Phase 2 & Concept Mapping ៧០% STT):
+     • សិស្សត្រឡប់ទៅ «ក្រុមដើម (Home Groups)» វិញ។
+     • អ្នកជំនាញម្នាក់ៗធ្វើបទបង្ហាញបង្រៀនមិត្តរួមក្រុមដើមពីផ្នែកដែលខ្លួនបានរៀន [ជំនាញទំនាក់ទំនង និងការសហការ]។
+     • សមាជិកក្រុមដើមទាំងអស់រួមគ្នាចងក្រងខ្លឹមសារទាំងមូលជា «ផែនទីគំនិត (Concept Map)» ឬសង្ខេបលើផ្ទាំង Flipchart រួចធ្វើ Gallery Walk។
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ): Exit Ticket 3-2-1 និងកិច្ចការស្រាវជ្រាវពង្រឹងការយល់ដឹង។`;
+
+      case '5e':
+        return `
+៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
+   - ជំហានទី ១ & ២: ដំណាក់កាល Engage (ឈានចូល & បំផុស) — គ្រូចោទសួរ ឬបង្ហាញបាតុភូតចម្លែកដើម្បីជំរុញការចង់ដឹង និងផ្សារភ្ជាប់មេរៀនចាស់។
+   - ជំហានទី ៣ (មេរៀនថ្មី - Explore & Explain):
+     • ដំណាក់កាល Explore (រុករក/ពិសោធន៍): សិស្សធ្វើការជាក្រុម សង្កេត ពិសោធន៍ ឬអានស្រាវជ្រាវឯកសារដើម្បីស្វែងរកទិន្នន័យ។
+     • ដំណាក់កាល Explain (ពន្យល់/បកស្រាយ): សិស្សពន្យល់ពីអ្វីដែលបានរកឃើញតាមភាសារបស់ខ្លួន រួចគ្រូជួយបំពេញបន្ថែម និងកំណត់និយមន័យ/រូបមន្តផ្លូវការ។
+   - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - Elaborate & Evaluate ៧០% STT):
+     • ដំណាក់កាល Elaborate (ពង្រីកចំណេះដឹង): សិស្សអនុវត្តចំណេះដឹងថ្មីទៅដោះស្រាយលំហាត់ ឬស្ថានភាពស្មុគស្មាញថ្មីជាក្រុម [ការគិតស៊ីជម្រៅ]។
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ - Evaluate):
+     • ដំណាក់កាល Evaluate (វាយតម្លៃ): ធ្វើតេស្តរហ័ស ឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 និងដាក់កិច្ចការផ្ទះ។`;
+
+      case 'direct':
+        return `
+៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
+   - ជំហានទី ២ (រំលឹកមេរៀន): ពិនិត្យចំណេះដឹងបុរេលក្ខខណ្ឌដែលចាំបាច់សម្រាប់ការរៀនក្បួនថ្មី។
+   - ជំហានទី ៣ (មេរៀនថ្មី - Explicit Teaching: "I Do" & "We Do"):
+     • ដំណាក់កាល "I Do" (គ្រូពន្យល់ និងធ្វើជាគំរូ): គ្រូពន្យល់គោលការណ៍ ច្បាប់ ឬរូបមន្តយ៉ាងក្បោះក្បាយ បង្ហាញដំណោះស្រាយគំរូមួយជំហានម្តងៗលើក្តារខៀន ដោយបញ្ជាក់ពីហេតុផលនៅពីក្រោយជំហាននីមួយៗ។
+     • ដំណាក់កាល "We Do" (អនុវត្តរួមគ្នាដឹកនាំដោយគ្រូ): គ្រូនាំសិស្សទាំងអស់ធ្វើលំហាត់គំរូទី២ រួមគ្នា ដោយចោទសួរឱ្យសិស្សឆ្លើយជំហានបន្ទាប់ ដើម្បីពិនិត្យការយល់ដឹង។
+   - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - "You Do" Independent & Pair Practice ៧០% STT):
+     • ដំណាក់កាល "You Do" (សិស្សអនុវត្តដោយឯករាជ្យ): គ្រូដាក់កម្រងលំហាត់អនុវត្តពីងាយទៅពិបាក សិស្សធ្វើដោយខ្លួនឯង ឬជាដៃគូ។
+     • គ្រូដើរត្រួតពិនិត្យ ផ្តល់ Feedback ភ្លាមៗ (Immediate Scaffolding) និងហៅសិស្សឡើងកែលើក្តារខៀន។
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ): ដាក់លំហាត់អនុវត្តបន្ថែមសម្រាប់ពង្រឹងភាពស្ទាត់ជំនាញ (Fluency) នៅផ្ទះ។`;
+
+      default: // student_centered
+        return `
+៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
+   - ជំហានទី ២ (រំលឹកមេរៀន): សិស្សជាអ្នករំលឹក និងសង្ខេបមេរៀនចាស់ដោយសេរី គ្រូគ្រាន់តែជាអ្នកសម្របសម្រួល។
+   - ជំហានទី ៣ (មេរៀនថ្មី - Guided Discovery & Inquiry):
+     • គ្រូមិនបង្រៀនដោយការសូត្រទ្រឹស្តីទេ តែប្រើសំណួរគន្លឹះចំហ (Open-ended Questions) ដើម្បីជំរុញឱ្យសិស្សពិភាក្សា រុករក និងបង្កើតនិយមន័យដោយខ្លួនឯង។
+     • សិស្សកត់ត្រា និងបូកសរុបគំនិតសំខាន់ៗដែលខ្លួនរកឃើញ។
+   - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - Active Group Application ៧០% STT):
+     • អនុវត្តយ៉ាងម៉ឺងម៉ាត់នូវច្បាប់ TTT 30% / STT 70%៖ សិស្សធ្វើការជាក្រុមលើកិច្ចការអនុវត្តជាក់ស្តែង ធ្វើបទបង្ហាញការពារលើ Flipchart ឬក្ដារឆ្នួន [ជំនាញ 4Cs]។
+     • គ្រូដើរជួយសម្របសម្រួល មិនជ្រៀតជ្រែកការគិតរបស់សិស្ស។
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ): Exit Ticket 3-2-1 និងការស្រាវជ្រាវបន្តតាមចំណាប់អារម្មណ៍។`;
+    }
+  }
+}
+
 
 // ==========================================================================
 // AI Generation Core Engine
@@ -3201,7 +3359,11 @@ async function generateWithGroqAPI(params) {
   const totalMin = parseDurationToMinutes(params.duration);
   const stepTimeHints = calculateStepDurations(params.duration, isFlipped ? 'flipped' : (isBd ? 'backward_design' : 'standard'));
 
-  const prompt = `Generate a complete MoEYS Lesson Plan in Khmer for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}). Include 3 objectives (Knowledge, Skills, Attitudes), materials, teaching method, and ${isBd ? "3-stage UbD learning activities" : "5 in-class teaching steps with teacher activity, lesson content, and student activity"}. Do NOT include pre-test/post-test questions in this output (they are generated separately on-demand). Return strictly valid JSON.`;
+  const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle);
+  const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS Standard 5-Step'} Lesson Plan in Khmer for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}).
+Teaching Method: ${params.method || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)'}.
+${methodPrompt}
+Include 3 objectives (Knowledge, Skills, Attitudes using Action-Condition-Standard formula), materials, teaching method, and ${isBd ? "3-stage UbD learning activities" : "5 in-class teaching steps with teacher activity, lesson content, and student activity"}. Do NOT include pre-test/post-test questions in this output (they are generated separately on-demand). Return strictly valid JSON.`;
 
   const candidateModels = [
     'llama-3.3-70b-versatile',
@@ -3262,7 +3424,12 @@ async function generateWithGroqAPI(params) {
 async function generateWithOpenRouterAPI(params) {
   const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
   const isFlipped = isFlippedLearningRequest(params);
-  const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS'} Lesson Plan in Khmer for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}). Return strictly valid JSON.`;
+  const isBd = !isFlipped && isBackwardDesignRequest(params);
+  const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle);
+  const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS Standard 5-Step'} Lesson Plan in Khmer for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}).
+Teaching Method: ${params.method || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)'}.
+${methodPrompt}
+Return strictly valid JSON.`;
 
   const models = [
     'meta-llama/llama-3.3-70b-instruct:free',
@@ -3458,22 +3625,13 @@ ${isLongSession ? `• This is an EXTENDED ${totalMin}-minute block (Multi-hour 
    - [C - Condition / លក្ខខណ្ឌ]: មធ្យោបាយ ឬវិធីសាស្ត្ររៀន (ឧ. «តាមរយៈការពន្យល់របស់គ្រូ និងការសង្កេតស្លាយ/វីដេអូ», «តាមរយៈការអានឯកសារគោល», «តាមរយៈការអនុវត្តលំហាត់ជាក់ស្តែង និងការពិភាក្សាជាក្រុម», «តាមរយៈការឆ្លុះបញ្ចាំងលើ Exit Ticket»...)
    - [S / D - Standard / ស្ដង់ដារ ឬ កម្រិតកំណត់]: កម្រិតកំណត់នៃការសម្រេចបាន (ឧ. «បានត្រឹមត្រូវ និងក្បោះក្បាយ», «បានយ៉ាងហោចណាស់ ៨០% ត្រឹមត្រូវ», «បានច្បាស់លាស់ឥតខុសឆ្គង», «ប្រកបដោយភាពជឿជាក់ និងស្ទាត់ជំនាញ», «ប្រកបដោយស្មារតីទទួលខុសត្រូវខ្ពស់»)
    ⚠️ ហាមដាច់ខាតសរសេរតែសកម្មភាពកាត់ៗ (ឧ. «ពន្យល់បានពី...») ដោយគ្មានលក្ខខណ្ឌ (Condition: តាមរយៈ...) និងគ្មានស្ដង់ដារ (Standard: បានត្រឹមត្រូវ...)!
-10. INTEGRATION OF PRIMARY TEACHING METHOD (${params.method || '5E'}):
-   - វិធីសាស្ត្របង្រៀនចម្បងដែលលោកគ្រូ/អ្នកគ្រូបានជ្រើសរើសគឺ៖ «${params.method}»។
-   - ត្រូវបញ្ចូលវិធីសាស្ត្រនេះចូលក្នុងដំណើរការបង្រៀន ៥ ជំហាន (steps) ជាពិសេសជំហានទី ៣ និងទី ៤ ឱ្យស៊ីជម្រៅបំផុត។
-   ${(params.method || '').toLowerCase().includes('5e') ? `
-   - ដោយសារវិធីសាស្ត្រ «5E» ត្រូវបានជ្រើសរើស ត្រូវរៀបចំដំណាក់កាលទាំង ៥ នៃ 5E ឱ្យឆ្លុះបញ្ចាំងក្នុង ៥ ជំហាន៖
-     • ជំហានទី ១ & ២: ផ្សារភ្ជាប់ដំណាក់កាល Engage (ឈានចូល & បំផុសចំណាប់អារម្មណ៍ តាមរយៈលទ្ធផល Pre-Test & Muddiest Points)
-     • ជំហានទី ៣: ផ្សារភ្ជាប់ដំណាក់កាល Explore (រុករក & ពិសោធន៍ តាមសន្លឹកបេសកកម្ម Challenge Scenario)
-     • ជំហានទី ៤: ផ្សារភ្ជាប់ដំណាក់កាល Explain & Elaborate (ពន្យល់រកឃើញ និងពង្រីកចំណេះដឹងដោះស្រាយបញ្ហាស៊ីជម្រៅ ៧០%)
-     • ជំហានទី ៥: ផ្សារភ្ជាប់ដំណាក់កាល Evaluate (វាយតម្លៃសមត្ថភាព តាមរយៈ Exit Ticket 3-2-1 & Post-Test)
-   ` : ''}
+${getMethodPedagogicalPrompt(params.method, true, false, params.lessonTitle)}
 
 CRITICAL INSTRUCTIONS FOR AI GENERATION:
 1. Deep Content Analysis: Thoroughly examine the provided lesson content. Extract real definitions, terms, rules, formulas, and examples. Use them everywhere in the plan.
 2. Objectives: Strictly format every single objective statement using the 3 components: [Action] + [Content] + [Condition: តាមរយៈ...] + [Standard: បានត្រឹមត្រូវ/ច្បាស់លាស់...]!
 3. Core Focus: Focus 100% of your pedagogical output on Objectives, Materials, and the 5-Step Teaching Process (5%-10%-10%-70%-5%). Do NOT generate pre-test or post-test question arrays in this JSON (they are generated separately on-demand).
-4. Step 4 (Active Learning Core 70%): You MUST dynamically choose and apply ONE of these 4 advanced pedagogies: (1) Jigsaw Cooperative Learning (ក្រុមអ្នកជំនាញ), (2) Concept Mapping (ការគូសផែនទីគំនិត), (3) Role-Play/Phenomenon-Based Simulation (ការដើរតួដោះស្រាយវិបត្តិ), or (4) Metacognitive Reflection/Advanced Exit Tickets (ការត្រិះរិះពិចារណាពីការគិត). Describe a SPECIFIC, RICH group activity applying this chosen pedagogy directly based on the lesson content with clear progressive phases.
+4. Step 4 (Active Learning Core 70%): You MUST strictly apply the chosen primary teaching method («${params.method || 'សិស្សមជ្ឈមណ្ឌល'}») in Step 4 with rich, concrete classroom tasks, collaborative phases, and direct alignment with the lesson content.
 
 Return ONLY valid JSON matching this schema:
 {
@@ -3491,7 +3649,7 @@ Return ONLY valid JSON matching this schema:
   "duration": "${params.duration}",
   "chapter": "${params.chapter || ''}",
   "lessonTitle": "${params.lessonTitle}",
-  "method": "ការរៀនបែបត្រឡប់",
+  "method": "${params.method || 'ការរៀនបែបត្រឡប់'}",
   "dateStr": "ថ្ងៃ... ខែ... ឆ្នាំ២០២...",
   "objectives": {
     "intro": "បន្ទាប់ពីរៀនមេរៀននេះចប់ គរុនិស្សិតនឹង៖",
@@ -3713,6 +3871,7 @@ STEP DURATION ALLOCATION (${totalMin} MINUTES TOTAL):
    - ច្បាប់ TTT 30% / STT 70%: នៅក្នុងជំហានទី៤ ត្រូវរៀបចំសកម្មភាពយ៉ាងណាឱ្យគ្រូនិយាយត្រឹមតែ ៣០% និងសិស្សអនុវត្ត/ពិភាក្សា ៧០%។
    - ជំនាញសតវត្សទី២១ (4Cs): ត្រូវដាក់រង្វង់ក្រចកបញ្ជាក់ពីជំនាញ 4Cs នៅចុងសកម្មភាពសិស្ស (ឧ. [ជំនាញសហការ និងការគិតស៊ីជម្រៅ])។
    - Exit Ticket 3-2-1: នៅក្នុងជំហានទី៥ ត្រូវដាក់សកម្មភាពវាយតម្លៃចុងម៉ោង (Exit Ticket 3-2-1: ៣ចំណុចដែលបានរៀន ២ចំណុចដែលចាប់អារម្មណ៍ ១ចំណុចដែលឆ្ងល់)។
+${getMethodPedagogicalPrompt(params.method, false, false, params.lessonTitle)}
 
 ⛔ ABSOLUTE PROHIBITIONS:
 - NEVER write "...", "...", or any ellipsis as content
@@ -4799,6 +4958,29 @@ function synthesizeLessonPlanOffline(params) {
   const postTestMCQ = [];
 
   if (isFlipped) {
+    const methodType = detectMethodType(method);
+    let flippedStep3Teacher = `• គ្រូពន្យល់សង្ខេបតែលើគំនិតស្នូល និងក្របខណ្ឌទ្រឹស្តីសំខាន់ៗនៃ «${lessonTitle}»\n• គ្រូចោទសួរ និងដោះស្រាយចម្ងល់គន្លឹះរបស់សិស្ស`;
+    let flippedStep4Teacher = `• គ្រូបែងចែកក្រុមការងារ និងប្រគល់សន្លឹកកិច្ចការករណីសិក្សាជាក់ស្តែង (Challenge Scenario) លើ Flipchart A0/A1\n• គ្រូដើរសម្របសម្រួល ផ្តល់ Feedback និងដឹកនាំ Gallery Walk ការពារលទ្ធផលក្រុម`;
+    let flippedStep4Student = `• ធ្វើការរួមគ្នាក្នុងក្រុម វិភាគបញ្ហាដោយប្រើទ្រឹស្តីដែលបានរៀន\n• សរសេរដំណោះស្រាយលើ Flipchart តំណាងក្រុមឡើងការពារ និងឆ្លើយសំណួរដេញដោល [ជំនាញសហការ និងការគិតស៊ីជម្រៅ]`;
+
+    if (methodType === 'pbl') {
+      flippedStep3Teacher = `• គ្រូចោទសួរ ៤ សំណួរតម្រង់ទិស និងប្រគល់ «សន្លឹកបេសកកម្មដោះស្រាយបញ្ហា (Challenge Scenario)» ជាក់ស្តែងនៃ «${lessonTitle}»\n• គ្រូពន្យល់លក្ខណៈវិនិច្ឆ័យវាយតម្លៃ និងតម្រង់ទិសក្រុម`;
+      flippedStep4Teacher = `• ដំណើរការ Problem-Based Learning (PBL) ៤ ដំណាក់កាល៖ (១) វិភាគឫសគល់បញ្ហា, (២) សហការរៀបចំយុទ្ធសាស្ត្រដោះស្រាយលើ Flipchart A0, (៣) តំណាងក្រុមឡើងការពារដំណោះស្រាយ និងដេញដោល, (៤) វាយតម្លៃតាម Rubric ៤ កម្រិត\n• គ្រូសម្របសម្រួល និងសំយោគក្បួនរួមថ្នាក់`;
+      flippedStep4Student = `• សិស្សធ្វើការជាក្រុមវិភាគឫសគល់នៃបញ្ហា និងបង្កើតសម្មតិកម្មដំណោះស្រាយ [ការគិតស៊ីជម្រៅ]\n• រៀបចំយុទ្ធសាស្ត្រលើ Flipchart A0 ឡើងការពារ និងឆ្លើយតបសំណួរជំទាស់ពីក្រុមដទៃ [ជំនាញដោះស្រាយបញ្ហា និងការប្រាស្រ័យទាក់ទង]`;
+    } else if (methodType === 'jigsaw') {
+      flippedStep3Teacher = `• គ្រូបែងចែកសិស្សជា «ក្រុមដើម (Home Groups)» និងចាត់តាំង «ក្រុមអ្នកជំនាញ (Expert Groups)» តាមប្រធានបទរងនៃ «${lessonTitle}»\n• គ្រូចោទសួរសំណួរគន្លឹះ ៤ សំណួរតម្រង់ទិសក្រុមអ្នកជំនាញ`;
+      flippedStep4Teacher = `• ដំណើរការ Jigsaw & Concept Mapping ៤ ដំណាក់កាល៖ (១) ក្រុមអ្នកជំនាញស្រាវជ្រាវស៊ីជម្រៅ, (២) ត្រឡប់ទៅក្រុមដើមបង្រៀនគ្នា (Jigsaw Sharing), (៣) ចងក្រង «ផែនទីគំនិត (Concept Map)» លើ Flipchart A0, (៤) ដឹកនាំ Gallery Walk និងវាយតម្លៃគ្នាទៅវិញទៅមក\n• គ្រូសម្របសម្រួល និងបូកសរុបចំណុចគន្លឹះ`;
+      flippedStep4Student = `• សមាជិកក្រុមអ្នកជំនាញវិភាគឯកសារ រួចត្រឡប់ទៅក្រុមដើមបង្រៀនមិត្តរួមក្រុម [ជំនាញទំនាក់ទំនង]\n• ក្រុមដើមរួមគ្នាចងក្រង Concept Map លើ Flipchart A0 និងចូលរួម Gallery Walk វាយតម្លៃគ្នា [ការសហការ និងភាពច្នៃប្រឌិត]`;
+    } else if (methodType === '5e') {
+      flippedStep3Teacher = `• ដំណាក់កាល Explore (រុករក/ពិសោធន៍): គ្រូប្រគល់សន្លឹកបេសកកម្ម Challenge Scenario / សម្ភារពិសោធន៍ STEM ទាក់ទងនឹង «${lessonTitle}» ឱ្យក្រុមសិស្សរុករក\n• គ្រូដើរសម្របសម្រួល និងចោទសួរបំផុស`;
+      flippedStep4Teacher = `• ដំណាក់កាល Explain & Elaborate (៧០%): គ្រូឱ្យតំណាងក្រុមឡើងពន្យល់របកគំហើញ រួចគ្រូបូកសរុបគោលការណ៍គន្លឹះ\n• គ្រូដាក់ស្ថានភាពបញ្ហាប្រឈមថ្មី (Elaborate) ឱ្យសិស្សយកចំណេះដឹងទៅពង្រីកអនុវត្តលើ Flipchart A0\n• គ្រូដឹកនាំការវាយតម្លៃតាម Rubric ៤ កម្រិត`;
+      flippedStep4Student = `• ក្រុមសិស្សឡើងពន្យល់ទិន្នន័យ និងរបកគំហើញដែលបានរកឃើញ (Explain)\n• សហការដោះស្រាយបញ្ហាប្រឈមថ្មីលើ Flipchart A0 (Elaborate) ប្រកបដោយភាពច្នៃប្រឌិត [ការគិតស៊ីជម្រៅ និង STEM]`;
+    } else if (methodType === 'direct') {
+      flippedStep3Teacher = `• ដំណាក់កាល Guided Practice (We Do): ដោយសារទ្រឹស្តី "I Do" បានរៀនតាមវីដេអូរួចហើយ គ្រូនាំសិស្សអនុវត្តលំហាត់គំរូគន្លឹះ ៤ សំណួររួមគ្នាលើក្តារខៀនដើម្បីពង្រឹងក្បួនខ្នាត\n• គ្រូផ្ទៀងផ្ទាត់ការយល់ដឹងមុនឱ្យសិស្សអនុវត្តផ្ទាល់`;
+      flippedStep4Teacher = `• ដំណាក់កាល Intensive Practice (You Do ៧០%): គ្រូដាក់កម្រងលំហាត់អនុវត្តពីងាយទៅពិបាកឱ្យសិស្សដោះស្រាយជាដៃគូ និងជាក្រុមលើ Flipchart A0\n• គ្រូដើរត្រួតពិនិត្យ ផ្តល់ Feedback ភ្លាមៗ (Immediate Scaffolding) និងដឹកនាំការវិភាគកែកំហុស (Error Analysis)`;
+      flippedStep4Student = `• សិស្សអនុវត្តដោះស្រាយលំហាត់ជាដៃគូ និងផ្ទៀងផ្ទាត់ចម្លើយគ្នាទៅវិញទៅមក\n• សហការដោះស្រាយលំហាត់កម្រិតខ្ពស់ជាក្រុមលើ Flipchart A0 ឡើងកែលើក្តារខៀន និងស្វ័យវាយតម្លៃភាពត្រឹមត្រូវ [ភាពស្ទាត់ជំនាញ]`;
+    }
+
     const flippedSteps = [
       {
         stepNumber: 1,
@@ -4820,7 +5002,7 @@ function synthesizeLessonPlanOffline(params) {
         stepNumber: 3,
         stepTitle: "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី",
         duration: stepTimes.step3,
-        teacherActivity: `• គ្រូពន្យល់សង្ខេបតែលើគំនិតស្នូល និងក្របខណ្ឌទ្រឹស្តីសំខាន់ៗនៃ «${lessonTitle}»\n• គ្រូចោទសួរ និងដោះស្រាយចម្ងល់គន្លឹះរបស់សិស្ស`,
+        teacherActivity: flippedStep3Teacher,
         contentSummary: `«${lessonTitle}»\n• ខ្លឹមសារ និងទ្រឹស្តីស្នូលនៃមេរៀន៖\n` + (mainPoints.length > 0 ? mainPoints.map(p => `  - ${p}`).join('\n') : `  - និយមន័យ និងគោលការណ៍គ្រឹះនៃ ${lessonTitle}\n  - ការផ្សារភ្ជាប់ទ្រឹស្តីទៅនឹងការអនុវត្តជាក់ស្តែង`),
         studentActivity: `• សិស្សយកចិត្តទុកដាក់ស្តាប់ការពន្យល់ និងកត់ត្រាគំនិតគន្លឹះ\n• ឆ្លើយតប និងសួរសំណួរបំភ្លឺបន្ថែមឱ្យកាន់តែស៊ីជម្រៅ`
       },
@@ -4828,9 +5010,9 @@ function synthesizeLessonPlanOffline(params) {
         stepNumber: 4,
         stepTitle: "ជំហានទី៤៖ ពង្រឹងចំណេះដឹង",
         duration: stepTimes.step4,
-        teacherActivity: `• គ្រូបែងចែកក្រុមការងារ និងប្រគល់សន្លឹកកិច្ចការករណីសិក្សាជាក់ស្តែង (Challenge Scenario) លើ Flipchart A0/A1\n• គ្រូដើរសម្របសម្រួល ផ្តល់ Feedback និងដឹកនាំ Gallery Walk ការពារលទ្ធផលក្រុម`,
+        teacherActivity: flippedStep4Teacher,
         contentSummary: `• សកម្មភាពអនុវត្តស៊ីជម្រៅ និងដោះស្រាយករណីសិក្សាជាក់ស្តែង៖\n` + (mainPoints.length > 0 ? mainPoints.map(p => `  • ${p}`).join('\n') : `  • ការវិភាគករណីសិក្សា និងយុទ្ធសាស្ត្រគរុកោសល្យ\n  • ការវាយតម្លៃ និងការឆ្លុះបញ្ចាំងបែបស្ថាបនា`),
-        studentActivity: `• ធ្វើការរួមគ្នាក្នុងក្រុម វិភាគបញ្ហាដោយប្រើទ្រឹស្តីដែលបានរៀន\n• សរសេរដំណោះស្រាយលើ Flipchart តំណាងក្រុមឡើងការពារ និងឆ្លើយសំណួរដេញដោល`
+        studentActivity: flippedStep4Student
       },
       {
         stepNumber: 5,
@@ -4954,6 +5136,29 @@ function synthesizeLessonPlanOffline(params) {
   }
 
   // Standard 5-Step MoEYS / Primary / STEM
+  const stdMethodType = detectMethodType(method);
+  let stdStep3Teacher = `• គ្រូសរសេរចំណងជើងមេរៀន «${lessonTitle}» លើក្ដារខៀន\n• គ្រូពន្យល់ បង្ហាញរូបភាព/ស្លាយ និងចោទសួរសំណួរគន្លឹះ\n• គ្រូសម្របសម្រួលការពិភាក្សា និងបូកសរុបចម្លើយសិស្ស`;
+  let stdStep4Teacher = `• គ្រូដាក់សំណួរពង្រឹងការយល់ដឹង ឬលំហាត់អនុវត្តរហ័សទាក់ទងនឹង «${lessonTitle}»\n• គ្រូដើរសង្កេត ណែនាំសិស្ស និងកែសម្រួលចម្លើយរួមថ្នាក់`;
+  let stdStep4Student = "• សិស្សគិត គណនា និងឆ្លើយសំណួរពង្រឹងពុទ្ធិលើក្ដារឆ្នួន ឬសៀវភៅ\n• ផ្ទៀងផ្ទាត់ចម្លើយ និងកែតម្រូវចំណុចខុសឆ្គង [ជំនាញសហការ និងការគិតស៊ីជម្រៅ]";
+
+  if (stdMethodType === 'pbl') {
+    stdStep3Teacher = `• គ្រូបង្ហាញ «ស្ថានភាពបញ្ហាជាក់ស្តែង (Problem Scenario)» ពាក់ព័ន្ធនឹង «${lessonTitle}» លើក្តារខៀន/ស្លាយ\n• គ្រូចោទសំណួរដាស់ការត្រិះរិះដើម្បីឱ្យសិស្សវិភាគរកឫសគល់បញ្ហា និងពន្យល់ទ្រឹស្តីគន្លឹះសម្រាប់ដោះស្រាយ`;
+    stdStep4Teacher = `• គ្រូបែងចែកក្រុមការងារ ដាក់សេណារីយ៉ូបញ្ហាជាក់ស្តែងឱ្យក្រុមសិស្សដោះស្រាយលើ Flipchart ឬក្ដារឆ្នួន (TTT 30% / STT 70%)\n• គ្រូសម្របសម្រួលការឡើងការពារដំណោះស្រាយ និងវាយតម្លៃតាម Rubric`;
+    stdStep4Student = `• ក្រុមសិស្សសហការវិភាគបញ្ហា សាកល្បងសម្មតិកម្ម និងសរសេរដំណោះស្រាយលើ Flipchart [ការដោះស្រាយបញ្ហា]\n• តំណាងក្រុមឡើងការពារដំណោះស្រាយ និងឆ្លើយតបសំណួរជំទាស់`;
+  } else if (stdMethodType === 'jigsaw') {
+    stdStep3Teacher = `• គ្រូណែនាំប្រធានបទ «${lessonTitle}» និងបែងចែកសិស្សជា «ក្រុមអ្នកជំនាញ (Expert Groups)» តាមផ្នែករងនៃមេរៀន\n• គ្រូដើរសម្របសម្រួល និងផ្ទៀងផ្ទាត់ការយល់ដឹងរបស់ក្រុមអ្នកជំនាញនីមួយៗ`;
+    stdStep4Teacher = `• គ្រូឱ្យសិស្សត្រឡប់ទៅ «ក្រុមដើម (Home Groups)» វិញដើម្បីបង្រៀនគ្នា (Jigsaw Sharing ៧០% STT)\n• គ្រូណែនាំឱ្យក្រុមដើមចងក្រង «ផែនទីគំនិត (Concept Map)» លើ Flipchart និងដឹកនាំ Gallery Walk`;
+    stdStep4Student = `• អ្នកជំនាញម្នាក់ៗបង្រៀនមិត្តរួមក្រុមដើមពីផ្នែកដែលខ្លួនបានរៀន [ជំនាញទំនាក់ទំនង]\n• សមាជិកក្រុមដើមរួមគ្នាចងក្រង Concept Map លើ Flipchart និងដើរទស្សនា Gallery Walk [ការសហការ]`;
+  } else if (stdMethodType === '5e') {
+    stdStep3Teacher = `• ដំណាក់កាល Explore & Explain: គ្រូឱ្យសិស្សធ្វើការជាក្រុម រុករក/ពិសោធន៍ស្វែងរកទិន្នន័យនៃ «${lessonTitle}»\n• គ្រូឱ្យសិស្សពន្យល់របកគំហើញ រួចគ្រូបូកសរុប និងកំណត់និយមន័យ/រូបមន្តផ្លូវការ`;
+    stdStep4Teacher = `• ដំណាក់កាល Elaborate (៧០% STT): គ្រូដាក់លំហាត់/ស្ថានភាពស្មុគស្មាញថ្មីឱ្យសិស្សយកចំណេះដឹងទៅពង្រីកអនុវត្តជាក្រុម\n• គ្រូដើរសម្របសម្រួល និងវាយតម្លៃការយល់ដឹង`;
+    stdStep4Student = `• សិស្សពន្យល់ពីអ្វីដែលបានរកឃើញតាមភាសារបស់ខ្លួន (Explain)\n• សហការអនុវត្តចំណេះដឹងដោះស្រាយស្ថានភាពថ្មីលើ Flipchart ឬក្ដារឆ្នួន [ការគិតស៊ីជម្រៅ 4Cs]`;
+  } else if (stdMethodType === 'direct') {
+    stdStep3Teacher = `• ដំណាក់កាល "I Do" & "We Do": គ្រូពន្យល់ច្បាប់/រូបមន្តនៃ «${lessonTitle}» និងបង្ហាញដំណោះស្រាយគំរូលើក្តារខៀនមួយជំហានម្តងៗ\n• គ្រូនាំសិស្សធ្វើលំហាត់គំរូទី២ រួមគ្នាដើម្បីពិនិត្យការយល់ដឹង`;
+    stdStep4Teacher = `• ដំណាក់កាល "You Do" (៧០% STT): គ្រូដាក់កម្រងលំហាត់អនុវត្តពីងាយទៅពិបាកឱ្យសិស្សដោះស្រាយដោយឯករាជ្យ ឬជាដៃគូ\n• គ្រូដើរត្រួតពិនិត្យ ផ្តល់ Feedback ភ្លាមៗ និងហៅសិស្សឡើងកែលើក្តារខៀន`;
+    stdStep4Student = `• សិស្សយកចិត្តទុកដាក់ស្តាប់ការពន្យល់ និងចូលរួមឆ្លើយជំហានអនុវត្តរួមគ្នា (We Do)\n• សិស្សដោះស្រាយលំហាត់ដោយឯករាជ្យ ឬជាដៃគូ ឡើងកែលើក្តារខៀន និងស្វ័យវាយតម្លៃ [ភាពស្ទាត់ជំនាញ]`;
+  }
+
   const steps = [
     {
       stepNumber: 1,
@@ -4975,7 +5180,7 @@ function synthesizeLessonPlanOffline(params) {
       stepNumber: 3,
       stepTitle: "ជំហានទី ៣ : ដំណើរការបង្រៀន និងរៀន (មេរៀនថ្មី)",
       duration: stepTimes.step3,
-      teacherActivity: `• គ្រូសរសេរចំណងជើងមេរៀន «${lessonTitle}» លើក្ដារខៀន\n• គ្រូពន្យល់ បង្ហាញរូបភាព/ស្លាយ និងចោទសួរសំណួរគន្លឹះ\n• គ្រូសម្របសម្រួលការពិភាក្សា និងបូកសរុបចម្លើយសិស្ស`,
+      teacherActivity: stdStep3Teacher,
       contentSummary: `«${lessonTitle}»\n• ខ្លឹមសារស្នូល និងចំណុចសំខាន់ៗ៖\n` + (mainPoints.length > 0 ? mainPoints.map(p => `  - ${p}`).join('\n') : `  - និយមន័យ និងទ្រឹស្តីមូលដ្ឋាននៃ ${lessonTitle}\n  - ឧទាហរណ៍ និងរូបមន្តគន្លឹះ\n  - ការអនុវត្តជាក់ស្តែង`),
       studentActivity: `• សិស្សកត់ត្រាចំណងជើងមេរៀន «${lessonTitle}» ចូលសៀវភៅ\n• យកចិត្តទុកដាក់ស្តាប់ការពន្យល់ និងចូលរួមឆ្លើយសំណួរគ្រូ\n• សហការពិភាក្សាក្នុងក្រុម និងកត់ចំណាំខ្លឹមសារសំខាន់ៗ`
     },
@@ -4983,9 +5188,9 @@ function synthesizeLessonPlanOffline(params) {
       stepNumber: 4,
       stepTitle: "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (វាយតម្លៃ)",
       duration: stepTimes.step4,
-      teacherActivity: `• គ្រូដាក់សំណួរពង្រឹងការយល់ដឹង ឬលំហាត់អនុវត្តរហ័សទាក់ទងនឹង «${lessonTitle}»\n• គ្រូដើរសង្កេត ណែនាំសិស្ស និងកែសម្រួលចម្លើយរួមថ្នាក់`,
+      teacherActivity: stdStep4Teacher,
       contentSummary: `• សំណួរវាស់ស្ទង់ការយល់ដឹង ឬលំហាត់សង្ខេប\n• កំណែចម្លើយត្រឹមត្រូវ និងការកែតម្រូវចំណុចខ្វះខាត`,
-      studentActivity: "• សិស្សគិត គណនា និងឆ្លើយសំណួរពង្រឹងពុទ្ធិលើក្ដារឆ្នួន ឬសៀវភៅ\n• ផ្ទៀងផ្ទាត់ចម្លើយ និងកែតម្រូវចំណុចខុសឆ្គង"
+      studentActivity: stdStep4Student
     },
     {
       stepNumber: 5,
@@ -5945,43 +6150,131 @@ function getKhmerFormattedDate() {
   return `ថ្ងៃទី ${d} ខែ ${m} ឆ្នាំ ${y}`;
 }
 
-// 🎯 Render Comprehensive Teaching Method HTML (Harmonizing 5E, Active Learning & Flipped Learning Model)
-function renderTeachingMethodContent(method) {
-  const m = (method || '').trim();
-  const is5E = m.toLowerCase().includes('5e') || m.includes('engage') || m.includes('explore');
+// 🎯 Render Comprehensive Teaching Method HTML (Pedagogical Strategy Matrix: Template Mode × Teaching Method)
+function renderTeachingMethodContent(method, templateType = '5_steps') {
+  const m = (method || '').trim() || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)';
+  const methodType = detectMethodType(m);
+  const isFlipped = templateType === 'flipped_learning' || m.toLowerCase().includes('ត្រឡប់') || m.toLowerCase().includes('flipped');
 
-  if (is5E) {
+  if (isFlipped) {
+    let methodBreakdownHtml = '';
+    switch (methodType) {
+      case 'pbl':
+        methodBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>ជំហានទី ២ (១០%):</strong> ពិនិត្យការយល់ដឹងពីផ្ទះ ស្រាយចម្ងល់ Muddiest Points និងភ្ជាប់ទ្រឹស្តីទៅបញ្ហាជាក់ស្តែង</li>
+            <li><strong>ជំហានទី ៣ (១០%):</strong> គ្រូចោទសំណួរតម្រង់ទិស និងប្រគល់ «សន្លឹកបេសកកម្មដោះស្រាយបញ្ហា (Challenge Scenario)»</li>
+            <li><strong>ជំហានទី ៤ (៧០% - Core Active Learning):</strong> ដំណើរការ PBL ៤ ដំណាក់កាល៖ (១) វិភាគបញ្ហា & ស្វែងរកឫសគល់ [ការគិតស៊ីជម្រៅ], (២) សហការរៀបចំយុទ្ធសាស្ត្រ & គូសវាសដំណោះស្រាយលើ Flipchart A0, (៣) តំណាងក្រុមឡើងការពារដំណោះស្រាយ & ដេញដោល [ការប្រាស្រ័យទាក់ទង], (៤) វាយតម្លៃតាម Rubric ៤ កម្រិត & សំយោគក្បួនរួម</li>
+            <li><strong>ជំហានទី ៥ (៥%):</strong> ឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 និងដាក់កិច្ចការបញ្ហាស្រាវជ្រាវបន្ត</li>
+          </ul>`;
+        break;
+      case 'jigsaw':
+        methodBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>ជំហានទី ២ (១០%):</strong> ត្រួតពិនិត្យ Pre-Test ស្រាយចម្ងល់ Muddiest Points ពីការស្វ័យសិក្សាតាមវីដេអូ</li>
+            <li><strong>ជំហានទី ៣ (១០%):</strong> ចោទសួរសំណួរគន្លឹះ បែងចែក «ក្រុមដើម (Home Groups)» និងចាត់តាំង «ក្រុមអ្នកជំនាញ (Expert Groups)»</li>
+            <li><strong>ជំហានទី ៤ (៧០% - Core Active Learning):</strong> ដំណើរការ Jigsaw ៤ ដំណាក់កាល៖ (១) ក្រុមអ្នកជំនាញវិភាគស៊ីជម្រៅលើផ្នែកជំនាញ, (២) ត្រឡប់ទៅក្រុមដើមបង្រៀនគ្នាទៅវិញទៅមក (Jigsaw Sharing), (៣) សហការចងក្រង «ផែនទីគំនិត (Concept Map)» / Role-Play លើ Flipchart A0, (៤) Gallery Walk និងវាយតម្លៃគ្នាទៅវិញទៅមក</li>
+            <li><strong>ជំហានទី ៥ (៥%):</strong> Exit Ticket 3-2-1 សង្ខេបចំណេះដឹងពីក្រុមអ្នកជំនាញ និងកិច្ចការផ្ទះ</li>
+          </ul>`;
+        break;
+      case '5e':
+        methodBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>១. Engage (ឈានចូល / បំផុសចំណាប់អារម្មណ៍):</strong> ស្វ័យសិក្សាតាមវីដេអូបង្រៀន Micro-Lecture មុនម៉ោង ឆ្លើយសំណួរ Pre-Test QCM និងដោះស្រាយ Muddiest Points ក្នុងជំហានទី ២</li>
+            <li><strong>២. Explore (រុករក / ពិសោធន៍):</strong> សិស្សធ្វើការជាក្រុម អនុវត្តបេសកកម្ម Challenge Scenario / ពិសោធន៍ជាក់ស្តែងក្នុងជំហានទី ៣</li>
+            <li><strong>៣. Explain (ពន្យល់ / បកស្រាយ):</strong> ក្រុមនិស្សិតឡើងពន្យល់ និងការពាររបកគំហើញ គ្រូសម្របសម្រួល និងបូកសរុបគោលការណ៍គន្លឹះក្នុងជំហានទី ៤</li>
+            <li><strong>៤. Elaborate (ពង្រីកចំណេះដឹង / អនុវត្តស៊ីជម្រៅ ៧០%):</strong> អនុវត្តដោះស្រាយបញ្ហាក្នុងស្ថានភាពថ្មីលើ Flipchart A0 ក្នុងជំហានទី ៤</li>
+            <li><strong>៥. Evaluate (វាយតម្លៃ):</strong> Exit Ticket 3-2-1, Rubric សហការ ៤ កម្រិត និងកម្រងសំណួរ Post-Test MCQ ក្នុងជំហានទី ៥</li>
+          </ul>`;
+        break;
+      case 'direct':
+        methodBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>Pre-Class & ជំហានទី ២ (១០%):</strong> ដំណាក់កាល "I Do" ផ្នែកទ្រឹស្តីមូលដ្ឋានបានរៀនតាមវីដេអូពីផ្ទះ; ក្នុងថ្នាក់គ្រូបំភ្លឺចំណុចពិបាក (Mini-Modeling) តាម Muddiest Points</li>
+            <li><strong>ជំហានទី ៣ (១០%):</strong> ដំណាក់កាល "We Do" (គ្រូនាំធ្វើ) — គ្រូនាំសិស្សអនុវត្តលំហាត់គំរូគន្លឹះ ៤ សំណួររួមគ្នាដើម្បីពង្រឹងក្បួនខ្នាត</li>
+            <li><strong>ជំហានទី ៤ (៧០% - Core Active Learning):</strong> ដំណាក់កាល "Intensive You Do"៖ (១) អនុវត្តជាដៃគូលើលំហាត់កម្រិតមធ្យម, (២) អនុវត្តជាក្រុមលើស្ថានភាពស្មុគស្មាញ Flipchart A0, (៣) បង្ហាញដំណោះស្រាយ និងវិភាគកែកំហុស (Error Analysis), (៤) ស្វ័យវាយតម្លៃភាពត្រឹមត្រូវ</li>
+            <li><strong>ជំហានទី ៥ (៥%):</strong> Exit Ticket 3-2-1 ស្ទង់ភាពស្ទាត់ជំនាញ និងលំហាត់ពង្រឹងសមត្ថភាពបន្ត</li>
+          </ul>`;
+        break;
+      default: // student_centered
+        methodBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>ជំហានទី ២ (១០%):</strong> សិស្សជាអ្នកលើកឡើង Muddiest Points ពីផ្ទះ គ្រូដើរតួជាអ្នកសម្របសម្រួល (Facilitator) បំផុសឱ្យសិស្សឆ្លើយបំភ្លឺគ្នាទៅវិញទៅមក</li>
+            <li><strong>ជំហានទី ៣ (១០%):</strong> គ្រូចោទសួរ ៤ សំណួរដាស់ការត្រិះរិះ និងប្រគល់កិច្ចការស្វ័យសិក្សាជាក្រុម</li>
+            <li><strong>ជំហានទី ៤ (៧០% - Core Active Learning):</strong> សិស្សគ្រប់គ្រងការរៀនដោយខ្លួនឯង (Learner Autonomy)៖ (១) ក្រុមពិភាក្សា & រិះរកដោយសេរី [ការគិតស៊ីជម្រៅ], (២) សហការផលិតស្នាដៃលើ Flipchart A0 [ការសហការ], (៣) ធ្វើបទបង្ហាញដឹកនាំដោយសិស្ស [ការប្រាស្រ័យទាក់ទង], (៤) ឆ្លុះបញ្ចាំងរួម (Metacognition) & វាយតម្លៃតាម Rubric</li>
+            <li><strong>ជំហានទី ៥ (៥%):</strong> Exit Ticket 3-2-1 ស្ទង់មតិសិស្សលើការយល់ដឹង និងកិច្ចការស្វ័យសិក្សាបន្ត</li>
+          </ul>`;
+        break;
+    }
+
     return `
       <ul class="doc-list" style="margin-top: 4px; line-height: 1.8;">
-        <li><strong>វិធីសាស្ត្របង្រៀនចម្បង៖</strong> វិធីសាស្ត្រ 5E (Engage, Explore, Explain, Elaborate, Evaluate)</li>
-        <li><strong>គំរូ និងទម្រង់រៀបចំការរៀន៖</strong> ការរៀនបែបត្រឡប់ (Flipped Learning Model) — ផ្សារភ្ជាប់ការស្វ័យសិក្សាត្រៀមមុនម៉ោង (Pre-Class Phase តាមវីដេអូបង្រៀន Micro-Lecture NotebookLM និងបុរេតេស្ត Pre-Test QCM) ជាមួយការរៀនសកម្មក្នុងថ្នាក់ (In-Class Active Collaborative Learning)។</li>
-        <li><strong>ការផ្សារភ្ជាប់ដំណាក់កាល 5E ជាមួយ Flipped Learning (៥ ដំណាក់កាលគរុកោសល្យ)៖</strong>
-          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
-            <li><strong>១. Engage (ឈានចូល / បំផុសចំណាប់អារម្មណ៍)៖</strong> ស្វ័យសិក្សាតាមវីដេអូបង្រៀនមុនម៉ោង ឆ្លើយសំណួរ Pre-Test និងការស្រាយចម្ងល់ Muddiest Points នៅដើមម៉ោងរៀន</li>
-            <li><strong>២. Explore (រុករក / ពិសោធន៍ / ស្រាវជ្រាវ)៖</strong> សិស្សធ្វើការជាក្រុម អនុវត្តការងាររុករក ដោះស្រាយលំហាត់ ឬពិសោធន៍ជាក់ស្តែងក្នុងថ្នាក់</li>
-            <li><strong>៣. Explain (ពន្យល់ / បកស្រាយ)៖</strong> តំណាងក្រុមឡើងធ្វើបទបង្ហាញការពារលទ្ធផលរកឃើញ គ្រូសម្របសម្រួល និងបូកសរុបគោលការណ៍គន្លឹះ</li>
-            <li><strong>៤. Elaborate (ពង្រីកចំណេះដឹង / អនុវត្តស៊ីជម្រៅ)៖</strong> អនុវត្តដោះស្រាយបញ្ហាក្នុងស្ថានភាពថ្មី ឬករណីសិក្សាស៊ីជម្រៅ (សកម្មភាពស្នូល ៧០% នៃម៉ោងរៀន)</li>
-            <li><strong>៥. Evaluate (វាយតម្លៃលទ្ធផល)៖</strong> វាស់ស្ទង់សមត្ថភាពតាមរយៈកម្រងសំណួរ Post-Test MCQ, Active Rubric ៤ កម្រិត និងការឆ្លុះបញ្ចាំង Exit Ticket 3-2-1</li>
-          </ul>
+        <li><strong>វិធីសាស្ត្របង្រៀនចម្បង៖</strong> ${escapeHtml(m)}</li>
+        <li><strong>គំរូ និងទម្រង់រៀបចំការរៀន៖</strong> ការរៀនបែបត្រឡប់ (Flipped Learning Model) ៥ ជំហាន (៥% - ១០% - ១០% - ៧០% - ៥%) — ផ្សារភ្ជាប់ការស្វ័យសិក្សាត្រៀមមុនម៉ោង (Pre-Class Phase តាមវីដេអូបង្រៀន Micro-Lecture NotebookLM និងបុរេតេស្ត Pre-Test QCM) ជាមួយការរៀនសកម្មក្នុងថ្នាក់ (In-Class Active Learning ៧០%)។</li>
+        <li><strong>ការរៀបចំដំណាក់កាលអនុវត្តវិធីសាស្ត្រក្នុងថ្នាក់៖</strong>
+          ${methodBreakdownHtml}
         </li>
       </ul>
     `;
   }
 
-  if (m && !m.toLowerCase().startsWith('ថ្នាក់រៀនត្រឡប់')) {
-    return `
-      <ul class="doc-list" style="margin-top: 4px; line-height: 1.8;">
-        <li><strong>វិធីសាស្ត្របង្រៀនចម្បង៖</strong> ${escapeHtml(m)}</li>
-        <li><strong>គំរូ និងទម្រង់រៀបចំការរៀន៖</strong> ការរៀនបែបត្រឡប់ (Flipped Learning Model) — ផ្សារភ្ជាប់ការស្វ័យសិក្សាត្រៀមមុនម៉ោង (Pre-Class Phase តាមវីដេអូបង្រៀន Micro-Lecture NotebookLM និងបុរេតេស្ត) ជាមួយការរៀនសកម្មក្នុងថ្នាក់ (In-Class Active Learning)។</li>
-        <li><strong>បច្ចេកទេសបង្រៀនគាំទ្រ (Active Learning Techniques)៖</strong> ការសហការជាក្រុម (Collaborative Learning), ការដោះស្រាយបញ្ហាជាក់ស្តែង (Problem-Solving), និងកិច្ចការស្ទាបស្ទង់យល់ដឹង (Exit Ticket & Muddiest Point)</li>
-      </ul>
-    `;
+  // Standard 5-Step MoEYS Model
+  let standardBreakdownHtml = '';
+  switch (methodType) {
+    case 'pbl':
+      standardBreakdownHtml = `
+        <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+          <li><strong>ជំហានទី ២ (រំលឹកមេរៀន):</strong> ចោទសួរសំណួររំលឹកដែលជាស្ពានចម្លងផ្សារភ្ជាប់ទៅកាន់ស្ថានភាពបញ្ហាជាក់ស្តែង</li>
+          <li><strong>ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី):</strong> បង្ហាញ «ស្ថានភាពបញ្ហាជាក់ស្តែង (Problem Scenario)», សិស្សវិភាគឫសគល់បញ្ហា, គ្រូពន្យល់ទ្រឹស្តី/ក្បួនគន្លឹះសម្រាប់ដោះស្រាយ</li>
+          <li><strong>ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT):</strong> សិស្សធ្វើការជាក្រុមដោះស្រាយបញ្ហាលើ Flipchart/ក្ដារឆ្នួន, ធ្វើតេស្តសម្មតិកម្ម, ឡើងការពារដំណោះស្រាយ [ការគិតស៊ីជម្រៅ & ដោះស្រាយបញ្ហា]</li>
+          <li><strong>ជំហានទី ៥ (កិច្ចការផ្ទះ):</strong> ដាក់កិច្ចការបញ្ហាជាក់ស្តែងថ្មីសម្រាប់សិស្សដោះស្រាយនៅផ្ទះ និងឆ្លុះបញ្ចាំង Exit Ticket 3-2-1</li>
+        </ul>`;
+      break;
+    case 'jigsaw':
+      standardBreakdownHtml = `
+        <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+          <li><strong>ជំហានទី ២ (រំលឹកមេរៀន):</strong> រំលឹកចំណេះដឹងគ្រឹះចាំបាច់សម្រាប់ការសិក្សាផ្នែកជំនាញ</li>
+          <li><strong>ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី):</strong> បែងចែកសិស្សជា «ក្រុមអ្នកជំនាញ (Expert Groups)» សិក្សាស្វែងយល់ផ្នែករងនីមួយៗនៃមេរៀនថ្មី គ្រូដើរសម្របសម្រួល</li>
+          <li><strong>ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT):</strong> សិស្សត្រឡប់ទៅ «ក្រុមដើម (Home Groups)» បង្រៀនគ្នាទៅវិញទៅមក (Jigsaw), រួមគ្នាចងក្រង «ផែនទីគំនិត (Concept Map)» លើ Flipchart, និងធ្វើ Gallery Walk</li>
+          <li><strong>ជំហានទី ៥ (កិច្ចការផ្ទះ):</strong> Exit Ticket 3-2-1 សង្ខេបចំណុចសំខាន់ៗ និងលំហាត់ស្រាវជ្រាវ</li>
+        </ul>`;
+      break;
+    case '5e':
+      standardBreakdownHtml = `
+        <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+          <li><strong>ជំហានទី ១ & ២:</strong> Engage (ឈានចូល & បំផុស) — គ្រូចោទសួរ ឬបង្ហាញបាតុភូតចម្លែកដើម្បីជំរុញការចង់ដឹង និងផ្សារភ្ជាប់មេរៀនចាស់</li>
+          <li><strong>ជំហានទី ៣:</strong> Explore (រុករក/ពិសោធន៍ជាក្រុម) & Explain (សិស្សពន្យល់របកគំហើញ រួចគ្រូបូកសរុបក្បួនគន្លឹះផ្លូវការ)</li>
+          <li><strong>ជំហានទី ៤:</strong> Elaborate (ពង្រីកចំណេះដឹង ៧០% STT) — សិស្សអនុវត្តចំណេះដឹងដោះស្រាយលំហាត់/ស្ថានភាពស្មុគស្មាញថ្មី [ជំនាញ 4Cs]</li>
+          <li><strong>ជំហានទី ៥:</strong> Evaluate (វាយតម្លៃ) — តេស្តរហ័ស Exit Ticket 3-2-1 និងការបូកសរុបវាយតម្លៃ</li>
+        </ul>`;
+      break;
+    case 'direct':
+      standardBreakdownHtml = `
+        <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+          <li><strong>ជំហានទី ២ (រំលឹកមេរៀន):</strong> ពិនិត្យចំណេះដឹងបុរេលក្ខខណ្ឌដែលចាំបាច់សម្រាប់ការរៀនក្បួនថ្មី</li>
+          <li><strong>ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី):</strong> ដំណាក់កាល "I Do" (គ្រូពន្យល់ច្បាប់/រូបមន្ត & បង្ហាញដំណោះស្រាយគំរូលើក្តារខៀនមួយជំហានម្តងៗ) + ដំណាក់កាល "We Do" (គ្រូនាំសិស្សធ្វើលំហាត់គំរូទី២ រួមគ្នាដើម្បីពិនិត្យការយល់ដឹង)</li>
+          <li><strong>ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT):</strong> ដំណាក់កាល "You Do" (សិស្សអនុវត្តដោះស្រាយលំហាត់ពីងាយទៅពិបាកដោយឯករាជ្យ ឬជាដៃគូ, គ្រូផ្តល់ Feedback ភ្លាមៗ)</li>
+          <li><strong>ជំហានទី ៥ (កិច្ចការផ្ទះ):</strong> ដាក់លំហាត់អនុវត្តបន្ថែមសម្រាប់ពង្រឹងភាពស្ទាត់ជំនាញ (Fluency) នៅផ្ទះ</li>
+        </ul>`;
+      break;
+    default: // student_centered
+      standardBreakdownHtml = `
+        <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+          <li><strong>ជំហានទី ២ (រំលឹកមេរៀន):</strong> សិស្សជាអ្នករំលឹក និងសង្ខេបមេរៀនចាស់ គ្រូដើរតួជាអ្នកសម្របសម្រួល</li>
+          <li><strong>ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី):</strong> Guided Discovery — គ្រូប្រើសំណួរគន្លឹះចំហ (Open-ended Questions) ជំរុញឱ្យសិស្សរុករក និងបង្កើតនិយមន័យដោយខ្លួនឯង</li>
+          <li><strong>ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT):</strong> ច្បាប់ TTT 30% / STT 70% — សិស្សធ្វើការជាក្រុមអនុវត្តជាក់ស្តែង ធ្វើបទបង្ហាញការពារលើ Flipchart ឬក្ដារឆ្នួន [ជំនាញ 4Cs]</li>
+          <li><strong>ជំហានទី ៥ (កិច្ចការផ្ទះ):</strong> Exit Ticket 3-2-1 និងការស្រាវជ្រាវបន្តតាមចំណាប់អារម្មណ៍</li>
+        </ul>`;
+      break;
   }
 
   return `
     <ul class="doc-list" style="margin-top: 4px; line-height: 1.8;">
-      <li><strong>គំរូ និងទម្រង់រៀបចំការរៀន៖</strong> ការរៀនបែបត្រឡប់ (Flipped Learning Model) ៥ ជំហាន (៥% - ១០% - ១០% - ៧០% - ៥%)</li>
-      <li><strong>វិធីសាស្ត្របង្រៀនគន្លឹះ៖</strong> វិធីសាស្ត្រសិស្សមជ្ឈមណ្ឌល (Student-Centered Approach) គួបផ្សំការរៀនសហការជាក្រុម និងការដោះស្រាយបញ្ហាជាក់ស្តែង</li>
+      <li><strong>វិធីសាស្ត្របង្រៀនចម្បង៖</strong> ${escapeHtml(m)}</li>
+      <li><strong>ទម្រង់កិច្ចតែងការ៖</strong> កិច្ចតែងការស្តង់ដារ ៥ ជំហាន ក្រសួងអប់រំ យុវជន និងកីឡា (MoEYS Standard 5-Step Process)</li>
+      <li><strong>ការរៀបចំដំណាក់កាលគរុកោសល្យក្នុង ៥ ជំហាន៖</strong>
+        ${standardBreakdownHtml}
+      </li>
     </ul>
   `;
 }
@@ -7392,7 +7685,7 @@ function renderLessonPlanToA4(data) {
       <!-- Section 3: Method -->
       <div class="doc-section-title">៣. វិធីសាស្រ្ដបង្រៀន</div>
       <div style="margin-left: 10px; margin-bottom: 12px; font-size: 10pt;">
-        <div>- ការរៀនបែបត្រឡប់ (Flipped Learning ៥ ជំហាន: ៥% - ១០% - ១០% - ៧០% - ៥%)</div>
+        ${renderTeachingMethodContent(data.method, 'flipped_learning')}
       </div>
 
       <!-- Section 4: In-Class Process (3 Columns) -->
@@ -7623,12 +7916,11 @@ function renderLessonPlanToA4(data) {
       <div style="margin-top: 4px;">• <strong>សម្រាប់សិស្ស៖</strong> ${escapeHtml((data.materials?.student || []).join(', '))}</div>
     </div>
 
-    ${data.method ? `
     <!-- Teaching Method -->
     <div class="doc-section-title" style="font-size: 11.5pt;">៣. វិធីសាស្រ្ដបង្រៀន</div>
     <div style="margin-left: 10px; margin-bottom: 12px; font-size: 10pt;">
-      ${renderTeachingMethodContent(data.method)}
-    </div>` : ''}
+      ${renderTeachingMethodContent(data.method, '5_steps')}
+    </div>
 
     <!-- Section IV: In-Class Process -->
     <div class="doc-section-title">IV. ដំណើរការបង្រៀន និងរៀនក្នុងថ្នាក់ (In-Class Teaching Process)</div>
@@ -8217,9 +8509,52 @@ async function handleExportWord() {
       );
 
       // Section 3: Method
+      const methodTitle = data.method || 'ការរៀនបែបត្រឡប់';
+      const methodType = detectMethodType(methodTitle);
+      let methodPhases = [];
+      if (methodType === 'pbl') {
+        methodPhases = [
+          "ជំហានទី ២ (១០%): ពិនិត្យការយល់ដឹងពីផ្ទះ ស្រាយចម្ងល់ Muddiest Points និងភ្ជាប់ទ្រឹស្តីទៅបញ្ហាជាក់ស្តែង",
+          "ជំហានទី ៣ (១០%): គ្រូចោទសំណួរតម្រង់ទិស និងប្រគល់ «សន្លឹកបេសកកម្មដោះស្រាយបញ្ហា (Challenge Scenario)»",
+          "ជំហានទី ៤ (៧០% - Core Active Learning): PBL ៤ ដំណាក់កាល (វិភាគបញ្ហា, សហការដោះស្រាយលើ Flipchart, ការពារដំណោះស្រាយ, វាយតម្លៃតាម Rubric)",
+          "ជំហានទី ៥ (៥%): ឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 និងដាក់កិច្ចការបញ្ហាស្រាវជ្រាវបន្ត"
+        ];
+      } else if (methodType === 'jigsaw') {
+        methodPhases = [
+          "ជំហានទី ២ (១០%): ពិនិត្យ Pre-Test ស្រាយចម្ងល់ Muddiest Points ពីការស្វ័យសិក្សាតាមវីដេអូ",
+          "ជំហានទី ៣ (១០%): បែងចែកក្រុមដើម (Home Groups) និងចាត់តាំងក្រុមអ្នកជំនាញ (Expert Groups)",
+          "ជំហានទី ៤ (៧០% - Core Active Learning): Jigsaw ៤ ដំណាក់កាល (ក្រុមអ្នកជំនាញវិភាគស៊ីជម្រៅ, ត្រឡប់ទៅក្រុមដើមបង្រៀនគ្នា, ចងក្រង Concept Map លើ Flipchart, Gallery Walk)",
+          "ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 សង្ខេបចំណេះដឹង និងកិច្ចការផ្ទះ"
+        ];
+      } else if (methodType === '5e') {
+        methodPhases = [
+          "Engage (ជំហានទី ១ & ២): ស្វ័យសិក្សាតាមវីដេអូ Micro-Lecture, Pre-Test QCM, និងដោះស្រាយ Muddiest Points",
+          "Explore (ជំហានទី ៣): សិស្សធ្វើការជាក្រុម អនុវត្តបេសកកម្ម Challenge Scenario / ពិសោធន៍ជាក់ស្តែង",
+          "Explain & Elaborate (ជំហានទី ៤ - ៧០%): ក្រុមសិស្សពន្យល់របកគំហើញ និងពង្រីកចំណេះដឹងដោះស្រាយបញ្ហាថ្មីលើ Flipchart A0",
+          "Evaluate (ជំហានទី ៥): Exit Ticket 3-2-1, Rubric សហការ ៤ កម្រិត និងកម្រងសំណួរ Post-Test MCQ"
+        ];
+      } else if (methodType === 'direct') {
+        methodPhases = [
+          "Pre-Class & ជំហានទី ២ (១០%): I Do ផ្នែកទ្រឹស្តីមូលដ្ឋានបានរៀនតាមវីដេអូពីផ្ទះ; គ្រូបំភ្លឺចំណុចពិបាក (Mini-Modeling) តាម Muddiest Points",
+          "ជំហានទី ៣ (១០%): We Do (គ្រូនាំធ្វើ) — គ្រូនាំសិស្សអនុវត្តលំហាត់គំរូគន្លឹះរួមគ្នាដើម្បីពង្រឹងក្បួនខ្នាត",
+          "ជំហានទី ៤ (៧០% - Core Active Learning): Intensive You Do (អនុវត្តជាដៃគូ, អនុវត្តជាក្រុមលើស្ថានភាពស្មុគស្មាញ, បង្ហាញ & កែកំហុស, ស្វ័យវាយតម្លៃ)",
+          "ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 ស្ទង់ភាពស្ទាត់ជំនាញ និងលំហាត់ពង្រឹងសមត្ថភាពបន្ត"
+        ];
+      } else {
+        methodPhases = [
+          "ជំហានទី ២ (១០%): សិស្សលើកឡើង Muddiest Points ពីផ្ទះ គ្រូដើរតួជា Facilitator សម្របសម្រួលបំភ្លឺ",
+          "ជំហានទី ៣ (១០%): គ្រូចោទ ៤ សំណួរដាស់ការត្រិះរិះ និងប្រគល់កិច្ចការស្វ័យសិក្សាជាក្រុម",
+          "ជំហានទី ៤ (៧០% - Core Active Learning): សិស្សរៀនដោយស្វ័យភាព (TTT 30% / STT 70%, សហការផលិតស្នាដៃលើ Flipchart, ការពារ និងឆ្លុះបញ្ចាំង Metacognition)",
+          "ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 ស្ទង់មតិសិស្សលើការយល់ដឹង និងកិច្ចការស្វ័យសិក្សា"
+        ];
+      }
+
       docChildren.push(
         new Paragraph({ children: [new TextRun({ text: "៣. វិធីសាស្រ្ដបង្រៀន", bold: true, size: 24 })] }),
-        new Paragraph({ children: [new TextRun({ text: "     - ការរៀនបែបត្រឡប់", size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: `• វិធីសាស្ត្របង្រៀនចម្បង៖ ${methodTitle}`, bold: true, size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: "• គំរូ និងទម្រង់រៀបចំការរៀន៖ ការរៀនបែបត្រឡប់ (Flipped Learning Model ៥ ជំហាន: ៥% - ១០% - ១០% - ៧០% - ៥%) — ផ្សារភ្ជាប់ការស្វ័យសិក្សាត្រៀមមុនម៉ោង (Pre-Class តាមវីដេអូបង្រៀន Micro-Lecture NotebookLM និងបុរេតេស្ត Pre-Test QCM) ជាមួយការរៀនសកម្មក្នុងថ្នាក់ (In-Class Active Learning ៧០%)។", size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: "• ដំណាក់កាលអនុវត្តវិធីសាស្ត្រក្នុងថ្នាក់៖", italics: true, size: 22 })] }),
+        ...methodPhases.map(p => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: p, size: 22 })] })),
         new Paragraph({ text: "" })
       );
 
@@ -8454,6 +8789,56 @@ async function handleExportWord() {
         new Paragraph({ children: [new TextRun({ text: "II. សម្ភារឧបទេស (Materials)", bold: true, size: 24 })] }),
         new Paragraph({ children: [new TextRun({ text: `• សម្រាប់គ្រូ៖ ${(data.materials?.teacher || []).join(', ')}`, size: 22 })] }),
         new Paragraph({ children: [new TextRun({ text: `• សម្រាប់សិស្ស៖ ${(data.materials?.student || []).join(', ')}`, size: 22 })] }),
+        new Paragraph({ text: "" })
+      );
+
+      // Section III: Method
+      const stdMethodTitle = data.method || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)';
+      const stdMethodType = detectMethodType(stdMethodTitle);
+      let standardMethodPhases = [];
+      if (stdMethodType === 'pbl') {
+        standardMethodPhases = [
+          "ជំហានទី ២ (រំលឹកមេរៀន): ចោទសួរសំណួររំលឹកជាស្ពានចម្លងផ្សារភ្ជាប់ទៅស្ថានភាពបញ្ហាជាក់ស្តែង",
+          "ជំហានទី ៣ (មេរៀនថ្មី): បង្ហាញស្ថានភាពបញ្ហាជាក់ស្តែង (Problem Scenario), សិស្សវិភាគឫសគល់, គ្រូពន្យល់ទ្រឹស្តី/ក្បួនគន្លឹះដោះស្រាយ",
+          "ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT): ក្រុមសិស្សដោះស្រាយបញ្ហាលើ Flipchart/ក្ដារឆ្នួន, ធ្វើតេស្តសម្មតិកម្ម, ការពារដំណោះស្រាយ [ការគិតស៊ីជម្រៅ]",
+          "ជំហានទី ៥ (កិច្ចការផ្ទះ): ដាក់កិច្ចការបញ្ហាជាក់ស្តែងថ្មីសម្រាប់ដោះស្រាយនៅផ្ទះ និងឆ្លុះបញ្ចាំង Exit Ticket 3-2-1"
+        ];
+      } else if (stdMethodType === 'jigsaw') {
+        standardMethodPhases = [
+          "ជំហានទី ២ (រំលឹកមេរៀន): រំលឹកចំណេះដឹងគ្រឹះចាំបាច់សម្រាប់ការសិក្សាផ្នែកជំនាញ",
+          "ជំហានទី ៣ (មេរៀនថ្មី): បែងចែកក្រុមអ្នកជំនាញ (Expert Groups) សិក្សាស្វែងយល់ផ្នែករងនីមួយៗនៃមេរៀនថ្មី",
+          "ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT): ត្រឡប់ទៅក្រុមដើម (Home Groups) បង្រៀនគ្នា (Jigsaw), ចងក្រង Concept Map លើ Flipchart, និងធ្វើ Gallery Walk",
+          "ជំហានទី ៥ (កិច្ចការផ្ទះ): Exit Ticket 3-2-1 សង្ខេបចំណុចសំខាន់ៗ និងលំហាត់ស្រាវជ្រាវ"
+        ];
+      } else if (stdMethodType === '5e') {
+        standardMethodPhases = [
+          "ជំហានទី ១ & ២ (Engage): បំផុសចំណាប់អារម្មណ៍តាមបាតុភូតជាក់ស្តែង និងផ្សារភ្ជាប់មេរៀនចាស់",
+          "ជំហានទី ៣ (Explore & Explain): សិស្សរុករក/ពិសោធន៍ជាក្រុម និងពន្យល់របកគំហើញ រួចគ្រូបូកសរុបក្បួនគន្លឹះផ្លូវការ",
+          "ជំហានទី ៤ (Elaborate ៧០% STT): អនុវត្តចំណេះដឹងដោះស្រាយលំហាត់/ស្ថានភាពស្មុគស្មាញថ្មី [ជំនាញ 4Cs]",
+          "ជំហានទី ៥ (Evaluate): តេស្តរហ័ស Exit Ticket 3-2-1 និងការបូកសរុបវាយតម្លៃ"
+        ];
+      } else if (stdMethodType === 'direct') {
+        standardMethodPhases = [
+          "ជំហានទី ២ (រំលឹកមេរៀន): ពិនិត្យចំណេះដឹងបុរេលក្ខខណ្ឌចាំបាច់សម្រាប់ការរៀនក្បួនថ្មី",
+          "ជំហានទី ៣ (មេរៀនថ្មី): I Do (គ្រូពន្យល់ & ធ្វើដំណោះស្រាយគំរូមួយជំហានម្តងៗ) + We Do (គ្រូនាំសិស្សអនុវត្តលំហាត់គំរូទី២ រួមគ្នា)",
+          "ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT): You Do (សិស្សអនុវត្តដោះស្រាយលំហាត់ពីងាយទៅពិបាកដោយឯករាជ្យ ឬជាដៃគូ, គ្រូផ្តល់ Feedback ភ្លាមៗ)",
+          "ជំហានទី ៥ (កិច្ចការផ្ទះ): ដាក់លំហាត់អនុវត្តបន្ថែមសម្រាប់ពង្រឹងភាពស្ទាត់ជំនាញ (Fluency) នៅផ្ទះ"
+        ];
+      } else {
+        standardMethodPhases = [
+          "ជំហានទី ២ (រំលឹកមេរៀន): សិស្សរំលឹក និងសង្ខេបមេរៀនចាស់ គ្រូដើរតួជាអ្នកសម្របសម្រួល",
+          "ជំហានទី ៣ (មេរៀនថ្មី): Guided Discovery — គ្រូប្រើសំណួរគន្លឹះចំហជំរុញឱ្យសិស្សរុករក និងបង្កើតនិយមន័យដោយខ្លួនឯង",
+          "ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT): ច្បាប់ TTT 30% / STT 70% — សិស្សធ្វើការជាក្រុមអនុវត្តជាក់ស្តែង ការពារលើ Flipchart [ជំនាញ 4Cs]",
+          "ជំហានទី ៥ (កិច្ចការផ្ទះ): Exit Ticket 3-2-1 និងការស្រាវជ្រាវបន្តតាមចំណាប់អារម្មណ៍"
+        ];
+      }
+
+      docChildren.push(
+        new Paragraph({ children: [new TextRun({ text: "III. វិធីសាស្រ្ដបង្រៀន (Teaching Method)", bold: true, size: 24 })] }),
+        new Paragraph({ children: [new TextRun({ text: `• វិធីសាស្ត្របង្រៀនចម្បង៖ ${stdMethodTitle}`, bold: true, size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: "• ទម្រង់កិច្ចតែងការ៖ កិច្ចតែងការស្តង់ដារ ៥ ជំហាន ក្រសួងអប់រំ យុវជន និងកីឡា (MoEYS Standard 5-Step Process)", size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: "• ការរៀបចំដំណាក់កាលគរុកោសល្យក្នុង ៥ ជំហាន៖", italics: true, size: 22 })] }),
+        ...standardMethodPhases.map(p => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: p, size: 22 })] })),
         new Paragraph({ text: "" })
       );
 
@@ -9232,8 +9617,18 @@ function importPlansFromJson(file) {
   reader.readAsText(file);
 }
 
-// Google NotebookLM & Gemini Notebook Studio Actions - Flipped Classroom Video Micro-Lecture
+// Google NotebookLM & Gemini Notebook Studio Actions - Flipped Classroom Video Micro-Lecture (Option 2 Synchronized)
 let currentNotebookLmFlippedPrompt = '';
+let currentNotebookLmCustomizePrompt = '';
+
+function prepareNotebookLmCustomizeInstruction() {
+  return `សូមដើរតួជាសាស្ត្រាចារ្យគរុកោសល្យ និងជាអ្នកជំនាញផលិតវីដេអូបកស្រាយមេរៀន (Educational Explainer Video) ជាភាសាខ្មែរ ១០០% ស្របតាមរចនាសម្ព័ន្ធ [SCENE] និងពេលវេលា [TIMESTAMP] ក្នុងឯកសារប្រភព។
+
+⚠️ លក្ខខណ្ឌតម្រូវការពារការរត់ជាន់ស្លាយ (ANTI-DESYNC REQUIREMENTS)៖
+១. សូមប្តូរស្លាយរូបភាព និងបង្ហាញអត្ថបទឱ្យស៊ីគ្នានឹងសំឡេងអានបកស្រាយតាម [SCENE] និងពេលវេលា [TIMESTAMP] នីមួយៗជាដាច់ខាត។
+២. ហាមដាច់ខាតមិនឱ្យសំឡេងនិយាយរត់ទៅមុខមុន ហើយទុករូបភាពស្លាយរត់កកកុញជាន់គ្នានៅចុងក្រោយឡើយ!
+៣. ទាំងសំឡេងគ្រូអត្ថាធិប្បាយ និងអក្សរលើស្លាយ ត្រូវតែជា «ភាសាខ្មែរ ១០០%» (Font 'Kantumruy Pro') គ្មានការលើកឡើងពីរដ្ឋបាលថ្នាក់ ឬសម្រង់វត្តមានឡើយ។`;
+}
 
 function prepareNotebookLmFlippedVideoPrompt() {
   const data = state.generatedPlanData || state.currentPlan;
@@ -9252,7 +9647,6 @@ function prepareNotebookLmFlippedVideoPrompt() {
     const concepts = [];
     if (data?.steps && Array.isArray(data.steps)) {
       data.steps.forEach(st => {
-        // Exclude step 1 (admin) and step 5 (homework), focus on academic content
         if (st.contentSummary && st.contentSummary.trim().length > 15) {
           const titleClean = st.stepTitle || 'ខ្លឹមសារស្នូល';
           if (!titleClean.includes('រដ្ឋបាល') && !titleClean.includes('កិច្ចការផ្ទះ')) {
@@ -9270,39 +9664,130 @@ function prepareNotebookLmFlippedVideoPrompt() {
     const list = [];
     if (data.objectives.knowledge?.length) list.push(...data.objectives.knowledge);
     if (data.objectives.skills?.length) list.push(...data.objectives.skills);
-    if (list.length) objText = list.map(o => `- ${o}`).join('\n');
+    if (list.length) objText = list.map(o => `• ${o}`).join('\n');
+  }
+  if (!objText) {
+    objText = `• យល់ដឹងច្បាស់ពីគោលការណ៍គ្រឹះ និងនិយមន័យនៃ «${title}»\n• ចេះអនុវត្តទ្រឹស្តី និងដោះស្រាយបញ្ហាក្នុងជីវភាពជាក់ស្តែង`;
   }
 
-  // 3. Build the 100% Khmer Pre-Class Flipped Classroom Video Prompt
+  // 3. Extract or Synthesize 100% Timed Scenes matching Option 2 (Scene Header & Timestamp)
+  let scenesText = '';
+  
+  // Case A: App already generated video scenes (from Video Studio)
+  if (data?.videoScenes && Array.isArray(data.videoScenes) && data.videoScenes.length > 0) {
+    data.videoScenes.forEach((sc, idx) => {
+      const scName = sc.name || sc.title || `ឈុតទី ${idx + 1}`;
+      const scTime = sc.timeRange || `0${idx}:00 - 0${idx + 1}:00`;
+      let bulletsStr = '';
+      if (Array.isArray(sc.bullets) && sc.bullets.length) {
+        bulletsStr = sc.bullets.map(b => `  • ${b}`).join('\n');
+      } else {
+        bulletsStr = `  • ${sc.subtitle || sc.title || title}`;
+      }
+      const visual = sc.visualCue || sc.imagePrompt || `រូបភាព ឬដ្យាក្រាមពន្យល់អំពី ${sc.title || scName}`;
+      const narration = sc.narration || sc.dialogue || `សូមស្វាគមន៍មកកាន់ ${scName} នៃមេរៀន «${title}»។`;
+
+      scenesText += `[SCENE ${idx + 1}: ${scName}] (ពេលវេលា: ${scTime})\n`;
+      scenesText += `- អត្ថបទលើស្លាយ:\n${bulletsStr}\n`;
+      scenesText += `- រូបភាព: ${visual}\n`;
+      scenesText += `- សំឡេងអានបកស្រាយ: ${narration}\n\n---\n\n`;
+    });
+  }
+  // Case B: App has notebooklmGuide scriptSegments
+  else if (data?.notebooklmGuide?.scriptSegments && Array.isArray(data.notebooklmGuide.scriptSegments) && data.notebooklmGuide.scriptSegments.length > 0) {
+    data.notebooklmGuide.scriptSegments.forEach((seg, idx) => {
+      const scName = seg.sceneDescription || `ឈុតទី ${idx + 1}`;
+      const scTime = seg.timestamp || `0${idx}:00 - 0${idx + 1}:00`;
+      const onScreen = seg.onScreenText || `មេរៀន៖ ${title} (${subject} ${grade})`;
+      const visual = seg.visualCue || `រូបភាពបង្ហាញពន្យល់ពី ${scName}`;
+      const narration = seg.narration || seg.dialogue || `ខ្លឹមសារបកស្រាយឈុតទី ${idx + 1}`;
+
+      scenesText += `[SCENE ${idx + 1}: ${scName}] (ពេលវេលា: ${scTime})\n`;
+      scenesText += `- អត្ថបទលើស្លាយ:\n  • ${onScreen}\n`;
+      scenesText += `- រូបភាព: ${visual}\n`;
+      scenesText += `- សំឡេងអានបកស្រាយ: ${narration}\n\n---\n\n`;
+    });
+  }
+  // Case C: Synthesize 5 rich standard pedagogical scenes (Option 2 format)
+  else {
+    const p1 = (data?.notebooklmGuide?.keyTakeaways && data.notebooklmGuide.keyTakeaways[0]) || `គោលការណ៍គ្រឹះ និងនិយមន័យនៃ ${title}`;
+    const p2 = (data?.notebooklmGuide?.keyTakeaways && data.notebooklmGuide.keyTakeaways[1]) || `យន្តការដំណើរការ និងរូបមន្តគន្លឹះ`;
+    const p3 = (data?.notebooklmGuide?.keyTakeaways && data.notebooklmGuide.keyTakeaways[2]) || `ការផ្សារភ្ជាប់ទ្រឹស្តីទៅនឹងការអនុវត្តជាក់ស្តែងក្នុងជីវភាព`;
+
+    scenesText += `[SCENE 1: សេចក្តីផ្តើម & បញ្ហាគន្លឹះ] (ពេលវេលា: 00:00 - 00:45)\n`;
+    scenesText += `- អត្ថបទលើស្លាយ:\n`;
+    scenesText += `  • មេរៀន «${title}» (${subject} ${grade})\n`;
+    scenesText += `  • ស្វែងយល់ពីគោលបំណងស្នូល និងសារៈសំខាន់នៃមេរៀន\n`;
+    scenesText += `  • សំណួរគន្លឹះជំរុញការត្រិះរិះត្រៀមមុនចូលថ្នាក់\n`;
+    scenesText += `- រូបភាព: បរិយាកាសថ្នាក់រៀនសកម្ម និងរូបភាពផ្សារភ្ជាប់ជីវភាពជាក់ស្តែង\n`;
+    scenesText += `- សំឡេងអានបកស្រាយ: សូមស្វាគមន៍គរុនិស្សិត និងប្អូនៗទាំងអស់គ្នា មកកាន់វីដេអូស្វ័យសិក្សាត្រៀមមុនម៉ោងនៃមេរៀន «${title}» ក្នុងមុខវិជ្ជា ${subject} ${grade}។ ថ្ងៃនេះយើងនឹងស្វែងយល់ពីគោលគំនិតចម្បង និងបញ្ហាគន្លឹះ ដើម្បីជាទុនក្នុងការចូលរួមសកម្មភាពរៀនសកម្មក្នុងថ្នាក់រៀន!\n\n---\n\n`;
+
+    scenesText += `[SCENE 2: ទ្រឹស្តីស្នូល & និយមន័យគ្រឹះ] (ពេលវេលា: 00:46 - 01:45)\n`;
+    scenesText += `- អត្ថបទលើស្លាយ:\n`;
+    scenesText += `  • ${p1}\n`;
+    scenesText += `  • បញ្ញត្តិសំខាន់ៗដែលជាគ្រឹះនៃការយល់ដឹង\n`;
+    scenesText += `  • ទំនាក់ទំនងរវាងទ្រឹស្តី និងការអភិវឌ្ឍចំណេះដឹង\n`;
+    scenesText += `- រូបភាព: គំនូរបំព្រួញ ឬដ្យាក្រាមលំហូរនៃទ្រឹស្តី\n`;
+    scenesText += `- សំឡេងអានបកស្រាយ: ចំណុចស្នូលដំបូងដែលយើងត្រូវយល់ឱ្យបានស៊ីជម្រៅ គឺ${p1}។ ទ្រឹស្តីនេះបង្ហាញយ៉ាងច្បាស់ពីយន្តការគ្រឹះ ដែលជាគន្លឹះមិនអាចខ្វះបានក្នុងការរៀបចំផែនការ និងការដោះស្រាយបញ្ហា!\n\n---\n\n`;
+
+    scenesText += `[SCENE 3: ការពន្យល់ស៊ីជម្រៅ & យន្តការដំណើរការ] (ពេលវេលា: 01:46 - 03:00)\n`;
+    scenesText += `- អត្ថបទលើស្លាយ:\n`;
+    scenesText += `  • ${p2}\n`;
+    scenesText += `  • ការវិភាគបាតុភូត និងមូលហេតុបង្ក\n`;
+    scenesText += `  • កត្តាជះឥទ្ធិពលលើដំណើរការរៀនសូត្រ\n`;
+    scenesText += `- រូបភាព: ដ្យាក្រាមយន្តការ និងគំនូសបំព្រួញដំណាក់កាលអនុវត្ត\n`;
+    scenesText += `- សំឡេងអានបកស្រាយ: នៅពេលយើងពិនិត្យមើលកាន់តែស៊ីជម្រៅ យន្តការនេះដំណើរការទៅតាមដំណាក់កាលជាក់លាក់ គឺ${p2} ដែលតម្រូវឱ្យយើងចេះវិភាគ ពិចារណាដេញដោល និងផ្សារភ្ជាប់កត្តាជុំវិញខ្លួនឱ្យបានគ្រប់ជ្រុងជ្រោយ!\n\n---\n\n`;
+
+    scenesText += `[SCENE 4: ករណីសិក្សា & ការអនុវត្តជាក់ស្តែង] (ពេលវេលា: 03:01 - 04:15)\n`;
+    scenesText += `- អត្ថបទលើស្លាយ:\n`;
+    scenesText += `  • ${p3}\n`;
+    scenesText += `  • ករណីសិក្សាជាក់ស្តែងក្នុងបរិបទសង្គម និងការអប់រំនៅកម្ពុជា\n`;
+    scenesText += `  • វិធីសាស្ត្រដោះស្រាយបញ្ហាតាមក្បួនគរុកោសល្យ\n`;
+    scenesText += `- រូបភាព: រូបភាពសកម្មភាពអនុវត្តជាក់ស្តែង និងការដោះស្រាយបញ្ហាជាក្រុម\n`;
+    scenesText += `- សំឡេងអានបកស្រាយ: ឥឡូវនេះសូមក្រឡេកមកមើលករណីសិក្សាជាក់ស្តែងក្នុងបរិបទសង្គមពិត គឺ${p3}។ ការយល់ដឹងពីចំណុចនេះ នឹងជួយឱ្យយើងអាចយកចំណេះដឹងពីមេរៀនទៅដោះស្រាយស្ថានភាពជីវិតជាក់ស្តែងបានយ៉ាងមានប្រសិទ្ធភាព!\n\n---\n\n`;
+
+    scenesText += `[SCENE 5: សង្ខេបមេរៀន & ការត្រៀម Pre-Test] (ពេលវេលា: 04:16 - 05:30)\n`;
+    scenesText += `- អត្ថបទលើស្លាយ:\n`;
+    scenesText += `  • សង្ខេបចំណុចគន្លឹះសំខាន់ៗទាំង ៣ នៃមេរៀន\n`;
+    scenesText += `  • កត់ត្រាចំណុចស្រពិចស្រពិល (Muddiest Point)\n`;
+    scenesText += `  • ឆ្លើយវិញ្ញាសាបុរេតេស្ត (Pre-Test QCM) មុនចូលរៀន\n`;
+    scenesText += `- រូបភាព: រូបតំណាងកម្រងសំណួរឌីជីថល (Digital Quiz / Google Form)\n`;
+    scenesText += `- សំឡេងអានបកស្រាយ: ជាចុងក្រោយ សូមប្អូនៗទាំងអស់គ្នាកត់ត្រាចំណុចដែលខ្លួននៅស្រពិចស្រពិល (Muddiest Point) យ៉ាងតិចមួយសំណួរ ព្រមទាំងចូលទៅឆ្លើយវិញ្ញាសាបុរេតេស្ត Pre-Test QCM ខាងក្រោម ដើម្បីត្រៀមខ្លួនសម្រាប់សកម្មភាពអនុវត្ត និងពិភាក្សាជាក្រុមក្នុងថ្នាក់រៀន!\n\n---\n\n`;
+  }
+
+  // 4. Assemble the Full Option 2 Synchronized Source & Prompt
   let prompt = `=======================================================\n`;
-  prompt += `PROMPT វីដេអូស្វ័យសិក្សាត្រៀមមុនម៉ោង (FLIPPED CLASSROOM MICRO-LECTURE)\n`;
-  prompt += `ភាសានិយាយ និងអក្សរលើស្លាយ៖ ភាសាខ្មែរ ១០០% (FONT: KANTUMRUY PRO)\n`;
+  prompt += `🎬 ឯកសារប្រភព & PROMPT វីដេអូស្វ័យសិក្សា (FLIPPED CLASSROOM MICRO-LECTURE)\n`;
+  prompt += `⏱️ រយៈពេលសរុប៖ ៥ ទៅ ៧ នាទី | ភាសា៖ ភាសាខ្មែរ ១០០% (FONT: KANTUMRUY PRO)\n`;
+  prompt += `🎯 គោលការណ៍ស៊ីចង្វាក់ (OPTION 2): រូបភាពស្លាយ និងសំឡេងអានត្រូវប្តូរស្របគ្នាតាម [SCENE] និងពេលវេលា [TIMESTAMP]\n`;
   prompt += `=======================================================\n\n`;
-  prompt += `សូមដើរតួជាសាស្ត្រាចារ្យគរុកោសល្យ និងជាអ្នកជំនាញផលិតវីដេអូអប់រំឌីជីថល។ សូមផលិតវីដេអូពន្យល់មេរៀនខ្នាតខ្លី (Educational Explainer Video / Micro-Lecture) រយៈពេល ៥ ទៅ ៨ នាទី សម្រាប់សិស្ស/គរុនិស្សិតស្វ័យសិក្សាត្រៀមមុនចូលរៀនក្នុងថ្នាក់ (Pre-Class Phase ក្នុងគំរូ Flipped Classroom) សម្រាប់មេរៀន «${title}» មុខវិជ្ជា ${subject} ${grade}។\n\n`;
 
-  prompt += `⚠️ លក្ខខណ្ឌតម្រូវចាំបាច់បំផុត (CRITICAL REQUIREMENTS)៖\n`;
+  prompt += `📌 ប្រធានបទ៖ «${title}»\n`;
+  prompt += `📚 មុខវិជ្ជា៖ ${subject} | កម្រិតថ្នាក់៖ ${grade}\n\n`;
+
+  prompt += `🎯 គោលបំណងនៃការរៀនសូត្រ៖\n`;
+  prompt += `${objText}\n\n`;
+
+  prompt += `=======================================================\n`;
+  prompt += `⚠️ លក្ខខណ្ឌតម្រូវការពារការរត់ជាន់ស្លាយ (ANTI-DESYNC REQUIREMENTS)៖\n`;
   prompt += `១. ភាសានិយាយ និងអក្សរលើស្លាយ (Language):\n`;
-  prompt += `   • ទាំងសំឡេងគ្រូអត្ថាធិប្បាយ (Narration Voiceover) និងអក្សរសង្ខេបបង្ហាញលើស្លាយវីដេអូ (On-Screen Text) ត្រូវតែជា «ភាសាខ្មែរ ១០០%» (Font 'Kantumruy Pro')។\n`;
-  prompt += `   • ទឹកដមសំឡេងត្រូវមានភាពរស់រវើក ទាក់ទាញ ច្បាស់ៗ រលូន និងមានលក្ខណៈអប់រំកម្រិតខ្ពស់។ ដាច់ខាតកុំប្រើប្រាស់ភាសាអង់គ្លេសលើស្លាយ ឬក្នុងសំឡេងនិយាយ!\n\n`;
+  prompt += `   • ទាំងសំឡេងគ្រូអត្ថាធិប្បាយ (Narration Voiceover) និងអក្សរសង្ខេបបង្ហាញលើស្លាយ (On-Screen Text) ត្រូវតែជា «ភាសាខ្មែរ ១០០%» (Font 'Kantumruy Pro')។\n`;
+  prompt += `   • ហាមដាច់ខាតមិនឱ្យប្រើប្រាស់ភាសាអង់គ្លេសលើស្លាយ ឬក្នុងសំឡេងនិយាយ!\n`;
+  prompt += `២. ការកំណត់ស៊ីចង្វាក់ស្លាយ និងសំឡេង (Strict Audio-Visual Synchronization):\n`;
+  prompt += `   • សូមប្តូរស្លាយរូបភាព និងបង្ហាញអត្ថបទឱ្យស៊ីគ្នានឹងសំឡេងអានតាម [SCENE] និង [TIMESTAMP] នីមួយៗជាដាច់ខាត។\n`;
+  prompt += `   • ហាមដាច់ខាតមិនឱ្យសំឡេងនិយាយរត់ទៅមុខមុន ហើយទុករូបភាពស្លាយរត់កកកុញជាន់គ្នានៅចុងក្រោយឡើយ!\n`;
+  prompt += `៣. ខ្លឹមសារផ្តោតលើចំណេះដឹងមេរៀន (Academic Content Only):\n`;
+  prompt += `   • វីដេអូនេះសម្រាប់សិស្សរៀន ដូច្នេះហាមដាច់ខាតមិនឱ្យនិយាយពីរឿងរដ្ឋបាលថ្នាក់ ការសម្រង់វត្តមាន ឬកិច្ចការមិនពាក់ព័ន្ធឡើយ។\n`;
+  prompt += `=======================================================\n\n`;
 
-  prompt += `២. រចនាសម្ព័ន្ធវីដេអូ ៤ ឈុត (4-Scene Micro-Lecture Structure)៖\n`;
-  prompt += `   • ឈុតទី១ (អារម្ភកថា & ចំណុចចាប់អារម្មណ៍ - ១ នាទី)៖ បង្ហាញពីសារៈសំខាន់នៃមេរៀនក្នុងជីវភាពរស់នៅជាក់ស្តែង និងចោទជាបញ្ហា ឬភាពចង់ដឹង ដើម្បីទាក់ទាញការយកចិត្តទុកដាក់របស់សិស្ស។\n`;
-  prompt += `   • ឈុតទី២ (ទ្រឹស្តី និងបញ្ញត្តិស្នូល - ៣ នាទី)៖ ពន្យល់និយមន័យ បញ្ញត្តិ និងទ្រឹស្តីគន្លឹះជាភាសាខ្មែរឱ្យច្បាស់លាស់ និងងាយយល់ អមដោយដ្យាក្រាម រូបភាព ឬគំនូរជីវចលពន្យល់។\n`;
-  prompt += `   • ឈុតទី៣ (ករណីសិក្សា និងការអនុវត្តជាក់ស្តែង - ២ នាទី)៖ លើកករណីសិក្សាជាក់ស្តែងក្នុងបរិបទសង្គម និងការអប់រំនៅកម្ពុជា ដើម្បីបង្ហាញពីរបៀបដោះស្រាយបញ្ហាតាមក្បួនចិត្តវិទ្យា/គរុកោសល្យ។\n`;
-  prompt += `   • ឈុតទី៤ (សង្ខេប & សំណួរត្រិះរិះត្រៀមចូលថ្នាក់ - ១ នាទី)៖ សង្ខេបចំណុចសំខាន់ៗដែលបានរៀន និងដាក់សំណួរពិចារណា ២-៣ សំណួរ ដើម្បីឱ្យសិស្សត្រិះរិះទុកជាមុន និងត្រៀមយកមកពិភាក្សាដេញដោលក្នុងថ្នាក់រៀន (In-Class Active Learning)។\n\n`;
-
-  prompt += `៣. ខ្លឹមសារត្រូវផ្តោតតែលើ «ចំណេះដឹងមេរៀន» (Content Only)៖\n`;
-  prompt += `   • វីដេអូនេះសម្រាប់សិស្សរៀន ដូច្នេះហាមដាច់ខាតមិនឱ្យនិយាយពីរឿងរដ្ឋបាលថ្នាក់ ការសម្រង់វត្តមាន អនាម័យថ្នាក់ ឬការបែងចែកក្រុមឡើយ!\n\n`;
-
-  if (objText) {
-    prompt += `=======================================================\n`;
-    prompt += `[វត្ថុបំណងនៃការរៀនសូត្រ]\n`;
-    prompt += `${objText}\n\n`;
-  }
+  prompt += `=======================================================\n`;
+  prompt += `[រចនាសម្ព័ន្ធឈុតឆាក និងពេលវេលាជាក់លាក់ (TIMED SCENES - OPTION 2)]\n`;
+  prompt += `=======================================================\n\n`;
+  prompt += scenesText;
 
   if (lessonBody) {
     prompt += `=======================================================\n`;
-    prompt += `[ខ្លឹមសារឯកសារមេរៀនសម្រាប់ផលិតវីដេអូ]\n`;
+    prompt += `[ខ្លឹមសារឯកសារមេរៀនពិស្តារសម្រាប់ផ្ទៀងផ្ទាត់ (REFERENCE MATERIAL)]\n`;
     prompt += `=======================================================\n`;
     prompt += `${lessonBody}\n\n`;
   }
@@ -9331,15 +9816,28 @@ async function copyNotebookLMFlippedPrompt(e) {
   const text = currentNotebookLmFlippedPrompt || prepareNotebookLmFlippedVideoPrompt();
   try {
     await navigator.clipboard.writeText(text);
-    showToast('✨ បានចម្លង Prompt វីដេអូ Flipped Classroom (ភាសាខ្មែរ ១០០%) រួចរាល់!', 'success');
+    showToast('✨ បានចម្លងឯកសារប្រភព Scene & Timestamp (Option 2) រួចរាល់!', 'success');
   } catch (err) {
     showToast('មិនអាចចម្លងបានទេ: ' + err.message, 'error');
   }
 }
 window.copyNotebookLMFlippedPrompt = copyNotebookLMFlippedPrompt;
+window.copyNotebookLMOption2Source = copyNotebookLMFlippedPrompt;
 window.copyNotebookLMShortPrompt = copyNotebookLMFlippedPrompt;
 window.copyNotebookLMSourceOnly = copyNotebookLMFlippedPrompt;
 window.copyNotebookLMPromptAgain = copyNotebookLMFlippedPrompt;
+
+async function copyNotebookLMCustomizeInstruction(e) {
+  if (e) e.stopPropagation();
+  const text = prepareNotebookLmCustomizeInstruction();
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('🎯 បានចម្លងបញ្ជា Customize (Anti-Desync) សម្រាប់ NotebookLM Studio រួចរាល់!', 'success');
+  } catch (err) {
+    showToast('មិនអាចចម្លងបានទេ: ' + err.message, 'error');
+  }
+}
+window.copyNotebookLMCustomizeInstruction = copyNotebookLMCustomizeInstruction;
 
 async function openNotebookLM() {
   try {
@@ -9383,7 +9881,7 @@ async function openNotebookLM() {
     const modal = document.getElementById('notebookLmModal');
     if (modal) {
       modal.style.display = 'flex';
-      showToast('✨ បានចម្លង Prompt វីដេអូ Flipped Classroom ចូល Clipboard រួចរាល់!', 'success');
+      showToast('✨ បានចម្លងឯកសារប្រភព Scene & Timestamp (Option 2) ចូល Clipboard រួចរាល់!', 'success');
     } else {
       window.open('https://notebooklm.google.com/', '_blank');
     }
@@ -9408,7 +9906,7 @@ function proceedToNotebookLMWeb() {
   if (!win || win.closed || typeof win.closed === 'undefined') {
     window.location.href = 'https://notebooklm.google.com/';
   } else {
-    showToast('🚀 កំពុងបើក Google NotebookLM... សូមចុច Ctrl+V ដើម្បីបិទភ្ជាប់ Prompt!', 'success');
+    showToast('🚀 កំពុងបើក Google NotebookLM... សូមចុច Ctrl+V ដើម្បីបិទភ្ជាប់ Source!', 'success');
   }
 }
 window.proceedToNotebookLMWeb = proceedToNotebookLMWeb;
@@ -9425,9 +9923,27 @@ function proceedToGeminiWeb() {
 window.proceedToGeminiWeb = proceedToGeminiWeb;
 
 function downloadNotebookLMSourceFile() {
-  copyNotebookLMFlippedPrompt();
+  const text = currentNotebookLmFlippedPrompt || prepareNotebookLmFlippedVideoPrompt();
+  const data = state.generatedPlanData || state.currentPlan;
+  const rawTitle = data?.lessonTitle || 'មេរៀន';
+  const safeTitle = rawTitle.replace(/[\\/:*?"<>|]/g, '_').substring(0, 50);
+
+  try {
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `NotebookLM_Source_Option2_${safeTitle}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('💾 បានទាញយក File ប្រភព Option 2 (.txt) សម្រាប់ NotebookLM រួចរាល់!', 'success');
+  } catch (err) {
+    console.warn('File download failed, copying to clipboard:', err);
+    copyNotebookLMFlippedPrompt();
+  }
 }
-window.downloadNotebookLMSourceFile = downloadNotebookLMSourceFile;
 window.downloadNotebookLMSourceFile = downloadNotebookLMSourceFile;
 
 async function copyVideoAIScriptPrompt() {
@@ -12048,7 +12564,7 @@ function clearHistory() {
 // 📊 PPTX Attachment & Reliable Image Helpers
 // ==========================================================================
 
-function generateEducationalCardDataUrl(title, keyword, subject, theme, slideIndex = 1) {
+function generateEducationalCardDataUrl(title, targetCategory, subject, theme, slideIndex = 1) {
   try {
     const canvas = document.createElement('canvas');
     canvas.width = 1024;
@@ -12057,13 +12573,13 @@ function generateEducationalCardDataUrl(title, keyword, subject, theme, slideInd
     if (!ctx) return null;
 
     // Theme Color Schemes
-    let c1 = '#1e3a8a', c2 = '#2563eb', c3 = '#38bdf8';
+    let c1 = '#0f172a', c2 = '#1e3a8a', c3 = '#38bdf8';
     if (theme === 'eco_green') {
-      c1 = '#064e3b'; c2 = '#059669'; c3 = '#34d399';
+      c1 = '#064e3b'; c2 = '#065f46'; c3 = '#34d399';
     } else if (theme === 'dark_mode') {
-      c1 = '#0f172a'; c2 = '#1e293b'; c3 = '#64748b';
+      c1 = '#090d16'; c2 = '#1e293b'; c3 = '#64748b';
     } else if (theme === 'simple_light') {
-      c1 = '#334155'; c2 = '#475569'; c3 = '#94a3b8';
+      c1 = '#1e293b'; c2 = '#334155'; c3 = '#94a3b8';
     }
 
     // 1. Background Gradient
@@ -12074,7 +12590,7 @@ function generateEducationalCardDataUrl(title, keyword, subject, theme, slideInd
     ctx.fillRect(0, 0, 1024, 768);
 
     // 2. Decorative geometric accents
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
     ctx.beginPath();
     ctx.arc(880, 120, 260, 0, Math.PI * 2);
     ctx.fill();
@@ -12082,88 +12598,270 @@ function generateEducationalCardDataUrl(title, keyword, subject, theme, slideInd
     ctx.arc(140, 680, 220, 0, Math.PI * 2);
     ctx.fill();
 
-    // 3. Central Modern Educational Card
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+    // 3. Central Modern Educational Card Frame
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
     ctx.lineWidth = 3;
     ctx.beginPath();
     if (ctx.roundRect) {
-      ctx.roundRect(60, 60, 904, 648, 24);
+      ctx.roundRect(50, 50, 924, 668, 24);
     } else {
-      ctx.rect(60, 60, 904, 648);
+      ctx.rect(50, 50, 924, 668);
     }
     ctx.fill();
     ctx.stroke();
 
     // 4. Header Badges
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.18)';
     ctx.beginPath();
     if (ctx.roundRect) {
-      ctx.roundRect(90, 95, 360, 48, 12);
-      ctx.roundRect(750, 95, 180, 48, 12);
+      ctx.roundRect(80, 80, 420, 46, 12);
+      ctx.roundRect(770, 80, 170, 46, 12);
     } else {
-      ctx.rect(90, 95, 360, 48);
-      ctx.rect(750, 95, 180, 48);
+      ctx.rect(80, 80, 420, 46);
+      ctx.rect(770, 80, 170, 46);
     }
     ctx.fill();
 
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 22px "Kantumruy Pro", sans-serif';
-    ctx.fillText(`📚 មុខវិជ្ជា៖ ${subject || 'ទូទៅ'}`, 110, 128);
-    ctx.fillText(`ស្លាយទី #${slideIndex}`, 785, 128);
+    ctx.font = 'bold 20px "Kantumruy Pro", sans-serif';
+    ctx.fillText(`📚 មុខវិជ្ជា៖ ${subject || 'ទូទៅ'}`, 98, 111);
+    ctx.fillText(`ស្លាយទី #${slideIndex}`, 805, 111);
 
     // 5. Main Title & Concept
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 34px "Kantumruy Pro", sans-serif';
-    const displayTitle = (title || 'ខ្លឹមសារមេរៀន').substring(0, 45);
-    ctx.fillText(displayTitle, 90, 215);
+    ctx.font = 'bold 30px "Kantumruy Pro", sans-serif';
+    const displayTitle = (title || 'ខ្លឹមសារមេរៀន').substring(0, 42);
+    ctx.fillText(displayTitle, 80, 185);
 
-    // 6. Pedagogical Concept Diagram (3 Visual Pillars)
-    const pillars = [
-      { num: '១', label: 'ស្វែងយល់', desc: 'ចំណេះដឹងគន្លឹះ' },
-      { num: '២', label: 'ពិភាក្សា', desc: 'ការគិតពិចារណា' },
-      { num: '៣', label: 'អនុវត្ត', desc: 'បំណិន និងសមត្ថភាព' }
-    ];
-
-    const pw = 250, ph = 260, gap = 45, sx = 100, sy = 265;
-    pillars.forEach((p, idx) => {
-      const px = sx + idx * (pw + gap);
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-      ctx.lineWidth = 2;
+    // 6. Specialized Pedagogical Diagram tailored to the specific Academic Topic
+    if (targetCategory === 'brain_neuro') {
+      // 🧠 Brain Anatomy, Synapses & Cognitive Growth Visualization
+      ctx.save();
+      // Draw Left Hemisphere
+      ctx.strokeStyle = '#38bdf8';
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
+      ctx.lineWidth = 3.5;
       ctx.beginPath();
-      if (ctx.roundRect) {
-        ctx.roundRect(px, sy, pw, ph, 16);
-      } else {
-        ctx.rect(px, sy, pw, ph);
-      }
+      ctx.moveTo(490, 240);
+      ctx.bezierCurveTo(420, 220, 320, 250, 310, 340);
+      ctx.bezierCurveTo(300, 410, 350, 460, 410, 480);
+      ctx.bezierCurveTo(460, 490, 480, 455, 490, 435);
+      ctx.closePath();
       ctx.fill();
       ctx.stroke();
 
-      // Number badge
+      // Draw Right Hemisphere
+      ctx.beginPath();
+      ctx.moveTo(534, 240);
+      ctx.bezierCurveTo(604, 220, 704, 250, 714, 340);
+      ctx.bezierCurveTo(724, 410, 674, 460, 614, 480);
+      ctx.bezierCurveTo(564, 490, 544, 455, 534, 435);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Neural nodes (Synapses & Axon terminals)
+      const nodes = [
+        { x: 370, y: 290, r: 8 },
+        { x: 440, y: 320, r: 10 },
+        { x: 360, y: 390, r: 9 },
+        { x: 430, y: 430, r: 8 },
+        { x: 594, y: 320, r: 10 },
+        { x: 654, y: 290, r: 8 },
+        { x: 664, y: 390, r: 9 },
+        { x: 594, y: 430, r: 8 },
+        { x: 512, y: 340, r: 12 }
+      ];
+
+      // Draw Axon Interconnections
+      ctx.strokeStyle = 'rgba(253, 186, 116, 0.7)';
+      ctx.lineWidth = 2.5;
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dist = Math.hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y);
+          if (dist < 135) {
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Draw Glowing Synaptic Bulbs
+      nodes.forEach(n => {
+        ctx.fillStyle = '#fbbf24';
+        ctx.shadowColor = '#f59e0b';
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      });
+
+      // 3 Concept Pillars for Brain Development
+      const brainCards = [
+        { num: '១', title: 'កោសិកាប្រសាទ (Neurons)', desc: 'ការបញ្ជូនសញ្ញាអគ្គិសនី-គីមី' },
+        { num: '២', title: 'ការតភ្ជាប់ (Synapses)', desc: 'ការបង្កើតបណ្តាញចងចាំថ្មី' },
+        { num: '៣', title: 'ភាពបត់បែន (Plasticity)', desc: 'ការលូតលាស់តាមបទពិសោធន៍' }
+      ];
+      const bcw = 264, bch = 100, bsy = 530;
+      brainCards.forEach((c, idx) => {
+        const bcx = 80 + idx * 300;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.14)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.28)';
+        ctx.lineWidth = 2;
+        if (ctx.roundRect) ctx.roundRect(bcx, bsy, bcw, bch, 14); else ctx.rect(bcx, bsy, bcw, bch);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = 'bold 18px "Kantumruy Pro", sans-serif';
+        ctx.fillText(c.num + '. ' + c.title, bcx + 14, bsy + 40);
+        ctx.fillStyle = '#e2e8f0';
+        ctx.font = '15px "Kantumruy Pro", sans-serif';
+        ctx.fillText(c.desc, bcx + 14, bsy + 74);
+      });
+      ctx.restore();
+
+    } else if (targetCategory === 'biology_anatomy') {
+      // 🧬 DNA Helix & Cell Structure
+      ctx.save();
+      ctx.strokeStyle = '#34d399';
+      ctx.lineWidth = 3;
+      for (let x = 200; x <= 824; x += 32) {
+        const y1 = 340 + Math.sin(x * 0.02) * 65;
+        const y2 = 340 - Math.sin(x * 0.02) * 65;
+        ctx.strokeStyle = 'rgba(52, 211, 153, 0.5)';
+        ctx.beginPath();
+        ctx.moveTo(x, y1);
+        ctx.lineTo(x, y2);
+        ctx.stroke();
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.arc(x, y1, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(x, y2, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+
+    } else if (targetCategory === 'chemistry') {
+      // 🧪 Chemistry Flask & Atomic Orbital Rings
+      ctx.save();
+      ctx.strokeStyle = '#f472b6';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.ellipse(512, 340, 180, 60, Math.PI / 4, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.ellipse(512, 340, 180, 60, -Math.PI / 4, 0, Math.PI * 2);
+      ctx.stroke();
       ctx.fillStyle = '#fbbf24';
       ctx.beginPath();
-      ctx.arc(px + 45, sy + 50, 24, 0, Math.PI * 2);
+      ctx.arc(512, 340, 18, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = '#1e293b';
-      ctx.font = 'bold 22px "Kantumruy Pro", sans-serif';
-      ctx.fillText(p.num, px + 38, sy + 58);
+      ctx.restore();
 
-      // Label
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 26px "Kantumruy Pro", sans-serif';
-      ctx.fillText(p.label, px + 30, sy + 130);
+    } else if (targetCategory === 'mathematics') {
+      // 📐 Geometry & Mathematical Equations
+      ctx.save();
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(350, 440);
+      ctx.lineTo(650, 440);
+      ctx.lineTo(650, 240);
+      ctx.closePath();
+      ctx.stroke();
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 36px "Kantumruy Pro", sans-serif';
+      ctx.fillText('f(x) = ax² + bx + c', 360, 310);
+      ctx.fillText('∑,  π,  √x,  ∫', 420, 380);
+      ctx.restore();
 
-      // Description
-      ctx.fillStyle = '#cbd5e1';
-      ctx.font = '19px "Kantumruy Pro", sans-serif';
-      ctx.fillText(p.desc, px + 30, sy + 180);
-    });
+    } else if (targetCategory === 'cambodian_history') {
+      // 🏛️ Angkor Wat Silhouette
+      ctx.save();
+      ctx.fillStyle = 'rgba(253, 186, 116, 0.25)';
+      ctx.strokeStyle = '#fdba74';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(250, 470);
+      ctx.lineTo(380, 470);
+      ctx.lineTo(390, 340);
+      ctx.lineTo(410, 270);
+      ctx.lineTo(430, 340);
+      ctx.lineTo(480, 470);
+      ctx.lineTo(490, 300);
+      ctx.lineTo(512, 220);
+      ctx.lineTo(534, 300);
+      ctx.lineTo(550, 470);
+      ctx.lineTo(600, 340);
+      ctx.lineTo(620, 270);
+      ctx.lineTo(640, 340);
+      ctx.lineTo(650, 470);
+      ctx.lineTo(774, 470);
+      ctx.stroke();
+      ctx.fill();
+      ctx.fillStyle = '#fdba74';
+      ctx.font = 'bold 24px "Kantumruy Pro", sans-serif';
+      ctx.fillText('បេតិកភណ្ឌប្រវត្តិសាស្ត្រ និងអរិយធម៌ខ្មែរ (Angkor Civilization)', 280, 520);
+      ctx.restore();
+
+    } else {
+      // Default Pedagogical Concept Diagram (3 Visual Pillars)
+      const pillars = [
+        { num: '១', label: 'ស្វែងយល់', desc: 'ចំណេះដឹងគន្លឹះ' },
+        { num: '២', label: 'ពិភាក្សា', desc: 'ការគិតពិចារណា' },
+        { num: '៣', label: 'អនុវត្ត', desc: 'បំណិន និងសមត្ថភាព' }
+      ];
+
+      const pw = 250, ph = 240, gap = 45, sx = 95, sy = 265;
+      pillars.forEach((p, idx) => {
+        const px = sx + idx * (pw + gap);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        if (ctx.roundRect) {
+          ctx.roundRect(px, sy, pw, ph, 16);
+        } else {
+          ctx.rect(px, sy, pw, ph);
+        }
+        ctx.fill();
+        ctx.stroke();
+
+        // Number badge
+        ctx.fillStyle = '#fbbf24';
+        ctx.beginPath();
+        ctx.arc(px + 45, sy + 45, 22, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#1e293b';
+        ctx.font = 'bold 20px "Kantumruy Pro", sans-serif';
+        ctx.fillText(p.num, px + 38, sy + 52);
+
+        // Label
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 24px "Kantumruy Pro", sans-serif';
+        ctx.fillText(p.label, px + 28, sy + 120);
+
+        // Description
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '18px "Kantumruy Pro", sans-serif';
+        ctx.fillText(p.desc, px + 28, sy + 165);
+      });
+    }
 
     // 7. Footer MoEYS Pedagogical Tag
     ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-    ctx.font = '18px "Kantumruy Pro", sans-serif';
-    ctx.fillText('🎓 គរុកោសល្យ និងវិធីសាស្ត្របង្រៀនស្តង់ដារ MoEYS Cambodia', 95, 660);
+    ctx.font = '17px "Kantumruy Pro", sans-serif';
+    ctx.fillText('🎓 គរុកោសល្យ និងវិធីសាស្ត្របង្រៀនស្តង់ដារ MoEYS Cambodia', 85, 665);
 
     return canvas.toDataURL('image/png');
   } catch (err) {
@@ -12208,105 +12906,266 @@ function sanitizeEnglishPrompt(text) {
     .trim();
 }
 
+// 🌐 High-Resolution Domain-Specific Curated Visual Bank (Verified 200 OK, High Resolution, Instant CORS)
 const EDUCATIONAL_IMAGE_CATEGORIES = {
-  reflective: [
-    'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=1024&q=80',
-    'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1024&q=80',
-    'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1024&q=80'
+  brain_neuro: [
+    'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=1024&q=80', // 1. 3D Human brain anatomical model & cerebral lobes
+    'https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=1024&q=80', // 2. Glowing neural network synapses & brain connectivity
+    'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1024&q=80', // 3. Medical neuroimaging MRI brain scan analysis
+    'https://images.unsplash.com/photo-1576086213369-97a306d36557?w=1024&q=80', // 4. Child cognitive learning developmental puzzle & focus
+    'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1024&q=80', // 5. Digital cognitive mind & thinking intellect
+    'https://images.unsplash.com/photo-1518152006812-edab29b069ac?w=1024&q=80'  // 6. Neuroscience laboratory research
   ],
-  research: [
-    'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1024&q=80',
-    'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=1024&q=80',
-    'https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=1024&q=80'
+  biology_anatomy: [
+    'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?w=1024&q=80', // DNA double helix genetic structure
+    'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=1024&q=80', // Microscopic cellular biology
+    'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=1024&q=80', // Biological science microscope & Petri dish
+    'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1024&q=80'  // Plant leaf cellular photosynthesis
   ],
-  learner: [
-    'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1024&q=80',
-    'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1024&q=80',
-    'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1024&q=80',
-    'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=1024&q=80'
+  chemistry: [
+    'https://images.unsplash.com/photo-1603126857599-f6e157fa2fe6?w=1024&q=80', // Colorful chemistry laboratory reaction test tubes
+    'https://images.unsplash.com/photo-1514782831304-632d84503f6f?w=1024&q=80', // Laboratory beakers, flasks & chemical solutions
+    'https://images.unsplash.com/photo-1532634922-8fe0b757fb13?w=1024&q=80'  // 3D Chemical molecular structure model
   ],
-  psychology: [
-    'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1024&q=80',
-    'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=1024&q=80',
-    'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1024&q=80',
-    'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1024&q=80',
-    'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=1024&q=80'
+  physics_astronomy: [
+    'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1024&q=80', // Earth and space astrophysics satellite
+    'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=1024&q=80', // Solar system planets, cosmic galaxy & nebula
+    'https://images.unsplash.com/photo-1507499739999-097706ad8914?w=1024&q=80'  // Light prism optics & physics refraction
   ],
-  teacher: [
-    'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=1024&q=80',
-    'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1024&q=80',
-    'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1024&q=80',
-    'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1024&q=80'
+  earth_environment: [
+    'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1024&q=80', // Earth globe continents & geography
+    'https://images.unsplash.com/photo-1448375240586-882707db888b?w=1024&q=80', // Lush green ecosystem forest biodiversity
+    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1024&q=80'  // Natural mountain landscapes & climate
   ],
-  group: [
-    'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1024&q=80',
-    'https://images.unsplash.com/photo-1513258496099-48168024aec0?w=1024&q=80',
-    'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1024&q=80',
-    'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1024&q=80'
+  cambodian_history: [
+    'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=1024&q=80', // Majestic Angkor Wat temple silhouette at sunrise
+    'https://images.unsplash.com/photo-1544644181-1484b3fdfc62?w=1024&q=80', // Ancient Khmer Bayon temple stone face carvings
+    'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=1024&q=80'  // Historic Angkor archaeological heritage
   ],
-  summary: [
-    'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=1024&q=80',
-    'https://images.unsplash.com/photo-1491841573634-28140fc7ced7?w=1024&q=80',
-    'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1024&q=80'
+  mathematics: [
+    'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=1024&q=80', // Complex mathematical formulas & calculus equations
+    'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=1024&q=80', // Geometric compass, trigonometry & angles
+    'https://images.unsplash.com/photo-1543286386-713bdd548da4?w=1024&q=80'  // Statistical data charts, graphs & analytics
   ],
-  science: [
-    'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=1024&q=80',
-    'https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=1024&q=80',
-    'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1024&q=80'
+  literature_language: [
+    'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=1024&q=80', // Classic open book with ink fountain pen & writing
+    'https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=1024&q=80', // Library of literature, poetry & books
+    'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1024&q=80'  // Creative handwriting, calligraphy & prose
   ],
-  math: [
-    'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=1024&q=80',
-    'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=1024&q=80'
+  technology_stem: [
+    'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1024&q=80', // Technology microchip circuitry & hardware
+    'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1024&q=80', // Modern robotics & artificial intelligence
+    'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1024&q=80'  // Software code matrix & cyber technology
+  ],
+  group_collaboration: [
+    'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1024&q=80', // Active collaborative students group project
+    'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1024&q=80', // Diverse team brainstorm & teamwork discussion
+    'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1024&q=80'  // Friendly student partnership & cooperation
+  ],
+  pedagogy_teacher: [
+    'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=1024&q=80', // Enthusiastic teacher instructing active class
+    'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1024&q=80'  // Modern educator presentation at whiteboard
+  ],
+  reflective_summary: [
+    'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1024&q=80', // Reflective study journal & planning
+    'https://images.unsplash.com/photo-1491841573634-28140fc7ced7?w=1024&q=80'  // Achievement, graduation & learning success
   ]
 };
+
+// 🎯 Deep Semantic Subject & Slide Topic Extractor
+function detectSlideTopic(slideDef, meta, slideIndex = 1) {
+  const title = (slideDef.title || '').toLowerCase();
+  const keyword = (slideDef.imageSearchKeyword || '').toLowerCase();
+  const prompt = (slideDef.imagePrompt || '').toLowerCase();
+  const rawBullets = Array.isArray(slideDef.bullets) ? slideDef.bullets.join(' ') : String(slideDef.bullets || '');
+  const bullets = rawBullets.toLowerCase();
+  const subject = (meta?.subject || '').toLowerCase();
+  const fullText = `${title} ${keyword} ${prompt} ${bullets} ${subject}`.toLowerCase();
+  const slideSpecificText = `${title} ${keyword} ${bullets}`.toLowerCase();
+
+  // 1. Brain, Neuroscience & Child Cognitive Psychology (Highest Priority)
+  if (/ខួរក្បាល|ប្រសាទ|សរសៃប្រសាទ|បញ្ញា|ស្មារតី|ការយល់ដឹង|ចងចាំ|កោសិកាខួរក្បាល|កោសិកាប្រសាទ|brain|neuron|synapse|synaptic|neural|neuro|cortex|cognitive|cerebrum|intellect|neuroplasticity|developmental psychology|ចិត្តវិទ្យា/i.test(fullText)) {
+    if (/synapse|ការតភ្ជាប់|synaptic|ចន្លោះ/i.test(slideSpecificText)) {
+      return {
+        category: 'brain_neuro',
+        searchKeyword: 'synapse neural connection neurotransmitter',
+        aiPrompt: 'Microscopic scientific illustration of synaptic cleft connection between neurons, glowing neurotransmitters, high detail, 8k, no text',
+        imgIdx: 1
+      };
+    } else if (/កោសិកា|neuron|axon|ដង់ឌ្រីត/i.test(slideSpecificText)) {
+      return {
+        category: 'brain_neuro',
+        searchKeyword: 'human brain neuron cell structure dendrites',
+        aiPrompt: 'Detailed 3D scientific visualization of a multipolar neuron cell showing dendrites, axon, and glowing electrical impulses, clean background, 8k, no text',
+        imgIdx: 0
+      };
+    } else if (/ភាពបត់បែន|plasticity|neuroplasticity|បន្ស៊ាំ/i.test(slideSpecificText)) {
+      return {
+        category: 'brain_neuro',
+        searchKeyword: 'brain neuroplasticity growth neural network',
+        aiPrompt: 'Artistic scientific illustration of brain neuroplasticity, glowing neural pathways forming and adapting, radiant blue and gold, 8k, no text',
+        imgIdx: 2
+      };
+    } else if (/កុមារ|លូតលាស់|អភិវឌ្ឍ|child|developmental|គំនិត/i.test(slideSpecificText)) {
+      return {
+        category: 'brain_neuro',
+        searchKeyword: 'child brain development cognitive learning puzzle',
+        aiPrompt: 'Inspiring educational visual showing child cognitive brain development, imaginative learning and thinking pathways, warm modern style, 8k, no text',
+        imgIdx: 3
+      };
+    } else {
+      const idx = (slideIndex - 1) % 6;
+      return {
+        category: 'brain_neuro',
+        searchKeyword: 'human brain neural synapses cognitive development',
+        aiPrompt: 'Detailed scientific illustration of human brain cross section showing neural connections, glowing synapses, and cognitive thought pathways, isolated on clean background, crisp lighting, high resolution, 8k, no text',
+        imgIdx: idx
+      };
+    }
+  }
+
+  // 2. Biology, Cells, Genetics & Anatomy
+  if (/ជីវវិទ្យា|កោសិកា|ឌីអិនអេ|សរីរាង្គ|បេះដូង|សួត|ឈាម|រុក្ខជាតិ|រស្មីសំយោគ|ប្រព័ន្ធរំលាយអាហារ|សត្វ|មេរោគ|បាក់តេរី|ហ្សែន|cell|dna|biology|organ|photosynthesis|anatomy|genetics|microbiology/i.test(fullText)) {
+    return {
+      category: 'biology_anatomy',
+      searchKeyword: 'biological cell structure microscopic anatomy genetics',
+      aiPrompt: 'Vibrant scientific educational illustration of biological cell structure and DNA double helix, glowing microscopic detail, clean background, 8k, no text',
+      imgIdx: (slideIndex - 1) % 4
+    };
+  }
+
+  // 3. Chemistry & Molecular Science
+  if (/គីមី|ធាតុគីមី|ម៉ូលេគុល|អាតូម|ប្រតិកម្មគីមី|សូលុយស្យុង|អាស៊ីត|បាស|តារាងខួប|chemistry|chemical|molecule|atom|reaction|laboratory|periodic table|compound/i.test(fullText)) {
+    return {
+      category: 'chemistry',
+      searchKeyword: 'chemical reaction molecular bonds laboratory test tubes',
+      aiPrompt: 'Scientific illustration of colorful chemistry reaction in glass beakers and 3D molecular atomic bonds, clean laboratory background, high resolution, no text',
+      imgIdx: (slideIndex - 1) % 3
+    };
+  }
+
+  // 4. Physics, Energy, Mechanics & Astronomy
+  if (/រូបវិទ្យា|កម្លាំង|ចលនា|ទំនាញផែនដី|អគ្គិសនី|មេដែក|រលក|ពន្លឺ|ថាមពល|ប្រព័ន្ធព្រះអាទិត្យ|ភព|តារាវិទ្យា|ចក្រវាល|physics|gravity|solar system|planets|astronomy|electricity|energy|optics|magnetism/i.test(fullText)) {
+    return {
+      category: 'physics_astronomy',
+      searchKeyword: 'solar system planets astronomy physics energy space',
+      aiPrompt: 'Educational cosmic illustration of solar system planets orbiting glowing sun in deep starry space, physics energy concept, vibrant colors, 8k, no text',
+      imgIdx: (slideIndex - 1) % 3
+    };
+  }
+
+  // 5. Earth Science, Geography & Ecology
+  if (/ផែនដី|ភូមិវិទ្យា|បរិស្ថាន|ព្រៃឈើ|អាកាសធាតុ|ទន្លេ|ភ្នំ|ទឹកជំនន់|រញ្ជួយដី|ដី|ប្រព័ន្ធអេកូឡូស៊ី|កោះ|សមុទ្រ|geography|environment|earth|climate|forest|ecosystem|nature|weather/i.test(fullText)) {
+    return {
+      category: 'earth_environment',
+      searchKeyword: 'planet earth globe continents nature environment ecology',
+      aiPrompt: 'Stunning educational illustration of planet Earth globe showing lush continents, blue oceans, and natural ecosystems, clean lighting, 8k, no text',
+      imgIdx: (slideIndex - 1) % 3
+    };
+  }
+
+  // 6. Cambodian History, Heritage & Angkor Architecture
+  if (/ប្រវត្តិសាស្ត្រ|ប្រវត្តិវិទ្យា|អង្គរ|អង្គរវត្ត|ប្រាសាទ|វប្បធម៌|អរិយធម៌|បេតិកភណ្ឌ|សម័យ|ស្តេច|ព្រះមហាក្សត្រ|វត្ត|បារាយណ៍|ចេនឡា|ហ្វូណន|បុរាណ|history|angkor|temple|khmer|heritage|culture|cambodia/i.test(fullText)) {
+    return {
+      category: 'cambodian_history',
+      searchKeyword: 'Angkor Wat ancient stone temple sunrise Cambodia architecture heritage',
+      aiPrompt: 'Majestic artistic illustration of Angkor Wat temple towers rising against sunrise sky, ancient Khmer stone architectural heritage, high resolution, no text',
+      imgIdx: (slideIndex - 1) % 3
+    };
+  }
+
+  // 7. Mathematics & Geometry
+  if (/គណិត|ពិជគណិត|ធរណីមាត្រ|ត្រីកោណមាត្រ|ប្រូបាប|ស្ថិតិ|សមីការ|ក្រាប|មុំ|គណនា|លេខ|math|algebra|geometry|calculus|statistics|trigonometry|equations/i.test(fullText)) {
+    return {
+      category: 'mathematics',
+      searchKeyword: 'mathematics equations geometric shapes formulas calculation',
+      aiPrompt: 'Modern educational illustration of 3D geometric shapes, mathematical formulas, and coordinate graphs, clean gradient background, high definition, no text',
+      imgIdx: (slideIndex - 1) % 3
+    };
+  }
+
+  // 8. Language, Literature, Reading & Poetry
+  if (/ភាសាខ្មែរ|អក្សរសិល្ប៍|តែងសេចក្តី|កំណាព្យ|រឿង|វេយ្យាករណ៍|អក្ខរក្រម|ការអាន|ការសរសេរ|សិល្បៈតែងនិពន្ធ|literature|poetry|grammar|reading|writing|novel|prose|books/i.test(fullText)) {
+    return {
+      category: 'literature_language',
+      searchKeyword: 'open classic book glowing wisdom literature creative writing',
+      aiPrompt: 'Inspiring illustration of an open book with glowing pages of wisdom, quill pen, and literary imagination symbols, warm soft lighting, 8k, no text',
+      imgIdx: (slideIndex - 1) % 3
+    };
+  }
+
+  // 9. Technology, Robotics & Coding
+  if (/បច្ចេកវិទ្យា|កុំព្យូទ័រ|កូដ|សរសេរកូដ|អ៊ីនធឺណិត|បញ្ញាសិប្បនិម្មិត|ai|coding|programming|robot|technology|stem|software|hardware|algorithm/i.test(fullText)) {
+    return {
+      category: 'technology_stem',
+      searchKeyword: 'modern technology robotics coding artificial intelligence futuristic circuit',
+      aiPrompt: 'Futuristic educational illustration of artificial intelligence, robotic technology, and digital circuit connections, modern glowing blue palette, 8k, no text',
+      imgIdx: (slideIndex - 1) % 3
+    };
+  }
+
+  // 10. Group Discussion & Collaborative Projects
+  if (/ពិភាក្សា|ការងារជាក្រុម|សហការ|ដៃគូ|សកម្មភាពក្រុម|group|collaborative|teamwork|discussion|peer/i.test(slideSpecificText)) {
+    return {
+      category: 'group_collaboration',
+      searchKeyword: 'active diverse students collaborative project team discussion',
+      aiPrompt: 'Vibrant modern illustration of diverse active students smiling and collaborating together around a project table, positive educational teamwork, flat vector art',
+      imgIdx: (slideIndex - 1) % 3
+    };
+  }
+
+  // 11. Reflective, Summary, Conclusion & Assessment
+  if (/ឆ្លុះបញ្ចាំង|សង្ខេប|សន្និដ្ឋាន|ជោគជ័យ|បណ្តាំផ្ញើ|វាយតម្លៃ|assessment|reflection|summary|conclusion|achievement/i.test(slideSpecificText)) {
+    return {
+      category: 'reflective_summary',
+      searchKeyword: 'educational achievement success learning summary reflection',
+      aiPrompt: 'Modern educational conceptual illustration symbolizing learning achievement, growth mindset, and academic success, warm inspiring colors, clean background',
+      imgIdx: (slideIndex - 1) % 2
+    };
+  }
+
+  // 12. Pedagogy & Teaching Methods (Fallback)
+  return {
+    category: 'pedagogy_teacher',
+    searchKeyword: 'inspirational teacher educating active classroom students',
+    aiPrompt: 'Warm inspirational illustration of a dedicated modern teacher guiding curious young students with interactive media, clean educational setting',
+    imgIdx: (slideIndex - 1) % 2
+  };
+}
 
 async function getSlideImage(slideDef, data, imageMode, theme, slideIndex) {
   if (imageMode === 'no') return null;
 
-  // 1. Determine authentic educational topic from slide content
-  const fullSlideText = `${slideDef.title || ''} ${slideDef.imageSearchKeyword || ''} ${(slideDef.bullets || []).join(' ')} ${data.subject || ''}`.toLowerCase();
-  
-  let targetCategory = 'teacher';
-  if (/ឆ្លុះបញ្ចាំង|reflective|reflection|journal|portfolio|រំលឹក/i.test(fullSlideText)) {
-    targetCategory = 'reflective';
-  } else if (/ស្រាវជ្រាវ|research|action research|investigation|ទិន្នន័យ|វិភាគ/i.test(fullSlideText)) {
-    targetCategory = 'research';
-  } else if (/អ្នកសិក្សា|learner|student|diversity|សមត្ថភាព|កុមារ/i.test(fullSlideText)) {
-    targetCategory = 'learner';
-  } else if (/ចិត្តវិទ្យា|psychology|cognitive|mind|brain|constructivism|ទ្រឹស្តី|ការយល់ដឹង/i.test(fullSlideText)) {
-    targetCategory = 'psychology';
-  } else if (/ពិភាក្សា|group|collaborative|discussion|peer|សហការ|ដៃគូ/i.test(fullSlideText)) {
-    targetCategory = 'group';
-  } else if (/សង្ខេប|summary|conclusion|achievement|ជោគជ័យ|បណ្តាំផ្ញើ|វាយតម្លៃ|assessment/i.test(fullSlideText)) {
-    targetCategory = 'summary';
-  } else if (/វិទ្យាសាស្ត្រ|science|lab|ពិសោធន៍|រូបវិទ្យា|គីមី|ជីវវិទ្យា/i.test(fullSlideText)) {
-    targetCategory = 'science';
-  } else if (/គណិត|math|រូបមន្ត|លំហាត់/i.test(fullSlideText)) {
-    targetCategory = 'math';
-  }
+  // 1. Authentically determine educational topic & subtopic from slide content
+  const detected = detectSlideTopic(slideDef, data, slideIndex);
+  const targetCategory = detected.category;
 
   // 2. Try Pollinations AI first if in AI mode and not blocked
   if (imageMode === 'ai') {
-    let cleanPrompt = sanitizeEnglishPrompt(slideDef.imagePrompt || slideDef.imageSearchKeyword || '');
-    if (cleanPrompt && cleanPrompt.length >= 8) {
-      if (!/education|classroom|school|learning|pedagogy|teacher|students/i.test(cleanPrompt)) {
-        cleanPrompt += ', educational classroom setting';
+    let cleanPrompt = sanitizeEnglishPrompt(slideDef.imagePrompt || detected.aiPrompt || '');
+    if (!cleanPrompt || cleanPrompt.length < 8) {
+      cleanPrompt = detected.aiPrompt;
+    }
+
+    // STRICT: Do NOT forcibly append classroom setting! Use pristine concept illustration
+    const fullPrompt = `${cleanPrompt.substring(0, 180)}, clear educational infographic visual, professional scientific clarity, vibrant colors, isolated on clean background, 8k, no text`;
+    const seed = Math.floor(Math.random() * 900000) + 100000;
+    const aiUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=1024&height=768&nologo=true&seed=${seed}`;
+
+    try {
+      const base64 = await fetchImageAsBase64(aiUrl, 7000);
+      if (base64 && base64.startsWith('data:image')) {
+        return { data: base64 };
       }
-      const fullPrompt = `${cleanPrompt.substring(0, 160)}, educational digital illustration, high quality`;
-      const seed = Math.floor(Math.random() * 900000) + 100000;
-      const aiUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=1024&height=768&nologo=true&seed=${seed}`;
-      try {
-        const base64 = await fetchImageAsBase64(aiUrl, 8500);
-        if (base64 && base64.startsWith('data:image')) {
-          return { data: base64 };
-        }
-      } catch (e) {}
+    } catch (e) {
+      console.warn(`[PPTX Image ${slideIndex}] AI image fetch error:`, e);
     }
   }
 
-  // 3. High-Resolution Curated Educational Visual Bank (100% Reliable, 100ms, Instant CORS, Guaranteed Subject Relevance!)
-  const list = EDUCATIONAL_IMAGE_CATEGORIES[targetCategory] || EDUCATIONAL_IMAGE_CATEGORIES['teacher'];
-  const chosenUrl = list[(slideIndex - 1) % list.length];
+  // 3. High-Resolution Domain-Specific Curated Visual Bank (100% Reliable, Instant CORS, Guaranteed Subject Relevance!)
+  const list = EDUCATIONAL_IMAGE_CATEGORIES[targetCategory] || EDUCATIONAL_IMAGE_CATEGORIES['pedagogy_teacher'];
+  const chosenIdx = typeof detected.imgIdx === 'number' ? detected.imgIdx % list.length : (slideIndex - 1) % list.length;
+  const chosenUrl = list[chosenIdx];
 
   try {
     const base64 = await fetchImageAsBase64(chosenUrl, 6000);
@@ -12317,7 +13176,7 @@ async function getSlideImage(slideDef, data, imageMode, theme, slideIndex) {
     console.warn(`[PPTX Image ${slideIndex}] Educational bank fetch error:`, e);
   }
 
-  // 4. Absolute offline zero-failure Canvas Diagram Card
+  // 4. Absolute offline zero-failure Topic-Aware Canvas Diagram Card
   const canvasBase64 = generateEducationalCardDataUrl(slideDef.title, targetCategory, data.subject, theme, slideIndex);
   if (canvasBase64) {
     return { data: canvasBase64 };
@@ -12728,6 +13587,8 @@ function parseGeminiMarkdownToSlides(text) {
     let title = '';
     let subtitle = '';
     let speakerNotes = '';
+    let slideImagePrompt = '';
+    let slideImageKeyword = '';
     let bullets = [];
     let currentBulletHeading = '';
     let currentBulletBody = [];
@@ -12752,6 +13613,18 @@ function parseGeminiMarkdownToSlides(text) {
       }
       
       if (/^!\[.*?\]\(.*?\)/.test(line) || /^https?:\/\/image\.pollinations\.ai/i.test(line)) {
+        continue;
+      }
+
+      // Check for image prompt or search keyword specified in markdown
+      const imgPromptMatch = line.match(/(?:📸|🎨|🖼️)?\s*(?:\*{1,2})?(?:រូបភាព|Image\s*Prompt|Visual\s*Cue|Prompt\s*រូបភាព)[^:：]*[:：]\s*(.*)/i);
+      if (imgPromptMatch && imgPromptMatch[1]) {
+        slideImagePrompt = imgPromptMatch[1].replace(/^\*+|\*+$/g, '').trim();
+        continue;
+      }
+      const imgKeyMatch = line.match(/(?:🔍)?\s*(?:\*{1,2})?(?:ពាក្យគន្លឹះរូបភាព|Search\s*Keyword|imageSearchKeyword)[^:：]*[:：]\s*(.*)/i);
+      if (imgKeyMatch && imgKeyMatch[1]) {
+        slideImageKeyword = imgKeyMatch[1].replace(/^\*+|\*+$/g, '').trim();
         continue;
       }
       
@@ -12798,13 +13671,24 @@ function parseGeminiMarkdownToSlides(text) {
     }
     
     if (title || bullets.length > 0) {
-      slides.push({
+      const slideDef = {
         type: slides.length === 0 ? 'title' : 'content',
         title: title || `ស្លាយទី ${slides.length + 1}`,
         subtitle: subtitle,
         bullets: bullets,
-        speakerNotes: speakerNotes
-      });
+        speakerNotes: speakerNotes,
+        imagePrompt: slideImagePrompt,
+        imageSearchKeyword: slideImageKeyword
+      };
+
+      // Auto-enrich visual keywords if not provided
+      if (!slideDef.imageSearchKeyword || !slideDef.imagePrompt) {
+        const enriched = detectSlideTopic(slideDef, {}, slides.length + 1);
+        if (!slideDef.imageSearchKeyword) slideDef.imageSearchKeyword = enriched.searchKeyword;
+        if (!slideDef.imagePrompt) slideDef.imagePrompt = enriched.aiPrompt;
+      }
+
+      slides.push(slideDef);
     }
   });
   
@@ -12944,14 +13828,18 @@ function extractAndParseSlidesJson(text) {
 
 function synthesizeOfflineSlides(data, numSlides) {
   const slides = [];
+
+  const titleTopic = detectSlideTopic({ title: data.lessonTitle, bullets: [] }, data, 1);
   slides.push({
     type: 'title',
     title: data.lessonTitle || 'កិច្ចតែងការបង្រៀន',
     subtitle: `${data.subject || 'មុខវិជ្ជាទូទៅ'} - ${data.grade || 'ថ្នាក់ទូទៅ'}`,
     speakerNotes: `ស្វាគមន៍សិស្សានុសិស្សមកកាន់មេរៀន៖ ${data.lessonTitle || ''}`,
-    imageSearchKeyword: 'education presentation'
+    imageSearchKeyword: titleTopic.searchKeyword,
+    imagePrompt: titleTopic.aiPrompt
   });
   
+  const objTopic = detectSlideTopic({ title: 'វត្ថុបំណងមេរៀន', bullets: data.objectives?.knowledge || [] }, data, 2);
   slides.push({
     type: 'content',
     title: 'វត្ថុបំណងមេរៀន (Lesson Objectives)',
@@ -12961,7 +13849,8 @@ function synthesizeOfflineSlides(data, numSlides) {
       `ឥរិយាបថ៖ ${(data.objectives?.attitudes || ['ចូលរួមយ៉ាងសកម្ម និងមានស្មារតីសហការ']).slice(0, 2).join(' និង ')}`
     ],
     speakerNotes: 'សូមជម្រាបជូនសិស្សអំពីគោលបំណងចម្បងនៃមេរៀននេះដើម្បីកំណត់ទិសដៅសិក្សា។',
-    imageSearchKeyword: 'classroom goals'
+    imageSearchKeyword: objTopic.searchKeyword,
+    imagePrompt: objTopic.aiPrompt
   });
 
   const steps = data.steps || data.stage3?.steps || [];
@@ -12974,12 +13863,14 @@ function synthesizeOfflineSlides(data, numSlides) {
       if (s.studentActivity) bullets.push(`សកម្មភាពសិស្ស៖ ${s.studentActivity}`);
       if (bullets.length === 0) bullets.push('ខ្លឹមសារ និងសកម្មភាពគន្លឹះក្នុងថ្នាក់រៀន');
 
+      const stepTopic = detectSlideTopic({ title: s.stepTitle, bullets: bullets }, data, slides.length + 1);
       slides.push({
         type: 'content',
         title: s.stepTitle || `ផ្នែកទី ${i + 1}`,
         bullets: bullets.slice(0, 3),
         speakerNotes: `ណែនាំសិស្សអំពី ${s.stepTitle || 'ខ្លឹមសារមេរៀន'} និងសម្របសម្រួលសកម្មភាព។`,
-        imageSearchKeyword: 'classroom teaching'
+        imageSearchKeyword: stepTopic.searchKeyword,
+        imagePrompt: stepTopic.aiPrompt
       });
     }
   }
@@ -12991,15 +13882,18 @@ function synthesizeOfflineSlides(data, numSlides) {
       .map(p => p.trim())
       .filter(p => p.length > 30);
     for (let i = 0; i < paragraphs.length && slides.length < numSlides; i++) {
+      const docBullets = [
+        paragraphs[i].substring(0, 160) + (paragraphs[i].length > 160 ? '...' : ''),
+        'ការវិភាគ និងទាញសេចក្តីសន្និដ្ឋានលើខ្លឹមសារ'
+      ];
+      const docTopic = detectSlideTopic({ title: `ខ្លឹមសារគន្លឹះបន្ថែម (${i + 1})`, bullets: docBullets }, data, slides.length + 1);
       slides.push({
         type: 'content',
         title: `ខ្លឹមសារគន្លឹះបន្ថែម (${i + 1})`,
-        bullets: [
-          paragraphs[i].substring(0, 160) + (paragraphs[i].length > 160 ? '...' : ''),
-          'ការវិភាគ និងទាញសេចក្តីសន្និដ្ឋានលើខ្លឹមសារ'
-        ],
+        bullets: docBullets,
         speakerNotes: 'ពន្យល់លម្អិតអំពីខ្លឹមសារក្នុងស្លាយនេះ។',
-        imageSearchKeyword: 'study concept'
+        imageSearchKeyword: docTopic.searchKeyword,
+        imagePrompt: docTopic.aiPrompt
       });
     }
   }
@@ -13014,7 +13908,8 @@ function synthesizeOfflineSlides(data, numSlides) {
         'ការលើកឡើងនូវឧទាហរណ៍ជាក់ស្តែងជុំវិញខ្លួន'
       ],
       speakerNotes: 'ជំរុញសិស្សឱ្យឆ្លើយ និងពិភាក្សាសំណួរគន្លឹះ។',
-      imageSearchKeyword: 'critical thinking'
+      imageSearchKeyword: 'critical thinking analysis reasoning',
+      imagePrompt: 'Modern educational illustration of critical thinking, problem solving minds and cognitive inquiry'
     },
     {
       title: 'សកម្មភាពការងារជាក្រុម និងការអនុវត្ត (Collaborative Work)',
@@ -13024,17 +13919,19 @@ function synthesizeOfflineSlides(data, numSlides) {
         'តំណាងក្រុមឡើងធ្វើបទបង្ហាញពីលទ្ធផលការងារ'
       ],
       speakerNotes: 'ដើរសម្របសម្រួល និងជួយគាំទ្រសកម្មភាពក្រុម។',
-      imageSearchKeyword: 'group collaboration'
+      imageSearchKeyword: 'group collaboration teamwork discussion',
+      imagePrompt: 'Vibrant modern illustration of diverse active students collaborating in a team project'
     },
     {
       title: 'ការវាយតម្លៃលទ្ធផលសិក្សា (Formative Assessment)',
       bullets: [
         'សំណួរត្រួតពិនិត្យការយល់ដឹងរហ័ស (Quick Check)',
         'ការវាយតម្លៃខ្លួនឯង និងមិត្តភក្តិរួមថ្នាក់ (Peer Assessment)',
-        'កម្រិតនៃការសម្រេចបាននូវវត្ថុបំណងមេរៀន'
+        'កម្រិតនៃការសម្រេចបាននូវវត្ថបំណងមេរៀន'
       ],
       speakerNotes: 'វាយតម្លៃកម្រិតយល់ដឹងរបស់សិស្សម្នាក់ៗ។',
-      imageSearchKeyword: 'formative evaluation'
+      imageSearchKeyword: 'formative evaluation feedback assessment',
+      imagePrompt: 'Educational conceptual illustration of learning feedback, academic assessment and progress check'
     },
     {
       title: 'បំណិនសតវត្សរ៍ទី២១ និងការអនុវត្ត (21st Century Skills)',
@@ -13044,7 +13941,8 @@ function synthesizeOfflineSlides(data, numSlides) {
         'ភាពច្នៃប្រឌិត និងការស្វែងយល់ដោយស្វ័យប្រវត្ត'
       ],
       speakerNotes: 'បញ្ជាក់អំពីបំណិនជីវិតដែលទទួលបានពីមេរៀន។',
-      imageSearchKeyword: 'skills development'
+      imageSearchKeyword: 'future skills innovation technology creative',
+      imagePrompt: 'Futuristic illustration representing 21st century learning skills, creativity and digital collaboration'
     },
     {
       title: 'កិច្ចការស្រាវជ្រាវ និងការរៀនបន្ត (Extension & Practice)',
@@ -13054,7 +13952,8 @@ function synthesizeOfflineSlides(data, numSlides) {
         'ការត្រៀមលក្ខណៈសម្រាប់មេរៀនបន្ទាប់'
       ],
       speakerNotes: 'ណែនាំកិច្ចការផ្ទះ និងការរៀនបន្ត។',
-      imageSearchKeyword: 'homework research'
+      imageSearchKeyword: 'homework independent research books study',
+      imagePrompt: 'Inspiring illustration of student exploring knowledge, research books and lifelong learning'
     }
   ];
 
@@ -13381,8 +14280,10 @@ STRICT CRITICAL RULES:
    - Keep concepts punchy, memorable, and visually structured.
 4. DETAILED SPEAKER NOTES:
    - Provide 2 to 4 sentences of rich teaching advice in Khmer per slide, explaining what the teacher should elaborate, questions to ask students, and activities.
-5. AI IMAGE PROMPT ("imagePrompt"):
-   - For EACH slide, provide a dedicated, highly descriptive English visual prompt for an educational illustration (e.g. "Warm educational digital illustration of Cambodian classroom, teacher and active students discussing concept, modern flat vector, soft lighting, high quality").
+5. TOPIC-CORRELATED VISUAL KEYWORDS & AI IMAGE PROMPTS (Strict Correlation):
+   - Every slide's visual MUST strictly and directly reflect the specific academic subject, scientific topic, historical event, or concept taught on that slide.
+   - "imageSearchKeyword": 2 to 4 precise English nouns describing the slide's exact topic (e.g. for Child Brain Development: "human brain neural synapses cognitive development", for Photosynthesis: "plant leaf chloroplast photosynthesis", for Angkor Wat: "Angkor Wat stone temple architecture", for Chemistry: "chemical molecular structure bonds", for Solar System: "solar system planets orbit astronomy"). NEVER use generic words like "classroom", "school", "education", "teacher", "learning concept" unless the slide is explicitly about classroom management or teaching!
+   - "imagePrompt": A highly detailed English visual prompt for a specialized educational diagram, scientific illustration, or subject visualization matching that exact slide's content (e.g. "Detailed scientific illustration of human brain cross section showing neural connections, glowing synapses, and cognitive thought pathways, isolated on clean background, crisp lighting, high resolution, 8k, no text").
 
 JSON Schema:
 [
@@ -13391,8 +14292,8 @@ JSON Schema:
     "title": "ចំណងជើងមេរៀនជាភាសាខ្មែរ",
     "subtitle": "មុខវិជ្ជា - កម្រិតថ្នាក់",
     "speakerNotes": "ការណែនាំផ្តើមមេរៀនសម្រាប់គ្រូបង្រៀន",
-    "imageSearchKeyword": "educational psychology",
-    "imagePrompt": "Educational title slide illustration, modern classroom with teacher and students, warm lighting, high quality"
+    "imageSearchKeyword": "scientific subject topic keyword",
+    "imagePrompt": "Inspiring educational illustration accurately visualizing the main lesson topic, modern scientific or conceptual art, clean background, 8k, no text"
   },
   {
     "type": "content",
@@ -13403,8 +14304,8 @@ JSON Schema:
       "**សំណួរបំផុសគំនិត៖** សំណួរជំរុញសិស្សឱ្យគិតពិចារណាស៊ីជម្រៅ"
     ],
     "speakerNotes": "ការណែនាំលម្អិតសម្រាប់គ្រូ៖ របៀបពន្យល់សិស្ស សំណួរបំផុសគំនិត និងការដឹកនាំសកម្មភាពក្នុងស្លាយនេះ",
-    "imageSearchKeyword": "learning concept",
-    "imagePrompt": "Educational digital illustration depicting this slide concept, modern classroom, clean, warm palette"
+    "imageSearchKeyword": "slide specific topic keyword",
+    "imagePrompt": "Detailed educational illustration or diagram depicting the exact scientific, historical, or academic concept of this slide, clear visual explanation, high resolution, no text"
   }
 ]
 
@@ -13998,5 +14899,639 @@ window.closeGameModal = function() {
   const m = document.getElementById('gameModal');
   if (m) m.style.display = 'none';
 };
+
+// ==========================================================================
+// 📄 Student Worksheet & Activity Handout Generator (MoEYS Standard)
+// ==========================================================================
+let currentWorksheetMode = 'group'; // 'group' or 'individual'
+
+function openWorksheetModal() {
+  const data = state.generatedPlanData || state.currentPlan;
+  if (!data) {
+    showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
+    return;
+  }
+  const modal = document.getElementById('worksheetModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    renderWorksheetPreview();
+  }
+}
+window.openWorksheetModal = openWorksheetModal;
+
+function closeWorksheetModal() {
+  const modal = document.getElementById('worksheetModal');
+  if (modal) modal.style.display = 'none';
+}
+window.closeWorksheetModal = closeWorksheetModal;
+
+function setWorksheetMode(mode) {
+  currentWorksheetMode = mode;
+  const btnGroup = document.getElementById('btnWsModeGroup');
+  const btnIndiv = document.getElementById('btnWsModeIndiv');
+  if (btnGroup && btnIndiv) {
+    if (mode === 'group') {
+      btnGroup.classList.add('active');
+      btnGroup.style.background = '#0d9488';
+      btnGroup.style.color = '#ffffff';
+      btnIndiv.classList.remove('active');
+      btnIndiv.style.background = 'transparent';
+      btnIndiv.style.color = '#334155';
+    } else {
+      btnIndiv.classList.add('active');
+      btnIndiv.style.background = '#0d9488';
+      btnIndiv.style.color = '#ffffff';
+      btnGroup.classList.remove('active');
+      btnGroup.style.background = 'transparent';
+      btnGroup.style.color = '#334155';
+    }
+  }
+  renderWorksheetPreview();
+}
+window.setWorksheetMode = setWorksheetMode;
+
+function renderWorksheetPreview() {
+  const container = document.getElementById('worksheetA4Preview');
+  if (!container) return;
+
+  const data = state.generatedPlanData || state.currentPlan;
+  if (!data) {
+    container.innerHTML = '<div style="text-align: center; color: #64748b; padding: 40px;">សូមបង្កើតកិច្ចតែងការជាមុនសិន!</div>';
+    return;
+  }
+
+  const school = data.school || 'វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម';
+  const teacher = data.teacher || 'លោកគ្រូ កែម បូរី';
+  const subject = data.subject || 'ចិត្តវិទ្យាអប់រំ';
+  const grade = data.grade || 'គរុនិស្សិត ឆ្នាំទី ១';
+  const title = data.lessonTitle || 'មេរៀន';
+  const dateStr = data.dateStr || getKhmerFormattedDate();
+
+  const isGroup = currentWorksheetMode === 'group';
+  const includeRubric = document.getElementById('chkWsRubric')?.checked !== false;
+  const includeExitTicket = document.getElementById('chkWsExitTicket')?.checked !== false;
+
+  // Extract Objectives
+  let objList = [];
+  if (data.objectives) {
+    if (data.objectives.knowledge) objList.push(...data.objectives.knowledge);
+    if (data.objectives.skills) objList.push(...data.objectives.skills);
+  }
+  if (!objList.length) {
+    objList = [
+      `ស្វែងយល់ និងពន្យល់ពីគោលការណ៍គ្រឹះនៃ «${title}»`,
+      `ចេះវិភាគ ពិភាក្សា និងដោះស្រាយបញ្ហាក្នុងករណីសិក្សាជាក់ស្តែង`
+    ];
+  }
+
+  // Extract Key Concepts (from Step 3 or keyTakeaways)
+  let keyConcepts = [];
+  if (data.steps && Array.isArray(data.steps)) {
+    data.steps.forEach(st => {
+      const sTitle = st.stepTitle || '';
+      if (sTitle.includes('ទី៣') || sTitle.includes('មេរៀនថ្មី')) {
+        if (st.contentSummary && st.contentSummary.trim().length > 10) {
+          keyConcepts.push(st.contentSummary.trim());
+        }
+      }
+    });
+  }
+  if (!keyConcepts.length && data.notebooklmGuide?.keyTakeaways?.length) {
+    keyConcepts = data.notebooklmGuide.keyTakeaways;
+  }
+  if (!keyConcepts.length) {
+    keyConcepts = [
+      `គោលការណ៍គ្រឹះ និងនិយមន័យនៃ ${title}`,
+      `យន្តការដំណើរការ និងការផ្សារភ្ជាប់ទ្រឹស្តីទៅនឹងការបង្រៀនជាក់ស្តែង`
+    ];
+  }
+
+  // Extract In-Class Tasks (from Step 3 & 4 student activities)
+  let tasks = [];
+  if (data.steps && Array.isArray(data.steps)) {
+    data.steps.forEach(st => {
+      const sTitle = st.stepTitle || '';
+      if (sTitle.includes('ទី៣') || sTitle.includes('ទី៤') || sTitle.includes('មេរៀនថ្មី') || sTitle.includes('ពង្រឹង')) {
+        if (st.studentActivities && st.studentActivities.trim().length > 15) {
+          tasks.push(st.studentActivities.trim());
+        }
+      }
+    });
+  }
+  if (!tasks.length) {
+    tasks = [
+      `កិច្ចការទី ១ (វិភាគករណីសិក្សា)៖ សូមអានករណីសិក្សាដែលគ្រូបានផ្តល់ជូន រួចវិភាគរកឫសគល់នៃបញ្ហាតាមទ្រឹស្តីមេរៀន «${title}»។`,
+      `កិច្ចការទី ២ (ដំណោះស្រាយជាយុទ្ធសាស្ត្រ)៖ ពិភាក្សាក្នុងក្រុមដើម្បីរៀបចំផែនការសកម្មភាព ឬវិធីសាស្ត្រដោះស្រាយចំនួន ៣ ចំណុចជាក់ស្តែង។`
+    ];
+  }
+
+  // Build HTML Preview
+  let html = `
+    <!-- Top Header -->
+    <div style="text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px;">
+      <div style="font-size: 0.88rem; font-weight: 700; color: #475569; text-transform: uppercase;">${school}</div>
+      <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 4px 0 6px 0;">សន្លឹកកិច្ចការសិស្ស (STUDENT ACTIVITY WORKSHEET)</h2>
+      <div style="font-size: 0.95rem; font-weight: 700; color: #0d9488;">
+        មេរៀន៖ «${title}» (${subject} ${grade})
+      </div>
+    </div>
+
+    <!-- Student / Group Info Box -->
+    <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 0.88rem;">
+  `;
+
+  if (isGroup) {
+    html += `
+      <div style="display: flex; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
+        <div><strong>👥 ឈ្មោះក្រុម / ក្រុមទី៖</strong> <span style="display: inline-block; border-bottom: 1px dotted #64748b; width: 140px;">&nbsp;</span></div>
+        <div><strong>ប្រធានក្រុម៖</strong> <span style="display: inline-block; border-bottom: 1px dotted #64748b; width: 160px;">&nbsp;</span></div>
+        <div><strong>កាលបរិច្ឆេទ៖</strong> ${dateStr}</div>
+      </div>
+      <div><strong>សមាជិកក្រុម៖</strong> <span style="display: inline-block; border-bottom: 1px dotted #64748b; width: 85%;">&nbsp;</span></div>
+    `;
+  } else {
+    html += `
+      <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+        <div><strong>👤 ឈ្មោះសិស្ស៖</strong> <span style="display: inline-block; border-bottom: 1px dotted #64748b; width: 220px;">&nbsp;</span></div>
+        <div><strong>អត្តលេខ / លេខតុ៖</strong> <span style="display: inline-block; border-bottom: 1px dotted #64748b; width: 100px;">&nbsp;</span></div>
+        <div><strong>កាលបរិច្ឆេទ៖</strong> ${dateStr}</div>
+      </div>
+    `;
+  }
+
+  html += `
+    </div>
+
+    <!-- Section 1: Objectives & Key Concepts -->
+    <div style="margin-bottom: 16px;">
+      <div style="font-size: 0.95rem; font-weight: 700; color: #1e293b; background: #f1f5f9; padding: 4px 10px; border-left: 4px solid #0d9488; margin-bottom: 8px;">
+        🎯 ១. វត្ថុបំណងនៃការអនុវត្ត និងសញ្ញាណគន្លឹះ (Key Concepts & Objectives)
+      </div>
+      <div style="font-size: 0.88rem; color: #334155; padding-left: 10px;">
+        <div style="margin-bottom: 6px;"><strong>វត្ថុបំណង៖</strong></div>
+        <ul style="margin: 0 0 8px 18px; padding: 0;">
+          ${objList.map(o => `<li style="margin-bottom: 3px;">${o}</li>`).join('')}
+        </ul>
+        <div style="margin-bottom: 4px;"><strong>ខ្លឹមសារសង្ខេបជំនួយស្មារតី៖</strong></div>
+        <div style="background: #f8fafc; border: 1px dashed #cbd5e1; padding: 8px 12px; border-radius: 6px; font-size: 0.84rem; color: #475569; white-space: pre-line; line-height: 1.5;">
+          ${keyConcepts.join('\n')}
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: In-Class Tasks & Missions -->
+    <div style="margin-bottom: 16px;">
+      <div style="font-size: 0.95rem; font-weight: 700; color: #1e293b; background: #f1f5f9; padding: 4px 10px; border-left: 4px solid #2563eb; margin-bottom: 8px;">
+        👥 ២. បេសកកម្ម និងសកម្មភាពអនុវត្ត (Tasks & Missions)
+      </div>
+      <div style="font-size: 0.88rem; color: #334155; padding-left: 10px;">
+        ${tasks.map((t, idx) => `
+          <div style="margin-bottom: 10px;">
+            <div style="font-weight: 700; color: #1e293b; margin-bottom: 4px;">• បេសកកម្មទី ${idx + 1}៖</div>
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 6px; line-height: 1.5;">${t}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Section 3: Response & Solution Space -->
+    <div style="margin-bottom: 16px;">
+      <div style="font-size: 0.95rem; font-weight: 700; color: #1e293b; background: #f1f5f9; padding: 4px 10px; border-left: 4px solid #7c3aed; margin-bottom: 8px;">
+        ✍️ ៣. កន្លែងសរសេរដំណោះស្រាយ និងចម្លើយរបស់ក្រុម/សិស្ស (Student Response Area)
+      </div>
+      <div style="border: 1.5px dashed #94a3b8; border-radius: 8px; min-height: 160px; padding: 12px; background: #fafafa;">
+        <div style="font-size: 0.82rem; color: #94a3b8; margin-bottom: 10px;">(សូមសរសេរចម្លើយ ទឡ្ហីករណ៍ ឬគូរដ្យាក្រាមដំណោះស្រាយខាងក្រោម)</div>
+        <div style="border-bottom: 1px dotted #cbd5e1; height: 32px;"></div>
+        <div style="border-bottom: 1px dotted #cbd5e1; height: 32px;"></div>
+        <div style="border-bottom: 1px dotted #cbd5e1; height: 32px;"></div>
+        <div style="border-bottom: 1px dotted #cbd5e1; height: 32px;"></div>
+        <div style="border-bottom: 1px dotted #cbd5e1; height: 32px;"></div>
+      </div>
+    </div>
+  `;
+
+  // Section 4: Exit Ticket 3-2-1
+  if (includeExitTicket) {
+    html += `
+      <div style="margin-bottom: 16px;">
+        <div style="font-size: 0.95rem; font-weight: 700; color: #1e293b; background: #f1f5f9; padding: 4px 10px; border-left: 4px solid #f59e0b; margin-bottom: 8px;">
+          🧠 ៤. សន្លឹកឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 & Muddiest Point
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 8px; font-size: 0.85rem;">
+          <div style="border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 6px; background: #ffffff;">
+            <strong>• ៣ ចំណុចដែលបានយល់ច្បាស់បំផុត៖</strong>
+            <div style="border-bottom: 1px dotted #cbd5e1; height: 24px; margin-top: 4px;"></div>
+          </div>
+          <div style="border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 6px; background: #ffffff;">
+            <strong>• ២ ចំណុចដែលចាប់អារម្មណ៍ចង់យកទៅអនុវត្ត៖</strong>
+            <div style="border-bottom: 1px dotted #cbd5e1; height: 24px; margin-top: 4px;"></div>
+          </div>
+          <div style="border: 1px solid #fed7aa; padding: 8px 12px; border-radius: 6px; background: #fffaf5;">
+            <strong style="color: #c2410c;">• ១ ចំណុចដែលនៅស្រពិចស្រពិល (Muddiest Point)៖</strong>
+            <div style="border-bottom: 1px dotted #fdba74; height: 24px; margin-top: 4px;"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Section 5: Rubric
+  if (includeRubric) {
+    html += `
+      <div style="margin-bottom: 12px;">
+        <div style="font-size: 0.95rem; font-weight: 700; color: #1e293b; background: #f1f5f9; padding: 4px 10px; border-left: 4px solid #10b981; margin-bottom: 8px;">
+          📊 ៥. តារាងរង្វាយតម្លៃរហ័ស (Quick Evaluation Rubric)
+        </div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="border: 1px solid #cbd5e1; padding: 6px 8px;">លក្ខណៈវិនិច្ឆ័យ (Criteria)</th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center; width: 75px;">កម្រិត ១<br><span style="font-weight: normal; font-size: 0.72rem;">(កែលម្អ)</span></th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center; width: 75px;">កម្រិត ២<br><span style="font-weight: normal; font-size: 0.72rem;">(មធ្យម)</span></th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center; width: 75px;">កម្រិត ៣<br><span style="font-weight: normal; font-size: 0.72rem;">(ល្អ)</span></th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center; width: 75px;">កម្រិត ៤<br><span style="font-weight: normal; font-size: 0.72rem;">(ឆ្នើម)</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px;">១. ការសហការ និងការចូលរួមក្នុងក្រុម</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px;">២. ការត្រិះរិះ និងការដោះស្រាយបញ្ហា</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px;">៣. គុណភាពនៃស្នាដៃ និងភាពត្រឹមត្រូវ</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px;">៤. ការធ្វើបទបង្ហាញ និងការពារទឡ្ហីករណ៍</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
+}
+window.renderWorksheetPreview = renderWorksheetPreview;
+
+async function exportWorksheetDocx() {
+  const data = state.generatedPlanData || state.currentPlan;
+  if (!data) {
+    showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
+    return;
+  }
+  if (!window.docx) {
+    showToast('បណ្ណាល័យ Word (.docx) មិនទាន់ផ្ទុកចប់នៅឡើយ!', 'error');
+    return;
+  }
+
+  showToast('កំពុងបង្កើតឯកសារសន្លឹកកិច្ចការ Word (.docx)...', 'info');
+
+  try {
+    const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle } = window.docx;
+
+    const school = data.school || 'វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម';
+    const teacher = data.teacher || 'លោកគ្រូ កែម បូរី';
+    const subject = data.subject || 'ចិត្តវិទ្យាអប់រំ';
+    const grade = data.grade || 'គរុនិស្សិត ឆ្នាំទី ១';
+    const title = data.lessonTitle || 'មេរៀន';
+    const dateStr = data.dateStr || getKhmerFormattedDate();
+
+    const isGroup = currentWorksheetMode === 'group';
+    const includeRubric = document.getElementById('chkWsRubric')?.checked !== false;
+    const includeExitTicket = document.getElementById('chkWsExitTicket')?.checked !== false;
+
+    const docChildren = [];
+
+    // Header
+    docChildren.push(
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ text: school, size: 22, bold: true, color: "475569" })]
+      }),
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ text: "សន្លឹកកិច្ចការសិស្ស (STUDENT ACTIVITY WORKSHEET)", bold: true, size: 28, color: "0F172A" })]
+      }),
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ text: `មេរៀន៖ «${title}» (${subject} ${grade})`, bold: true, size: 24, color: "0D9488" })]
+      }),
+      new Paragraph({ text: "" })
+    );
+
+    // Info Table
+    if (isGroup) {
+      docChildren.push(
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: { size: 50, type: WidthType.PERCENTAGE },
+                  borders: { top: { style: BorderStyle.SINGLE, color: "CBD5E1" }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.SINGLE, color: "CBD5E1" }, right: { style: BorderStyle.NONE } },
+                  children: [new Paragraph({ children: [new TextRun({ text: "ឈ្មោះក្រុម / ក្រុមទី៖ ........................................", bold: true, size: 22 })] })]
+                }),
+                new TableCell({
+                  width: { size: 50, type: WidthType.PERCENTAGE },
+                  borders: { top: { style: BorderStyle.SINGLE, color: "CBD5E1" }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.SINGLE, color: "CBD5E1" } },
+                  children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `កាលបរិច្ឆេទ៖ ${dateStr}`, size: 22 })] })]
+                })
+              ]
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  columnSpan: 2,
+                  borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: "CBD5E1" }, left: { style: BorderStyle.SINGLE, color: "CBD5E1" }, right: { style: BorderStyle.SINGLE, color: "CBD5E1" } },
+                  children: [
+                    new Paragraph({ children: [new TextRun({ text: "ប្រធានក្រុម៖ .....................................................  |  សមាជិក៖ ..........................................................................................", size: 22 })] })
+                  ]
+                })
+              ]
+            })
+          ]
+        }),
+        new Paragraph({ text: "" })
+      );
+    } else {
+      docChildren.push(
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: { size: 60, type: WidthType.PERCENTAGE },
+                  borders: { top: { style: BorderStyle.SINGLE, color: "CBD5E1" }, bottom: { style: BorderStyle.SINGLE, color: "CBD5E1" }, left: { style: BorderStyle.SINGLE, color: "CBD5E1" }, right: { style: BorderStyle.NONE } },
+                  children: [new Paragraph({ children: [new TextRun({ text: "ឈ្មោះសិស្ស៖ ...........................................................", bold: true, size: 22 })] })]
+                }),
+                new TableCell({
+                  width: { size: 40, type: WidthType.PERCENTAGE },
+                  borders: { top: { style: BorderStyle.SINGLE, color: "CBD5E1" }, bottom: { style: BorderStyle.SINGLE, color: "CBD5E1" }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.SINGLE, color: "CBD5E1" } },
+                  children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: "លេខតុ/អត្តលេខ៖ .....................", size: 22 })] })]
+                })
+              ]
+            })
+          ]
+        }),
+        new Paragraph({ text: "" })
+      );
+    }
+
+    // Section 1: Objectives & Key Concepts
+    docChildren.push(
+      new Paragraph({ children: [new TextRun({ text: "១. វត្ថុបំណងនៃការអនុវត្ត និងសញ្ញាណគន្លឹះ", bold: true, size: 24, color: "0D9488" })] })
+    );
+
+    let objList = [];
+    if (data.objectives) {
+      if (data.objectives.knowledge) objList.push(...data.objectives.knowledge);
+      if (data.objectives.skills) objList.push(...data.objectives.skills);
+    }
+    if (!objList.length) {
+      objList = [`ស្វែងយល់ និងពន្យល់ពីគោលការណ៍គ្រឹះនៃ «${title}»`, `ចេះវិភាគ និងដោះស្រាយបញ្ហាក្នុងករណីសិក្សាជាក់ស្តែង`];
+    }
+    objList.forEach(o => {
+      docChildren.push(new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: o, size: 22 })] }));
+    });
+
+    docChildren.push(new Paragraph({ text: "" }));
+
+    // Section 2: Tasks
+    docChildren.push(
+      new Paragraph({ children: [new TextRun({ text: "២. បេសកកម្ម និងកិច្ចការអនុវត្ត (Tasks & Missions)", bold: true, size: 24, color: "2563EB" })] })
+    );
+
+    let tasks = [];
+    if (data.steps && Array.isArray(data.steps)) {
+      data.steps.forEach(st => {
+        const sTitle = st.stepTitle || '';
+        if (sTitle.includes('ទី៣') || sTitle.includes('ទី៤') || sTitle.includes('មេរៀនថ្មី') || sTitle.includes('ពង្រឹង')) {
+          if (st.studentActivities && st.studentActivities.trim().length > 15) {
+            tasks.push(st.studentActivities.trim());
+          }
+        }
+      });
+    }
+    if (!tasks.length) {
+      tasks = [
+        `កិច្ចការទី ១ (វិភាគករណីសិក្សា)៖ សូមអានករណីសិក្សាដែលគ្រូបានផ្តល់ជូន រួចវិភាគរកឫសគល់នៃបញ្ហាតាមទ្រឹស្តីមេរៀន «${title}»។`,
+        `កិច្ចការទី ២ (ដំណោះស្រាយជាយុទ្ធសាស្ត្រ)៖ ពិភាក្សាក្នុងក្រុមដើម្បីរៀបចំផែនការសកម្មភាព ឬវិធីសាស្ត្រដោះស្រាយចំនួន ៣ ចំណុចជាក់ស្តែង។`
+      ];
+    }
+    tasks.forEach((t, idx) => {
+      docChildren.push(
+        new Paragraph({ children: [new TextRun({ text: `• បេសកកម្មទី ${idx + 1}៖`, bold: true, size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: `  ${t}`, size: 22 })] }),
+        new Paragraph({ text: "" })
+      );
+    });
+
+    // Section 3: Response Box
+    docChildren.push(
+      new Paragraph({ children: [new TextRun({ text: "៣. កន្លែងសរសេរដំណោះស្រាយ និងចម្លើយ (Response Area)", bold: true, size: 24, color: "7C3AED" })] }),
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                borders: {
+                  top: { style: BorderStyle.DASHED, color: "94A3B8" },
+                  bottom: { style: BorderStyle.DASHED, color: "94A3B8" },
+                  left: { style: BorderStyle.DASHED, color: "94A3B8" },
+                  right: { style: BorderStyle.DASHED, color: "94A3B8" }
+                },
+                children: [
+                  new Paragraph({ children: [new TextRun({ text: "(សូមសរសេរចម្លើយ ទឡ្ហីករណ៍ ឬគូរដ្យាក្រាមដំណោះស្រាយខាងក្រោម)", italics: true, size: 20, color: "94A3B8" })] }),
+                  new Paragraph({ text: "\n\n\n\n\n\n\n\n" })
+                ]
+              })
+            ]
+          })
+        ]
+      }),
+      new Paragraph({ text: "" })
+    );
+
+    // Section 4: Exit Ticket
+    if (includeExitTicket) {
+      docChildren.push(
+        new Paragraph({ children: [new TextRun({ text: "៤. សន្លឹកឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 & Muddiest Point", bold: true, size: 24, color: "D97706" })] }),
+        new Paragraph({ children: [new TextRun({ text: "• ៣ ចំណុចដែលបានយល់ច្បាស់បំផុត៖ .................................................................................................................", size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: "• ២ ចំណុចដែលចាប់អារម្មណ៍ចង់យកទៅអនុវត្ត៖ .................................................................................................", size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: "• ១ ចំណុចដែលនៅស្រពិចស្រពិល (Muddiest Point)៖ .........................................................................................", size: 22, bold: true, color: "C2410C" })] }),
+        new Paragraph({ text: "" })
+      );
+    }
+
+    // Section 5: Rubric
+    if (includeRubric) {
+      docChildren.push(
+        new Paragraph({ children: [new TextRun({ text: "៥. តារាងរង្វាយតម្លៃរហ័ស (Quick Evaluation Rubric)", bold: true, size: 24, color: "059669" })] }),
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({ width: { size: 40, type: WidthType.PERCENTAGE }, children: [new Paragraph({ children: [new TextRun({ text: "លក្ខណៈវិនិច្ឆ័យ (Criteria)", bold: true, size: 20 })] })] }),
+                new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "កម្រិត ១\n(កែលម្អ)", bold: true, size: 18 })] })] }),
+                new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "កម្រិត ២\n(មធ្យម)", bold: true, size: 18 })] })] }),
+                new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "កម្រិត ៣\n(ល្អ)", bold: true, size: 18 })] })] }),
+                new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "កម្រិត ៤\n(ឆ្នើម)", bold: true, size: 18 })] })] })
+              ]
+            }),
+            ...[
+              "១. ការសហការ និងការចូលរួមក្នុងក្រុម",
+              "២. ការត្រិះរិះ និងការដោះស្រាយបញ្ហា",
+              "៣. គុណភាពនៃស្នាដៃ និងភាពត្រឹមត្រូវ",
+              "៤. ការធ្វើបទបង្ហាញ និងការពារទឡ្ហីករណ៍"
+            ].map(crit => new TableRow({
+              children: [
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: crit, size: 20 })] })] }),
+                new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "⬜", size: 20 })] })] }),
+                new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "⬜", size: 20 })] })] }),
+                new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "⬜", size: 20 })] })] }),
+                new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "⬜", size: 20 })] })] })
+              ]
+            }))
+          ]
+        })
+      );
+    }
+
+    const doc = new Document({
+      styles: {
+        default: {
+          document: {
+            run: {
+              font: "Kantumruy Pro",
+              size: 22
+            }
+          }
+        }
+      },
+      sections: [{ children: docChildren }]
+    });
+
+    const blob = await Packer.toBlob(doc);
+    const fileName = `សន្លឹកកិច្ចការសិស្ស_${(data.subject || 'មេរៀន')}_${(data.lessonTitle || 'កិច្ចការ')}.docx`.replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '_');
+    
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast(`✅ បានទាញយកសន្លឹកកិច្ចការ ${fileName} ជោគជ័យ!`, 'success');
+  } catch (err) {
+    console.error('exportWorksheetDocx error:', err);
+    showToast('បរាជ័យក្នុងការបង្កើត Word Worksheet: ' + err.message, 'error');
+  }
+}
+window.exportWorksheetDocx = exportWorksheetDocx;
+
+function printWorksheet() {
+  const previewEl = document.getElementById('worksheetA4Preview');
+  if (!previewEl) return;
+  
+  const printWindow = window.open('', '_blank', 'width=850,height=900');
+  if (!printWindow) {
+    showToast('សូមអនុញ្ញាត Popup ដើម្បីបោះពុម្ពសន្លឹកកិច្ចការ!', 'warning');
+    return;
+  }
+  
+  const contentHtml = previewEl.innerHTML;
+  printWindow.document.open();
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="km">
+    <head>
+      <meta charset="UTF-8">
+      <title>សន្លឹកកិច្ចការសិស្ស - Student Worksheet</title>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+      <style>
+        @page {
+          size: A4 portrait;
+          margin: 12mm 15mm;
+        }
+        body {
+          font-family: 'Kantumruy Pro', 'Khmer OS Siemreap', sans-serif;
+          color: #000;
+          background: #fff;
+          margin: 0;
+          padding: 0;
+          line-height: 1.5;
+          font-size: 11pt;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 10px 0;
+        }
+        th, td {
+          border: 1px solid #475569;
+          padding: 6px 10px;
+          text-align: left;
+        }
+        th {
+          background-color: #f1f5f9;
+        }
+      </style>
+    </head>
+    <body>
+      ${contentHtml}
+      <script>
+        window.onload = function() {
+          setTimeout(function() {
+            window.print();
+            window.close();
+          }, 350);
+        };
+      <\/script>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+}
+window.printWorksheet = printWorksheet;
+
+async function copyWorksheetText() {
+  const previewEl = document.getElementById('worksheetA4Preview');
+  if (!previewEl) return;
+
+  const plainText = previewEl.innerText;
+  try {
+    await navigator.clipboard.writeText(plainText);
+    showToast('✨ បានចម្លងខ្លឹមសារសន្លឹកកិច្ចការចូល Clipboard រួចរាល់!', 'success');
+  } catch (err) {
+    showToast('មិនអាចចម្លងបានទេ: ' + err.message, 'error');
+  }
+}
+window.copyWorksheetText = copyWorksheetText;
 
 
