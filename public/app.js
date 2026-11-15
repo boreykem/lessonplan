@@ -1728,6 +1728,9 @@ function selectDurationChip(val) {
   if (chkAuto && chkAuto.checked) {
     saveAdminProfile(true);
   }
+  if (typeof updateTeacherProfileSummaryLive === 'function') {
+    updateTeacherProfileSummaryLive();
+  }
 }
 window.selectDurationChip = selectDurationChip;
 
@@ -1770,10 +1773,15 @@ function updateTeacherProfileSummaryLive() {
   const summaryName = document.getElementById('summaryTeacherName');
   const summarySchool = document.getElementById('summarySchoolName');
   const summaryMeta = document.getElementById('summaryDegreeGrade');
+  const durationSelect = document.getElementById('inputDurationSelect');
+  let durationVal = '៦០ នាទី';
+  if (durationSelect && durationSelect.value) {
+    durationVal = durationSelect.value.split('(')[0].trim();
+  }
 
   if (summaryName) summaryName.textContent = teacherName;
   if (summarySchool) summarySchool.textContent = schoolName;
-  if (summaryMeta) summaryMeta.textContent = `${degreeText} • ${gradeText}`;
+  if (summaryMeta) summaryMeta.textContent = `${degreeText} • ${gradeText} • ${durationVal}`;
 }
 window.updateTeacherProfileSummaryLive = updateTeacherProfileSummaryLive;
 

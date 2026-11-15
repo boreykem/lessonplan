@@ -310,6 +310,48 @@
                 </select>
               </div>
 
+              <!-- Teaching Duration Quick Chips (Moved INSIDE drawer below Subject as requested) -->
+              <div class="control-group mt-2">
+                <div class="label-with-action">
+                  <label for="inputDurationSelect" data-i18n="durationLabel">
+                    <i class="fa-solid fa-clock text-primary" style="margin-right: 4px;"></i> រយៈពេលបង្រៀន <span class="req">*</span>
+                  </label>
+                  <span id="activeDurationLabel" style="font-size: 0.76rem; font-weight: 700; color: #4f46e5;">៦០ នាទី (១ ម៉ោងពេញ)</span>
+                </div>
+                
+                <!-- Quick Chips Grid -->
+                <div class="duration-chips-grid" id="durationChipsGrid">
+                  <button type="button" class="duration-chip" data-duration="៥០ នាទី (១ ម៉ោងសិក្សា)" onclick="selectDurationChip('៥០ នាទី (១ ម៉ោងសិក្សា)')">៥០ នាទី</button>
+                  <button type="button" class="duration-chip active" data-duration="៦០ នាទី (១ ម៉ោងពេញ)" onclick="selectDurationChip('៦០ នាទី (១ ម៉ោងពេញ)')">៦០ នាទី</button>
+                  <button type="button" class="duration-chip" data-duration="៩០ នាទី (២ ម៉ោងសិក្សា)" onclick="selectDurationChip('៩០ នាទី (២ ម៉ោងសិក្សា)')">៩០ នាទី</button>
+                  <button type="button" class="duration-chip" data-duration="១២០ នាទី (២ ម៉ោងពេញ)" onclick="selectDurationChip('១២០ នាទី (២ ម៉ោងពេញ)')">១២០ នាទី</button>
+                  <button type="button" class="duration-chip" data-duration="១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)" onclick="selectDurationChip('១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)')">១៨០ នាទី</button>
+                  <button type="button" class="duration-chip" id="chipCustomDuration" data-duration="custom" onclick="selectDurationChip('custom')">✏️ ផ្ទាល់ខ្លួន</button>
+                </div>
+
+                <!-- Native select kept in DOM for 100% backward compatibility -->
+                <select id="inputDurationSelect" class="form-control" style="display: none;">
+                  <option value="៥០ នាទី (១ ម៉ោងសិក្សា)">៥០ នាទី (១ ម៉ោងសិក្សា)</option>
+                  <option value="៦០ នាទី (១ ម៉ោងពេញ)" selected>៦០ នាទី (១ ម៉ោងពេញ)</option>
+                  <option value="៩០ នាទី (២ ម៉ោងសិក្សា)">៩០ នាទី (២ ម៉ោងសិក្សា)</option>
+                  <option value="១០០ នាទី (២ ម៉ោងសិក្សា)">១០០ នាទី (២ ម៉ោងសិក្សា)</option>
+                  <option value="១២០ នាទី (២ ម៉ោងពេញ)">១២០ នាទី (២ ម៉ោងពេញ)</option>
+                  <option value="១៣៥ នាទី (៣ ម៉ោងសិក្សា)">១៣៥ នាទី (៣ ម៉ោងសិក្សា)</option>
+                  <option value="១៥០ នាទី (៣ ម៉ោងសិក្សា)">១៥០ នាទី (៣ ម៉ោងសិក្សា)</option>
+                  <option value="១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)">១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)</option>
+                  <option value="២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)">២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)</option>
+                  <option value="custom">✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)</option>
+                </select>
+
+                <!-- Custom Duration Text Input (Smooth inline animation) -->
+                <div id="customDurationWrap" class="custom-sub-input-wrap" style="display: none;">
+                  <div class="input-icon-wrap">
+                    <i class="fa-solid fa-clock"></i>
+                    <input type="text" id="inputCustomDurationText" class="form-control" placeholder="ឧ. ៦០ នាទី / ៣ ម៉ោង / ២ សប្តាហ៍...">
+                  </div>
+                </div>
+              </div>
+
               <!-- Remember Profile & Action Buttons -->
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border-color); flex-wrap: wrap; gap: 8px;">
                 <label class="remember-checkbox-label" style="font-size: 0.78rem;">
@@ -331,56 +373,8 @@
             </div>
           </div>
 
-          <!-- Teaching Duration Quick Chips (User Request 3: ៦០ នាទី, ១២០ នាទី, ១៨០ នាទី) -->
-          <div class="control-group mt-2">
-            <div class="label-with-action">
-              <label for="inputDurationSelect" data-i18n="durationLabel">
-                <i class="fa-solid fa-clock text-primary" style="margin-right: 4px;"></i> រយៈពេលបង្រៀន (Duration) <span class="req">*</span>
-              </label>
-              <span id="activeDurationLabel" style="font-size: 0.76rem; font-weight: 700; color: #4f46e5;">៦០ នាទី (១ ម៉ោងពេញ)</span>
-            </div>
-            
-            <!-- Quick Chips Grid -->
-            <div class="duration-chips-grid" id="durationChipsGrid">
-              <button type="button" class="duration-chip" data-duration="៥០ នាទី (១ ម៉ោងសិក្សា)" onclick="selectDurationChip('៥០ នាទី (១ ម៉ោងសិក្សា)')">៥០ នាទី</button>
-              <button type="button" class="duration-chip active" data-duration="៦០ នាទី (១ ម៉ោងពេញ)" onclick="selectDurationChip('៦០ នាទី (១ ម៉ោងពេញ)')">៦០ នាទី</button>
-              <button type="button" class="duration-chip" data-duration="៩០ នាទី (២ ម៉ោងសិក្សា)" onclick="selectDurationChip('៩០ នាទី (២ ម៉ោងសិក្សា)')">៩០ នាទី</button>
-              <button type="button" class="duration-chip" data-duration="១២០ នាទី (២ ម៉ោងពេញ)" onclick="selectDurationChip('១២០ នាទី (២ ម៉ោងពេញ)')">១២០ នាទី</button>
-              <button type="button" class="duration-chip" data-duration="១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)" onclick="selectDurationChip('១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)')">១៨០ នាទី</button>
-              <button type="button" class="duration-chip" id="chipCustomDuration" data-duration="custom" onclick="selectDurationChip('custom')">✏️ ផ្ទាល់ខ្លួន</button>
-            </div>
-
-            <!-- Native select kept in DOM for 100% backward compatibility -->
-            <select id="inputDurationSelect" class="form-control" style="display: none;">
-              <option value="៥០ នាទី (១ ម៉ោងសិក្សា)">៥០ នាទី (១ ម៉ោងសិក្សា)</option>
-              <option value="៦០ នាទី (១ ម៉ោងពេញ)" selected>៦០ នាទី (១ ម៉ោងពេញ)</option>
-              <option value="៩០ នាទី (២ ម៉ោងសិក្សា)">៩០ នាទី (២ ម៉ោងសិក្សា)</option>
-              <option value="១០០ នាទី (២ ម៉ោងសិក្សា)">១០០ នាទី (២ ម៉ោងសិក្សា)</option>
-              <option value="១២០ នាទី (២ ម៉ោងពេញ)">១២០ នាទី (២ ម៉ោងពេញ)</option>
-              <option value="១៣៥ នាទី (៣ ម៉ោងសិក្សា)">១៣៥ នាទី (៣ ម៉ោងសិក្សា)</option>
-              <option value="១៥០ នាទី (៣ ម៉ោងសិក្សា)">១៥០ នាទី (៣ ម៉ោងសិក្សា)</option>
-              <option value="១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)">១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)</option>
-              <option value="២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)">២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)</option>
-              <option value="custom">✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)</option>
-            </select>
-
-            <!-- Custom Duration Text Input (Smooth inline animation) -->
-            <div id="customDurationWrap" class="custom-sub-input-wrap" style="display: none;">
-              <div class="input-icon-wrap">
-                <i class="fa-solid fa-clock"></i>
-                <input type="text" id="inputCustomDurationText" class="form-control" placeholder="ឧ. ៦០ នាទី / ៣ ម៉ោង / ២ សប្តាហ៍...">
-              </div>
-            </div>
-          </div>
-
-          <!-- Prompt Customization -->
-          <div class="control-group mt-2">
-            <label for="inputCustomNotes" data-i18n="customNotesLabel">ចំណាំ ឬសំណូមពរបន្ថែម (Prompt Customization)</label>
-            <div class="input-icon-wrap">
-              <i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i>
-              <input type="text" id="inputCustomNotes" class="form-control" placeholder="ឧ. សុំផ្ដោតលើការពិសោធន៍ជាក់ស្ដែង និងមានល្បែងពង្រឹងពុទ្ធិ...">
-            </div>
-          </div>
+          <!-- Hidden input for inputCustomNotes for backward compatibility -->
+          <input type="hidden" id="inputCustomNotes" value="">
         </section>
 
         <!-- STEP 2: Upload / Select Template & Methodology -->
