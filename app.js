@@ -1210,26 +1210,36 @@ function setLanguage(lang, showNotification = false) {
     }
   }
 
-  // 8. Translate Subjects
+  // 8. Translate Subjects (Dynamic Map supporting standard & custom subjects)
   const subjectSelect = document.getElementById('inputSubject');
-  if (subjectSelect && subjectSelect.options.length >= 12) {
-    const subjectsEn = [
-      "Physics", "Mathematics", "Khmer Literature", "Educational Psychology",
-      "Computer Science (ICT)", "Chemistry", "Biology", "History",
-      "Geography", "Civics & Morality", "English", "Earth Science"
-    ];
-    const subjectsKm = [
-      "រូបវិទ្យា", "គណិតវិទ្យា", "ភាសាខ្មែរ", "ចិត្តវិទ្យាអប់រំ",
-      "ព័ត៌មានវិទ្យា (ICT / Computer)", "គីមីវិទ្យា", "ជីវវិទ្យា", "ប្រវត្តិវិទ្យា",
-      "ភូមិវិទ្យា", "ពលរដ្ឋវិជ្ជា", "ភាសាអង់គ្លេស", "ផែនដីវិទ្យា"
-    ];
-    const targetSubjects = isEn ? subjectsEn : subjectsKm;
-    for (let i = 0; i < targetSubjects.length; i++) {
-      if (subjectSelect.options[i]) subjectSelect.options[i].text = targetSubjects[i];
-    }
-    const customOpt = subjectSelect.querySelector('option[value="custom"]');
-    if (customOpt) {
-      customOpt.text = isEn ? "✏️ Other / Add New Subject..." : "✏️ ផ្សេងៗ / បន្ថែមមុខវិជ្ជាថ្មី...";
+  if (subjectSelect) {
+    const subjectMap = {
+      "រូបវិទ្យា": { km: "រូបវិទ្យា", en: "Physics" },
+      "គណិតវិទ្យា": { km: "គណិតវិទ្យា", en: "Mathematics" },
+      "ភាសាខ្មែរ": { km: "ភាសាខ្មែរ", en: "Khmer Literature" },
+      "ចិត្តវិទ្យាអប់រំ": { km: "ចិត្តវិទ្យាអប់រំ", en: "Educational Psychology" },
+      "ព័ត៌មានវិទ្យា": { km: "ព័ត៌មានវិទ្យា (ICT)", en: "Computer Science (ICT)" },
+      "គីមីវិទ្យា": { km: "គីមីវិទ្យា", en: "Chemistry" },
+      "ជីវវិទ្យា": { km: "ជីវវិទ្យា", en: "Biology" },
+      "ប្រវត្តិវិទ្យា": { km: "ប្រវត្តិវិទ្យា", en: "History" },
+      "ភូមិវិទ្យា": { km: "ភូមិវិទ្យា", en: "Geography" },
+      "ពលរដ្ឋវិជ្ជា": { km: "ពលរដ្ឋវិជ្ជា", en: "Civics & Morality" },
+      "ភាសាអង់គ្លេស": { km: "ភាសាអង់គ្លេស", en: "English Language" },
+      "ផែនដីវិទ្យា": { km: "ផែនដីវិទ្យា", en: "Earth Science" },
+      "គរុកោសល្យ": { km: "គរុកោសល្យ", en: "Pedagogy / Teaching Methodology" },
+      "ទស្សនវិជ្ជា": { km: "ទស្សនវិជ្ជា", en: "Philosophy" },
+      "សេដ្ឋកិច្ចវិទ្យា": { km: "សេដ្ឋកិច្ចវិទ្យា", en: "Economics" }
+    };
+    for (let i = 0; i < subjectSelect.options.length; i++) {
+      const opt = subjectSelect.options[i];
+      if (opt.value === 'custom') {
+        opt.text = isEn ? "✏️ Other / Add New Subject..." : "✏️ ផ្សេងៗ / បន្ថែមមុខវិជ្ជាថ្មី...";
+      } else {
+        const trans = subjectMap[opt.value] || Object.values(subjectMap).find(m => m.km === opt.text || m.en === opt.text);
+        if (trans) {
+          opt.text = isEn ? trans.en : trans.km;
+        }
+      }
     }
   }
 
@@ -3876,7 +3886,9 @@ async function generateWithGroqAPI(params) {
   const stepTimeHints = calculateStepDurations(params.duration, isFlipped ? 'flipped' : (isBd ? 'backward_design' : 'standard'));
 
   const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle);
-  const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS Standard 5-Step'} Lesson Plan in Khmer for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}).
+  const isEn = (params.language === 'en' || state.language === 'en');
+  const targetLang = isEn ? 'ENGLISH (all content, objectives, pedagogical steps, materials, and activities MUST be written 100% in English)' : 'Khmer';
+  const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS Standard 5-Step'} Lesson Plan in ${targetLang} for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}).
 Teaching Method: ${params.method || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)'}.
 ${methodPrompt}
 Include 3 objectives (Knowledge, Skills, Attitudes using Action-Condition-Standard formula), materials, teaching method, and ${isBd ? "3-stage UbD learning activities" : "5 in-class teaching steps with teacher activity, lesson content, and student activity"}. Do NOT include pre-test/post-test questions in this output (they are generated separately on-demand). Return strictly valid JSON.`;
@@ -3942,7 +3954,9 @@ async function generateWithOpenRouterAPI(params) {
   const isFlipped = isFlippedLearningRequest(params);
   const isBd = !isFlipped && isBackwardDesignRequest(params);
   const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle);
-  const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS Standard 5-Step'} Lesson Plan in Khmer for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}).
+  const isEn = (params.language === 'en' || state.language === 'en');
+  const targetLang = isEn ? 'ENGLISH (all content, objectives, pedagogical steps, materials, and activities MUST be written 100% in English)' : 'Khmer';
+  const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS Standard 5-Step'} Lesson Plan in ${targetLang} for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}).
 Teaching Method: ${params.method || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)'}.
 ${methodPrompt}
 Return strictly valid JSON.`;
@@ -4092,11 +4106,12 @@ async function generateWithGeminiAPI(params) {
   const totalMin = parseDurationToMinutes(params.duration);
   const stepTimeHints = calculateStepDurations(params.duration, isFlipped ? 'flipped' : (isBd ? 'backward_design' : 'standard'));
   const isLongSession = totalMin >= 90;
+  const isEn = (params.language === 'en' || state.language === 'en');
 
   let systemPrompt;
   if (isFlipped) {
     systemPrompt = `You are Google Gemini AI serving as an expert Cambodian pedagogical educator, 21st-century instructional designer, and Google NotebookLM specialist for the Ministry of Education, Youth and Sport (MoEYS).
-Your mission is to deeply analyze the uploaded lesson content and generate an authentic, 100% lesson-specific, state-of-the-art Flipped Learning Lesson Plan (កិច្ចតែងការបង្រៀនតាមបែបថ្នាក់រៀនត្រឡប់) in Khmer.
+    Your mission is to deeply analyze the uploaded lesson content and generate an authentic, 100% lesson-specific, state-of-the-art Flipped Learning Lesson Plan in ${isEn ? 'ENGLISH (all content, objectives, materials, questions, teacher and student activities MUST be 100% in English)' : 'Khmer (កិច្ចតែងការបង្រៀនតាមបែបថ្នាក់រៀនត្រឡប់)'}.
 
 CRITICAL DURATION & ACTIVITY SCALING (${totalMin} MINUTES TOTAL):
 1. Total teaching duration is ${params.duration} (${totalMin} minutes). You MUST allocate step durations:
@@ -4230,7 +4245,7 @@ Return ONLY valid JSON matching this schema:
 
   } else if (isBd) {
     systemPrompt = `You are an expert Cambodian pedagogical educator and TEC (Teacher Education College) curriculum developer.
-Generate a complete, high-quality Backward Design / UbD Lesson Plan (កិច្ចតែងការបង្រៀន តាមបែបត្រឡប់ ៣ ដំណាក់កាល) in Khmer.
+Generate a complete, high-quality Backward Design / UbD Lesson Plan in ${isEn ? 'ENGLISH (all content, objectives, enduring understandings, essential questions, performance tasks, and learning activities MUST be 100% in English)' : 'Khmer (កិច្ចតែងការបង្រៀន តាមបែបត្រឡប់ ៣ ដំណាក់កាល)'}.
 
 CRITICAL DURATION ALLOCATION (${totalMin} MINUTES):
 Total duration is ${params.duration} (${totalMin} minutes). You MUST set stage 3 step durations: Step 1 (${stepTimeHints.step1}), Step 2 (${stepTimeHints.step2}), Step 3 (${stepTimeHints.step3}), Step 4 (៥ នាទី).
@@ -4328,7 +4343,7 @@ Return ONLY valid JSON matching this schema:
 2. 📚 SUBJECT MATTER SPECIALIST — Expert in the specific subject being taught. You know the textbook content, key definitions, formulas, concepts, examples, and activities for this topic at this grade level.
 3. 🏫 CLASSROOM COACH — You write instructions that real teachers can read and follow immediately. You think like a teacher standing in front of a class.
 
-YOUR MISSION: Generate a COMPLETE, PROFESSIONAL, CLASSROOM-READY official Cambodian Lesson Plan (កិច្ចតែងការបង្រៀន) in Khmer that a teacher can print and use TOMORROW MORNING without changing a single word.
+YOUR MISSION: Generate a COMPLETE, PROFESSIONAL, CLASSROOM-READY official Lesson Plan in ${isEn ? 'ENGLISH (all content, objectives, teaching aids, teacher and student activities MUST be 100% in English)' : 'Khmer (កិច្ចតែងការបង្រៀន)'} that a teacher can print and use TOMORROW MORNING without changing a single word.
 
 ═══════════════════════════════════════════════════
 STEP DURATION ALLOCATION (${totalMin} MINUTES TOTAL):
@@ -6686,14 +6701,113 @@ function getKhmerFormattedDate() {
   return `ថ្ងៃទី ${d} ខែ ${m} ឆ្នាំ ${y}`;
 }
 
+
+// 🌐 Bilingual Localization Helpers for Document Rendering
+function localizeStepTitle(title, isEn) {
+  if (!title || !isEn) return title || '';
+  return title
+    .replace(/ជំហានទី\s*១\s*[:៖]?/gi, 'Step 1:')
+    .replace(/ជំហានទី\s*២\s*[:៖]?/gi, 'Step 2:')
+    .replace(/ជំហានទី\s*៣\s*[:៖]?/gi, 'Step 3:')
+    .replace(/ជំហានទី\s*៤\s*[:៖]?/gi, 'Step 4:')
+    .replace(/ជំហានទី\s*៥\s*[:៖]?/gi, 'Step 5:')
+    .replace(/ជំហានទី\s*(\d+)\s*[:៖]?/gi, 'Step $1:')
+    .replace(/ស្វាគមន៍\s*&\s*ត្រួតពិនិត្យការរៀបចំទុកជាមុន/gi, 'Welcome & Pre-Class Readiness Review')
+    .replace(/បំផុសសំណួរ\s*&\s*ភ្ជាប់ទំនាក់ទំនង/gi, 'Inquiry, Hook & Concept Activation')
+    .replace(/ការអនុវត្ត\s*&\s*ការពិភាក្សាស៊ីជម្រៅ/gi, 'Collaborative Practice & Deep Dive Application')
+    .replace(/ការបូកសរុប\s*&\s*ពង្រឹងចំណេះដឹង/gi, 'Synthesis & Formative Consolidation')
+    .replace(/ការវាយតម្លៃ\s*&\s*ការផ្ដល់កិច្ចការបន្ទាប់/gi, 'Assessment & Next Learning Mission')
+    .replace(/កិច្ចការផ្ទះ\s*និងបណ្ដាំផ្ញើ/gi, 'Homework & Next Assignment')
+    .replace(/រដ្ឋបាលថ្នាក់/gi, 'Classroom Management & Administration')
+    .replace(/រំលឹកមេរៀនចាស់/gi, 'Review of Previous Lesson & Motivation')
+    .replace(/មេរៀនថ្មី/gi, 'New Lesson Presentation & Inquiry')
+    .replace(/ពង្រឹងពុទ្ធិ/gi, 'Practice & Formative Reinforcement')
+    .replace(/ពង្រឹងចំណេះដឹង/gi, 'Practice & Formative Reinforcement')
+    .replace(/បណ្ដាំ\s*\+\s*កិច្ចការ/gi, 'Assessment & Assignment')
+    .replace(/បណ្ដាំផ្ញើ/gi, 'Assignment & Conclusion');
+}
+
+function localizeDuration(duration, isEn) {
+  if (!duration || !isEn) return duration || '';
+  return duration
+    .replace(/(\d+)\s*នាទី/gi, '$1 mins')
+    .replace(/(\d+)\s*ម៉ោង/gi, '$1 hrs')
+    .replace(/(\d+)\s*ម៉ោងសិក្សា/gi, '$1 periods')
+    .replace(/(\d+)\s*ម៉ោងពេញ/gi, '$1 full hours')
+    .replace(/១/g, '1').replace(/២/g, '2').replace(/៣/g, '3').replace(/៤/g, '4').replace(/៥/g, '5')
+    .replace(/៦/g, '6').replace(/៧/g, '7').replace(/៨/g, '8').replace(/៩/g, '9').replace(/០/g, '0');
+}
+
 // 🎯 Render Comprehensive Teaching Method HTML (Pedagogical Strategy Matrix: Template Mode × Teaching Method)
-function renderTeachingMethodContent(method, templateType = '5_steps') {
-  const m = (method || '').trim() || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)';
+// 🎯 Render Comprehensive Teaching Method HTML (Pedagogical Strategy Matrix: Template Mode × Teaching Method)
+function renderTeachingMethodContent(method, templateType = '5_steps', isEn = false) {
+  const m = (method || '').trim() || (isEn ? 'Student-Centered Active Learning Approach' : 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)');
   const methodType = detectMethodType(m);
   const isFlipped = templateType === 'flipped_learning' || m.toLowerCase().includes('ត្រឡប់') || m.toLowerCase().includes('flipped');
 
   if (isFlipped) {
     let methodBreakdownHtml = '';
+    if (isEn) {
+      switch (methodType) {
+        case 'pbl':
+          methodBreakdownHtml = `
+            <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+              <li><strong>Step 2 (10%):</strong> Pre-class comprehension check, resolve Muddiest Points from video self-study, and connect theoretical concepts to authentic real-world contexts.</li>
+              <li><strong>Step 3 (10%):</strong> Teacher introduces guiding inquiry questions and distributes Challenge Scenario mission worksheets.</li>
+              <li><strong>Step 4 (70% - Core Active Learning):</strong> 4-Stage Problem-Based Learning: (1) Root-cause problem analysis [Critical Thinking], (2) Collaborative strategy design & solution drafting on A0 Flipcharts [Collaboration], (3) Team defense & solution debate [Communication], (4) 4-level rubric assessment & synthesis of unified principles.</li>
+              <li><strong>Step 5 (5%):</strong> 3-2-1 Exit Ticket reflection and assignment of follow-up inquiry research.</li>
+            </ul>`;
+          break;
+        case 'jigsaw':
+          methodBreakdownHtml = `
+            <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+              <li><strong>Step 2 (10%):</strong> Pre-Test diagnostic review, addressing Muddiest Points from video self-study.</li>
+              <li><strong>Step 3 (10%):</strong> Essential guiding question, divide into Home Groups and assign Expert Groups.</li>
+              <li><strong>Step 4 (70% - Core Active Learning):</strong> 4-Stage Jigsaw Learning: (1) Expert group deep-dive analysis on sub-topics, (2) Return to Home Groups for peer teaching (Jigsaw Sharing), (3) Collaborative Concept Mapping / Role-Play on A0 Flipchart, (4) Gallery Walk and structured peer assessment.</li>
+              <li><strong>Step 5 (5%):</strong> 3-2-1 Exit Ticket summarizing key insights and follow-up assignment.</li>
+            </ul>`;
+          break;
+        case '5e':
+          methodBreakdownHtml = `
+            <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+              <li><strong>1. Engage:</strong> Pre-class micro-lecture video self-study, Pre-Test QCM response, and resolving Muddiest Points in Step 2.</li>
+              <li><strong>2. Explore:</strong> Student teams conduct hands-on experiments or Challenge Scenario missions in Step 3.</li>
+              <li><strong>3. Explain:</strong> Student teams present and justify discoveries; teacher synthesizes core formulas/theories in Step 4.</li>
+              <li><strong>4. Elaborate (70% Active Learning):</strong> Apply conceptual knowledge to complex new scenarios on A0 Flipcharts in Step 4.</li>
+              <li><strong>5. Evaluate:</strong> 3-2-1 Exit Ticket, 4-level collaboration rubric, and mastery Post-Test MCQ in Step 5.</li>
+            </ul>`;
+          break;
+        case 'direct':
+          methodBreakdownHtml = `
+            <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+              <li><strong>Pre-Class & Step 2 (10%):</strong> "I Do" foundational concepts learned via video at home; in-class mini-modeling addressing difficult points.</li>
+              <li><strong>Step 3 (10%):</strong> "We Do" (Guided Practice) — Teacher leads students through 4 model problem examples to reinforce standards.</li>
+              <li><strong>Step 4 (70% - Core Active Learning):</strong> "Intensive You Do": (1) Paired practice on intermediate problems, (2) Group problem-solving on complex scenarios on A0 Flipcharts, (3) Error analysis and solution presentation, (4) Independent self-check against rubrics.</li>
+              <li><strong>Step 5 (5%):</strong> 3-2-1 Exit Ticket checking conceptual fluency and targeted reinforcement tasks.</li>
+            </ul>`;
+          break;
+        default: // student_centered
+          methodBreakdownHtml = `
+            <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+              <li><strong>Step 2 (10%):</strong> Students present Muddiest Points from home; teacher facilitates peer clarification and discussion.</li>
+              <li><strong>Step 3 (10%):</strong> Teacher poses 4 high-order inquiry questions and assigns collaborative investigation missions.</li>
+              <li><strong>Step 4 (70% - Core Active Learning):</strong> Learner Autonomy: (1) Independent group discussion & discovery [Critical Thinking], (2) Collaborative artifact creation on A0 Flipchart [Collaboration], (3) Student-led presentation [Communication], (4) Metacognitive reflection & rubric evaluation.</li>
+              <li><strong>Step 5 (5%):</strong> 3-2-1 Exit Ticket assessing understanding and independent research assignment.</li>
+            </ul>`;
+          break;
+      }
+
+      return `
+        <ul class="doc-list" style="margin-top: 4px; line-height: 1.8;">
+          <li><strong>Primary Teaching Methodology:</strong> ${escapeHtml(m)}</li>
+          <li><strong>Instructional Model & Framework:</strong> 5-Step Flipped Learning Model (5% - 10% - 10% - 70% - 5%) — Integrates pre-class self-study (Pre-Class Phase via NotebookLM micro-lectures and diagnostic Pre-Test QCM) with high-impact in-class active learning (70% STT).</li>
+          <li><strong>In-Class Pedagogical Implementation Phases:</strong>
+            ${methodBreakdownHtml}
+          </li>
+        </ul>
+      `;
+    }
+
     switch (methodType) {
       case 'pbl':
         methodBreakdownHtml = `
@@ -6756,6 +6870,65 @@ function renderTeachingMethodContent(method, templateType = '5_steps') {
 
   // Standard 5-Step MoEYS Model
   let standardBreakdownHtml = '';
+  if (isEn) {
+    switch (methodType) {
+      case 'pbl':
+        standardBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>Step 2 (Review):</strong> Diagnostic review bridging prior knowledge to real-world problem scenarios.</li>
+            <li><strong>Step 3 (New Lesson):</strong> Present authentic Problem Scenario, analyze root causes, teacher clarifies core principles.</li>
+            <li><strong>Step 4 (Practice 70% STT):</strong> Collaborative problem-solving in teams on Flipcharts, hypothesis testing, solution defense [4Cs].</li>
+            <li><strong>Step 5 (Assessment & Homework):</strong> Assign authentic extension problems for home study and 3-2-1 Exit Ticket.</li>
+          </ul>`;
+        break;
+      case 'jigsaw':
+        standardBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>Step 2 (Review):</strong> Revisit prerequisite knowledge essential for sub-topic specialization.</li>
+            <li><strong>Step 3 (New Lesson):</strong> Form Expert Groups to investigate sub-topics while teacher facilitates.</li>
+            <li><strong>Step 4 (Practice 70% STT):</strong> Return to Home Groups for peer reciprocal teaching, synthesize collaborative Concept Maps, and Gallery Walk.</li>
+            <li><strong>Step 5 (Assessment & Homework):</strong> 3-2-1 Exit Ticket synthesis and independent research task.</li>
+          </ul>`;
+        break;
+      case '5e':
+        standardBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>Steps 1 & 2:</strong> Engage — Teacher poses thought-provoking questions or demonstrations to activate inquiry.</li>
+            <li><strong>Step 3:</strong> Explore & Explain — Collaborative investigation followed by student justification and formal concept synthesis.</li>
+            <li><strong>Step 4:</strong> Elaborate (70% STT) — Apply concept to novel and challenging problem contexts on Flipcharts.</li>
+            <li><strong>Step 5:</strong> Evaluate — Formative assessment, 3-2-1 Exit Ticket, and learning reflection.</li>
+          </ul>`;
+        break;
+      case 'direct':
+        standardBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>Step 2 (Review):</strong> Check prerequisite skills necessary for new procedural rules.</li>
+            <li><strong>Step 3 (New Lesson):</strong> "I Do" (Teacher explains & models solution step-by-step) + "We Do" (Guided practice on model problem).</li>
+            <li><strong>Step 4 (Practice 70% STT):</strong> "You Do" (Independent/paired practice with immediate formative feedback).</li>
+            <li><strong>Step 5 (Assessment & Homework):</strong> Homework assignment for procedural fluency.</li>
+          </ul>`;
+        break;
+      default: // student_centered
+        standardBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>Step 2 (Review):</strong> Student-led summary of previous lesson facilitated by teacher.</li>
+            <li><strong>Step 3 (New Lesson):</strong> Guided Discovery — Open-ended inquiry questions leading students to discover core definitions.</li>
+            <li><strong>Step 4 (Practice 70% STT):</strong> 30% TTT / 70% STT — Collaborative teamwork, defense on Flipcharts [4Cs].</li>
+            <li><strong>Step 5 (Assessment & Homework):</strong> 3-2-1 Exit Ticket and student interest-driven exploration.</li>
+          </ul>`;
+        break;
+    }
+    return `
+      <ul class="doc-list" style="margin-top: 4px; line-height: 1.8;">
+        <li><strong>Primary Teaching Methodology:</strong> ${escapeHtml(m)}</li>
+        <li><strong>Lesson Framework:</strong> MoEYS Standard 5-Step Teaching & Learning Process</li>
+        <li><strong>Pedagogical Phase Breakdown in 5 Steps:</strong>
+          ${standardBreakdownHtml}
+        </li>
+      </ul>
+    `;
+  }
+
   switch (methodType) {
     case 'pbl':
       standardBreakdownHtml = `
@@ -6815,7 +6988,6 @@ function renderTeachingMethodContent(method, templateType = '5_steps') {
   `;
 }
 
-// Render Data to A4 Document Canvas
 
 // ==========================================================================
 // 🛡️ Bulletproof Data Normalizer & Quality Assurance Engine
@@ -7246,6 +7418,8 @@ function renderPreTestHtmlBlock(data) {
     ? data.preTestQCM
     : generatePreTestQCMOffline(data.subject, data.grade, data.lessonTitle, [], (data.preTestQCM?.length || 5));
 
+  const isEn = (state.language === 'en');
+
   // Auto-heal uniform answer keys (e.g., if all answers are A from legacy drafts)
   if (Array.isArray(qcmList) && qcmList.length > 1) {
     const isUniform = qcmList.every(q => (q.correctAnswer || 'A') === (qcmList[0].correctAnswer || 'A'));
@@ -7260,20 +7434,21 @@ function renderPreTestHtmlBlock(data) {
 
   qcmList.forEach((q, idx) => {
     const qNum = idx + 1;
-    preAnswerKeyList.push(`<strong>ស.${qNum}:</strong> ${escapeHtml(q.correctAnswer || 'A')}`);
+    preAnswerKeyList.push(isEn ? `<strong>Q.${qNum}:</strong> ${escapeHtml(q.correctAnswer || 'A')}` : `<strong>ស.${qNum}:</strong> ${escapeHtml(q.correctAnswer || 'A')}`);
     const opts = q.options || {};
+    const optLabels = isEn ? ['A.', 'B.', 'C.', 'D.'] : ['ក.', 'ខ.', 'គ.', 'ឃ.'];
     preQcmHtml += `
       <div class="qcm-item">
         <div class="qcm-question-header">
-          <div class="qcm-question-text"><strong>សំណួរទី ${qNum} :</strong> ${escapeHtml(q.question)}</div>
+          <div class="qcm-question-text"><strong>${isEn ? `Question ${qNum}:` : `សំណួរទី ${qNum} :`}</strong> ${escapeHtml(q.question)}</div>
         </div>
         <div class="qcm-options">
-          <div class="qcm-option"><strong>ក.</strong> ${escapeHtml(opts.A || opts['ក'] || '')}</div>
-          <div class="qcm-option"><strong>ខ.</strong> ${escapeHtml(opts.B || opts['ខ'] || '')}</div>
-          <div class="qcm-option"><strong>គ.</strong> ${escapeHtml(opts.C || opts['គ'] || '')}</div>
-          <div class="qcm-option"><strong>ឃ.</strong> ${escapeHtml(opts.D || opts['ឃ'] || '')}</div>
+          <div class="qcm-option"><strong>${optLabels[0]}</strong> ${escapeHtml(opts.A || opts['ក'] || '')}</div>
+          <div class="qcm-option"><strong>${optLabels[1]}</strong> ${escapeHtml(opts.B || opts['ខ'] || '')}</div>
+          <div class="qcm-option"><strong>${optLabels[2]}</strong> ${escapeHtml(opts.C || opts['គ'] || '')}</div>
+          <div class="qcm-option"><strong>${optLabels[3]}</strong> ${escapeHtml(opts.D || opts['ឃ'] || '')}</div>
         </div>
-        ${q.explanation ? `<div style="font-size: 8.5pt; color: #475569; margin-top: 4px; font-style: italic;">💡 <em>ពន្យល់៖</em> ${escapeHtml(q.explanation)}</div>` : ''}
+        ${q.explanation ? `<div style="font-size: 8.5pt; color: #475569; margin-top: 4px; font-style: italic;">💡 <em>${isEn ? 'Explanation:' : 'ពន្យល់៖'}</em> ${escapeHtml(q.explanation)}</div>` : ''}
       </div>
     `;
   });
@@ -7281,32 +7456,32 @@ function renderPreTestHtmlBlock(data) {
   return `
     <!-- Pre-Test QCM -->
     <div class="doc-section-title flex justify-between items-center" style="flex-wrap: wrap; gap: 6px; margin-top: 8px;">
-      <span>វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test QCM ${qcmList.length} សំណួរ)</span>
+      <span>${isEn ? `Diagnostic Pre-Test Assessment (${qcmList.length} Questions)` : `វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test QCM ${qcmList.length} សំណួរ)`}</span>
       <div class="flex items-center gap-2" style="flex-wrap: wrap;">
         <button type="button" class="btn-copy-notebooklm" onclick="openGoogleFormModal('pre')" style="background: #7c3aed; color: white; border: none; font-weight: bold;" title="បង្កើតជា Google Form ដោយស្វ័យប្រវត្តក្នុង Google Drive">
-          <i class="fa-solid fa-square-poll-vertical"></i> 📝 បង្កើត Google Form
+          <i class="fa-solid fa-square-poll-vertical"></i> ${isEn ? '📝 Create Google Form' : '📝 បង្កើត Google Form'}
         </button>
         <button type="button" class="btn-csv-action" onclick="exportTestToCSV('pre')" title="ទាញយក Pre-Test ជា Excel/CSV (Google Sheets 5 Columns)">
-          <i class="fa-solid fa-file-csv"></i> ទាញយក Pre-Test CSV
+          <i class="fa-solid fa-file-csv"></i> ${isEn ? 'Download Pre-Test CSV' : 'ទាញយក Pre-Test CSV'}
         </button>
         <button type="button" class="btn-tool-action" onclick="promptGenerateTest('pre')" style="background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; font-weight: 600; padding: 4px 10px; border-radius: 6px; cursor: pointer;" title="បង្កើតបុរេតេស្តឡើងវិញ">
-          <i class="fa-solid fa-arrows-rotate"></i> បង្កើតឡើងវិញ
+          <i class="fa-solid fa-arrows-rotate"></i> ${isEn ? 'Regenerate' : 'បង្កើតឡើងវិញ'}
         </button>
         <button type="button" class="btn-tool-action" onclick="removePreTestModule()" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="លាក់កម្រងសំណួរ">
-          <i class="fa-solid fa-xmark"></i> លាក់
+          <i class="fa-solid fa-xmark"></i> ${isEn ? 'Hide' : 'លាក់'}
         </button>
       </div>
     </div>
     <div class="doc-pretest-container">
       <div class="doc-pretest-header">
-        <div class="doc-pretest-title"><i class="fa-solid fa-wand-magic-sparkles" style="color: #0284c7;"></i> កម្រងសំណួរស្ទង់ការយល់ដឹងមុនម៉ោង (Pre-Test Diagnostic QCM)</div>
-        <span class="doc-pretest-formula">កម្រិតលំបាក: 🟢 ងាយ (Easy) | 🟡 មធ្យម (Medium) | 🔴 ពិបាក (Hard)</span>
+        <div class="doc-pretest-title"><i class="fa-solid fa-wand-magic-sparkles" style="color: #0284c7;"></i> ${isEn ? 'Diagnostic Pre-Test Assessment (Pre-Test Diagnostic QCM)' : 'កម្រងសំណួរស្ទង់ការយល់ដឹងមុនម៉ោង (Pre-Test Diagnostic QCM)'}</div>
+        <span class="doc-pretest-formula">${isEn ? 'Difficulty: 🟢 Easy | 🟡 Medium | 🔴 Challenging' : 'កម្រិតលំបាក: 🟢 ងាយ (Easy) | 🟡 មធ្យម (Medium) | 🔴 ពិបាក (Hard)'}</span>
       </div>
       <div class="qcm-grid">
         ${preQcmHtml}
       </div>
       <div class="qcm-answer-key-box">
-        <div class="qcm-answer-key-header">🔑 បន្ទះចម្លើយត្រឹមត្រូវ (Pre-Test Answer Key) សម្រាប់គ្រូផ្ទៀងផ្ទាត់៖</div>
+        <div class="qcm-answer-key-header">${isEn ? '🔑 Pre-Test Answer Key (For Teacher Verification):' : '🔑 បន្ទះចម្លើយត្រឹមត្រូវ (Pre-Test Answer Key) សម្រាប់គ្រូផ្ទៀងផ្ទាត់៖'}</div>
         <div class="qcm-answer-grid">
           ${preAnswerKeyList.join(' | ')}
         </div>
@@ -7319,6 +7494,8 @@ function renderPostTestHtmlBlock(data) {
   let postTestList = (data.postTestMCQ && data.postTestMCQ.length > 0)
     ? data.postTestMCQ
     : generatePostTestMCQOffline(data.subject, data.grade, data.lessonTitle, [], (data.postTestMCQ?.length || 5));
+
+  const isEn = (state.language === 'en');
 
   // Auto-heal uniform answer keys (e.g., if all answers are A from legacy drafts)
   if (Array.isArray(postTestList) && postTestList.length > 1) {
@@ -7334,53 +7511,54 @@ function renderPostTestHtmlBlock(data) {
 
   postTestList.forEach((q, idx) => {
     const qNum = idx + 1;
-    postAnswerKeyList.push(`<strong>ស.${qNum}:</strong> ${escapeHtml(q.correctAnswer || 'A')}`);
+    postAnswerKeyList.push(isEn ? `<strong>Q.${qNum}:</strong> ${escapeHtml(q.correctAnswer || 'A')}` : `<strong>ស.${qNum}:</strong> ${escapeHtml(q.correctAnswer || 'A')}`);
     const opts = q.options || {};
+    const optLabels = isEn ? ['A.', 'B.', 'C.', 'D.'] : ['ក.', 'ខ.', 'គ.', 'ឃ.'];
     postQcmHtml += `
       <div class="qcm-item">
         <div class="qcm-question-header">
-          <div class="qcm-question-text"><strong>សំណួរទី ${qNum} :</strong> ${escapeHtml(q.question)}</div>
+          <div class="qcm-question-text"><strong>${isEn ? `Question ${qNum}:` : `សំណួរទី ${qNum} :`}</strong> ${escapeHtml(q.question)}</div>
         </div>
         <div class="qcm-options">
-          <div class="qcm-option"><strong>ក.</strong> ${escapeHtml(opts.A || opts['ក'] || '')}</div>
-          <div class="qcm-option"><strong>ខ.</strong> ${escapeHtml(opts.B || opts['ខ'] || '')}</div>
-          <div class="qcm-option"><strong>គ.</strong> ${escapeHtml(opts.C || opts['គ'] || '')}</div>
-          <div class="qcm-option"><strong>ឃ.</strong> ${escapeHtml(opts.D || opts['ឃ'] || '')}</div>
+          <div class="qcm-option"><strong>${optLabels[0]}</strong> ${escapeHtml(opts.A || opts['ក'] || '')}</div>
+          <div class="qcm-option"><strong>${optLabels[1]}</strong> ${escapeHtml(opts.B || opts['ខ'] || '')}</div>
+          <div class="qcm-option"><strong>${optLabels[2]}</strong> ${escapeHtml(opts.C || opts['គ'] || '')}</div>
+          <div class="qcm-option"><strong>${optLabels[3]}</strong> ${escapeHtml(opts.D || opts['ឃ'] || '')}</div>
         </div>
-        ${q.explanation ? `<div style="font-size: 8.5pt; color: #475569; margin-top: 4px; font-style: italic;">💡 <em>ពន្យល់៖</em> ${escapeHtml(q.explanation)}</div>` : ''}
+        ${q.explanation ? `<div style="font-size: 8.5pt; color: #475569; margin-top: 4px; font-style: italic;">💡 <em>${isEn ? 'Explanation:' : 'ពន្យល់៖'}</em> ${escapeHtml(q.explanation)}</div>` : ''}
       </div>
     `;
   });
 
   return `
     <!-- Post-Test MCQ -->
-    <div class="doc-section-title flex justify-between items-center" style="margin-top: 8px; flex-wrap: wrap; gap: 6px;">
-      <span>វិញ្ញាសាវាយតម្លៃបញ្ចប់ Post-Test (MCQ ${postTestList.length} សំណួរ)</span>
+    <div class="doc-section-title flex justify-between items-center" style="flex-wrap: wrap; gap: 6px; margin-top: 18px;">
+      <span>${isEn ? `Mastery Post-Test Assessment (${postTestList.length} Questions)` : `បច្ឆាតេស្តវាស់ស្ទង់សមត្ថភាព (Post-Test MCQ ${postTestList.length} សំណួរ)`}</span>
       <div class="flex items-center gap-2" style="flex-wrap: wrap;">
-        <button type="button" class="btn-copy-notebooklm" onclick="openGoogleFormModal('post')" style="background: #7c3aed; color: white; border: none; font-weight: bold;" title="បង្កើតជា Google Form ដោយស្វ័យប្រវត្តក្នុង Google Drive">
-          <i class="fa-solid fa-square-poll-vertical"></i> 📝 បង្កើត Google Form
+        <button type="button" class="btn-copy-notebooklm" onclick="openGoogleFormModal('post')" style="background: #0284c7; color: white; border: none; font-weight: bold;" title="បង្កើតជា Google Form ដោយស្វ័យប្រវត្តក្នុង Google Drive">
+          <i class="fa-solid fa-square-poll-vertical"></i> ${isEn ? '📝 Create Google Form' : '📝 បង្កើត Google Form'}
         </button>
         <button type="button" class="btn-csv-action" onclick="exportTestToCSV('post')" title="ទាញយក Post-Test ជា Excel/CSV (Google Sheets 5 Columns)">
-          <i class="fa-solid fa-file-csv"></i> ទាញយក Post-Test CSV
+          <i class="fa-solid fa-file-csv"></i> ${isEn ? 'Download Post-Test CSV' : 'ទាញយក Post-Test CSV'}
         </button>
-        <button type="button" class="btn-tool-action" onclick="promptGenerateTest('post')" style="background: #f0fdf4; color: #166534; border: 1px solid #86efac; font-weight: 600; padding: 4px 10px; border-radius: 6px; cursor: pointer;" title="បង្កើតបច្ឆិមតេស្តឡើងវិញ">
-          <i class="fa-solid fa-arrows-rotate"></i> បង្កើតឡើងវិញ
+        <button type="button" class="btn-tool-action" onclick="promptGenerateTest('post')" style="background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; font-weight: 600; padding: 4px 10px; border-radius: 6px; cursor: pointer;" title="បង្កើតបច្ឆាតេស្តឡើងវិញ">
+          <i class="fa-solid fa-arrows-rotate"></i> ${isEn ? 'Regenerate' : 'បង្កើតឡើងវិញ'}
         </button>
         <button type="button" class="btn-tool-action" onclick="removePostTestModule()" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="លាក់កម្រងសំណួរ">
-          <i class="fa-solid fa-xmark"></i> លាក់
+          <i class="fa-solid fa-xmark"></i> ${isEn ? 'Hide' : 'លាក់'}
         </button>
       </div>
     </div>
-    <div class="doc-pretest-container" style="background: #f0fdf4; border-color: #86efac;">
-      <div class="doc-pretest-header" style="border-bottom-color: #86efac;">
-        <div class="doc-pretest-title" style="color: #166534;"><i class="fa-solid fa-graduation-cap"></i> កម្រងសំណួរវាស់ស្ទង់សមត្ថភាពបញ្ចប់ (Post-Test Diagnostic MCQ)</div>
-        <span class="doc-pretest-formula" style="background: #dcfce7; color: #166534;">Bloom's: 🟢 ងាយ | 🟡 មធ្យម | 🔴 ពិបាក</span>
+    <div class="doc-pretest-container">
+      <div class="doc-pretest-header">
+        <div class="doc-pretest-title"><i class="fa-solid fa-circle-check" style="color: #10b981;"></i> ${isEn ? 'Post-Test Mastery Assessment (Post-Test MCQ)' : 'បច្ឆាតេស្តវាស់ស្ទង់សមត្ថភាព (Post-Test MCQ)'}</div>
+        <span class="doc-pretest-formula">${isEn ? 'Difficulty: 🟢 Easy | 🟡 Medium | 🔴 Challenging' : 'កម្រិតលំបាក: 🟢 ងាយ (Easy) | 🟡 មធ្យម (Medium) | 🔴 ពិបាក (Hard)'}</span>
       </div>
       <div class="qcm-grid">
         ${postQcmHtml}
       </div>
-      <div class="qcm-answer-key-box" style="background: #e2e8f0;">
-        <div class="qcm-answer-key-header">🔑 បន្ទះចម្លើយត្រឹមត្រូវ (Post-Test Answer Key) សម្រាប់គ្រូផ្ទៀងផ្ទាត់៖</div>
+      <div class="qcm-answer-key-box">
+        <div class="qcm-answer-key-header">${isEn ? '🔑 Post-Test Answer Key (For Teacher Verification):' : '🔑 បន្ទះចម្លើយត្រឹមត្រូវ (Post-Test Answer Key) សម្រាប់គ្រូផ្ទៀងផ្ទាត់៖'}</div>
         <div class="qcm-answer-grid">
           ${postAnswerKeyList.join(' | ')}
         </div>
@@ -7388,6 +7566,7 @@ function renderPostTestHtmlBlock(data) {
     </div>
   `;
 }
+
 
 function renderLearningGainReflectionBlock(data) {
   if (!data || !data.selfEvaluation) return '';
@@ -8201,15 +8380,15 @@ function renderLessonPlanToA4(data) {
         <span style="font-size: 1.6rem; line-height: 1;">⚠️</span>
         <div>
           <div style="font-weight: 700; color: #92400e; font-size: 10.5pt; margin-bottom: 3px;">
-            គ្រោងគំរូសេចក្ដីព្រាង (Offline Draft Template) — មិនទាន់បង្កើតដោយ AI ពិតប្រាកដនៅឡើយទេ
+            ${isEn ? 'Offline Draft Template — Not yet generated by real AI' : 'គ្រោងគំរូសេចក្ដីព្រាង (Offline Draft Template) — មិនទាន់បង្កើតដោយ AI ពិតប្រាកដនៅឡើយទេ'}
           </div>
           <div style="font-size: 9pt; color: #78350f; line-height: 1.45;">
-            ឯកសារខាងក្រោមនេះជាគ្រោងគំរូទូទៅ (Offline Template) ដោយសារមិនទាន់បានបញ្ចូល <strong>Gemini API Key</strong>។ សូមចុចប៊ូតុងខាងស្ដាំដើម្បីភ្ជាប់ Key ឥតគិតថ្លៃ (Free 100%) រួចបង្កើតខ្លឹមសារលម្អិតតាម AI Gemini ពិតប្រាកដ។
+            ${isEn ? 'The document below is a generic offline draft template because no <strong>Gemini API Key</strong> was provided. Click the button to connect a free API key and generate authentic detailed lesson plans.' : 'ឯកសារខាងក្រោមនេះជាគ្រោងគំរូទូទៅ (Offline Template) ដោយសារមិនទាន់បានបញ្ចូល <strong>Gemini API Key</strong>។ សូមចុចប៊ូតុងខាងស្ដាំដើម្បីភ្ជាប់ Key ឥតគិតថ្លៃ (Free 100%) រួចបង្កើតខ្លឹមសារលម្អិតតាម AI Gemini ពិតប្រាកដ។'}
           </div>
         </div>
       </div>
       <button type="button" onclick="openApiKeyModal()" style="white-space: nowrap; padding: 8px 14px; background: linear-gradient(135deg, #d97706, #b45309); color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 9pt; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(217, 119, 6, 0.3);">
-        <i class="fa-solid fa-key" style="color: #fef08a;"></i> ភ្ជាប់ API Key ឥឡូវនេះ
+        <i class="fa-solid fa-key" style="color: #fef08a;"></i> ${isEn ? 'Connect API Key Now' : 'ភ្ជាប់ API Key ឥឡូវនេះ'}
       </button>
     </div>
   ` : '';
@@ -8232,12 +8411,12 @@ function renderLessonPlanToA4(data) {
       </div>
       <div class="doc-date-info">
         <div>${escapeHtml(data.dateStr || '')}</div>
-        <div><strong>${isEn ? 'Duration:' : 'រយៈពេល៖'}</strong> ${escapeHtml(data.duration || '')}</div>
+        <div><strong>${isEn ? 'Duration:' : 'រយៈពេល៖'}</strong> ${escapeHtml(localizeDuration(data.duration || '', isEn))}</div>
       </div>
     </div>
 
     <!-- Main Title Banner -->
-    <div class="doc-main-title">${escapeHtml(data.templateTitle || (isFlipped ? (isEn ? 'FLIPPED LEARNING LESSON PLAN' : 'កិច្ចតែងការបង្រៀនតាមបែបថ្នាក់រៀនត្រឡប់') : (isBd ? (isEn ? 'BACKWARD DESIGN (UbD) LESSON PLAN' : 'កិច្ចតែងការបង្រៀន (តាមបែបត្រឡប់ - Backward Design / UbD)') : (isEn ? 'LESSON PLAN' : 'កិច្ចតែងការបង្រៀន'))))}</div>
+    <div class="doc-main-title">${escapeHtml(data.templateTitle || (isFlipped ? (isEn ? 'FLIPPED LEARNING LESSON PLAN' : 'កិច្ចតែងការបង្រៀនតាមបែបថ្នាក់រៀនត្រឡប់') : (isBd ? (isEn ? 'BACKWARD DESIGN (UbD) LESSON PLAN' : 'កិច្ចតែងការបង្រៀន (តាមបែបត្រឡប់ - Backward Design / UbD)') : (isEn ? 'STANDARD LESSON PLAN' : 'កិច្ចតែងការបង្រៀន'))))}</div>
     
     <div class="doc-lesson-banner">
       ${data.chapter ? `<div><strong>${escapeHtml(data.chapter)}</strong></div>` : ''}
@@ -8267,10 +8446,12 @@ function renderLessonPlanToA4(data) {
   if (isFlipped) {
     let flippedStepsHtml = '';
     (data.steps || []).forEach(step => {
+      const stepTitle = localizeStepTitle(step.stepTitle, isEn);
+      const stepDur = localizeDuration(step.duration, isEn);
       flippedStepsHtml += `
         <tr style="background: #f1f5f9;">
           <td colspan="3" style="font-weight: bold; font-size: 10.5pt; color: #0f172a; padding: 7px 10px; border: 1px solid #cbd5e1;">
-            ${escapeHtml(step.stepTitle)} <span style="color: #0369a1; font-weight: 700; font-size: 9.5pt;">(${escapeHtml(step.duration)})</span>
+            ${escapeHtml(stepTitle)} <span style="color: #0369a1; font-weight: 700; font-size: 9.5pt;">(${escapeHtml(stepDur)})</span>
           </td>
         </tr>
         <tr>
@@ -8281,78 +8462,82 @@ function renderLessonPlanToA4(data) {
       `;
     });
 
+    const docTitle = isEn ? 'FLIPPED LEARNING LESSON PLAN' : 'កិច្ចតែងការបង្រៀនតាមបែបត្រឡប់';
+    const durVal = localizeDuration(data.duration || (isEn ? '180 mins' : '១៨០ នាទី'), isEn);
+    const creditsVal = isEn ? (data.credits || '3 Credits (3-0-6)') : (data.credits || '៣ ក្រេឌីត (៣-០-៦)');
+
     doc.innerHTML = `
       ${offlineWarningBanner}
       <!-- Top Emblem & Motto -->
       <div class="doc-header-top">
-        <div class="doc-motto-kh">ព្រះរាជាណាចក្រកម្ពុជា</div>
-        <div class="doc-motto-sub">ជាតិ សាសនា ព្រះមហាក្សត្រ</div>
+        <div class="doc-motto-kh">${isEn ? 'KINGDOM OF CAMBODIA' : 'ព្រះរាជាណាចក្រកម្ពុជា'}</div>
+        <div class="doc-motto-sub">${isEn ? 'NATION RELIGION KING' : 'ជាតិ សាសនា ព្រះមហាក្សត្រ'}</div>
         <div style="font-size: 14pt; letter-spacing: 2px;">***</div>
       </div>
 
       <!-- Main Title Banner -->
-      <div class="doc-main-title" style="margin-top: 10px; margin-bottom: 12px;">កិច្ចតែងការបង្រៀនតាមបែបត្រឡប់</div>
+      <div class="doc-main-title" style="margin-top: 10px; margin-bottom: 12px;">${escapeHtml(docTitle)}</div>
 
       <!-- Meta School & Higher-Ed Grid Row -->
       <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px; margin-bottom: 14px; padding: 10px 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 10.5pt; line-height: 1.6;">
         <div>
-          <div><strong>មុខវិជ្ជា៖</strong> ${escapeHtml(data.subject || 'ចិត្តវិទ្យាអប់រំ')}</div>
-          <div><strong>ចំនួនក្រេឌីត៖</strong> ${escapeHtml(data.credits || '៣ ក្រេឌីត (៣-០-៦)')}</div>
-          <div><strong>ឆ្នាំទី៖</strong> ${escapeHtml(data.year || '១')}  &nbsp;&nbsp;<strong>ឆមាសទី៖</strong> ${escapeHtml(data.semester || '២')}</div>
-          <div><strong>សប្តាហ៍ទី៖</strong> ${escapeHtml(data.week || '១')}  &nbsp;&nbsp;<strong>មេរៀនទី៖</strong> ${escapeHtml(data.lessonNumber || '១')}</div>
+          <div><strong>${isEn ? 'Subject:' : 'មុខវិជ្ជា៖'}</strong> ${escapeHtml(data.subject || (isEn ? 'Educational Psychology' : 'ចិត្តវិទ្យាអប់រំ'))}</div>
+          <div><strong>${isEn ? 'Credits:' : 'ចំនួនក្រេឌីត៖'}</strong> ${escapeHtml(creditsVal)}</div>
+          <div><strong>${isEn ? 'Year:' : 'ឆ្នាំទី៖'}</strong> ${escapeHtml(data.year || '1')}  &nbsp;&nbsp;<strong>${isEn ? 'Semester:' : 'ឆមាសទី៖'}</strong> ${escapeHtml(data.semester || '2')}</div>
+          <div><strong>${isEn ? 'Week:' : 'សប្តាហ៍ទី៖'}</strong> ${escapeHtml(data.week || '1')}  &nbsp;&nbsp;<strong>${isEn ? 'Lesson:' : 'មេរៀនទី៖'}</strong> ${escapeHtml(data.lessonNumber || '1')}</div>
         </div>
         <div style="text-align: right;">
-          <div><strong>រយៈពេល៖</strong> ${escapeHtml(data.duration || '១៨០ នាទី')}</div>
-          <div><strong>គ្រូឧទ្ទេស៖</strong> ${escapeHtml(data.teacher || 'កែម បូរី')}</div>
+          <div><strong>${isEn ? 'Duration:' : 'រយៈពេល៖'}</strong> ${escapeHtml(durVal)}</div>
+          <div><strong>${isEn ? 'Instructor:' : 'គ្រូឧទ្ទេស៖'}</strong> ${escapeHtml(data.teacher || (isEn ? 'Borey Kem' : 'កែម បូរី'))}</div>
           <div>${escapeHtml(data.dateStr || '')}</div>
         </div>
       </div>
 
       <div class="doc-lesson-banner" style="margin-bottom: 16px;">
         ${data.chapter ? `<div><strong>${escapeHtml(data.chapter)}</strong></div>` : ''}
-        <div style="font-size: 11.5pt; font-weight: bold; color: #1e293b;">ចំណងជើងមេរៀន៖ ${escapeHtml(data.lessonTitle || '')}</div>
+        <div style="font-size: 11.5pt; font-weight: bold; color: #1e293b;">${isEn ? 'Lesson Title: ' : 'ចំណងជើងមេរៀន៖ '}${escapeHtml(data.lessonTitle || '')}</div>
       </div>
 
       <!-- Section 1: Objectives -->
-      <div class="doc-section-title">១. វត្ថុបំណង</div>
+      <div class="doc-section-title">${isEn ? 'I. LEARNING OBJECTIVES' : '១. វត្ថុបំណង'}</div>
       <div style="margin-left: 10px; margin-bottom: 12px;">
-        <div style="font-style: italic; margin-bottom: 4px; font-weight: 600;">បន្ទាប់ពីរៀនមេរៀននេះចប់ គរុនិស្សិតនឹង៖</div>
-        <div style="font-weight: 600; margin-top: 4px;">• វិជ្ជាសម្បទា៖</div>
+        <div style="font-style: italic; margin-bottom: 4px; font-weight: 600;">${isEn ? 'Upon completion of this lesson, student teachers will be able to:' : 'បន្ទាប់ពីរៀនមេរៀននេះចប់ គរុនិស្សិតនឹង៖'}</div>
+        <div style="font-weight: 600; margin-top: 4px;">• ${isEn ? 'Knowledge (Cognitive Domain):' : 'វិជ្ជាសម្បទា៖'}</div>
         <ul class="doc-list" style="margin-top: 2px;">
           ${(data.objectives?.knowledge || []).map(k => `<li>${escapeHtml(k)}</li>`).join('')}
         </ul>
-        <div style="font-weight: 600; margin-top: 4px;">• បំណិនសម្បទា៖</div>
+        <div style="font-weight: 600; margin-top: 4px;">• ${isEn ? 'Skills (Psychomotor Domain):' : 'បំណិនសម្បទា៖'}</div>
         <ul class="doc-list" style="margin-top: 2px;">
           ${(data.objectives?.skills || []).map(s => `<li>${escapeHtml(s)}</li>`).join('')}
         </ul>
-        <div style="font-weight: 600; margin-top: 4px;">• ចរិយាសម្បទា៖</div>
+        <div style="font-weight: 600; margin-top: 4px;">• ${isEn ? 'Attitudes & Values (Affective Domain):' : 'ចរិយាសម្បទា៖'}</div>
         <ul class="doc-list" style="margin-top: 2px;">
           ${(data.objectives?.attitudes || []).map(a => `<li>${escapeHtml(a)}</li>`).join('')}
         </ul>
       </div>
 
       <!-- Section 2: Materials -->
-      <div class="doc-section-title">២. សម្ភារឧបទេស</div>
+      <div class="doc-section-title">${isEn ? 'II. TEACHING AIDS & MATERIALS' : '២. សម្ភារឧបទេស'}</div>
       <div style="margin-left: 10px; margin-bottom: 14px;">
-        <div>កិច្ចតែងការបង្រៀន វីដេអូបង្រៀន បុរេតេស្ត តេស្តបញ្ចប់ និងកិច្ចការផ្ទះ</div>
-        <div style="margin-top: 4px;">• <strong>សម្រាប់គ្រូ៖</strong> ${escapeHtml((data.materials?.teacher || []).join(', '))}</div>
-        <div style="margin-top: 2px;">• <strong>សម្រាប់និស្សិត៖</strong> ${escapeHtml((data.materials?.student || []).join(', '))}</div>
+        <div>${isEn ? 'Lesson Plan, Instructional Videos, Diagnostic Pre-Test, Post-Test, and Inquiry Assignments' : 'កិច្ចតែងការបង្រៀន វីដេអូបង្រៀន បុរេតេស្ត តេស្តបញ្ចប់ និងកិច្ចការផ្ទះ'}</div>
+        <div style="margin-top: 4px;">• <strong>${isEn ? 'For Instructor / Teacher:' : 'សម្រាប់គ្រូ៖'}</strong> ${escapeHtml((data.materials?.teacher || []).join(', '))}</div>
+        <div style="margin-top: 2px;">• <strong>${isEn ? 'For Students / Pre-service Teachers:' : 'សម្រាប់និស្សិត៖'}</strong> ${escapeHtml((data.materials?.student || []).join(', '))}</div>
       </div>
 
       <!-- Section 3: Method -->
-      <div class="doc-section-title">៣. វិធីសាស្រ្ដបង្រៀន</div>
+      <div class="doc-section-title">${isEn ? 'III. TEACHING METHODOLOGY' : '៣. វិធីសាស្រ្ដបង្រៀន'}</div>
       <div style="margin-left: 10px; margin-bottom: 12px; font-size: 10pt;">
-        ${renderTeachingMethodContent(data.method, 'flipped_learning')}
+        ${renderTeachingMethodContent(data.method, 'flipped_learning', isEn)}
       </div>
 
       <!-- Section 4: In-Class Process (3 Columns) -->
-      <div class="doc-section-title">៤. ដំណើរការបង្រៀនក្នុងថ្នាក់ (${escapeHtml(data.duration || '១៨០ នាទី')})</div>
+      <div class="doc-section-title">${isEn ? 'IV. IN-CLASS TEACHING & LEARNING ACTIVITIES' : '៤. ដំណើរការបង្រៀនក្នុងថ្នាក់'} (${escapeHtml(durVal)})</div>
       <table class="doc-table">
         <thead>
           <tr>
-            <th style="width: 35%;">សកម្មភាពគ្រូ</th>
-            <th style="width: 35%;">ខ្លឹមសារ</th>
-            <th style="width: 30%;">សកម្មភាពសិស្ស</th>
+            <th style="width: 35%;">${isEn ? 'Teacher Activities' : 'សកម្មភាពគ្រូ'}</th>
+            <th style="width: 35%;">${isEn ? 'Lesson Content' : 'ខ្លឹមសារ'}</th>
+            <th style="width: 30%;">${isEn ? 'Student Activities' : 'សកម្មភាពសិស្ស'}</th>
           </tr>
         </thead>
         <tbody>
@@ -8363,46 +8548,46 @@ function renderLessonPlanToA4(data) {
       <!-- Signatures closing Lesson Plan -->
       <div class="doc-footer-signatures" style="margin-top: 28px;">
         <div class="sig-box">
-          <div>បានឃើញ និងឯកភាព</div>
-          <div style="font-weight: bold; margin-top: 2px;">ប្រធានដេប៉ាតឺម៉ង់ / គណៈគ្រប់គ្រង</div>
+          <div>${isEn ? 'Seen and Approved' : 'បានឃើញ និងឯកភាព'}</div>
+          <div style="font-weight: bold; margin-top: 2px;">${isEn ? 'Head of Department / School Management' : 'ប្រធានដេប៉ាតឺម៉ង់ / គណៈគ្រប់គ្រង'}</div>
           <div class="sig-space"></div>
         </div>
         <div class="sig-box">
           <div>${escapeHtml(data.dateStr || '')}</div>
-          <div style="font-weight: bold; margin-top: 2px;">ហត្ថលេខាគ្រូឧទ្ទេស</div>
+          <div style="font-weight: bold; margin-top: 2px;">${isEn ? 'Instructor Signature' : 'ហត្ថលេខាគ្រូឧទ្ទេស'}</div>
           <div class="sig-space"></div>
-          <div style="font-weight: bold;">${escapeHtml(data.teacher || 'កែម បូរី')}</div>
+          <div style="font-weight: bold;">${escapeHtml(data.teacher || (isEn ? 'Borey Kem' : 'កែម បូរី'))}</div>
         </div>
       </div>
 
       <!-- Footnote License -->
       <div style="margin-top: 26px; padding-top: 10px; border-top: 1px dashed #cbd5e1; font-size: 9pt; color: #475569; font-style: italic;">
-        * អាជ្ញាបណ្ណ និងកម្មសិទ្ធិ (License)： ខ្ញុំឈ្មោះកែម បូរី ជាគ្រូឧទ្ទេសមុខវិជ្ជាចិត្តវិទ្យាអប់រំ នៅវិទ្យាស្ថានគរុកោសល្យកំពង់ចាម
+        ${isEn ? '* License & Intellectual Property: Instructor Borey Kem, Educational Psychology, Kampong Cham Teacher Education College' : '* អាជ្ញាបណ្ណ និងកម្មសិទ្ធិ (License)： ខ្ញុំឈ្មោះកែម បូរី ជាគ្រូឧទ្ទេសមុខវិជ្ជាចិត្តវិទ្យាអប់រំ នៅវិទ្យាស្ថានគរុកោសល្យកំពង់ចាម'}
       </div>
 
       <!-- 📎 APPENDIX: Pre-Test & Post-Test on the page after signatures -->
       <div id="appendixSectionWrapper" class="doc-appendix-wrapper" style="page-break-before: always; break-before: page; margin-top: 36px; ${(data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;'}">
         <div class="appendix-page-divider">
-          <span>📄 ទំព័របន្ទាប់ (Next Page) — ឯកសារឧបសម្ព័ន្ធ (Appendix)</span>
+          <span>${isEn ? '📄 Next Page — Assessment Appendix' : '📄 ទំព័របន្ទាប់ (Next Page) — ឯកសារឧបសម្ព័ន្ធ (Appendix)'}</span>
         </div>
 
         <div id="assessmentSectionTitle" class="doc-appendix-header">
           <div>
             <div style="font-size: 12.5pt; font-weight: 800; color: #1e3a8a; font-family: 'Kantumruy Pro', 'Khmer OS Siemreap', sans-serif;">
-              📎 ឯកសារឧបសម្ព័ន្ធ (Appendix)
+              📎 ${isEn ? 'Appendix: Assessments' : 'ឯកសារឧបសម្ព័ន្ធ (Appendix)'}
             </div>
             <div style="font-size: 9.5pt; color: #475569; margin-top: 2px; font-weight: 600;">
-              វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test) និងតេស្តវាស់ស្ទង់សមត្ថភាព (Post-Test)
+              ${isEn ? 'Diagnostic Pre-Test & Mastery Post-Test Assessments' : 'វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test) និងតេស្តវាស់ស្ទង់សមត្ថភាព (Post-Test)'}
             </div>
           </div>
           <span style="font-size: 8.5pt; background: #e0e7ff; color: #3730a3; padding: 4px 12px; border-radius: 12px; font-weight: 700;">
-            ឯកសារភ្ជាប់កិច្ចតែងការ
+            ${isEn ? 'Assessment Attachment' : 'ឯកសារភ្ជាប់កិច្ចតែងការ'}
           </span>
         </div>
 
         <div class="test-modules-container" style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;">
-          <div id="preTestModuleWrapper">${renderPreTestModule(data, false)}</div>
-          <div id="postTestModuleWrapper">${renderPostTestModule(data, false)}</div>
+          <div id="preTestModuleWrapper">${renderPreTestModule(data, isEn)}</div>
+          <div id="postTestModuleWrapper">${renderPostTestModule(data, isEn)}</div>
         </div>
 
         <!-- Learning Gain & Reflection Block -->
@@ -8420,9 +8605,11 @@ function renderLessonPlanToA4(data) {
 
     let activitiesHtml = '';
     activities.forEach(step => {
+      const stepTitle = localizeStepTitle(step.stepTitle, isEn);
+      const stepDur = localizeDuration(step.duration, isEn);
       activitiesHtml += `
         <tr>
-          <td style="text-align: center; font-weight: bold; width: 16%;">${escapeHtml(step.stepTitle)}<br><small style="color: #475569;">(${escapeHtml(step.duration)})</small></td>
+          <td style="text-align: center; font-weight: bold; width: 16%;">${escapeHtml(stepTitle)}<br><small style="color: #475569;">(${escapeHtml(stepDur)})</small></td>
           <td style="width: 30%;">${formatLineBreaks(step.teacherActivity)}</td>
           <td style="width: 25%; font-weight: 500;">${formatLineBreaks(step.contentSummary)}</td>
           <td style="width: 29%;">${formatLineBreaks(step.studentActivity)}</td>
@@ -8435,58 +8622,58 @@ function renderLessonPlanToA4(data) {
       ${headerHtml}
 
       <!-- Stage 1: Desired Results -->
-      <div class="doc-section-title">I. ដំណាក់កាលទី ១ : ការកំណត់លទ្ធផលរំពឹងទុក (Stage 1: Desired Results)</div>
+      <div class="doc-section-title">${isEn ? 'I. STAGE 1: DESIRED RESULTS' : 'I. ដំណាក់កាលទី ១ : ការកំណត់លទ្ធផលរំពឹងទុក (Stage 1: Desired Results)'}</div>
       <div style="margin-left: 10px; margin-bottom: 12px;">
-        ${stage1.establishedGoals ? `<div style="margin-bottom: 6px;"><strong>១. គោលបំណងចម្បង / ស្តង់ដារសិក្សា៖</strong> ${escapeHtml(stage1.establishedGoals)}</div>` : ''}
+        ${stage1.establishedGoals ? `<div style="margin-bottom: 6px;"><strong>${isEn ? '1. Established Goals / Curriculum Standards:' : '១. គោលបំណងចម្បង / ស្តង់ដារសិក្សា៖'}</strong> ${escapeHtml(stage1.establishedGoals)}</div>` : ''}
         
-        <div style="font-weight: 600; margin-top: 4px;">២. ការយល់ដឹងស្នូល (Enduring Understandings) & សំណួរគន្លឹះ (Essential Questions)៖</div>
+        <div style="font-weight: 600; margin-top: 4px;">${isEn ? '2. Enduring Understandings & Essential Questions:' : '២. ការយល់ដឹងស្នូល (Enduring Understandings) & សំណួរគន្លឹះ (Essential Questions)៖'}</div>
         <div style="margin-left: 12px; margin-top: 2px;">
-          <div>• <em>ការយល់ដឹងស្នូល (Enduring Understandings)៖</em></div>
+          <div>• <em>${isEn ? 'Enduring Understandings:' : 'ការយល់ដឹងស្នូល (Enduring Understandings)៖'}</em></div>
           <ul class="doc-list" style="margin-top: 2px; margin-bottom: 6px;">
             ${(stage1.enduringUnderstandings || []).map(u => `<li>${escapeHtml(u)}</li>`).join('')}
           </ul>
-          <div>• <em>សំណួរគន្លឹះដាស់ការត្រិះរិះ (Essential Questions)៖</em></div>
+          <div>• <em>${isEn ? 'Essential Questions:' : 'សំណួរគន្លឹះដាស់ការត្រិះរិះ (Essential Questions)៖'}</em></div>
           <ul class="doc-list" style="margin-top: 2px; margin-bottom: 6px;">
             ${(stage1.essentialQuestions || []).map(q => `<li>${escapeHtml(q)}</li>`).join('')}
           </ul>
         </div>
 
-        <div style="font-weight: 600; margin-top: 6px;">៣. វត្ថុបំណងជាក់លាក់ (Specific Objectives)៖</div>
+        <div style="font-weight: 600; margin-top: 6px;">${isEn ? '3. Specific Learning Objectives:' : '៣. វត្ថុបំណងជាក់លាក់ (Specific Objectives)៖'}</div>
         <ul class="doc-list">
-          <li><strong>វិជ្ជាសម្បទា (ចំណេះដឹង)៖</strong> ${(stage1.objectives?.knowledge || data.objectives?.knowledge || []).join('; ')}</li>
-          <li><strong>បំណិនសម្បទា (បំណិន)៖</strong> ${(stage1.objectives?.skills || data.objectives?.skills || []).join('; ')}</li>
-          <li><strong>ចរិយាសម្បទា (ឥរិយាបថ)៖</strong> ${(stage1.objectives?.attitudes || data.objectives?.attitudes || []).join('; ')}</li>
+          <li><strong>${isEn ? 'Knowledge (Cognitive Domain):' : 'វិជ្ជាសម្បទា (ចំណេះដឹង)៖'}</strong> ${(stage1.objectives?.knowledge || data.objectives?.knowledge || []).join('; ')}</li>
+          <li><strong>${isEn ? 'Skills (Psychomotor Domain):' : 'បំណិនសម្បទា (បំណិន)៖'}</strong> ${(stage1.objectives?.skills || data.objectives?.skills || []).join('; ')}</li>
+          <li><strong>${isEn ? 'Attitudes & Values (Affective Domain):' : 'ចរិយាសម្បទា (ឥរិយាបថ)៖'}</strong> ${(stage1.objectives?.attitudes || data.objectives?.attitudes || []).join('; ')}</li>
         </ul>
       </div>
 
       <!-- Stage 2: Assessment Evidence -->
-      <div class="doc-section-title">II. ដំណាក់កាលទី ២ : ការកំណត់ភស្តុតាងនៃការវាយតម្លៃ (Stage 2: Assessment Evidence)</div>
+      <div class="doc-section-title">${isEn ? 'II. STAGE 2: ASSESSMENT EVIDENCE' : 'II. ដំណាក់កាលទី ២ : ការកំណត់ភស្តុតាងនៃការវាយតម្លៃ (Stage 2: Assessment Evidence)'}</div>
       <div style="margin-left: 10px; margin-bottom: 14px;">
-        <div style="font-weight: 600;">១. ភារកិច្ចវាស់ស្ទង់សមត្ថភាព / កិច្ចការអនុវត្ត (Performance Tasks)៖</div>
+        <div style="font-weight: 600;">${isEn ? '1. Performance Tasks / Authentic Applications:' : '១. ភារកិច្ចវាស់ស្ទង់សមត្ថភាព / កិច្ចការអនុវត្ត (Performance Tasks)៖'}</div>
         <ul class="doc-list" style="margin-top: 2px; margin-bottom: 6px;">
           ${(stage2.performanceTasks || []).map(pt => `<li>${escapeHtml(pt)}</li>`).join('')}
         </ul>
 
-        <div style="font-weight: 600; margin-top: 4px;">២. ភស្តុតាងផ្សេងៗទៀត (Other Evidence) & លក្ខណៈវិនិច្ឆ័យ (Criteria)៖</div>
+        <div style="font-weight: 600; margin-top: 4px;">${isEn ? '2. Other Evidence & Criteria:' : '២. ភស្តុតាងផ្សេងៗទៀត (Other Evidence) & លក្ខណៈវិនិច្ឆ័យ (Criteria)៖'}</div>
         <ul class="doc-list" style="margin-top: 2px; margin-bottom: 4px;">
           ${(stage2.otherEvidence || []).map(oe => `<li>${escapeHtml(oe)}</li>`).join('')}
         </ul>
-        ${stage2.criteria && stage2.criteria.length > 0 ? `<div style="font-size: 9.5pt; color: #334155; margin-left: 12px;"><em>លក្ខណៈវិនិច្ឆ័យវាយតម្លៃ៖</em> ${escapeHtml(stage2.criteria.join(' | '))}</div>` : ''}
+        ${stage2.criteria && stage2.criteria.length > 0 ? `<div style="font-size: 9.5pt; color: #334155; margin-left: 12px;"><em>${isEn ? 'Evaluation Criteria:' : 'លក្ខណៈវិនិច្ឆ័យវាយតម្លៃ៖'}</em> ${escapeHtml(stage2.criteria.join(' | '))}</div>` : ''}
       </div>
 
       <!-- Stage 3: Learning Plan -->
-      <div class="doc-section-title" style="margin-top: 16px;">III. ដំណាក់កាលទី ៣ : ផែនការរៀបចំការបង្រៀន និងរៀន (Stage 3: Learning Plan)</div>
+      <div class="doc-section-title" style="margin-top: 16px;">${isEn ? 'III. STAGE 3: LEARNING PLAN' : 'III. ដំណាក់កាលទី ៣ : ផែនការរៀបចំការបង្រៀន និងរៀន (Stage 3: Learning Plan)'}</div>
       <div style="margin-left: 10px; margin-bottom: 8px;">
-        <div>• <strong>សម្ភារឧបទេស៖</strong> សម្រាប់គ្រូ៖ ${escapeHtml((stage3.materials?.teacher || data.materials?.teacher || []).join(', '))} | សម្រាប់សិស្ស៖ ${escapeHtml((stage3.materials?.student || data.materials?.student || []).join(', '))}</div>
+        <div>• <strong>${isEn ? 'Teaching Materials:' : 'សម្ភារឧបទេស៖'}</strong> ${isEn ? 'For Teacher:' : 'សម្រាប់គ្រូ៖'} ${escapeHtml((stage3.materials?.teacher || data.materials?.teacher || []).join(', '))} | ${isEn ? 'For Students:' : 'សម្រាប់សិស្ស៖'} ${escapeHtml((stage3.materials?.student || data.materials?.student || []).join(', '))}</div>
       </div>
 
       <table class="doc-table">
         <thead>
           <tr>
-            <th style="width: 16%;">ដំណាក់កាល និងពេល</th>
-            <th style="width: 30%;">សកម្មភាពគ្រូ</th>
-            <th style="width: 25%;">ខ្លឹមសារមេរៀន</th>
-            <th style="width: 29%;">សកម្មភាពសិស្ស</th>
+            <th style="width: 16%;">${isEn ? 'Stage & Timing' : 'ដំណាក់កាល និងពេល'}</th>
+            <th style="width: 30%;">${isEn ? 'Teacher Activities' : 'សកម្មភាពគ្រូ'}</th>
+            <th style="width: 25%;">${isEn ? 'Lesson Content' : 'ខ្លឹមសារមេរៀន'}</th>
+            <th style="width: 29%;">${isEn ? 'Student Activities' : 'សកម្មភាពសិស្ស'}</th>
           </tr>
         </thead>
         <tbody>
@@ -8500,13 +8687,13 @@ function renderLessonPlanToA4(data) {
       <!-- 📎 APPENDIX: Pre-Test & Post-Test on the page after signatures -->
       <div id="appendixSectionWrapper" class="doc-appendix-wrapper" style="page-break-before: always; break-before: page; margin-top: 36px; ${(data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;'}">
         <div class="appendix-page-divider">
-          <span>📄 ទំព័របន្ទាប់ (Next Page) — ឯកសារឧបសម្ព័ន្ធ (Appendix)</span>
+          <span>${isEn ? '📄 Next Page — Assessment Appendix' : '📄 ទំព័របន្ទាប់ (Next Page) — ឯកសារឧបសម្ព័ន្ធ (Appendix)'}</span>
         </div>
 
         <div id="assessmentSectionTitle" class="doc-appendix-header">
           <div>
             <div style="font-size: 12.5pt; font-weight: 800; color: #1e3a8a; font-family: 'Kantumruy Pro', 'Khmer OS Siemreap', sans-serif;">
-              📎 ឯកសារឧបសម្ព័ន្ធ (Appendix)
+              📎 ${isEn ? 'Appendix: Assessments' : 'ឯកសារឧបសម្ព័ន្ធ (Appendix)'}
             </div>
             <div style="font-size: 9.5pt; color: #475569; margin-top: 2px; font-weight: 600;">
               ${isEn ? 'Diagnostic & Mastery Assessments (Pre-Test & Post-Test)' : 'វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test) និងតេស្តវាស់ស្ទង់សមត្ថភាព (Post-Test)'}
@@ -8532,9 +8719,11 @@ function renderLessonPlanToA4(data) {
   // 5-Step Process Rendering (MoEYS Standard, Flipped Learning, Primary School, STEM/5E)
   let stepsHtml = '';
   (data.steps || []).forEach(step => {
+    const stepTitle = localizeStepTitle(step.stepTitle, isEn);
+    const stepDur = localizeDuration(step.duration, isEn);
     stepsHtml += `
       <tr>
-        <td style="text-align: center; font-weight: bold; width: 16%;">${escapeHtml(step.stepTitle)}<br><span style="color: #0369a1; font-weight: 700; font-size: 9pt;">(${escapeHtml(step.duration)})</span></td>
+        <td style="text-align: center; font-weight: bold; width: 16%;">${escapeHtml(stepTitle)}<br><span style="color: #0369a1; font-weight: 700; font-size: 9pt;">(${escapeHtml(stepDur)})</span></td>
         <td style="width: 30%;">${formatLineBreaks(step.teacherActivity)}</td>
         <td style="width: 25%; font-weight: 500;">${formatLineBreaks(step.contentSummary)}</td>
         <td style="width: 29%;">${formatLineBreaks(step.studentActivity)}</td>
@@ -8547,40 +8736,40 @@ function renderLessonPlanToA4(data) {
     ${headerHtml}
 
     <!-- Section I: Objectives -->
-    <div class="doc-section-title">I. វត្ថុបំណង (Objectives)</div>
+    <div class="doc-section-title">${isEn ? 'I. LEARNING OBJECTIVES' : 'I. វត្ថុបំណង (Objectives)'}</div>
     <div style="margin-left: 10px; margin-bottom: 12px;">
       ${data.objectives?.intro ? `<div style="font-style: italic; margin-bottom: 4px; font-weight: 600;">${escapeHtml(data.objectives.intro)}</div>` : ''}
-      <div style="font-weight: 600; margin-top: 4px;">១. វិជ្ជាសម្បទា (ចំណេះដឹង)៖</div>
+      <div style="font-weight: 600; margin-top: 4px;">${isEn ? '1. Knowledge (Cognitive Domain):' : '១. វិជ្ជាសម្បទា (ចំណេះដឹង)៖'}</div>
       <ul class="doc-list" style="margin-top: 2px;">
         ${(data.objectives?.knowledge || []).map(k => `<li>${escapeHtml(k)}</li>`).join('')}
       </ul>
 
-      <div style="font-weight: 600; margin-top: 4px;">២. បំណិនសម្បទា (បំណិន)៖</div>
+      <div style="font-weight: 600; margin-top: 4px;">${isEn ? '2. Skills (Psychomotor Domain):' : '២. បំណិនសម្បទា (បំណិន)៖'}</div>
       <ul class="doc-list" style="margin-top: 2px;">
         ${(data.objectives?.skills || []).map(s => `<li>${escapeHtml(s)}</li>`).join('')}
       </ul>
 
-      <div style="font-weight: 600; margin-top: 4px;">៣. ចរិយាសម្បទា (ឥរិយាបថ)៖</div>
+      <div style="font-weight: 600; margin-top: 4px;">${isEn ? '3. Attitudes & Values (Affective Domain):' : '៣. ចរិយាសម្បទា (ឥរិយាបថ)៖'}</div>
       <ul class="doc-list" style="margin-top: 2px;">
         ${(data.objectives?.attitudes || []).map(a => `<li>${escapeHtml(a)}</li>`).join('')}
       </ul>
     </div>
 
     <!-- Section II: Materials -->
-    <div class="doc-section-title">II. សម្ភារឧបទេស (Teaching Aids / Materials)</div>
+    <div class="doc-section-title">${isEn ? 'II. TEACHING AIDS & MATERIALS' : 'II. សម្ភារឧបទេស (Teaching Aids / Materials)'}</div>
     <div style="margin-left: 10px; margin-bottom: 14px;">
-      <div>• <strong>សម្រាប់គ្រូ៖</strong> ${escapeHtml((data.materials?.teacher || []).join(', '))}</div>
-      <div style="margin-top: 4px;">• <strong>សម្រាប់សិស្ស៖</strong> ${escapeHtml((data.materials?.student || []).join(', '))}</div>
+      <div>• <strong>${isEn ? 'For Teacher:' : 'សម្រាប់គ្រូ៖'}</strong> ${escapeHtml((data.materials?.teacher || []).join(', '))}</div>
+      <div style="margin-top: 4px;">• <strong>${isEn ? 'For Students:' : 'សម្រាប់សិស្ស៖'}</strong> ${escapeHtml((data.materials?.student || []).join(', '))}</div>
     </div>
 
     <!-- Teaching Method -->
-    <div class="doc-section-title" style="font-size: 11.5pt;">៣. វិធីសាស្រ្ដបង្រៀន</div>
+    <div class="doc-section-title" style="font-size: 11.5pt;">${isEn ? 'III. TEACHING METHODOLOGY' : '៣. វិធីសាស្រ្ដបង្រៀន'}</div>
     <div style="margin-left: 10px; margin-bottom: 12px; font-size: 10pt;">
-      ${renderTeachingMethodContent(data.method, '5_steps')}
+      ${renderTeachingMethodContent(data.method, '5_steps', isEn)}
     </div>
 
     <!-- Section IV: In-Class Process -->
-    <div class="doc-section-title">IV. ដំណើរការបង្រៀន និងរៀនក្នុងថ្នាក់ (In-Class Teaching Process)</div>
+    <div class="doc-section-title">${isEn ? 'IV. IN-CLASS TEACHING & LEARNING ACTIVITIES' : 'IV. ដំណើរការបង្រៀន និងរៀនក្នុងថ្នាក់ (In-Class Teaching Process)'}</div>
     <table class="doc-table">
       <thead>
         <tr>
@@ -8601,13 +8790,13 @@ function renderLessonPlanToA4(data) {
     <!-- 📎 APPENDIX: Pre-Test & Post-Test on the page after signatures -->
     <div id="appendixSectionWrapper" class="doc-appendix-wrapper" style="page-break-before: always; break-before: page; margin-top: 36px; ${(data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;'}">
       <div class="appendix-page-divider">
-        <span>📄 ទំព័របន្ទាប់ (Next Page) — ឯកសារឧបសម្ព័ន្ធ (Appendix)</span>
+        <span>${isEn ? '📄 Next Page — Assessment Appendix' : '📄 ទំព័របន្ទាប់ (Next Page) — ឯកសារឧបសម្ព័ន្ធ (Appendix)'}</span>
       </div>
 
       <div id="assessmentSectionTitle" class="doc-appendix-header">
         <div>
           <div style="font-size: 12.5pt; font-weight: 800; color: #1e3a8a; font-family: 'Kantumruy Pro', 'Khmer OS Siemreap', sans-serif;">
-            📎 ឯកសារឧបសម្ព័ន្ធ (Appendix)
+            📎 ${isEn ? 'Appendix: Assessments' : 'ឯកសារឧបសម្ព័ន្ធ (Appendix)'}
           </div>
           <div style="font-size: 9.5pt; color: #475569; margin-top: 2px; font-weight: 600;">
             ${isEn ? 'Diagnostic & Mastery Assessments (Pre-Test & Post-Test)' : 'វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test) និងតេស្តវាស់ស្ទង់សមត្ថភាព (Post-Test)'}
