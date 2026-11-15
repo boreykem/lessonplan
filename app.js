@@ -9232,8 +9232,18 @@ function importPlansFromJson(file) {
   reader.readAsText(file);
 }
 
-// Google NotebookLM & Gemini Notebook Studio Actions - Flipped Classroom Video Micro-Lecture
+// Google NotebookLM & Gemini Notebook Studio Actions - Flipped Classroom Video Micro-Lecture (Option 2 Synchronized)
 let currentNotebookLmFlippedPrompt = '';
+let currentNotebookLmCustomizePrompt = '';
+
+function prepareNotebookLmCustomizeInstruction() {
+  return `សូមដើរតួជាសាស្ត្រាចារ្យគរុកោសល្យ និងជាអ្នកជំនាញផលិតវីដេអូបកស្រាយមេរៀន (Educational Explainer Video) ជាភាសាខ្មែរ ១០០% ស្របតាមរចនាសម្ព័ន្ធ [SCENE] និងពេលវេលា [TIMESTAMP] ក្នុងឯកសារប្រភព។
+
+⚠️ លក្ខខណ្ឌតម្រូវការពារការរត់ជាន់ស្លាយ (ANTI-DESYNC REQUIREMENTS)៖
+១. សូមប្តូរស្លាយរូបភាព និងបង្ហាញអត្ថបទឱ្យស៊ីគ្នានឹងសំឡេងអានបកស្រាយតាម [SCENE] និងពេលវេលា [TIMESTAMP] នីមួយៗជាដាច់ខាត។
+២. ហាមដាច់ខាតមិនឱ្យសំឡេងនិយាយរត់ទៅមុខមុន ហើយទុករូបភាពស្លាយរត់កកកុញជាន់គ្នានៅចុងក្រោយឡើយ!
+៣. ទាំងសំឡេងគ្រូអត្ថាធិប្បាយ និងអក្សរលើស្លាយ ត្រូវតែជា «ភាសាខ្មែរ ១០០%» (Font 'Kantumruy Pro') គ្មានការលើកឡើងពីរដ្ឋបាលថ្នាក់ ឬសម្រង់វត្តមានឡើយ។`;
+}
 
 function prepareNotebookLmFlippedVideoPrompt() {
   const data = state.generatedPlanData || state.currentPlan;
@@ -9252,7 +9262,6 @@ function prepareNotebookLmFlippedVideoPrompt() {
     const concepts = [];
     if (data?.steps && Array.isArray(data.steps)) {
       data.steps.forEach(st => {
-        // Exclude step 1 (admin) and step 5 (homework), focus on academic content
         if (st.contentSummary && st.contentSummary.trim().length > 15) {
           const titleClean = st.stepTitle || 'ខ្លឹមសារស្នូល';
           if (!titleClean.includes('រដ្ឋបាល') && !titleClean.includes('កិច្ចការផ្ទះ')) {
@@ -9270,39 +9279,130 @@ function prepareNotebookLmFlippedVideoPrompt() {
     const list = [];
     if (data.objectives.knowledge?.length) list.push(...data.objectives.knowledge);
     if (data.objectives.skills?.length) list.push(...data.objectives.skills);
-    if (list.length) objText = list.map(o => `- ${o}`).join('\n');
+    if (list.length) objText = list.map(o => `• ${o}`).join('\n');
+  }
+  if (!objText) {
+    objText = `• យល់ដឹងច្បាស់ពីគោលការណ៍គ្រឹះ និងនិយមន័យនៃ «${title}»\n• ចេះអនុវត្តទ្រឹស្តី និងដោះស្រាយបញ្ហាក្នុងជីវភាពជាក់ស្តែង`;
   }
 
-  // 3. Build the 100% Khmer Pre-Class Flipped Classroom Video Prompt
+  // 3. Extract or Synthesize 100% Timed Scenes matching Option 2 (Scene Header & Timestamp)
+  let scenesText = '';
+  
+  // Case A: App already generated video scenes (from Video Studio)
+  if (data?.videoScenes && Array.isArray(data.videoScenes) && data.videoScenes.length > 0) {
+    data.videoScenes.forEach((sc, idx) => {
+      const scName = sc.name || sc.title || `ឈុតទី ${idx + 1}`;
+      const scTime = sc.timeRange || `0${idx}:00 - 0${idx + 1}:00`;
+      let bulletsStr = '';
+      if (Array.isArray(sc.bullets) && sc.bullets.length) {
+        bulletsStr = sc.bullets.map(b => `  • ${b}`).join('\n');
+      } else {
+        bulletsStr = `  • ${sc.subtitle || sc.title || title}`;
+      }
+      const visual = sc.visualCue || sc.imagePrompt || `រូបភាព ឬដ្យាក្រាមពន្យល់អំពី ${sc.title || scName}`;
+      const narration = sc.narration || sc.dialogue || `សូមស្វាគមន៍មកកាន់ ${scName} នៃមេរៀន «${title}»។`;
+
+      scenesText += `[SCENE ${idx + 1}: ${scName}] (ពេលវេលា: ${scTime})\n`;
+      scenesText += `- អត្ថបទលើស្លាយ:\n${bulletsStr}\n`;
+      scenesText += `- រូបភាព: ${visual}\n`;
+      scenesText += `- សំឡេងអានបកស្រាយ: ${narration}\n\n---\n\n`;
+    });
+  }
+  // Case B: App has notebooklmGuide scriptSegments
+  else if (data?.notebooklmGuide?.scriptSegments && Array.isArray(data.notebooklmGuide.scriptSegments) && data.notebooklmGuide.scriptSegments.length > 0) {
+    data.notebooklmGuide.scriptSegments.forEach((seg, idx) => {
+      const scName = seg.sceneDescription || `ឈុតទី ${idx + 1}`;
+      const scTime = seg.timestamp || `0${idx}:00 - 0${idx + 1}:00`;
+      const onScreen = seg.onScreenText || `មេរៀន៖ ${title} (${subject} ${grade})`;
+      const visual = seg.visualCue || `រូបភាពបង្ហាញពន្យល់ពី ${scName}`;
+      const narration = seg.narration || seg.dialogue || `ខ្លឹមសារបកស្រាយឈុតទី ${idx + 1}`;
+
+      scenesText += `[SCENE ${idx + 1}: ${scName}] (ពេលវេលា: ${scTime})\n`;
+      scenesText += `- អត្ថបទលើស្លាយ:\n  • ${onScreen}\n`;
+      scenesText += `- រូបភាព: ${visual}\n`;
+      scenesText += `- សំឡេងអានបកស្រាយ: ${narration}\n\n---\n\n`;
+    });
+  }
+  // Case C: Synthesize 5 rich standard pedagogical scenes (Option 2 format)
+  else {
+    const p1 = (data?.notebooklmGuide?.keyTakeaways && data.notebooklmGuide.keyTakeaways[0]) || `គោលការណ៍គ្រឹះ និងនិយមន័យនៃ ${title}`;
+    const p2 = (data?.notebooklmGuide?.keyTakeaways && data.notebooklmGuide.keyTakeaways[1]) || `យន្តការដំណើរការ និងរូបមន្តគន្លឹះ`;
+    const p3 = (data?.notebooklmGuide?.keyTakeaways && data.notebooklmGuide.keyTakeaways[2]) || `ការផ្សារភ្ជាប់ទ្រឹស្តីទៅនឹងការអនុវត្តជាក់ស្តែងក្នុងជីវភាព`;
+
+    scenesText += `[SCENE 1: សេចក្តីផ្តើម & បញ្ហាគន្លឹះ] (ពេលវេលា: 00:00 - 00:45)\n`;
+    scenesText += `- អត្ថបទលើស្លាយ:\n`;
+    scenesText += `  • មេរៀន «${title}» (${subject} ${grade})\n`;
+    scenesText += `  • ស្វែងយល់ពីគោលបំណងស្នូល និងសារៈសំខាន់នៃមេរៀន\n`;
+    scenesText += `  • សំណួរគន្លឹះជំរុញការត្រិះរិះត្រៀមមុនចូលថ្នាក់\n`;
+    scenesText += `- រូបភាព: បរិយាកាសថ្នាក់រៀនសកម្ម និងរូបភាពផ្សារភ្ជាប់ជីវភាពជាក់ស្តែង\n`;
+    scenesText += `- សំឡេងអានបកស្រាយ: សូមស្វាគមន៍គរុនិស្សិត និងប្អូនៗទាំងអស់គ្នា មកកាន់វីដេអូស្វ័យសិក្សាត្រៀមមុនម៉ោងនៃមេរៀន «${title}» ក្នុងមុខវិជ្ជា ${subject} ${grade}។ ថ្ងៃនេះយើងនឹងស្វែងយល់ពីគោលគំនិតចម្បង និងបញ្ហាគន្លឹះ ដើម្បីជាទុនក្នុងការចូលរួមសកម្មភាពរៀនសកម្មក្នុងថ្នាក់រៀន!\n\n---\n\n`;
+
+    scenesText += `[SCENE 2: ទ្រឹស្តីស្នូល & និយមន័យគ្រឹះ] (ពេលវេលា: 00:46 - 01:45)\n`;
+    scenesText += `- អត្ថបទលើស្លាយ:\n`;
+    scenesText += `  • ${p1}\n`;
+    scenesText += `  • បញ្ញត្តិសំខាន់ៗដែលជាគ្រឹះនៃការយល់ដឹង\n`;
+    scenesText += `  • ទំនាក់ទំនងរវាងទ្រឹស្តី និងការអភិវឌ្ឍចំណេះដឹង\n`;
+    scenesText += `- រូបភាព: គំនូរបំព្រួញ ឬដ្យាក្រាមលំហូរនៃទ្រឹស្តី\n`;
+    scenesText += `- សំឡេងអានបកស្រាយ: ចំណុចស្នូលដំបូងដែលយើងត្រូវយល់ឱ្យបានស៊ីជម្រៅ គឺ${p1}។ ទ្រឹស្តីនេះបង្ហាញយ៉ាងច្បាស់ពីយន្តការគ្រឹះ ដែលជាគន្លឹះមិនអាចខ្វះបានក្នុងការរៀបចំផែនការ និងការដោះស្រាយបញ្ហា!\n\n---\n\n`;
+
+    scenesText += `[SCENE 3: ការពន្យល់ស៊ីជម្រៅ & យន្តការដំណើរការ] (ពេលវេលា: 01:46 - 03:00)\n`;
+    scenesText += `- អត្ថបទលើស្លាយ:\n`;
+    scenesText += `  • ${p2}\n`;
+    scenesText += `  • ការវិភាគបាតុភូត និងមូលហេតុបង្ក\n`;
+    scenesText += `  • កត្តាជះឥទ្ធិពលលើដំណើរការរៀនសូត្រ\n`;
+    scenesText += `- រូបភាព: ដ្យាក្រាមយន្តការ និងគំនូសបំព្រួញដំណាក់កាលអនុវត្ត\n`;
+    scenesText += `- សំឡេងអានបកស្រាយ: នៅពេលយើងពិនិត្យមើលកាន់តែស៊ីជម្រៅ យន្តការនេះដំណើរការទៅតាមដំណាក់កាលជាក់លាក់ គឺ${p2} ដែលតម្រូវឱ្យយើងចេះវិភាគ ពិចារណាដេញដោល និងផ្សារភ្ជាប់កត្តាជុំវិញខ្លួនឱ្យបានគ្រប់ជ្រុងជ្រោយ!\n\n---\n\n`;
+
+    scenesText += `[SCENE 4: ករណីសិក្សា & ការអនុវត្តជាក់ស្តែង] (ពេលវេលា: 03:01 - 04:15)\n`;
+    scenesText += `- អត្ថបទលើស្លាយ:\n`;
+    scenesText += `  • ${p3}\n`;
+    scenesText += `  • ករណីសិក្សាជាក់ស្តែងក្នុងបរិបទសង្គម និងការអប់រំនៅកម្ពុជា\n`;
+    scenesText += `  • វិធីសាស្ត្រដោះស្រាយបញ្ហាតាមក្បួនគរុកោសល្យ\n`;
+    scenesText += `- រូបភាព: រូបភាពសកម្មភាពអនុវត្តជាក់ស្តែង និងការដោះស្រាយបញ្ហាជាក្រុម\n`;
+    scenesText += `- សំឡេងអានបកស្រាយ: ឥឡូវនេះសូមក្រឡេកមកមើលករណីសិក្សាជាក់ស្តែងក្នុងបរិបទសង្គមពិត គឺ${p3}។ ការយល់ដឹងពីចំណុចនេះ នឹងជួយឱ្យយើងអាចយកចំណេះដឹងពីមេរៀនទៅដោះស្រាយស្ថានភាពជីវិតជាក់ស្តែងបានយ៉ាងមានប្រសិទ្ធភាព!\n\n---\n\n`;
+
+    scenesText += `[SCENE 5: សង្ខេបមេរៀន & ការត្រៀម Pre-Test] (ពេលវេលា: 04:16 - 05:30)\n`;
+    scenesText += `- អត្ថបទលើស្លាយ:\n`;
+    scenesText += `  • សង្ខេបចំណុចគន្លឹះសំខាន់ៗទាំង ៣ នៃមេរៀន\n`;
+    scenesText += `  • កត់ត្រាចំណុចស្រពិចស្រពិល (Muddiest Point)\n`;
+    scenesText += `  • ឆ្លើយវិញ្ញាសាបុរេតេស្ត (Pre-Test QCM) មុនចូលរៀន\n`;
+    scenesText += `- រូបភាព: រូបតំណាងកម្រងសំណួរឌីជីថល (Digital Quiz / Google Form)\n`;
+    scenesText += `- សំឡេងអានបកស្រាយ: ជាចុងក្រោយ សូមប្អូនៗទាំងអស់គ្នាកត់ត្រាចំណុចដែលខ្លួននៅស្រពិចស្រពិល (Muddiest Point) យ៉ាងតិចមួយសំណួរ ព្រមទាំងចូលទៅឆ្លើយវិញ្ញាសាបុរេតេស្ត Pre-Test QCM ខាងក្រោម ដើម្បីត្រៀមខ្លួនសម្រាប់សកម្មភាពអនុវត្ត និងពិភាក្សាជាក្រុមក្នុងថ្នាក់រៀន!\n\n---\n\n`;
+  }
+
+  // 4. Assemble the Full Option 2 Synchronized Source & Prompt
   let prompt = `=======================================================\n`;
-  prompt += `PROMPT វីដេអូស្វ័យសិក្សាត្រៀមមុនម៉ោង (FLIPPED CLASSROOM MICRO-LECTURE)\n`;
-  prompt += `ភាសានិយាយ និងអក្សរលើស្លាយ៖ ភាសាខ្មែរ ១០០% (FONT: KANTUMRUY PRO)\n`;
+  prompt += `🎬 ឯកសារប្រភព & PROMPT វីដេអូស្វ័យសិក្សា (FLIPPED CLASSROOM MICRO-LECTURE)\n`;
+  prompt += `⏱️ រយៈពេលសរុប៖ ៥ ទៅ ៧ នាទី | ភាសា៖ ភាសាខ្មែរ ១០០% (FONT: KANTUMRUY PRO)\n`;
+  prompt += `🎯 គោលការណ៍ស៊ីចង្វាក់ (OPTION 2): រូបភាពស្លាយ និងសំឡេងអានត្រូវប្តូរស្របគ្នាតាម [SCENE] និងពេលវេលា [TIMESTAMP]\n`;
   prompt += `=======================================================\n\n`;
-  prompt += `សូមដើរតួជាសាស្ត្រាចារ្យគរុកោសល្យ និងជាអ្នកជំនាញផលិតវីដេអូអប់រំឌីជីថល។ សូមផលិតវីដេអូពន្យល់មេរៀនខ្នាតខ្លី (Educational Explainer Video / Micro-Lecture) រយៈពេល ៥ ទៅ ៨ នាទី សម្រាប់សិស្ស/គរុនិស្សិតស្វ័យសិក្សាត្រៀមមុនចូលរៀនក្នុងថ្នាក់ (Pre-Class Phase ក្នុងគំរូ Flipped Classroom) សម្រាប់មេរៀន «${title}» មុខវិជ្ជា ${subject} ${grade}។\n\n`;
 
-  prompt += `⚠️ លក្ខខណ្ឌតម្រូវចាំបាច់បំផុត (CRITICAL REQUIREMENTS)៖\n`;
+  prompt += `📌 ប្រធានបទ៖ «${title}»\n`;
+  prompt += `📚 មុខវិជ្ជា៖ ${subject} | កម្រិតថ្នាក់៖ ${grade}\n\n`;
+
+  prompt += `🎯 គោលបំណងនៃការរៀនសូត្រ៖\n`;
+  prompt += `${objText}\n\n`;
+
+  prompt += `=======================================================\n`;
+  prompt += `⚠️ លក្ខខណ្ឌតម្រូវការពារការរត់ជាន់ស្លាយ (ANTI-DESYNC REQUIREMENTS)៖\n`;
   prompt += `១. ភាសានិយាយ និងអក្សរលើស្លាយ (Language):\n`;
-  prompt += `   • ទាំងសំឡេងគ្រូអត្ថាធិប្បាយ (Narration Voiceover) និងអក្សរសង្ខេបបង្ហាញលើស្លាយវីដេអូ (On-Screen Text) ត្រូវតែជា «ភាសាខ្មែរ ១០០%» (Font 'Kantumruy Pro')។\n`;
-  prompt += `   • ទឹកដមសំឡេងត្រូវមានភាពរស់រវើក ទាក់ទាញ ច្បាស់ៗ រលូន និងមានលក្ខណៈអប់រំកម្រិតខ្ពស់។ ដាច់ខាតកុំប្រើប្រាស់ភាសាអង់គ្លេសលើស្លាយ ឬក្នុងសំឡេងនិយាយ!\n\n`;
+  prompt += `   • ទាំងសំឡេងគ្រូអត្ថាធិប្បាយ (Narration Voiceover) និងអក្សរសង្ខេបបង្ហាញលើស្លាយ (On-Screen Text) ត្រូវតែជា «ភាសាខ្មែរ ១០០%» (Font 'Kantumruy Pro')។\n`;
+  prompt += `   • ហាមដាច់ខាតមិនឱ្យប្រើប្រាស់ភាសាអង់គ្លេសលើស្លាយ ឬក្នុងសំឡេងនិយាយ!\n`;
+  prompt += `២. ការកំណត់ស៊ីចង្វាក់ស្លាយ និងសំឡេង (Strict Audio-Visual Synchronization):\n`;
+  prompt += `   • សូមប្តូរស្លាយរូបភាព និងបង្ហាញអត្ថបទឱ្យស៊ីគ្នានឹងសំឡេងអានតាម [SCENE] និង [TIMESTAMP] នីមួយៗជាដាច់ខាត។\n`;
+  prompt += `   • ហាមដាច់ខាតមិនឱ្យសំឡេងនិយាយរត់ទៅមុខមុន ហើយទុករូបភាពស្លាយរត់កកកុញជាន់គ្នានៅចុងក្រោយឡើយ!\n`;
+  prompt += `៣. ខ្លឹមសារផ្តោតលើចំណេះដឹងមេរៀន (Academic Content Only):\n`;
+  prompt += `   • វីដេអូនេះសម្រាប់សិស្សរៀន ដូច្នេះហាមដាច់ខាតមិនឱ្យនិយាយពីរឿងរដ្ឋបាលថ្នាក់ ការសម្រង់វត្តមាន ឬកិច្ចការមិនពាក់ព័ន្ធឡើយ។\n`;
+  prompt += `=======================================================\n\n`;
 
-  prompt += `២. រចនាសម្ព័ន្ធវីដេអូ ៤ ឈុត (4-Scene Micro-Lecture Structure)៖\n`;
-  prompt += `   • ឈុតទី១ (អារម្ភកថា & ចំណុចចាប់អារម្មណ៍ - ១ នាទី)៖ បង្ហាញពីសារៈសំខាន់នៃមេរៀនក្នុងជីវភាពរស់នៅជាក់ស្តែង និងចោទជាបញ្ហា ឬភាពចង់ដឹង ដើម្បីទាក់ទាញការយកចិត្តទុកដាក់របស់សិស្ស។\n`;
-  prompt += `   • ឈុតទី២ (ទ្រឹស្តី និងបញ្ញត្តិស្នូល - ៣ នាទី)៖ ពន្យល់និយមន័យ បញ្ញត្តិ និងទ្រឹស្តីគន្លឹះជាភាសាខ្មែរឱ្យច្បាស់លាស់ និងងាយយល់ អមដោយដ្យាក្រាម រូបភាព ឬគំនូរជីវចលពន្យល់។\n`;
-  prompt += `   • ឈុតទី៣ (ករណីសិក្សា និងការអនុវត្តជាក់ស្តែង - ២ នាទី)៖ លើកករណីសិក្សាជាក់ស្តែងក្នុងបរិបទសង្គម និងការអប់រំនៅកម្ពុជា ដើម្បីបង្ហាញពីរបៀបដោះស្រាយបញ្ហាតាមក្បួនចិត្តវិទ្យា/គរុកោសល្យ។\n`;
-  prompt += `   • ឈុតទី៤ (សង្ខេប & សំណួរត្រិះរិះត្រៀមចូលថ្នាក់ - ១ នាទី)៖ សង្ខេបចំណុចសំខាន់ៗដែលបានរៀន និងដាក់សំណួរពិចារណា ២-៣ សំណួរ ដើម្បីឱ្យសិស្សត្រិះរិះទុកជាមុន និងត្រៀមយកមកពិភាក្សាដេញដោលក្នុងថ្នាក់រៀន (In-Class Active Learning)។\n\n`;
-
-  prompt += `៣. ខ្លឹមសារត្រូវផ្តោតតែលើ «ចំណេះដឹងមេរៀន» (Content Only)៖\n`;
-  prompt += `   • វីដេអូនេះសម្រាប់សិស្សរៀន ដូច្នេះហាមដាច់ខាតមិនឱ្យនិយាយពីរឿងរដ្ឋបាលថ្នាក់ ការសម្រង់វត្តមាន អនាម័យថ្នាក់ ឬការបែងចែកក្រុមឡើយ!\n\n`;
-
-  if (objText) {
-    prompt += `=======================================================\n`;
-    prompt += `[វត្ថុបំណងនៃការរៀនសូត្រ]\n`;
-    prompt += `${objText}\n\n`;
-  }
+  prompt += `=======================================================\n`;
+  prompt += `[រចនាសម្ព័ន្ធឈុតឆាក និងពេលវេលាជាក់លាក់ (TIMED SCENES - OPTION 2)]\n`;
+  prompt += `=======================================================\n\n`;
+  prompt += scenesText;
 
   if (lessonBody) {
     prompt += `=======================================================\n`;
-    prompt += `[ខ្លឹមសារឯកសារមេរៀនសម្រាប់ផលិតវីដេអូ]\n`;
+    prompt += `[ខ្លឹមសារឯកសារមេរៀនពិស្តារសម្រាប់ផ្ទៀងផ្ទាត់ (REFERENCE MATERIAL)]\n`;
     prompt += `=======================================================\n`;
     prompt += `${lessonBody}\n\n`;
   }
@@ -9331,15 +9431,28 @@ async function copyNotebookLMFlippedPrompt(e) {
   const text = currentNotebookLmFlippedPrompt || prepareNotebookLmFlippedVideoPrompt();
   try {
     await navigator.clipboard.writeText(text);
-    showToast('✨ បានចម្លង Prompt វីដេអូ Flipped Classroom (ភាសាខ្មែរ ១០០%) រួចរាល់!', 'success');
+    showToast('✨ បានចម្លងឯកសារប្រភព Scene & Timestamp (Option 2) រួចរាល់!', 'success');
   } catch (err) {
     showToast('មិនអាចចម្លងបានទេ: ' + err.message, 'error');
   }
 }
 window.copyNotebookLMFlippedPrompt = copyNotebookLMFlippedPrompt;
+window.copyNotebookLMOption2Source = copyNotebookLMFlippedPrompt;
 window.copyNotebookLMShortPrompt = copyNotebookLMFlippedPrompt;
 window.copyNotebookLMSourceOnly = copyNotebookLMFlippedPrompt;
 window.copyNotebookLMPromptAgain = copyNotebookLMFlippedPrompt;
+
+async function copyNotebookLMCustomizeInstruction(e) {
+  if (e) e.stopPropagation();
+  const text = prepareNotebookLmCustomizeInstruction();
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('🎯 បានចម្លងបញ្ជា Customize (Anti-Desync) សម្រាប់ NotebookLM Studio រួចរាល់!', 'success');
+  } catch (err) {
+    showToast('មិនអាចចម្លងបានទេ: ' + err.message, 'error');
+  }
+}
+window.copyNotebookLMCustomizeInstruction = copyNotebookLMCustomizeInstruction;
 
 async function openNotebookLM() {
   try {
@@ -9383,7 +9496,7 @@ async function openNotebookLM() {
     const modal = document.getElementById('notebookLmModal');
     if (modal) {
       modal.style.display = 'flex';
-      showToast('✨ បានចម្លង Prompt វីដេអូ Flipped Classroom ចូល Clipboard រួចរាល់!', 'success');
+      showToast('✨ បានចម្លងឯកសារប្រភព Scene & Timestamp (Option 2) ចូល Clipboard រួចរាល់!', 'success');
     } else {
       window.open('https://notebooklm.google.com/', '_blank');
     }
@@ -9408,7 +9521,7 @@ function proceedToNotebookLMWeb() {
   if (!win || win.closed || typeof win.closed === 'undefined') {
     window.location.href = 'https://notebooklm.google.com/';
   } else {
-    showToast('🚀 កំពុងបើក Google NotebookLM... សូមចុច Ctrl+V ដើម្បីបិទភ្ជាប់ Prompt!', 'success');
+    showToast('🚀 កំពុងបើក Google NotebookLM... សូមចុច Ctrl+V ដើម្បីបិទភ្ជាប់ Source!', 'success');
   }
 }
 window.proceedToNotebookLMWeb = proceedToNotebookLMWeb;
@@ -9425,9 +9538,27 @@ function proceedToGeminiWeb() {
 window.proceedToGeminiWeb = proceedToGeminiWeb;
 
 function downloadNotebookLMSourceFile() {
-  copyNotebookLMFlippedPrompt();
+  const text = currentNotebookLmFlippedPrompt || prepareNotebookLmFlippedVideoPrompt();
+  const data = state.generatedPlanData || state.currentPlan;
+  const rawTitle = data?.lessonTitle || 'មេរៀន';
+  const safeTitle = rawTitle.replace(/[\\/:*?"<>|]/g, '_').substring(0, 50);
+
+  try {
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `NotebookLM_Source_Option2_${safeTitle}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('💾 បានទាញយក File ប្រភព Option 2 (.txt) សម្រាប់ NotebookLM រួចរាល់!', 'success');
+  } catch (err) {
+    console.warn('File download failed, copying to clipboard:', err);
+    copyNotebookLMFlippedPrompt();
+  }
 }
-window.downloadNotebookLMSourceFile = downloadNotebookLMSourceFile;
 window.downloadNotebookLMSourceFile = downloadNotebookLMSourceFile;
 
 async function copyVideoAIScriptPrompt() {
