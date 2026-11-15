@@ -14906,11 +14906,6 @@ window.closeGameModal = function() {
 let currentWorksheetMode = 'group'; // 'group' or 'individual'
 
 function openWorksheetModal() {
-  const data = state.generatedPlanData || state.currentPlan;
-  if (!data) {
-    showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
-    return;
-  }
   const modal = document.getElementById('worksheetModal');
   if (modal) {
     modal.style.display = 'flex';
@@ -14954,9 +14949,76 @@ function renderWorksheetPreview() {
   const container = document.getElementById('worksheetA4Preview');
   if (!container) return;
 
-  const data = state.generatedPlanData || state.currentPlan;
+  let data = state.generatedPlanData || state.currentPlan;
+
+  // 1. If no active plan in memory, try restoring from history
   if (!data) {
-    container.innerHTML = '<div style="text-align: center; color: #64748b; padding: 40px;">សូមបង្កើតកិច្ចតែងការជាមុនសិន!</div>';
+    try {
+      const history = JSON.parse(localStorage.getItem('alps_plan_history') || '[]');
+      if (history.length > 0 && history[0].planData) {
+        data = history[0].planData;
+        state.currentPlan = data;
+      }
+    } catch (_) {}
+  }
+
+  // 2. If still no plan, synthesize draft from current form inputs or uploaded file
+  if (!data) {
+    const title = (document.getElementById('lessonTitleInput')?.value || '').trim();
+    const subject = (document.getElementById('subjectSelect')?.value || '').trim();
+    const grade = (document.getElementById('gradeSelect')?.value || '').trim();
+    const school = (document.getElementById('schoolInput')?.value || '').trim();
+    const teacher = (document.getElementById('teacherInput')?.value || '').trim();
+
+    if (title || subject || state.lessonContent) {
+      const lessonTitle = title || (state.lessonFileName ? state.lessonFileName.replace(/\.[^/.]+$/, "") : 'មេរៀនទូទៅ');
+      data = {
+        lessonTitle: lessonTitle,
+        subject: subject || 'ចិត្តវិទ្យាអប់រំ',
+        grade: grade || 'កម្រិតបឋមសិក្សា',
+        school: school || 'វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម',
+        teacher: teacher || 'លោកគ្រូ កែម បូរី',
+        objectives: {
+          knowledge: [`ស្វែងយល់ និងពន្យល់ពីគោលការណ៍គ្រឹះនៃ «${lessonTitle}»`],
+          skills: [`ចេះវិភាគ ពិភាក្សា និងដោះស្រាយបញ្ហាក្នុងករណីសិក្សាជាក់ស្តែង`],
+          attitudes: [`ចូលរួមយ៉ាងសកម្ម និងមានស្មារតីសហការក្នុងក្រុម`]
+        },
+        steps: [
+          {
+            stepTitle: 'ជំហានទី៣: មេរៀនថ្មី',
+            contentSummary: `ខ្លឹមសារគន្លឹះ និងទ្រឹស្តីសំខាន់ៗនៃ «${lessonTitle}»`,
+            studentActivities: `កិច្ចការទី ១ (វិភាគករណីសិក្សា)៖ អានករណីសិក្សា រួចវិភាគរកឫសគល់នៃបញ្ហាតាមទ្រឹស្តីមេរៀន «${lessonTitle}»។`
+          },
+          {
+            stepTitle: 'ជំហានទី៤: ពង្រឹងចំណេះដឹង',
+            contentSummary: 'លំហាត់អនុវត្ត និងសំណួរត្រួតពិនិត្យការយល់ដឹង',
+            studentActivities: `កិច្ចការទី ២ (ដំណោះស្រាយជាយុទ្ធសាស្ត្រ)៖ ពិភាក្សាក្នុងក្រុមដើម្បីរៀបចំផែនការសកម្មភាព ឬវិធីសាស្ត្រដោះស្រាយចំនួន ៣ ចំណុចជាក់ស្តែង។`
+          }
+        ]
+      };
+      state.currentPlan = data;
+    }
+  }
+
+  // 3. If completely blank (no title, no history, no plan), show elegant guidance card
+  if (!data) {
+    container.innerHTML = `
+      <div style="text-align: center; color: #475569; padding: 48px 24px;">
+        <div style="width: 72px; height: 72px; margin: 0 auto 16px auto; border-radius: 50%; background: #f0fdfa; display: flex; align-items: center; justify-content: center;">
+          <i class="fa-solid fa-file-signature" style="font-size: 2rem; color: #0d9488;"></i>
+        </div>
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #0f172a; margin-bottom: 8px;">
+          មិនទាន់មានកិច្ចតែងការសម្រាប់រៀបចំសន្លឹកកិច្ចការ
+        </h3>
+        <p style="font-size: 0.92rem; color: #64748b; max-width: 520px; margin: 0 auto 20px auto; line-height: 1.6;">
+          មុខងារ <b>Worksheet</b> នឹងទាញយក <b>វត្ថុបំណង, សញ្ញាណគន្លឹះ, បេសកកម្មពិភាក្សាក្រុម, Exit Ticket 3-2-1</b> និង <b>តារាង Rubric</b> ពីកិច្ចតែងការមកបម្លែងជាសន្លឹកកិច្ចការ A4 ស្វ័យប្រវត្តិ។<br>
+          សូមបញ្ចូល <b>ចំណងជើងមេរៀន</b> ឬបង្កើតកិច្ចតែងការជាមុនសិន!
+        </p>
+        <button type="button" onclick="closeWorksheetModal(); document.getElementById('lessonTitleInput')?.focus();" style="background: #0d9488; color: white; border: none; font-weight: 700; padding: 10px 22px; font-size: 0.92rem; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);">
+          <i class="fa-solid fa-pen"></i> បញ្ចូលចំណងជើងមេរៀនឥឡូវនេះ
+        </button>
+      </div>
+    `;
     return;
   }
 
@@ -15192,9 +15254,25 @@ function renderWorksheetPreview() {
 window.renderWorksheetPreview = renderWorksheetPreview;
 
 async function exportWorksheetDocx() {
-  const data = state.generatedPlanData || state.currentPlan;
+  let data = state.generatedPlanData || state.currentPlan;
   if (!data) {
-    showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
+    try {
+      const history = JSON.parse(localStorage.getItem('alps_plan_history') || '[]');
+      if (history.length > 0 && history[0].planData) data = history[0].planData;
+    } catch (_) {}
+  }
+  if (!data) {
+    const title = (document.getElementById('lessonTitleInput')?.value || '').trim();
+    if (title) {
+      data = {
+        lessonTitle: title,
+        subject: (document.getElementById('subjectSelect')?.value || 'ចិត្តវិទ្យាអប់រំ').trim(),
+        grade: (document.getElementById('gradeSelect')?.value || 'កម្រិតបឋមសិក្សា').trim()
+      };
+    }
+  }
+  if (!data) {
+    showToast('សូមបញ្ចូលចំណងជើងមេរៀន ឬបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
     return;
   }
   if (!window.docx) {
