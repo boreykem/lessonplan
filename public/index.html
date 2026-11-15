@@ -643,10 +643,28 @@
 
         <!-- STEP 3: Lesson Content & Document Attachment -->
         <section class="config-card">
-          <div class="card-header">
-            <span class="step-badge" data-i18n="stepBadge3"><i class="fa-solid fa-book-open"></i> ជំហានទី ៣</span>
-            <div class="card-title-group">
-              <h3 data-i18n="step3Title">ខ្លឹមសារមេរៀន</h3>
+          <div class="card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="step-badge" data-i18n="stepBadge3"><i class="fa-solid fa-book-open"></i> ជំហានទី ៣</span>
+              <div class="card-title-group">
+                <h3 data-i18n="step3Title" style="margin: 0; white-space: nowrap;">ខ្លឹមសារមេរៀន</h3>
+              </div>
+            </div>
+
+            <!-- Action Toolbar (Moved next to ខ្លឹមសារមេរៀន as requested) -->
+            <div class="lesson-actions-toolbar" style="display: flex; gap: 6px; align-items: center; margin-left: auto;">
+              <button type="button" id="btnAttachLessonFile" class="btn-attach-pill"
+                onclick="document.getElementById('lessonFileInput').click()"
+                title="ភ្ជាប់ឯកសារមេរៀន (PowerPoint, Word, PDF, ឬ រូបភាពសៀវភៅ)">
+                <i class="fa-solid fa-paperclip"></i> <span>ភ្ជាប់ឯកសារ</span>
+              </button>
+
+              <button type="button" class="btn-paste-pill" onclick="pasteToLessonContent()"
+                title="Paste ពី Clipboard">
+                <i class="fa-solid fa-paste"></i> <span>Paste</span>
+              </button>
+
+              <span class="badge-tag" id="charCount">0 ពាក្យ</span>
             </div>
           </div>
 
@@ -760,28 +778,6 @@
 
               <!-- Sleek Integrated Action Toolbar (User Request 2) -->
               <div class="lesson-unified-box">
-                <div class="label-with-action"
-                  style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 6px; gap: 6px;">
-                  <div class="lesson-actions-toolbar"
-                    style="display: flex; gap: 6px; align-items: center; width: 100%; justify-content: space-between;">
-                    <div style="display: flex; gap: 6px; align-items: center;">
-                      <!-- Attachment button -->
-                      <button type="button" id="btnAttachLessonFile" class="btn-attach-pill"
-                        onclick="document.getElementById('lessonFileInput').click()"
-                        title="ភ្ជាប់ឯកសារមេរៀន (PowerPoint, Word, PDF, ឬ រូបភាពសៀវភៅ)">
-                        <i class="fa-solid fa-paperclip"></i> <span>ភ្ជាប់ឯកសារ</span>
-                      </button>
-
-                      <button type="button" class="btn-paste-pill" onclick="pasteToLessonContent()"
-                        title="Paste ពី Clipboard">
-                        <i class="fa-solid fa-paste"></i> <span>Paste</span>
-                      </button>
-                    </div>
-
-                    <span class="badge-tag" id="charCount">0 ពាក្យ</span>
-                  </div>
-                </div>
-
                 <!-- File Status Pill (Visible when file is loaded) -->
                 <div id="lessonFileStatus" class="file-status-pill mb-2"
                   style="display: none; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(99, 102, 241, 0.08); border: 1.5px solid #6366f1; border-radius: 8px; color: #4338ca; font-weight: 600; font-size: 0.8rem;">
