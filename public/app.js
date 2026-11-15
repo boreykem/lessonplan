@@ -29,10 +29,10 @@ const PersistentKeyVault = {
       if (fromLocal) return fromLocal;
       const fromCookie = this.getCookie('gemini_api_key') || this.getCookie('persistent_api_key');
       if (fromCookie) {
-        try { localStorage.setItem('gemini_api_key', fromCookie); } catch (e) {}
+        try { localStorage.setItem('gemini_api_key', fromCookie); } catch (e) { }
         return fromCookie;
       }
-    } catch (e) {}
+    } catch (e) { }
     return '';
   },
 
@@ -42,10 +42,10 @@ const PersistentKeyVault = {
       if (fromLocal) return fromLocal;
       const fromCookie = this.getCookie('ai_provider');
       if (fromCookie) {
-        try { localStorage.setItem('ai_provider', fromCookie); } catch (e) {}
+        try { localStorage.setItem('ai_provider', fromCookie); } catch (e) { }
         return fromCookie;
       }
-    } catch (e) {}
+    } catch (e) { }
     return 'gemini';
   },
 
@@ -54,7 +54,7 @@ const PersistentKeyVault = {
       const isHttps = window.location.protocol === 'https:';
       const secureFlag = isHttps ? '; Secure' : '';
       document.cookie = `${name}=${encodeURIComponent(val)}; max-age=315360000; path=/; SameSite=Lax${secureFlag}`;
-    } catch (e) {}
+    } catch (e) { }
   },
 
   getCookie(name) {
@@ -69,7 +69,7 @@ const PersistentKeyVault = {
   deleteCookie(name) {
     try {
       document.cookie = `${name}=; max-age=0; path=/;`;
-    } catch (e) {}
+    } catch (e) { }
   },
 
   openDB() {
@@ -159,7 +159,7 @@ const PersistentKeyVault = {
           await navigator.storage.persist();
         }
       }
-    } catch (e) {}
+    } catch (e) { }
   },
 
   async save(key, provider) {
@@ -174,7 +174,7 @@ const PersistentKeyVault = {
     try {
       localStorage.setItem('gemini_api_key', cleanKey);
       localStorage.setItem('ai_provider', cleanProv);
-    } catch (e) {}
+    } catch (e) { }
 
     this.setCookie('gemini_api_key', cleanKey);
     this.setCookie('persistent_api_key', cleanKey);
@@ -190,15 +190,15 @@ const PersistentKeyVault = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ key: cleanKey, provider: cleanProv })
-      }).catch(() => {});
-    } catch (e) {}
+      }).catch(() => { });
+    } catch (e) { }
   },
 
   async clear() {
     try {
       localStorage.removeItem('gemini_api_key');
       localStorage.removeItem('ai_provider');
-    } catch (e) {}
+    } catch (e) { }
 
     this.deleteCookie('gemini_api_key');
     this.deleteCookie('persistent_api_key');
@@ -211,8 +211,8 @@ const PersistentKeyVault = {
       fetch('/api/key/clear', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
-      }).catch(() => {});
-    } catch (e) {}
+      }).catch(() => { });
+    } catch (e) { }
   },
 
   async restore() {
@@ -234,7 +234,7 @@ const PersistentKeyVault = {
             provider = data.provider || provider;
           }
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     if (key && key.trim()) {
@@ -264,7 +264,7 @@ function getActiveGeminiApiKey() {
       if (typeof state !== 'undefined' && state) state.geminiApiKey = fromLocal;
       return fromLocal;
     }
-  } catch (e) {}
+  } catch (e) { }
   return '';
 }
 
@@ -1051,7 +1051,7 @@ function setLanguage(lang, showNotification = false) {
   state.language = lang;
   try {
     localStorage.setItem('app_language', lang);
-  } catch (e) {}
+  } catch (e) { }
 
   document.documentElement.lang = (lang === 'en') ? 'en' : 'km';
   const dict = I18N_DICTIONARY[lang] || I18N_DICTIONARY.km;
@@ -1469,16 +1469,16 @@ function updateGradeOptions(degreeKey, preselectGrade = null) {
     return;
   }
 
-    let matched = false;
+  let matched = false;
   degree.grades.forEach((g, idx) => {
     let displayText = g;
     if (state.language === 'en') {
       displayText = g.replace('ថ្នាក់ទី ', 'Grade ')
-                     .replace('មត្តេយ្យ', 'Kindergarten ')
-                     .replace('គរុនិស្សិត ឆ្នាំទី ', 'Pre-service Teacher Year ')
-                     .replace('គរុសិស្ស', 'Teacher Trainee ')
-                     .replace('បរិញ្ញាបត្រ ឆ្នាំទី ', 'Bachelor Year ')
-                     .replace('ឆ្នាំទី ', 'Year ');
+        .replace('មត្តេយ្យ', 'Kindergarten ')
+        .replace('គរុនិស្សិត ឆ្នាំទី ', 'Pre-service Teacher Year ')
+        .replace('គរុសិស្ស', 'Teacher Trainee ')
+        .replace('បរិញ្ញាបត្រ ឆ្នាំទី ', 'Bachelor Year ')
+        .replace('ឆ្នាំទី ', 'Year ');
     }
     const opt = document.createElement('option');
     opt.value = g;
@@ -1533,7 +1533,7 @@ function getDurationValue() {
 // Convert Khmer numerals to English
 function khmerToEnDigits(str) {
   if (!str) return '';
-  const map = { '០':'0', '១':'1', '២':'2', '៣':'3', '៤':'4', '៥':'5', '៦':'6', '៧':'7', '៨':'8', '៩':'9' };
+  const map = { '០': '0', '១': '1', '២': '2', '៣': '3', '៤': '4', '៥': '5', '៦': '6', '៧': '7', '៨': '8', '៩': '9' };
   return String(str).replace(/[០-៩]/g, d => map[d] || d);
 }
 
@@ -1835,7 +1835,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try { initPdfJs(); } catch (e) { console.error('initPdfJs err:', e); }
   try { initEventListeners(); } catch (e) { console.error('initEventListeners err:', e); }
   try { initDropzones(); } catch (e) { console.error('initDropzones err:', e); }
-  try { PersistentKeyVault.requestPersistentStorage(); } catch (e) {}
+  try { PersistentKeyVault.requestPersistentStorage(); } catch (e) { }
   try {
     PersistentKeyVault.restore().then((restored) => {
       if (restored) {
@@ -1848,7 +1848,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   try { checkApiKeyStatus(); } catch (e) { console.error('checkApiKeyStatus err:', e); }
   try { updateEmptyStateApiStatus(); } catch (e) { console.error('updateEmptyStateApiStatus err:', e); }
-  try { setLanguage(state.language || 'km', false); } catch(e) { console.error('setLanguage err:', e); }
+  try { setLanguage(state.language || 'km', false); } catch (e) { console.error('setLanguage err:', e); }
   try { updateWordCount(); } catch (e) { console.error('updateWordCount err:', e); }
   try { loadSavedAdminProfile(); } catch (e) { console.error('loadSavedAdminProfile err:', e); }
   try { loadSavedTemplates(); } catch (e) { console.error('loadSavedTemplates err:', e); }
@@ -1907,7 +1907,7 @@ function initEventListeners() {
       if (presetWrapper) presetWrapper.style.display = isPreset ? 'block' : 'none';
       if (savedWrapper) savedWrapper.style.display = isSaved ? 'block' : 'none';
       if (customWrapper) customWrapper.style.display = isCustom ? 'block' : 'none';
-      
+
       if (isSaved) {
         renderSelectedSavedTemplateDetails();
       }
@@ -2436,12 +2436,12 @@ function initDropzones() {
       state.customTemplateText = text;
       state.customTemplateFileName = file.name;
       document.getElementById('customTemplateText').value = text;
-      
+
       const saveWrap = document.getElementById('saveCustomTemplateActionWrap');
       const nameInput = document.getElementById('inputCustomTemplateName');
       if (saveWrap) saveWrap.style.display = 'flex';
       if (nameInput) nameInput.value = file.name.replace(/\.[^/.]+$/, "");
-      
+
       showToast(`បានទាញយកទម្រង់ពី ${file.name} រួចរាល់! អ្នកអាចចុច "រក្សាទុក Template" សម្រាប់ទុកប្រើលើកក្រោយ`, 'success');
     },
     () => {
@@ -2645,19 +2645,19 @@ async function extractTextFromFile(file) {
       const arrayBuffer = await file.arrayBuffer();
       const zip = await window.JSZip.loadAsync(arrayBuffer);
       const slideFiles = [];
-      
+
       zip.forEach((relativePath) => {
         if (relativePath.match(/^ppt\/slides\/slide\d+\.xml$/i)) {
           slideFiles.push(relativePath);
         }
       });
-      
+
       slideFiles.sort((a, b) => {
         const numA = parseInt(a.match(/\d+/)[0], 10);
         const numB = parseInt(b.match(/\d+/)[0], 10);
         return numA - numB;
       });
-      
+
       let fullText = '';
       for (let i = 0; i < slideFiles.length; i++) {
         const xmlStr = await zip.file(slideFiles[i]).async('string');
@@ -2821,7 +2821,7 @@ function checkApiKeyStatus() {
       btn.style.background = '#fffbeb';
     }
   }
-  try { updateEmptyStateApiStatus(); } catch (e) {}
+  try { updateEmptyStateApiStatus(); } catch (e) { }
 }
 
 // ==========================================================================
@@ -3122,7 +3122,7 @@ async function handleGenerateLessonPlan() {
       if (typeof updateSavedPlansCountBadge === 'function') {
         updateSavedPlansCountBadge();
       }
-    } catch(hErr) {
+    } catch (hErr) {
       console.warn('History auto-save error:', hErr);
     }
 
@@ -4006,7 +4006,7 @@ ${params.customNotes ? `កំណត់ចំណាំពិសេស (Special N
 
 ═══════════════════════════════════════
 ${hasContent
-  ? `REFERENCE MATERIAL (Use this to generate specific content):
+      ? `REFERENCE MATERIAL (Use this to generate specific content):
 ${params.lessonContent}
 
 🚨 CRITICAL INSTRUCTIONS FOR EXTRACTING QUESTIONS & DISCUSSION TASKS FROM REFERENCE MATERIAL:
@@ -4026,7 +4026,7 @@ ${params.lessonContent}
        - សំណួរទី២៖ [សង្ខេបចម្លើយសិស្សចេញពីខ្លឹមសារ]
        - សំណួរទី៣៖ [សង្ខេបចម្លើយសិស្សចេញពីខ្លឹមសារ]
        - សំណួរទី៤៖ [សង្ខេបចម្លើយសិស្សចេញពីខ្លឹមសារ]»`
-  : `⚠️ NO REFERENCE MATERIAL PROVIDED — USE YOUR EXPERT KNOWLEDGE:
+      : `⚠️ NO REFERENCE MATERIAL PROVIDED — USE YOUR EXPERT KNOWLEDGE:
 Since no reference document was uploaded, YOU MUST use your deep knowledge of the Cambodia MoEYS curriculum to generate REAL, SPECIFIC content for this lesson.
 
 For the topic "${params.lessonTitle}" in subject "${params.subject}" at grade level "${params.grade}", generate:
@@ -4037,14 +4037,14 @@ For the topic "${params.lessonTitle}" in subject "${params.subject}" at grade le
 5. Assessment questions that test understanding of this specific topic
 
 DO NOT write generic content. Write as if you are a ${params.subject} teacher who has taught this topic many times and knows exactly what students need to learn.`
-}
+    }
 ═══════════════════════════════════════
 ${(params.language === 'en' || state.language === 'en')
-  ? `🌐 MANDATORY LANGUAGE INSTRUCTION:
+      ? `🌐 MANDATORY LANGUAGE INSTRUCTION:
 The user has chosen ENGLISH language mode. Generate the ENTIRE lesson plan in professional, fluent, academic ENGLISH (standard MoEYS-compliant pedagogical 5-step format in English). All headings, objectives, steps, teacher activities, student activities, questions, answers, and reflection must be written in English.`
-  : `🌐 MANDATORY LANGUAGE INSTRUCTION:
+      : `🌐 MANDATORY LANGUAGE INSTRUCTION:
 Every field must contain real, specific, classroom-ready Khmer content.`
-}
+    }
 GENERATE THE COMPLETE LESSON PLAN NOW.`;
 
   // Dynamic Candidate API endpoints for Google AI Studio
@@ -4052,7 +4052,7 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
   if (state.verifiedGeminiModel) {
     candidateModels.push(state.verifiedGeminiModel);
   }
-  
+
   const discovered = await discoverGeminiModels(apiKey);
   if (discovered && discovered.length > 0) {
     discovered.sort((a, b) => {
@@ -4100,7 +4100,7 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
     const modelLabel = `${item.name}`;
     const isPro = item.name.includes('pro');
     const badgeText = isPro ? '🏆 ម៉ូដែល Pro គិតស៊ីជម្រៅ' : '⚡ ម៉ូដែល Gemini Flash ល្បឿនលឿន';
-    
+
     setLoadingOverlayStatus(
       'AI កំពុងវិភាគឯកសារ និងរៀបចំកិច្ចតែងការ...',
       `កំពុងបង្កើតកិច្ចតែងការតាម Google Gemini (${item.name})... សូមរង់ចាំបន្តិច (អនុញ្ញាតពេលរហូតដល់ ៦ នាទី ដើម្បីទទួលបានលទ្ធផលស្តង់ដារល្អបំផុត)!`,
@@ -4125,8 +4125,8 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
           }
         ],
         safetySettings: [
-          { category: "HARM_CATEGORY_HARASSMENT",        threshold: "BLOCK_ONLY_HIGH" },
-          { category: "HARM_CATEGORY_HATE_SPEECH",       threshold: "BLOCK_ONLY_HIGH" },
+          { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_ONLY_HIGH" },
+          { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_ONLY_HIGH" },
           { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_ONLY_HIGH" },
           { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_ONLY_HIGH" }
         ],
@@ -4219,7 +4219,7 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
           setLoadingOverlayStatus(
             'AI កំពុងប្តូរទៅកាន់ម៉ូដែលបម្រុង...',
             `ម៉ូដែល ${item.name} កំពុងមមាញឹក... ប្រព័ន្ធកំពុងប្តូរទៅម៉ូដែលបន្ទាប់!`,
-            `⚡ កំពុងប្តូរទៅ ${candidateModels[i+1]?.name || 'ម៉ូដែលបន្ទាប់'}`
+            `⚡ កំពុងប្តូរទៅ ${candidateModels[i + 1]?.name || 'ម៉ូដែលបន្ទាប់'}`
           );
           await new Promise(r => setTimeout(r, 300));
           continue;
@@ -4267,8 +4267,8 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
 
           setLoadingOverlayStatus(
             'AI កំពុងប្តូរទៅកាន់ម៉ូដែលបម្រុង...',
-            `ម៉ូដែល ${item.name} ជួបបញ្ហា... ប្រព័ន្ធកំពុងតភ្ជាប់ស្វ័យប្រវត្តិទៅ ${candidateModels[i+1]?.name || 'ម៉ូដែលបន្ទាប់'}!`,
-            `⚡ កំពុងប្តូរទៅម៉ូដែលបន្ទាប់ (${candidateModels[i+1]?.name || '...'})`
+            `ម៉ូដែល ${item.name} ជួបបញ្ហា... ប្រព័ន្ធកំពុងតភ្ជាប់ស្វ័យប្រវត្តិទៅ ${candidateModels[i + 1]?.name || 'ម៉ូដែលបន្ទាប់'}!`,
+            `⚡ កំពុងប្តូរទៅម៉ូដែលបន្ទាប់ (${candidateModels[i + 1]?.name || '...'})`
           );
           await new Promise(r => setTimeout(r, 400));
           continue;
@@ -4366,7 +4366,7 @@ function extractAndParseJson(text) {
   if (lastCloser > 0) {
     try {
       return JSON.parse(clean.substring(0, lastCloser + 1));
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // 3. Intelligent deep auto-repair for truncated SSE / Token Limit JSON
@@ -4815,7 +4815,7 @@ async function testCurrentAiProviderKey() {
   } else {
     // Google Gemini (Dynamic Model Discovery & Auto-Matching)
     statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> កំពុងទាញយកបញ្ជីម៉ូដែលផ្លូវការពី Google AI Studio...';
-    
+
     let modelsToTest = [];
     const discovered = await discoverGeminiModels(key);
     if (discovered && discovered.length > 0) {
@@ -6326,7 +6326,7 @@ function renderTeachingMethodContent(method, templateType = '5_steps') {
 function normalizeLessonPlanData(data, params = {}) {
   if (!data || typeof data !== 'object') data = {};
   const isEn = (state.language === 'en' || params.language === 'en');
-  
+
   const subject = data.subject || params.subject || (isEn ? 'General Subject' : 'មុខវិជ្ជាទូទៅ');
   const grade = data.grade || params.grade || (isEn ? 'Grade 10' : 'ថ្នាក់ទី ១០');
   const lessonTitle = data.lessonTitle || params.lessonTitle || (params.chapter ? params.chapter : (isEn ? 'Core Lesson Topic' : 'មេរៀនស្នូល'));
@@ -6517,20 +6517,36 @@ function normalizeLessonPlanData(data, params = {}) {
   } else {
     // 5-Step Model Normalization (Flipped, MoEYS Standard, STEM, Primary)
     let rawSteps = data.steps || data.learningActivities || data.activities || [];
-    
+
+    const currentMethodVal = data.method || params.method || (document.getElementById('inputMethod') ? document.getElementById('inputMethod').value : '');
+    const methodType = detectMethodType(currentMethodVal);
+
+    let step4TitleFlipped = "ជំហានទី៤៖ ការរៀនសកម្ម ស៊ីជម្រៅ និងដោះស្រាយករណីសិក្សាជាក្រុម (Active Learning & Gallery Walk)";
+    let step3TitleFlipped = "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី និងក្របខណ្ឌទ្រឹស្តីគន្លឹះ (Mini-Lecture / Core Insights)";
+    if (methodType === 'jigsaw') {
+      step3TitleFlipped = "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី និងបែងចែកក្រុមជំនាញ (Expert Groups)";
+      step4TitleFlipped = "ជំហានទី៤៖ ដំណើរការ Jigsaw ៤ ដំណាក់កាល និងចងក្រងផែនទីគំនិត (Jigsaw & Concept Mapping)";
+    } else if (methodType === 'pbl') {
+      step4TitleFlipped = "ជំហានទី៤៖ ការរៀនសកម្មតាមបែបដោះស្រាយបញ្ហា (Problem-Based Learning & Challenge Scenario)";
+    } else if (methodType === '5e') {
+      step4TitleFlipped = "ជំហានទី៤៖ ការរៀនសកម្មតាមបែប 5E (Explain & Elaborate / Active STEM)";
+    } else if (methodType === 'direct') {
+      step4TitleFlipped = "ជំហានទី៤៖ ការអនុវត្តជាក់ស្តែងស៊ីជម្រៅ (Intensive Practice / You Do)";
+    }
+
     const stepTitlesFlipped = [
       "ជំហានទី១៖ រដ្ឋបាលថ្នាក់ និងត្រួតពិនិត្យការត្រៀមខ្លួន",
       "ជំហានទី២៖ រំលឹកមេរៀនចាស់ និងត្រួតពិនិត្យការស្វ័យសិក្សា (Pre-Test QCM & Muddiest Points)",
-      "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី និងក្របខណ្ឌទ្រឹស្តីគន្លឹះ (Mini-Lecture / Core Insights)",
-      "ជំហានទី៤៖ ការរៀនសកម្ម ស៊ីជម្រៅ និងដោះស្រាយករណីសិក្សាជាក្រុម (Active Learning & Gallery Walk)",
+      step3TitleFlipped,
+      step4TitleFlipped,
       "ជំហានទី៥៖ បូកសរុប វាយតម្លៃបច្ឆិមតេស្ត និងកិច្ចការស្រាវជ្រាវបន្ត (Synthesis & Homework)"
     ];
 
     const stepTitlesStandard = [
       "ជំហានទី ១ : រដ្ឋបាលថ្នាក់",
       "ជំហានទី ២ : រំលឹកមេរៀនចាស់ / ទំនាក់ទំនងមេរៀន",
-      "ជំហានទី ៣ : ដំណើរការបង្រៀន និងរៀន (មេរៀនថ្មី)",
-      "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (វាយតម្លៃ)",
+      methodType === 'jigsaw' ? "ជំហានទី ៣ : មេរៀនថ្មី (ក្រុមអ្នកជំនាញ - Expert Groups)" : "ជំហានទី ៣ : ដំណើរការបង្រៀន និងរៀន (មេរៀនថ្មី)",
+      methodType === 'jigsaw' ? "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (Jigsaw Sharing & Concept Mapping)" : "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (វាយតម្លៃ)",
       "ជំហានទី ៥ : បណ្តាំផ្ញើ និងកិច្ចការផ្ទះ"
     ];
 
@@ -6540,7 +6556,7 @@ function normalizeLessonPlanData(data, params = {}) {
     for (let i = 0; i < 5; i++) {
       const stepIdx = i + 1;
       const existing = rawSteps.find(s => s && (s.stepNumber === stepIdx || s.step_number === stepIdx || s.step === stepIdx)) || rawSteps[i] || {};
-      
+
       const teacherAct = existing.teacherActivity || existing.teacher_activity || existing.teacher || existing['សកម្មភាពគ្រូ'] || '';
       const contentSum = existing.contentSummary || existing.content_summary || existing.content || existing['ខ្លឹមសារ'] || existing['ខ្លឹមសារមេរៀន'] || '';
       const studentAct = existing.studentActivity || existing.student_activity || existing.student || existing['សកម្មភាពសិស្ស'] || '';
@@ -6556,17 +6572,29 @@ function normalizeLessonPlanData(data, params = {}) {
         if (stepIdx === 1) {
           safeTeacher = "• គ្រូពិនិត្យអនាម័យ សណ្ដាប់ធ្នាប់ក្នុងថ្នាក់ និងសម្លៀកបំពាក់សិស្ស\n• គ្រូពិនិត្យវត្តមាន និងកត់ត្រាចំនួនសិស្សអវត្តមានក្នុងបញ្ជីវត្តមាន";
         } else if (stepIdx === 2) {
-          safeTeacher = isFlipped 
+          safeTeacher = isFlipped
             ? `• គ្រូត្រួតពិនិត្យការស្វ័យសិក្សាតាមផ្ទះរបស់សិស្សលើប្រធានបទ «${lessonTitle}»\n• គ្រូបង្ហាញលទ្ធផលបុរេតេស្ត (Pre-Test QCM) និងប្រមូលចំណុចចម្ងល់ (Muddiest Points)`
             : `• គ្រូសួរសំណួររំលឹកមេរៀនចាស់ទាក់ទងនឹង «${lessonTitle}»\n• គ្រូហៅសិស្សឆ្លើយ កោតសរសើរ និងភ្ជាប់ទំនាក់ទំនងចូលមេរៀនថ្មី`;
         } else if (stepIdx === 3) {
-          safeTeacher = isFlipped
-            ? `• គ្រូសង្ខេបក្របខណ្ឌទ្រឹស្តីគន្លឹះ និងគំនិតស្នូលនៃ «${lessonTitle}» រយៈពេលខ្លី\n• គ្រូចោទសំណួរបំផុសគំនិត និងណែនាំបេសកកម្មសិក្សាជាក្រុម`
-            : `• គ្រូសរសេរចំណងជើងមេរៀន «${lessonTitle}» លើក្ដារខៀន\n• គ្រូពន្យល់ខ្លឹមសារគន្លឹះ ចោទសំណួរ និងដឹកនាំសិស្សរុករកចំណេះដឹង`;
+          if (methodType === 'jigsaw') {
+            safeTeacher = isFlipped
+              ? `• គ្រូចោទសួរសំណួរគន្លឹះ ៤ សំណួរតម្រង់ទិស និងបែងចែកសិស្សជា «ក្រុមដើម (Home Groups)»\n• គ្រូចាត់តាំងតំណាងសិស្សទៅកាន់ «ក្រុមអ្នកជំនាញ (Expert Groups)» តាមប្រធានបទរងនៃ «${lessonTitle}»`
+              : `• គ្រូណែនាំប្រធានបទ «${lessonTitle}» និងបែងចែកសិស្សជា «ក្រុមអ្នកជំនាញ (Expert Groups)» តាមប្រធានបទរងនីមួយៗ\n• គ្រូដើរសម្របសម្រួល និងផ្ទៀងផ្ទាត់ការយល់ដឹង`;
+          } else {
+            safeTeacher = isFlipped
+              ? `• គ្រូសង្ខេបក្របខណ្ឌទ្រឹស្តីគន្លឹះ និងគំនិតស្នូលនៃ «${lessonTitle}» រយៈពេលខ្លី\n• គ្រូចោទសំណួរបំផុសគំនិត និងណែនាំបេសកកម្មសិក្សាជាក្រុម`
+              : `• គ្រូសរសេរចំណងជើងមេរៀន «${lessonTitle}» លើក្ដារខៀន\n• គ្រូពន្យល់ខ្លឹមសារគន្លឹះ ចោទសំណួរ និងដឹកនាំសិស្សរុករកចំណេះដឹង`;
+          }
         } else if (stepIdx === 4) {
-          safeTeacher = isFlipped
-            ? `• គ្រូបែងចែកក្រុម ដាក់សន្លឹកកិច្ចការករណីសិក្សាជាក់ស្តែងនៃ «${lessonTitle}»\n• គ្រូដើរសម្របសម្រួល ផ្តល់ការគាំទ្រ និងដឹកនាំការធ្វើ Gallery Walk`
-            : `• គ្រូដាក់សំណួរពង្រឹងពុទ្ធិ ឬលំហាត់អនុវត្តរហ័សទាក់ទងនឹង «${lessonTitle}»\n• គ្រូឱ្យសិស្សអនុវត្តជាបុគ្គល ឬដៃគូ និងត្រួតពិនិត្យការយល់ដឹង`;
+          if (methodType === 'jigsaw') {
+            safeTeacher = isFlipped
+              ? `• ដំណើរការ Jigsaw ៤ ដំណាក់កាល៖\n  (១) ក្រុមអ្នកជំនាញ (Expert Groups): គ្រូចាត់តាំងសិស្សតាមប្រធានបទរងនៃ «${lessonTitle}» និងសម្របសម្រួលការវិភាគឯកសារ\n  (២) ត្រឡប់ទៅក្រុមដើម (Home Groups / Jigsaw Sharing): គ្រូណែនាំសមាជិកបង្រៀនគ្នាទៅវិញទៅមកលើគ្រប់ផ្នែក\n  (៣) ចងក្រងផែនទីគំនិត (Concept Map) / Role-Play: គ្រូប្រគល់ Flipchart A0 ឱ្យក្រុមដើមសហការចងក្រងស្នាដៃរួម\n  (៤) Gallery Walk & វាយតម្លៃ: គ្រូដឹកនាំដើរទស្សនាស្នាដៃ និងសម្របសម្រួលការវាយតម្លៃគ្នាទៅវិញទៅមកតាម Rubric`
+              : `• គ្រូឱ្យសិស្សត្រឡប់ទៅ «ក្រុមដើម (Home Groups)» បង្រៀនគ្នាទៅវិញទៅមក (Jigsaw Sharing)\n• គ្រូឱ្យក្រុមនីមួយៗសហការចងក្រង «ផែនទីគំនិត (Concept Map)» លើ Flipchart A0 និងធ្វើ Gallery Walk`;
+          } else {
+            safeTeacher = isFlipped
+              ? `• គ្រូបែងចែកក្រុម ដាក់សន្លឹកកិច្ចការករណីសិក្សាជាក់ស្តែងនៃ «${lessonTitle}»\n• គ្រូដើរសម្របសម្រួល ផ្តល់ការគាំទ្រ និងដឹកនាំការធ្វើ Gallery Walk`
+              : `• គ្រូដាក់សំណួរពង្រឹងពុទ្ធិ ឬលំហាត់អនុវត្តរហ័សទាក់ទងនឹង «${lessonTitle}»\n• គ្រូឱ្យសិស្សអនុវត្តជាបុគ្គល ឬដៃគូ និងត្រួតពិនិត្យការយល់ដឹង`;
+          }
         } else {
           safeTeacher = `• គ្រូបូកសរុបចំណុចសំខាន់ៗនៃមេរៀន «${lessonTitle}» ឡើងវិញ\n• គ្រូដាក់កិច្ចការផ្ទះស្រាវជ្រាវ និងផ្ដាំផ្ញើអប់រំសីលធម៌ សុវត្ថិភាព`;
         }
@@ -6582,9 +6610,15 @@ function normalizeLessonPlanData(data, params = {}) {
         } else if (stepIdx === 3) {
           safeContent = `«${lessonTitle}»\n• ខ្លឹមសារស្នូល និយមន័យ និងទ្រឹស្តីគន្លឹះដែលសិស្សត្រូវក្តាប់បាន\n• ឧទាហរណ៍ជាក់ស្តែង និងរូបមន្ត/ក្បួនខ្នាតសំខាន់ៗ`;
         } else if (stepIdx === 4) {
-          safeContent = isFlipped
-            ? `• ដំណោះស្រាយករណីសិក្សា និងលទ្ធផលការងារជាក់ស្តែងរបស់ក្រុមនិស្សិត\n• ការទាញក្បួនគន្លឹះរួម និងការឆ្លុះបញ្ចាំងលើបញ្ហាប្រឈម`
-            : `• ចម្លើយ និងដំណោះស្រាយនៃសំណួរពង្រឹងពុទ្ធិ\n• ក្បួនគន្លឹះចងចាំនៃមេរៀន «${lessonTitle}»`;
+          if (methodType === 'jigsaw') {
+            safeContent = isFlipped
+              ? `• ខ្លឹមសារលម្អិតតាមផ្នែកជំនាញនៃ «${lessonTitle}» ដែលក្រុមអ្នកជំនាញបានស្រាវជ្រាវ\n• ផលិតផលសម្រេច៖ ផែនទីគំនិតរួម (Concept Map) ឬ Role-Play លើ Flipchart A0`
+              : `• ចំណេះដឹងគ្រប់ផ្នែកនៃ «${lessonTitle}» ពីក្រុមអ្នកជំនាញ\n• ផែនទីគំនិត (Concept Map) បូកសរុបមេរៀន`;
+          } else {
+            safeContent = isFlipped
+              ? `• ដំណោះស្រាយករណីសិក្សា និងលទ្ធផលការងារជាក់ស្តែងរបស់ក្រុមនិស្សិត\n• ការទាញក្បួនគន្លឹះរួម និងការឆ្លុះបញ្ចាំងលើបញ្ហាប្រឈម`
+              : `• ចម្លើយ និងដំណោះស្រាយនៃសំណួរពង្រឹងពុទ្ធិ\n• ក្បួនគន្លឹះចងចាំនៃមេរៀន «${lessonTitle}»`;
+          }
         } else {
           safeContent = `• ចំណុចគន្លឹះ ៣-៥ ដែលសិស្សត្រូវចងចាំពី «${lessonTitle}»\n• ខ្លឹមសារកិច្ចការផ្ទះ និងការណែនាំការស្វ័យសិក្សាសម្រាប់ម៉ោងក្រោយ`;
         }
@@ -6598,11 +6632,25 @@ function normalizeLessonPlanData(data, params = {}) {
             ? "• សិស្សស្តាប់ការវិភាគលទ្ធផលបុរេតេស្ត និងលើកឡើងនូវចំណុចចម្ងល់ពីការស្វ័យសិក្សា\n• ចូលរួមឆ្លើយសំណួរស្រាយបំភ្លឺរបស់គ្រូ"
             : "• សិស្សស្តាប់ និងស្ម័គ្រចិត្តឆ្លើយសំណួររំលឹករបស់គ្រូ\n• សិស្សកត់ត្រាចំណុចតភ្ជាប់ចូលក្នុងសៀវភៅ";
         } else if (stepIdx === 3) {
-          safeStudent = "• សិស្សកត់ត្រាចំណងជើងមេរៀន យកចិត្តទុកដាក់ស្តាប់ និងកត់ត្រាគំនិតសំខាន់ៗ\n• សិស្សសួរសំណួរចម្ងល់ និងឆ្លើយសំណួរបំផុសរបស់គ្រូ";
+          if (methodType === 'jigsaw') {
+            safeStudent = isFlipped
+              ? `• សិស្សស្តាប់សំណួរគន្លឹះរបស់គ្រូ និងទទួលការចាត់តាំងចូល «ក្រុមដើម»\n• សិស្សបំបែកទៅកាន់ «ក្រុមអ្នកជំនាញ» តាមប្រធានបទរងរៀងៗខ្លួនដើម្បីត្រៀមស្រាវជ្រាវ`
+              : `• សិស្សចូលរួមក្នុង «ក្រុមអ្នកជំនាញ» អាន ពិភាក្សា និងយល់ឱ្យស៊ីជម្រៅលើផ្នែករងដែលបានចាត់តាំង\n• សិស្សសួរសំណួរ និងកត់ត្រាចំណុចសំខាន់ៗ`;
+          } else {
+            safeStudent = isFlipped
+              ? "• សិស្សកត់ត្រាចំណងជើងមេរៀន យកចិត្តទុកដាក់ស្តាប់ និងកត់ត្រាគំនិតសំខាន់ៗ\n• សិស្សសួរសំណួរចម្ងល់ និងឆ្លើយសំណួរបំផុសរបស់គ្រូ"
+              : "• សិស្សកត់ត្រាចំណងជើងមេរៀន យកចិត្តទុកដាក់ស្តាប់ និងកត់ត្រាគំនិតសំខាន់ៗ\n• សិស្សសួរសំណួរចម្ងល់ និងឆ្លើយសំណួរបំផុសរបស់គ្រូ";
+          }
         } else if (stepIdx === 4) {
-          safeStudent = isFlipped
-            ? "• សិស្សពិភាក្សាជាក្រុមយ៉ាងសកម្ម ដោះស្រាយករណីសិក្សា និងសរសេរលើ Flipchart\n• សិស្សចូលរួមធ្វើ Gallery Walk ឡើងការពារ និងឆ្លើយសំណួរដេញដោល"
-            : "• សិស្សយកចិត្តទុកដាក់ដោះស្រាយលំហាត់/សំណួរពង្រឹងពុទ្ធិលើក្ដារឆ្នួន ឬសៀវភៅ\n• សិស្សលើកបង្ហាញចម្លើយ និងកែតម្រូវតាមការណែនាំរបស់គ្រូ";
+          if (methodType === 'jigsaw') {
+            safeStudent = isFlipped
+              ? `• (១) សិស្សក្នុង «ក្រុមអ្នកជំនាញ» វិភាគឯកសារស៊ីជម្រៅលើផ្នែកជំនាញ និងត្រៀមក្បួនបង្រៀន [ការគិតស៊ីជម្រៅ]\n• (២) ត្រឡប់ទៅ «ក្រុមដើម» បង្រៀនគ្នាទៅវិញទៅមកឱ្យយល់គ្រប់ផ្នែកនៃមេរៀន (Jigsaw Sharing) [ការប្រាស្រ័យទាក់ទង]\n• (៣) សហការចងក្រង «ផែនទីគំនិត (Concept Map)» ឬសម្តែង Role-Play លើ Flipchart A0 [ការសហការ & ភាពច្នៃប្រឌិត]\n• (៤) ចូលរួម Gallery Walk ដើរទស្សនាស្នាដៃ ផ្តល់ Feedback និងវាយតម្លៃគ្នាទៅវិញទៅមកតាម Rubric`
+              : `• សិស្សត្រឡប់ទៅក្រុមដើម បង្រៀនមិត្តរួមក្រុមលើផ្នែកជំនាញរបស់ខ្លួន\n• សហការគូរផែនទីគំនិតលើ Flipchart A0 និងចូលរួម Gallery Walk វាយតម្លៃគ្នា`;
+          } else {
+            safeStudent = isFlipped
+              ? "• សិស្សពិភាក្សាជាក្រុមយ៉ាងសកម្ម ដោះស្រាយករណីសិក្សា និងសរសេរលើ Flipchart\n• សិស្សចូលរួមធ្វើ Gallery Walk ឡើងការពារ និងឆ្លើយសំណួរដេញដោល"
+              : "• សិស្សយកចិត្តទុកដាក់ដោះស្រាយលំហាត់/សំណួរពង្រឹងពុទ្ធិលើក្ដារឆ្នួន ឬសៀវភៅ\n• សិស្សលើកបង្ហាញចម្លើយ និងកែតម្រូវតាមការណែនាំរបស់គ្រូ";
+          }
         } else {
           safeStudent = "• សិស្សកត់ត្រាកិច្ចការផ្ទះ និងបណ្ដាំផ្ញើចូលក្នុងសៀវភៅដោយយកចិត្តទុកដាក់\n• សិស្សរៀបចំសម្ភារ និងជម្រាបលាគ្រូ";
         }
@@ -6818,14 +6866,14 @@ async function callAiForSingleTest(testType, plan, numQuestions = 10, scale = nu
   try {
     let apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || sessionStorage.getItem('gemini_api_key') || '').trim();
     let provider = state.aiProvider || localStorage.getItem('ai_provider') || 'gemini';
-    
+
     // Standard Distribution:
     // Pre-Test: 60% Easy, 30% Medium, 10% Hard
     // Post-Test: 20% Easy, 60% Medium, 20% Hard
     let e = isPre ? Math.round(numQuestions * 0.6) : Math.round(numQuestions * 0.2);
     let m = isPre ? Math.round(numQuestions * 0.3) : Math.round(numQuestions * 0.6);
     let h = Math.max(0, numQuestions - e - m);
-    
+
     if (scale) {
       e = parseInt(scale.e) || e;
       m = parseInt(scale.m) || m;
@@ -7148,7 +7196,7 @@ ${testTypeDescription}
                         );
                       }
                     }
-                  } catch (_) {}
+                  } catch (_) { }
                 }
               }
             }
@@ -7167,8 +7215,8 @@ ${testTypeDescription}
           list = parsed;
         } else if (parsed && typeof parsed === 'object') {
           const possible = parsed.questions || parsed.preTestQCM || parsed.postTestMCQ ||
-                           parsed.test || parsed.quiz || parsed.preTest || parsed.postTest ||
-                           parsed.mcqs || parsed.data || parsed.items || parsed.assessment;
+            parsed.test || parsed.quiz || parsed.preTest || parsed.postTest ||
+            parsed.mcqs || parsed.data || parsed.items || parsed.assessment;
           if (Array.isArray(possible) && possible.length > 0) {
             list = possible;
           } else {
@@ -7201,8 +7249,8 @@ ${testTypeDescription}
               list = parsed;
             } else if (parsed && typeof parsed === 'object') {
               const possible = parsed.questions || parsed.preTestQCM || parsed.postTestMCQ ||
-                               parsed.test || parsed.quiz || parsed.preTest || parsed.postTest ||
-                               parsed.mcqs || parsed.data || parsed.items || parsed.assessment;
+                parsed.test || parsed.quiz || parsed.preTest || parsed.postTest ||
+                parsed.mcqs || parsed.data || parsed.items || parsed.assessment;
               if (Array.isArray(possible) && possible.length > 0) {
                 list = possible;
               } else {
@@ -7221,7 +7269,7 @@ ${testTypeDescription}
           try {
             const errJson = JSON.parse(errText);
             shortMsg = errJson.error?.message || errText;
-          } catch (_) {}
+          } catch (_) { }
           lastAiError = new Error(`Gemini ${modelName} (${resp.status}): ${shortMsg.slice(0, 90)}`);
           console.warn(`Model ${modelName} returned status ${resp.status}:`, errText);
         }
@@ -7762,7 +7810,7 @@ function renderLessonPlanToA4(data) {
       </div>
 
       <!-- 📎 APPENDIX: Pre-Test & Post-Test on the page after signatures -->
-      <div id="appendixSectionWrapper" class="doc-appendix-wrapper" style="page-break-before: always; break-before: page; margin-top: 36px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;' }">
+      <div id="appendixSectionWrapper" class="doc-appendix-wrapper" style="page-break-before: always; break-before: page; margin-top: 36px; ${(data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;'}">
         <div class="appendix-page-divider">
           <span>📄 ទំព័របន្ទាប់ (Next Page) — ឯកសារឧបសម្ព័ន្ធ (Appendix)</span>
         </div>
@@ -7879,7 +7927,7 @@ function renderLessonPlanToA4(data) {
       ${signaturesHtml}
 
       <!-- 📎 APPENDIX: Pre-Test & Post-Test on the page after signatures -->
-      <div id="appendixSectionWrapper" class="doc-appendix-wrapper" style="page-break-before: always; break-before: page; margin-top: 36px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;' }">
+      <div id="appendixSectionWrapper" class="doc-appendix-wrapper" style="page-break-before: always; break-before: page; margin-top: 36px; ${(data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;'}">
         <div class="appendix-page-divider">
           <span>📄 ទំព័របន្ទាប់ (Next Page) — ឯកសារឧបសម្ព័ន្ធ (Appendix)</span>
         </div>
@@ -7980,7 +8028,7 @@ function renderLessonPlanToA4(data) {
     ${signaturesHtml}
 
     <!-- 📎 APPENDIX: Pre-Test & Post-Test on the page after signatures -->
-    <div id="appendixSectionWrapper" class="doc-appendix-wrapper" style="page-break-before: always; break-before: page; margin-top: 36px; ${ (data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;' }">
+    <div id="appendixSectionWrapper" class="doc-appendix-wrapper" style="page-break-before: always; break-before: page; margin-top: 36px; ${(data.preTestQCM?.length > 0 || data.postTestMCQ?.length > 0) ? '' : 'display: none;'}">
       <div class="appendix-page-divider">
         <span>📄 ទំព័របន្ទាប់ (Next Page) — ឯកសារឧបសម្ព័ន្ធ (Appendix)</span>
       </div>
@@ -8794,8 +8842,14 @@ async function handleExportWord() {
             }),
             ...activities.map(step => new TableRow({
               children: [
-                new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${step.stepTitle}
-(${step.duration})`, bold: true, size: 22 })] })] }),
+                new TableCell({
+                  children: [new Paragraph({
+                    alignment: AlignmentType.CENTER, children: [new TextRun({
+                      text: `${step.stepTitle}
+(${step.duration})`, bold: true, size: 22
+                    })]
+                  })]
+                }),
                 new TableCell({ children: (step.teacherActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
                 new TableCell({ children: (step.contentSummary || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, bold: true, size: 22 })] })) }),
                 new TableCell({ children: (step.studentActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
@@ -9040,7 +9094,7 @@ function showToast(message, type = 'info') {
   const container = document.getElementById('toastContainer');
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  
+
   let icon = 'fa-circle-info';
   if (type === 'success') icon = 'fa-circle-check';
   if (type === 'warning') icon = 'fa-triangle-exclamation';
@@ -9129,10 +9183,10 @@ function updateSavedLessonsUI(filterQuery = '') {
   const filtered = state.savedLessons.filter(l => {
     if (!q) return true;
     return (l.name && l.name.toLowerCase().includes(q)) ||
-           (l.subject && l.subject.toLowerCase().includes(q)) ||
-           (l.grade && l.grade.toLowerCase().includes(q)) ||
-           (l.lessonTitle && l.lessonTitle.toLowerCase().includes(q)) ||
-           (l.content && l.content.toLowerCase().includes(q));
+      (l.subject && l.subject.toLowerCase().includes(q)) ||
+      (l.grade && l.grade.toLowerCase().includes(q)) ||
+      (l.lessonTitle && l.lessonTitle.toLowerCase().includes(q)) ||
+      (l.content && l.content.toLowerCase().includes(q));
   });
 
   if (filtered.length === 0) {
@@ -9406,7 +9460,7 @@ function saveCurrentGeneratedPlan() {
   const planTitle = plan.lessonTitle || 'កិច្ចតែងការបង្រៀន';
 
   // Check if already saved with exact title & date
-  const existingIdx = state.savedPlans.findIndex(p => 
+  const existingIdx = state.savedPlans.findIndex(p =>
     p.planData && p.planData.lessonTitle === plan.lessonTitle && p.planData.subject === plan.subject && p.planData.grade === plan.grade
   );
 
@@ -9608,7 +9662,7 @@ function exportAllPlansAsJson() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `LessonPlans_Backup_${new Date().toISOString().slice(0,10)}.json`;
+  link.download = `LessonPlans_Backup_${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
   URL.revokeObjectURL(url);
   showToast(`📥 បានទាញយក Backup កិច្ចតែងការទាំងអស់ជោគជ័យ!`, 'success');
@@ -9670,7 +9724,7 @@ function prepareNotebookLmCustomizeInstruction() {
 
 function prepareNotebookLmFlippedVideoPrompt() {
   const data = state.generatedPlanData || state.currentPlan;
-  
+
   const subject = data?.subject || document.getElementById('txtSubject')?.value?.trim() || 'ចិត្តវិទ្យាអប់រំ';
   const grade = data?.grade || document.getElementById('txtGrade')?.value?.trim() || 'គរុនិស្សិត';
   const title = data?.lessonTitle || document.getElementById('txtLessonTitle')?.value?.trim() || 'មេរៀន';
@@ -9710,7 +9764,7 @@ function prepareNotebookLmFlippedVideoPrompt() {
 
   // 3. Extract or Synthesize 100% Timed Scenes matching Option 2 (Scene Header & Timestamp)
   let scenesText = '';
-  
+
   // Case A: App already generated video scenes (from Video Studio)
   if (data?.videoScenes && Array.isArray(data.videoScenes) && data.videoScenes.length > 0) {
     data.videoScenes.forEach((sc, idx) => {
@@ -10208,7 +10262,7 @@ function buildDefaultVideoScenes(data) {
   const grade = data?.grade || 'ថ្នាក់ទី';
   const title = data?.lessonTitle || 'មេរៀនស្វ័យប្រវត្តិ';
   const duration = data?.duration || '៥០ នាទី';
-  
+
   const objList = [...(data?.objectives?.knowledge || []), ...(data?.objectives?.skills || [])];
   const obj1 = objList[0] || 'ស្វែងយល់ពីនិយមន័យ និងទ្រឹស្តីមូលដ្ឋាននៃមេរៀន';
   const obj2 = objList[1] || 'អនុវត្តរូបមន្ត និងដោះស្រាយលំហាត់គំរូជាក់ស្តែង';
@@ -10898,10 +10952,10 @@ function exportTestToCSV(testType) {
     const qText = `"${(q.question || '').replace(/"/g, '""')}"`;
     const opts = q.options || {};
     const correctLetter = q.correctAnswer || 'A';
-    
+
     // Correct Answer
     let correctText = opts[correctLetter] || opts.A || opts['ក'] || '';
-    
+
     // Distractors
     let distractors = [];
     ['A', 'B', 'C', 'D'].forEach(letter => {
@@ -11031,7 +11085,7 @@ function applyLearningGainToReflection() {
   let advice = '';
   if (gNum >= 0.70) {
     gLabel = isEn ? 'High Gain (g ≥ 0.70)' : 'High Gain (ប្រសិទ្ធភាពខ្ពស់ខ្លាំង: g ≥ 0.70)';
-    advice = isEn 
+    advice = isEn
       ? 'Group collaborative tasks and 70% active learning showed outstanding effectiveness in deep student comprehension.'
       : 'សកម្មភាពអនុវត្តជាក្រុម និងបេសកកម្ម ៧០% ក្នុងថ្នាក់រៀន មានប្រសិទ្ធភាពខ្ពស់ខ្លាំងក្នុងការជួយឱ្យសិស្សយល់ដឹងស៊ីជម្រៅ។';
   } else if (gNum >= 0.30) {
@@ -11199,7 +11253,7 @@ async function checkAppUpdates(isManual = false) {
     try {
       const res = await fetch('/api/system/check_update');
       if (res.ok) data = await res.json();
-    } catch (_) {}
+    } catch (_) { }
 
     // Fallback: Check GitHub directly (for Vercel / Static hosting)
     if (!data || !data.latestVersion) {
@@ -11294,7 +11348,7 @@ async function applyAppUpdate() {
 
   try {
     if (progressLabel) progressLabel.textContent = 'កំពុងទាញយក និងដំឡើងឯកសារថ្មី...';
-    
+
     const res = await fetch('/api/system/apply_update', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -11422,12 +11476,12 @@ function sendMachineIdToTelegram() {
   const machineInput = document.getElementById('displayMachineId');
   const id = machineInput ? machineInput.value : (state.machineId || '7E73-FC2E-2FF5-30A9');
   const today = new Date().toLocaleDateString('km-KH');
-  
+
   const text = `សួស្តីលោកគ្រូ កែម បូរី! ខ្ញុំសូមស្នើសុំទិញលេខកូដអាជ្ញាបណ្ណ (License Key) សម្រាប់កម្មវិធី AI Lesson Plan Studio:\n\n🔑 Machine ID: ${id}\n📅 កាលបរិច្ឆេទ: ${today}\n\nសូមលោកគ្រូជួយពិនិត្យ និងផ្ញើ License Key មកខ្ញុំវិញ។ សូមអរគុណ!`;
-  
+
   // Copy Machine ID to clipboard
-  navigator.clipboard.writeText(id).catch(() => {});
-  
+  navigator.clipboard.writeText(id).catch(() => { });
+
   // Direct Telegram Chat with @KEMBOREY
   let sellerUsername = localStorage.getItem('seller_telegram_username') || 'KEMBOREY';
   if (sellerUsername.toLowerCase().includes('kem_borey') || sellerUsername.toLowerCase() === 'kemborey') {
@@ -11435,7 +11489,7 @@ function sendMachineIdToTelegram() {
     localStorage.setItem('seller_telegram_username', 'KEMBOREY');
   }
   sellerUsername = sellerUsername.trim().replace(/^@/, '').replace(/^https?:\/\/t\.me\//, '');
-  
+
   const tgUrl = `https://t.me/${sellerUsername}?text=${encodeURIComponent(text)}`;
   window.open(tgUrl, '_blank');
   showToast(`✈️ កំពុងបើកផ្ញើទៅ Telegram លោកគ្រូ កែម បូរី (@${sellerUsername})... បានចម្លង Machine ID រួចរាល់!`, 'success');
@@ -11490,11 +11544,11 @@ function buildInteractiveQuizHtmlPage(testType = 'pre') {
   const subject = plan.subject || 'ចិត្តវិទ្យាអប់រំ';
   const grade = plan.grade || 'គរុនិស្សិត ឆ្នាំទី ១ ឆមាសទី ២';
   const teacher = plan.teacher || 'កែម បូរី';
-  const quizTitle = isPre 
+  const quizTitle = isPre
     ? `វិញ្ញាសាបុរេតេស្ត (Pre-Test Diagnostic): ${lessonTitle}`
     : `វិញ្ញាសាតេស្តបញ្ចប់ (Post-Test Assessment): ${lessonTitle}`;
 
-  const rawQ = isPre 
+  const rawQ = isPre
     ? (plan.preTestQCM && plan.preTestQCM.length > 0 ? plan.preTestQCM : generatePreTestQCMOffline(subject, grade, lessonTitle, []))
     : (plan.postTestMCQ && plan.postTestMCQ.length > 0 ? plan.postTestMCQ : generatePostTestMCQOffline(subject, grade, lessonTitle, []));
 
@@ -11770,15 +11824,15 @@ function generateGoogleAppsScriptCode(testType = 'pre') {
   const subject = plan.subject || 'ចិត្តវិទ្យាអប់រំ';
   const grade = plan.grade || 'គរុនិស្សិត ឆ្នាំទី ១ ឆមាសទី ២';
   const teacher = plan.teacher || 'កែម បូរី';
-  
-  const formTitle = isPre 
+
+  const formTitle = isPre
     ? `វិញ្ញាសាបុរេតេស្ត (Pre-Test): ${lessonTitle} - ${subject} (${grade})`
     : `វិញ្ញាសាតេស្តបញ្ចប់ (Post-Test): ${lessonTitle} - ${subject} (${grade})`;
   const formDesc = isPre
     ? `កម្រងសំណួរស្ទង់ការយល់ដឹងមុនម៉ោង (Pre-Test Diagnostic QCM)\nមុខវិជ្ជា៖ ${subject} | គ្រូឧទ្ទេស៖ ${teacher}\nសូមគរុនិស្សិត/សិស្សានុសិស្សជ្រើសរើសចម្លើយត្រឹមត្រូវតែមួយគត់។`
     : `កម្រងសំណួរវាស់ស្ទង់ពុទ្ធិក្រោយរៀន (Post-Test MCQ Assessment)\nមុខវិជ្ជា៖ ${subject} | គ្រូឧទ្ទេស៖ ${teacher}\nសូមគរុនិស្សិត/សិស្សានុសិស្សជ្រើសរើសចម្លើយត្រឹមត្រូវតែមួយគត់។`;
 
-  const rawQ = isPre 
+  const rawQ = isPre
     ? (plan.preTestQCM && plan.preTestQCM.length > 0 ? plan.preTestQCM : generatePreTestQCMOffline(subject, grade, lessonTitle, []))
     : (plan.postTestMCQ && plan.postTestMCQ.length > 0 ? plan.postTestMCQ : generatePostTestMCQOffline(subject, grade, lessonTitle, []));
   const qList = randomizeQuizList(JSON.parse(JSON.stringify(rawQ)));
@@ -11913,7 +11967,7 @@ function toggleScriptPreview() {
 async function copyFormattedQuizText() {
   const plan = state.currentPlan || {};
   const isPre = state.activeQuizType === 'pre';
-  const rawQ = isPre 
+  const rawQ = isPre
     ? (plan.preTestQCM && plan.preTestQCM.length > 0 ? plan.preTestQCM : generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, []))
     : (plan.postTestMCQ && plan.postTestMCQ.length > 0 ? plan.postTestMCQ : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []));
   const qList = randomizeQuizList(JSON.parse(JSON.stringify(rawQ)));
@@ -11949,7 +12003,7 @@ function exportCurrentQuizToCSV() {
 function exportTestToCSV(testType = 'pre') {
   const plan = state.currentPlan || {};
   const isPre = testType === 'pre';
-  const rawQ = isPre 
+  const rawQ = isPre
     ? (plan.preTestQCM && plan.preTestQCM.length > 0 ? plan.preTestQCM : generatePreTestQCMOffline(plan.subject, plan.grade, plan.lessonTitle, []))
     : (plan.postTestMCQ && plan.postTestMCQ.length > 0 ? plan.postTestMCQ : generatePostTestMCQOffline(plan.subject, plan.grade, plan.lessonTitle, []));
   const qList = randomizeQuizList(JSON.parse(JSON.stringify(rawQ)));
@@ -12026,12 +12080,12 @@ let deferredPrompt = null;
 
 function isPwaInstalledOrStandalone() {
   const isStandalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
-                       window.navigator.standalone === true ||
-                       (document.referrer && document.referrer.includes('android-app://'));
+    window.navigator.standalone === true ||
+    (document.referrer && document.referrer.includes('android-app://'));
   let isStoredInstalled = false;
   try {
     isStoredInstalled = localStorage.getItem('pwa_app_installed') === 'true';
-  } catch (e) {}
+  } catch (e) { }
   return isStandalone || isStoredInstalled;
 }
 
@@ -12050,7 +12104,7 @@ function updateInstallButtonVisibility() {
 function markPwaAsInstalled() {
   try {
     localStorage.setItem('pwa_app_installed', 'true');
-  } catch (e) {}
+  } catch (e) { }
   if (document.documentElement) document.documentElement.classList.add('pwa-installed');
   const btnInstall = document.getElementById('btnInstallApp');
   if (btnInstall) {
@@ -12076,7 +12130,7 @@ if (window.matchMedia) {
         updateInstallButtonVisibility();
       }
     });
-  } catch(e) {}
+  } catch (e) { }
 }
 
 window.addEventListener('beforeinstallprompt', (e) => {
@@ -12086,7 +12140,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
   // If the browser triggers beforeinstallprompt, the app is not currently installed
   try {
     localStorage.removeItem('pwa_app_installed');
-  } catch (err) {}
+  } catch (err) { }
   updateInstallButtonVisibility();
   const btnInstall = document.getElementById('btnInstallApp');
   if (btnInstall) {
@@ -12129,7 +12183,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // Clear all app caches and reload
-window.clearAppCacheAndReload = async function() {
+window.clearAppCacheAndReload = async function () {
   try {
     if ('caches' in window) {
       const keys = await caches.keys();
@@ -12205,7 +12259,7 @@ async function triggerPwaPromptDirectly() {
         return;
       }
     }
-  } catch (err) {}
+  } catch (err) { }
 
   if (typeof showToast === 'function') {
     showToast('💡 សូមអនុវត្តតាមការណែនាំខាងក្រោម ដើម្បីដំឡើងលើឧបករណ៍របស់អ្នក!', 'info');
@@ -12227,16 +12281,16 @@ window.closeInstallModal = closeInstallModal;
 
 
 
-window.promptGenerateTest = async function(type) {
+window.promptGenerateTest = async function (type) {
   const isEn = (state.language === 'en');
   const isPre = type === 'pre';
-  
+
   const curPlan = state.generatedPlanData || state.currentPlan;
-  const existingCount = isPre 
-    ? (curPlan?.preTestQCM?.length) 
+  const existingCount = isPre
+    ? (curPlan?.preTestQCM?.length)
     : (curPlan?.postTestMCQ?.length);
   const defaultTotal = (existingCount && existingCount > 0) ? existingCount : 10;
-  
+
   // Standardized Assessment Distribution:
   // Pre-Test (Diagnostic): 60% Easy, 30% Medium, 10% Hard
   // Post-Test (Mastery):   20% Easy, 60% Medium, 20% Hard
@@ -12250,11 +12304,11 @@ window.promptGenerateTest = async function(type) {
   const overlay = document.createElement('div');
   overlay.className = 'modal-backdrop modal-overlay test-config-modal-overlay active';
   overlay.style.cssText = 'position: fixed; inset: 0; background: rgba(15,23,42,0.75); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 10005;';
-  
-  const title = isPre 
-    ? (isEn ? '🎯 Pre-Test Configuration (60% - 30% - 10%)' : '🎯 ការកំណត់បុរេតេស្ត (Pre-Test) — ៦០% - ៣០% - ១០%') 
+
+  const title = isPre
+    ? (isEn ? '🎯 Pre-Test Configuration (60% - 30% - 10%)' : '🎯 ការកំណត់បុរេតេស្ត (Pre-Test) — ៦០% - ៣០% - ១០%')
     : (isEn ? '🎓 Post-Test Configuration (20% - 60% - 20%)' : '🎓 ការកំណត់បច្ឆិមតេស្ត (Post-Test) — ២០% - ៦០% - ២០%');
-  
+
   const descHelp = isPre
     ? (isEn ? 'Standard Diagnostic Assessment: 60% Easy (Prerequisite recall), 30% Medium (Apply), 10% Hard (Analyze)' : 'ស្តង់ដារបុរេតេស្ត MoEYS: ងាយ ៦០% (ចំណេះដឹងត្រៀមជាមុន), មធ្យម ៣០% (ការយល់ដឹង), ពិបាក ១០% (ការត្រិះរិះ)')
     : (isEn ? "Standard Mastery Assessment (Bloom's Taxonomy): 20% Easy (Recall), 60% Medium (Apply & Analyze), 20% Hard (Evaluate & Create)" : 'ស្តង់ដារបច្ឆិមតេស្ត MoEYS (Bloom): ងាយ ២០% (ចងចាំ), មធ្យម ៦០% (អនុវត្ត និងវិភាគ), ពិបាក ២០% (វាយតម្លៃ និងសំយោគ)');
@@ -12324,14 +12378,14 @@ window.promptGenerateTest = async function(type) {
   `;
   document.body.appendChild(overlay);
 
-  window.updateScaleInputs = function() {
+  window.updateScaleInputs = function () {
     const totalEl = document.getElementById('testTotalQ');
     const easyEl = document.getElementById('testEasyQ');
     const medEl = document.getElementById('testMedQ');
     const hardEl = document.getElementById('testHardQ');
     const errBox = document.getElementById('testScaleError');
     if (!totalEl || !easyEl || !medEl || !hardEl) return;
-    
+
     const total = Math.max(1, Math.min(30, parseInt(totalEl.value) || 10));
 
     let e, m, h;
@@ -12352,14 +12406,14 @@ window.promptGenerateTest = async function(type) {
     if (errBox) errBox.style.display = 'none';
   };
 
-  window.syncTotalFromScale = function() {
+  window.syncTotalFromScale = function () {
     const totalEl = document.getElementById('testTotalQ');
     const easyEl = document.getElementById('testEasyQ');
     const medEl = document.getElementById('testMedQ');
     const hardEl = document.getElementById('testHardQ');
     const errBox = document.getElementById('testScaleError');
     if (!totalEl || !easyEl || !medEl || !hardEl) return;
-    
+
     const e = Math.max(0, parseInt(easyEl.value) || 0);
     const m = Math.max(0, parseInt(medEl.value) || 0);
     const h = Math.max(0, parseInt(hardEl.value) || 0);
@@ -12370,7 +12424,7 @@ window.promptGenerateTest = async function(type) {
     if (errBox) errBox.style.display = 'none';
   };
 
-  document.getElementById('btnConfirmTestGen').onclick = async function() {
+  document.getElementById('btnConfirmTestGen').onclick = async function () {
     const total = parseInt(document.getElementById('testTotalQ').value) || 0;
     const e = parseInt(document.getElementById('testEasyQ').value) || 0;
     const m = parseInt(document.getElementById('testMedQ').value) || 0;
@@ -12384,7 +12438,7 @@ window.promptGenerateTest = async function(type) {
       return;
     }
     if (e + m + h !== total) {
-      errBox.innerHTML = isEn ? `<i class="fa-solid fa-triangle-exclamation"></i> Scale sum (${e+m+h}) does not match Total (${total}).` : `<i class="fa-solid fa-triangle-exclamation"></i> ផលបូកសំណួរ (${e}+${m}+${h} = ${e+m+h}) មិនស្មើចំនួនសរុប (${total}) ទេ។`;
+      errBox.innerHTML = isEn ? `<i class="fa-solid fa-triangle-exclamation"></i> Scale sum (${e + m + h}) does not match Total (${total}).` : `<i class="fa-solid fa-triangle-exclamation"></i> ផលបូកសំណួរ (${e}+${m}+${h} = ${e + m + h}) មិនស្មើចំនួនសរុប (${total}) ទេ។`;
       errBox.style.display = 'block';
       return;
     }
@@ -12399,9 +12453,9 @@ window.promptGenerateTest = async function(type) {
     overlay.remove();
 
     if (type === 'pre') {
-      await generatePreTestOnDemand(total, {e, m, h});
+      await generatePreTestOnDemand(total, { e, m, h });
     } else {
-      await generatePostTestOnDemand(total, {e, m, h});
+      await generatePostTestOnDemand(total, { e, m, h });
     }
   };
 };
@@ -12416,7 +12470,7 @@ function saveToHistory(planData, isFlipped = false) {
   if (!planData || !planData.lessonTitle) return;
   try {
     let history = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || '[]');
-    
+
     // Create new history record
     const record = {
       id: Date.now().toString(),
@@ -12431,12 +12485,12 @@ function saveToHistory(planData, isFlipped = false) {
 
     // Add to beginning of array
     history.unshift(record);
-    
+
     // Trim to max items
     if (history.length > MAX_HISTORY_ITEMS) {
       history = history.slice(0, MAX_HISTORY_ITEMS);
     }
-    
+
     localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
     console.log("Plan saved to local history.");
   } catch (e) {
@@ -12449,7 +12503,7 @@ function updateHistoryGain(gNum, planData) {
   try {
     let history = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || '[]');
     if (history.length === 0) return;
-    
+
     // We assume the most recent plan that matches the current plan is the one to update.
     // Or simpler: just update the very first one if generated recently.
     if (history[0].title === planData.lessonTitle) {
@@ -12482,16 +12536,16 @@ function renderHistoryList() {
   const statTotal = document.getElementById('statTotalPlans');
   const statAvgGain = document.getElementById('statAvgGain');
   const isEn = (state.language === 'en');
-  
+
   if (!container || !statTotal || !statAvgGain) return;
-  
+
   let history = [];
   try {
     history = JSON.parse(localStorage.getItem(HISTORY_STORAGE_KEY) || '[]');
-  } catch(e) {}
-  
+  } catch (e) { }
+
   statTotal.innerText = history.length;
-  
+
   // Calculate average gain
   let sumGain = 0;
   let countGain = 0;
@@ -12501,13 +12555,13 @@ function renderHistoryList() {
       countGain++;
     }
   });
-  
+
   if (countGain > 0) {
     statAvgGain.innerText = (sumGain / countGain).toFixed(2);
   } else {
     statAvgGain.innerText = "N/A";
   }
-  
+
   if (history.length === 0) {
     container.innerHTML = `<div style="text-align: center; padding: 40px 20px; color: #64748b;">
       <i class="fa-solid fa-folder-open" style="font-size: 3rem; margin-bottom: 12px; opacity: 0.5;"></i>
@@ -12515,23 +12569,23 @@ function renderHistoryList() {
     </div>`;
     return;
   }
-  
+
   let html = '';
   history.forEach((item, index) => {
     const d = new Date(item.date);
     const dateStr = isEn
-      ? d.toLocaleDateString('en-US', {month: 'short', day: 'numeric', year: 'numeric'}) + ' ' + d.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'})
-      : d.toLocaleDateString('km-KH') + ' ' + d.toLocaleTimeString('en-US', {hour: '2-digit', minute:'2-digit'});
-    
+      ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      : d.toLocaleDateString('km-KH') + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
     let gainBadge = '';
     if (item.gNum !== null && item.gNum !== undefined) {
       let gColor = '#ef4444'; // low
       if (item.gNum >= 0.7) gColor = '#10b981'; // high
       else if (item.gNum >= 0.3) gColor = '#f59e0b'; // med
-      
+
       gainBadge = `<span style="display: inline-block; background: ${gColor}15; color: ${gColor}; padding: 2px 8px; border-radius: 4px; font-size: 8.5pt; font-weight: 700; margin-top: 4px;">Gain: ${item.gNum.toFixed(2)}</span>`;
     }
-    
+
     const gradeLabel = isEn ? 'Grade: ' : 'កម្រិត៖ ';
     const openBtnText = isEn ? 'Open Plan' : 'បើកមើល';
     const deleteBtnText = isEn ? 'Delete' : 'លុប';
@@ -12551,7 +12605,7 @@ function renderHistoryList() {
       </div>
     `;
   });
-  
+
   container.innerHTML = html;
 }
 
@@ -12562,12 +12616,12 @@ function loadPlanFromHistory(index) {
       state.generatedPlanData = history[index].planData;
       state.currentPlan = history[index].planData;
       renderLessonPlanToA4(history[index].planData);
-      
+
       document.getElementById('emptyState').style.display = 'none';
       const wrapper = document.getElementById('a4Wrapper');
       wrapper.style.display = 'block';
       wrapper.scrollIntoView({ behavior: 'smooth' });
-      
+
       closeHistoryModal();
       showToast('✅ បានទាញយកកិច្ចតែងការពីប្រវត្តិដោយជោគជ័យ!', 'success');
     }
@@ -12583,7 +12637,7 @@ function deleteHistoryItem(index) {
     history.splice(index, 1);
     localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(history));
     renderHistoryList();
-  } catch (e) {}
+  } catch (e) { }
 }
 
 function clearHistory() {
@@ -13356,12 +13410,12 @@ function refreshPptxSourceAlert() {
 }
 window.refreshPptxSourceAlert = refreshPptxSourceAlert;
 
-window.triggerPptxSourceUpload = function() {
+window.triggerPptxSourceUpload = function () {
   const input = document.getElementById('pptxSourceFileInput');
   if (input) input.click();
 };
 
-window.handlePptxSourceFileUploaded = async function(event) {
+window.handlePptxSourceFileUploaded = async function (event) {
   const file = event.target.files && event.target.files[0];
   if (!file) return;
 
@@ -13390,7 +13444,7 @@ window.handlePptxSourceFileUploaded = async function(event) {
   }
 };
 
-window.clearPptxCustomSource = function() {
+window.clearPptxCustomSource = function () {
   state.pptxCustomSource = null;
   updatePptxAttachmentOptions();
   const select = document.getElementById('pptxSourceSelect');
@@ -13399,30 +13453,30 @@ window.clearPptxCustomSource = function() {
   showToast('បានដកឯកសារភ្ជាប់ចេញរួចរាល់', 'info');
 };
 
-window.handlePptxSourceChanged = function(val) {
+window.handlePptxSourceChanged = function (val) {
   if (val === 'custom_file' && !state.pptxCustomSource) {
     triggerPptxSourceUpload();
   }
   refreshPptxSourceAlert();
 };
 
-window.openGeminiPromptModal = function() {
+window.openGeminiPromptModal = function () {
   const el = document.getElementById('geminiPromptModal');
   if (el) el.style.display = 'flex';
 };
 
-window.closeGeminiPromptModal = function() {
+window.closeGeminiPromptModal = function () {
   const el = document.getElementById('geminiPromptModal');
   if (el) el.style.display = 'none';
 };
 
-window.backToPptxModal = function() {
+window.backToPptxModal = function () {
   closeGeminiPromptModal();
   const pptxModal = document.getElementById('pptxModal');
   if (pptxModal) pptxModal.style.display = 'flex';
 };
 
-window.generateGeminiSlidePrompt = function() {
+window.generateGeminiSlidePrompt = function () {
   const sourceChoice = document.getElementById('pptxSourceSelect')?.value || 'current_plan';
   let title = (document.getElementById('lessonTitleInput')?.value || '').trim();
   let subject = (document.getElementById('subjectSelect')?.value || 'ទូទៅ').trim();
@@ -13442,7 +13496,7 @@ window.generateGeminiSlidePrompt = function() {
         sourceText = history[0].planData.sourceDocumentText || JSON.stringify(history[0].planData);
         title = history[0].title || title;
       }
-    } catch (_) {}
+    } catch (_) { }
   } else if (state.currentPlan?.sourceDocumentText) {
     sourceText = state.currentPlan.sourceDocumentText;
     if (state.currentPlan.lessonTitle) title = state.currentPlan.lessonTitle;
@@ -13563,7 +13617,7 @@ ${sourceText ? `\n📚 ឯកសារយោងមេរៀនដើម (Source 
 };
 window.copyGeminiSlidePrompt = window.generateGeminiSlidePrompt; // Backward compatibility
 
-window.confirmCopyAndOpenGemini = async function() {
+window.confirmCopyAndOpenGemini = async function () {
   const textarea = document.getElementById('geminiPromptTextarea');
   const promptText = textarea ? textarea.value : '';
 
@@ -13592,18 +13646,18 @@ window.confirmCopyAndOpenGemini = async function() {
 // ==============================================================================
 function parseGeminiMarkdownToSlides(text) {
   if (!text || typeof text !== 'string') return [];
-  
+
   let raw = text.replace(/^```[a-z]*\s*/i, '').replace(/```\s*$/, '').trim();
   const lines = raw.split(/\r?\n/);
   const slideChunks = [];
   let currentChunk = [];
-  
+
   const isSlideHeader = (line) => {
     const l = line.trim();
     return /^(?:---|___|\*\*\*)$/.test(l) ||
-           /(?:🎬|#+|\*{1,2})?\s*(?:ស្លាយទី|Slide)\s*([០-៩\d]+)/i.test(l);
+      /(?:🎬|#+|\*{1,2})?\s*(?:ស្លាយទី|Slide)\s*([០-៩\d]+)/i.test(l);
   };
-  
+
   for (let line of lines) {
     if (isSlideHeader(line) && currentChunk.length > 0) {
       slideChunks.push(currentChunk.join('\n'));
@@ -13615,13 +13669,13 @@ function parseGeminiMarkdownToSlides(text) {
   if (currentChunk.length > 0) {
     slideChunks.push(currentChunk.join('\n'));
   }
-  
+
   const slides = [];
   slideChunks.forEach((chunk) => {
     const chunkLines = chunk.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     if (chunkLines.length === 0) return;
     if (chunkLines.length === 1 && /^(?:---|___|\*\*\*)$/.test(chunkLines[0])) return;
-    
+
     let title = '';
     let subtitle = '';
     let speakerNotes = '';
@@ -13632,11 +13686,11 @@ function parseGeminiMarkdownToSlides(text) {
     let currentBulletBody = [];
     let inNotes = false;
     let foundTitle = false;
-    
+
     for (let i = 0; i < chunkLines.length; i++) {
       let line = chunkLines[i];
       if (/^(?:---|___|\*\*\*)$/.test(line)) continue;
-      
+
       if (!foundTitle) {
         const titleMatch = line.match(/(?:🎬|#+|\*{1,2})?\s*(?:ស្លាយទី|Slide)\s*[០-៩\d]+[:：\s\-–]*(.*)/i);
         if (titleMatch) {
@@ -13649,7 +13703,7 @@ function parseGeminiMarkdownToSlides(text) {
           continue;
         }
       }
-      
+
       if (/^!\[.*?\]\(.*?\)/.test(line) || /^https?:\/\/image\.pollinations\.ai/i.test(line)) {
         continue;
       }
@@ -13665,7 +13719,7 @@ function parseGeminiMarkdownToSlides(text) {
         slideImageKeyword = imgKeyMatch[1].replace(/^\*+|\*+$/g, '').trim();
         continue;
       }
-      
+
       if (/(?:🗣️|>)?\s*(?:\*{1,2})?(?:ការណែនាំសម្រាប់គ្រូ|ការណែនាំគ្រូ|Speaker Notes)/i.test(line)) {
         inNotes = true;
         const noteMatch = line.match(/(?:ការណែនាំសម្រាប់គ្រូ|ការណែនាំគ្រូ|Speaker Notes)[^:：]*[:：]\s*(.*)/i);
@@ -13674,7 +13728,7 @@ function parseGeminiMarkdownToSlides(text) {
         }
         continue;
       }
-      
+
       if (inNotes) {
         const cleanNoteLine = line.replace(/^>\s*/, '').replace(/^\*+|\*+$/g, '').trim();
         if (cleanNoteLine) {
@@ -13682,7 +13736,7 @@ function parseGeminiMarkdownToSlides(text) {
         }
         continue;
       }
-      
+
       const cardMatch = line.match(/^(?:###\s*)?(?:[❖✦◆●★►•\-*]|\d+\.|\(\d+\))\s*(.*)/);
       if (cardMatch) {
         if (currentBulletHeading) {
@@ -13703,11 +13757,11 @@ function parseGeminiMarkdownToSlides(text) {
         }
       }
     }
-    
+
     if (currentBulletHeading) {
       bullets.push(currentBulletHeading + (currentBulletBody.length ? ' ៖ ' + currentBulletBody.join(' ') : ''));
     }
-    
+
     if (title || bullets.length > 0) {
       const slideDef = {
         type: slides.length === 0 ? 'title' : 'content',
@@ -13729,12 +13783,12 @@ function parseGeminiMarkdownToSlides(text) {
       slides.push(slideDef);
     }
   });
-  
+
   return slides;
 }
 window.parseGeminiMarkdownToSlides = parseGeminiMarkdownToSlides;
 
-window.switchPptxTab = function(tab) {
+window.switchPptxTab = function (tab) {
   const tabDirect = document.getElementById('pptxTabDirect');
   const tabImport = document.getElementById('pptxTabImport');
   const btnDirect = document.getElementById('tabBtnPptxDirect');
@@ -13775,7 +13829,7 @@ window.switchPptxTab = function(tab) {
   }
 };
 
-window.pasteFromClipboardToPptxImport = async function() {
+window.pasteFromClipboardToPptxImport = async function () {
   try {
     const text = await navigator.clipboard.readText();
     const textarea = document.getElementById('pptxImportText');
@@ -13788,7 +13842,7 @@ window.pasteFromClipboardToPptxImport = async function() {
   }
 };
 
-window.convertPastedGeminiToPptx = async function() {
+window.convertPastedGeminiToPptx = async function () {
   if (state.isPptxGenerating) {
     showToast('⚠️ កំពុងមានដំណើរការបង្កើតស្លាយមួយរួចហើយ សូមរង់ចាំបន្តិច...', 'warning');
     return;
@@ -13843,7 +13897,7 @@ function extractAndParseSlidesJson(text) {
   if (!text) return null;
   let clean = text.trim();
   clean = clean.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/```\s*$/, '').trim();
-  
+
   // 1. Bracket array extraction [ ... ]
   const firstBracket = clean.indexOf('[');
   const lastBracket = clean.lastIndexOf(']');
@@ -13851,7 +13905,7 @@ function extractAndParseSlidesJson(text) {
     try {
       const arr = JSON.parse(clean.substring(firstBracket, lastBracket + 1));
       if (Array.isArray(arr) && arr.length > 0) return arr;
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // 2. Direct JSON parse
@@ -13859,7 +13913,7 @@ function extractAndParseSlidesJson(text) {
     const res = JSON.parse(clean);
     if (Array.isArray(res) && res.length > 0) return res;
     if (res && Array.isArray(res.slides) && res.slides.length > 0) return res.slides;
-  } catch (e) {}
+  } catch (e) { }
 
   return null;
 }
@@ -13876,7 +13930,7 @@ function synthesizeOfflineSlides(data, numSlides) {
     imageSearchKeyword: titleTopic.searchKeyword,
     imagePrompt: titleTopic.aiPrompt
   });
-  
+
   const objTopic = detectSlideTopic({ title: 'វត្ថុបំណងមេរៀន', bullets: data.objectives?.knowledge || [] }, data, 2);
   slides.push({
     type: 'content',
@@ -14004,7 +14058,7 @@ function synthesizeOfflineSlides(data, numSlides) {
   return slides.slice(0, numSlides);
 }
 
-window.openPptxModal = function() {
+window.openPptxModal = function () {
   const m = document.getElementById('pptxModal');
   if (m) {
     m.style.display = 'flex';
@@ -14014,7 +14068,7 @@ window.openPptxModal = function() {
   }
 };
 
-window.closePptxModal = function() {
+window.closePptxModal = function () {
   const m = document.getElementById('pptxModal');
   if (m) {
     m.style.display = 'none';
@@ -14037,7 +14091,7 @@ function playSuccessChime() {
     if (ctx.state === 'suspended') {
       ctx.resume();
     }
-    
+
     // Note 1: E5 (659.25 Hz)
     const o1 = ctx.createOscillator();
     const g1 = ctx.createGain();
@@ -14070,16 +14124,16 @@ function showPptxWidget(initialTitle = 'កំពុងបង្កើតស្�
   const el = document.getElementById('pptxBackgroundWidget');
   if (!el) return;
   el.style.display = 'block';
-  
+
   const titleEl = document.getElementById('pptxWidgetTitle');
   if (titleEl) titleEl.textContent = initialTitle;
-  
+
   const progressEl = document.getElementById('pptxWidgetProgressBar');
   if (progressEl) {
     progressEl.style.width = '10%';
     progressEl.style.background = 'linear-gradient(90deg, #e11d48, #f43f5e)';
   }
-  
+
   const btnArea = document.getElementById('pptxWidgetActionBtnArea');
   if (btnArea) btnArea.innerHTML = '';
 
@@ -14101,7 +14155,7 @@ function showPptxWidget(initialTitle = 'កំពុងបង្កើតស្�
 function updatePptxWidgetStatus(statusHtml, progressPct = null) {
   const statusEl = document.getElementById('pptxWidgetStatus');
   if (statusEl) statusEl.innerHTML = statusHtml;
-  
+
   if (progressPct !== null) {
     const barEl = document.getElementById('pptxWidgetProgressBar');
     if (barEl) barEl.style.width = `${Math.min(100, Math.max(5, progressPct))}%`;
@@ -14112,7 +14166,7 @@ function finishPptxWidgetSuccess(fileName) {
   if (pptxWidgetTimerInterval) clearInterval(pptxWidgetTimerInterval);
   const titleEl = document.getElementById('pptxWidgetTitle');
   if (titleEl) titleEl.innerHTML = '✅ បង្កើតស្លាយជោគជ័យ!';
-  
+
   const barEl = document.getElementById('pptxWidgetProgressBar');
   if (barEl) {
     barEl.style.width = '100%';
@@ -14174,7 +14228,7 @@ function closePptxWidget() {
 }
 window.closePptxWidget = closePptxWidget;
 
-window.generatePptxSlides = async function() {
+window.generatePptxSlides = async function () {
   if (state.isPptxGenerating) {
     showToast('⚠️ កំពុងមានដំណើរការបង្កើតស្លាយមួយរួចហើយ សូមរង់ចាំបន្តិច...', 'warning');
     return;
@@ -14212,7 +14266,7 @@ window.generatePptxSlides = async function() {
         data = history[0].planData;
         sourceDocTitle = history[0].title;
       }
-    } catch (e) {}
+    } catch (e) { }
   } else {
     data = state.generatedPlanData || state.currentPlan;
   }
@@ -14252,7 +14306,7 @@ window.generatePptxSlides = async function() {
         if (alertText) {
           alertText.innerHTML = '<b>❌ មិនអាចបង្កើតស្លាយបានទេ៖ មិនទាន់មានកិច្ចតែងការបង្រៀននៅឡើយ!</b><br>សូមចុចប៊ូតុង <a href="javascript:void(0)" onclick="triggerPptxSourceUpload()" style="color: #e11d48; font-weight: 700; text-decoration: underline;">«បង្ហោះឯកសារថ្មី»</a> ដើម្បីជ្រើសឯកសារ Word/PDF មេរៀន ឬត្រឡប់ទៅបង្កើតកិច្ចតែងការជាមុនសិន។';
         }
-        try { alertEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (_) {}
+        try { alertEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (_) { }
       }
       showToast('⚠️ សូមបញ្ចូលចំណងជើងមេរៀន បង្កើតកិច្ចតែងការ ឬបង្ហោះឯកសារយោងជាមុនសិន!', 'warning', 6000);
       return;
@@ -14278,7 +14332,7 @@ window.generatePptxSlides = async function() {
   const numSlides = parseInt(document.getElementById('pptxNumSlides')?.value || '8');
   const imageMode = document.getElementById('pptxIncludeImages')?.value || 'ai';
   const theme = document.getElementById('pptxTheme')?.value || 'modern_blue';
-  
+
   closePptxModal();
   state.isPptxGenerating = true;
 
@@ -14414,7 +14468,7 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
             });
             candidateModels = disc;
           }
-        } catch (de) {}
+        } catch (de) { }
       }
 
       if (candidateModels.length === 0) {
@@ -14525,7 +14579,7 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
   }
 };
 
-window.buildPptxPresentation = async function(slidesData, meta, options) {
+window.buildPptxPresentation = async function (slidesData, meta, options) {
   meta = meta || {};
   options = options || {};
   const imageMode = options.imageMode || 'ai';
@@ -14879,7 +14933,7 @@ window.buildPptxPresentation = async function(slidesData, meta, options) {
 // ==========================================================================
 // 🎮 AC Kahoot Game Integration
 // ==========================================================================
-window.onGameIframeLoaded = function() {
+window.onGameIframeLoaded = function () {
   const spinner = document.getElementById('gameLoadingSpinner');
   if (spinner) spinner.style.display = 'none';
 
@@ -14898,12 +14952,12 @@ window.onGameIframeLoaded = function() {
   }
 };
 
-window.dismissGameNotice = function() {
+window.dismissGameNotice = function () {
   const notice = document.getElementById('gameRenderNotice');
   if (notice) notice.style.display = 'none';
 };
 
-window.toggleGameFullscreen = function() {
+window.toggleGameFullscreen = function () {
   const card = document.getElementById('gameModalCard');
   const icon = document.getElementById('iconGameFullscreen');
   const text = document.getElementById('textGameFullscreen');
@@ -14929,11 +14983,11 @@ window.toggleGameFullscreen = function() {
   }
 };
 
-window.openGameModal = function() {
-  window.open('https://game-ac.pages.dev/', '_blank');
+window.openGameModal = function () {
+  window.open('https://ac-kahoot.onrender.com', '_blank');
 };
 
-window.closeGameModal = function() {
+window.closeGameModal = function () {
   const m = document.getElementById('gameModal');
   if (m) m.style.display = 'none';
 };
@@ -14997,7 +15051,7 @@ function renderWorksheetPreview() {
         data = history[0].planData;
         state.currentPlan = data;
       }
-    } catch (_) {}
+    } catch (_) { }
   }
 
   // 2. If still no plan, synthesize draft from current form inputs or uploaded file
@@ -15297,7 +15351,7 @@ async function exportWorksheetDocx() {
     try {
       const history = JSON.parse(localStorage.getItem('alps_plan_history') || '[]');
       if (history.length > 0 && history[0].planData) data = history[0].planData;
-    } catch (_) {}
+    } catch (_) { }
   }
   if (!data) {
     const title = (document.getElementById('lessonTitleInput')?.value || '').trim();
@@ -15551,7 +15605,7 @@ async function exportWorksheetDocx() {
 
     const blob = await Packer.toBlob(doc);
     const fileName = `សន្លឹកកិច្ចការសិស្ស_${(data.subject || 'មេរៀន')}_${(data.lessonTitle || 'កិច្ចការ')}.docx`.replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '_');
-    
+
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -15572,13 +15626,13 @@ window.exportWorksheetDocx = exportWorksheetDocx;
 function printWorksheet() {
   const previewEl = document.getElementById('worksheetA4Preview');
   if (!previewEl) return;
-  
+
   const printWindow = window.open('', '_blank', 'width=850,height=900');
   if (!printWindow) {
     showToast('សូមអនុញ្ញាត Popup ដើម្បីបោះពុម្ពសន្លឹកកិច្ចការ!', 'warning');
     return;
   }
-  
+
   const contentHtml = previewEl.innerHTML;
   printWindow.document.open();
   printWindow.document.write(`
