@@ -666,6 +666,23 @@ textarea.form-control {
 .mt-2 { margin-top: 8px; }
 .mt-3 { margin-top: 14px; }
 
+.lesson-meta-box {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border-color, #e2e8f0);
+}
+
+@keyframes autoFillPulse {
+  0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.45); border-color: #6366f1; }
+  50% { box-shadow: 0 0 0 5px rgba(79, 70, 229, 0.2); border-color: #4f46e5; }
+  100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
+}
+
+.input-auto-filled {
+  animation: autoFillPulse 1.6s ease-in-out;
+  border-color: #6366f1 !important;
+}
+
 /* Action Dock */
 .action-dock {
   display: flex;

@@ -1805,6 +1805,9 @@ async function pasteToLessonContent() {
       if (ta) {
         ta.value = text;
         ta.dispatchEvent(new Event('input'));
+        if (typeof autoDetectAndFillLessonMetadata === 'function') {
+          autoDetectAndFillLessonMetadata(text, '', true);
+        }
         showToast('📋 បានបិទភ្ជាប់អត្ថបទពី Clipboard រួចរាល់!', 'success');
       }
     }
@@ -2268,6 +2271,15 @@ function initEventListeners() {
         const subj = document.getElementById('inputSubject')?.value || 'មេរៀន';
         nameInput.value = title ? `${subj} - ${title}` : `មេរៀន ${subj} ថ្មី`;
       }
+      if (e.target.value.trim().length > 20) {
+        const curTitle = document.getElementById('inputLessonTitle')?.value?.trim();
+        const curChap = document.getElementById('inputChapter')?.value?.trim();
+        if (!curTitle || !curChap) {
+          if (typeof autoDetectAndFillLessonMetadata === 'function') {
+            autoDetectAndFillLessonMetadata(e.target.value, '', false);
+          }
+        }
+      }
     });
   }
 
@@ -2472,10 +2484,9 @@ function initDropzones() {
         const baseName = file.name.replace(/\.[^/.]+$/, "");
         const nameInput = document.getElementById('inputSaveLessonName');
         if (nameInput) nameInput.value = baseName;
-        const lessonTitleInput = document.getElementById('inputLessonTitle');
-        if (lessonTitleInput && !lessonTitleInput.value.trim()) {
-          lessonTitleInput.value = baseName;
-        }
+
+        // Auto-detect and populate Subject, Chapter, and Lesson Title in Section 3
+        autoDetectAndFillLessonMetadata(text, file.name, true);
 
         showToast(`✅ បានស្រង់ខ្លឹមសារពី ${file.name} (${text.trim().length} តួអក្សរ) ចូលប្រអប់រួចរាល់! AI នឹងប្រើប្រាស់ខ្លឹមសារនេះ!`, 'success');
       } else {
@@ -2515,10 +2526,10 @@ function initDropzones() {
             const baseName = f.name.replace(/\.[^/.]+$/, "");
             const nameInput = document.getElementById('inputSaveLessonName');
             if (nameInput) nameInput.value = baseName;
-            const lessonTitleInput = document.getElementById('inputLessonTitle');
-            if (lessonTitleInput && !lessonTitleInput.value.trim()) {
-              lessonTitleInput.value = baseName;
-            }
+
+            // Auto-detect and populate Subject, Chapter, and Lesson Title in Section 3
+            autoDetectAndFillLessonMetadata(text, f.name, true);
+
             showToast(`✅ បានស្រង់ខ្លឹមសារពី ${f.name} រួចរាល់!`, 'success');
           } else {
             showToast(`⚠️ មិនអាចស្រង់អត្ថបទពី ${f.name} បានទេ`, 'warning');
@@ -2528,6 +2539,102 @@ function initDropzones() {
     });
   }
 }
+
+/**
+ * Auto-detects and auto-populates Subject, Chapter, and Lesson Title in Section 3
+ * from the lesson content text and/or file name.
+ */
+function autoDetectAndFillLessonMetadata(text, fileName = '', notify = true) {
+  if (!text && !fileName) return;
+
+  const rawText = (text || '').trim();
+  const firstChunk = rawText.slice(0, 3500);
+  const combined = (fileName ? fileName + '\n' : '') + firstChunk;
+
+  const subjectEl = document.getElementById('inputSubject');
+  const chapterEl = document.getElementById('inputChapter');
+  const titleEl = document.getElementById('inputLessonTitle');
+
+  let detectedAny = false;
+
+  // 1. Subject detection
+  const subjectList = [
+    { key: 'រូបវិទ្យា', re: /រូបវិទ្យា|រូបវិទ្យ|physics/i },
+    { key: 'គណិតវិទ្យា', re: /គណិតវិទ្យា|គណិតវិទ្យ|គណិត|math|geometry|algebra/i },
+    { key: 'ភាសាខ្មែរ', re: /ភាសាខ្មែរ|អក្សរសាស្ត្រខ្មែរ|តែងសេចក្តី|តែងសេចក្ដី|khmer/i },
+    { key: 'ចិត្តវិទ្យាអប់រំ', re: /ចិត្តវិទ្យាអប់រំ|ចិត្តវិទ្យា|educational\s*psychology|psychology/i },
+    { key: 'ព័ត៌មានវិទ្យា', re: /ព័ត៌មានវិទ្យា|កុំព្យូទ័រ|ict|computer|informatics/i },
+    { key: 'គីមីវិទ្យា', re: /គីមីវិទ្យា|គីមី|chemistry/i },
+    { key: 'ជីវវិទ្យា', re: /ជីវវិទ្យា|ជីវ|biology/i },
+    { key: 'ប្រវត្តិវិទ្យា', re: /ប្រវត្តិវិទ្យា|ប្រវត្តិ|history/i },
+    { key: 'ភូមិវិទ្យា', re: /ភូមិវិទ្យា|ភូមិវិទ្យ|geography/i },
+    { key: 'ពលរដ្ឋវិជ្ជា', re: /ពលរដ្ឋវិជ្ជា|ពលរដ្ឋ|morality|civics/i },
+    { key: 'ភាសាអង់គ្លេស', re: /ភាសាអង់គ្លេស|អង់គ្លេស|english/i },
+    { key: 'ផែនដីវិទ្យា', re: /ផែនដីវិទ្យា|ផែនដី|earth\s*science|geology/i }
+  ];
+
+  if (subjectEl) {
+    for (const item of subjectList) {
+      if (item.re.test(combined)) {
+        if (subjectEl.value !== item.key) {
+          subjectEl.value = item.key;
+          subjectEl.classList.add('input-auto-filled');
+          setTimeout(() => subjectEl.classList.remove('input-auto-filled'), 2000);
+          detectedAny = true;
+        }
+        break;
+      }
+    }
+  }
+
+  // 2. Chapter detection (e.g. "ជំពូកទី ៣: ការងារ និងថាមពល", "ជំពូក ២: ...")
+  if (chapterEl) {
+    const chapMatch = combined.match(/(?:ជំពូកទី|ជំពូក|Chapter)\s*([០-៩0-9ivxIVX]+|[ក-អ])\s*[:៖\-–—.]?\s*([^\n\r]+)/i);
+    if (chapMatch) {
+      let matchedChap = chapMatch[0].trim().replace(/\s+/g, ' ');
+      matchedChap = matchedChap.split(/[\r\n]/)[0].trim();
+      if (matchedChap.length > 70) matchedChap = matchedChap.slice(0, 70).trim();
+      if (chapterEl.value !== matchedChap) {
+        chapterEl.value = matchedChap;
+        chapterEl.classList.add('input-auto-filled');
+        setTimeout(() => chapterEl.classList.remove('input-auto-filled'), 2000);
+        detectedAny = true;
+      }
+    }
+  }
+
+  // 3. Lesson Title detection (e.g. "មេរៀនទី ២: ថាមពលមេកានិច", "មេរៀនទី២: ការអភិវឌ្ឍខួរក្បាលរបស់កុមារ")
+  if (titleEl) {
+    const lessonMatch = combined.match(/(?:មេរៀនទី|មេរៀន|Lesson)\s*([០-៩0-9ivxIVX]+|[ក-អ])\s*[:៖\-–—.]?\s*([^\n\r]+)/i)
+      || combined.match(/(?:ចំណងជើងមេរៀន|ចំណងជើង|Lesson\s*Title)\s*[:៖\-–—.]?\s*([^\n\r]+)/i);
+
+    if (lessonMatch) {
+      let matchedLesson = lessonMatch[0].trim().replace(/\s+/g, ' ');
+      matchedLesson = matchedLesson.split(/[\r\n]/)[0].trim();
+      if (matchedLesson.length > 85) matchedLesson = matchedLesson.slice(0, 85).trim();
+      if (titleEl.value !== matchedLesson) {
+        titleEl.value = matchedLesson;
+        titleEl.classList.add('input-auto-filled');
+        setTimeout(() => titleEl.classList.remove('input-auto-filled'), 2000);
+        detectedAny = true;
+      }
+    } else if (fileName) {
+      let baseName = fileName.replace(/\.[^/.]+$/, "").replace(/[-_]/g, ' ').replace(/\s+/g, ' ').trim();
+      baseName = baseName.replace(/^(doc|docx|pdf|ppt|pptx|lesson|file)\s*/i, '');
+      if (baseName && (!titleEl.value.trim() || titleEl.value.trim() === fileName)) {
+        titleEl.value = baseName;
+        titleEl.classList.add('input-auto-filled');
+        setTimeout(() => titleEl.classList.remove('input-auto-filled'), 2000);
+        detectedAny = true;
+      }
+    }
+  }
+
+  if (detectedAny && notify && typeof showToast === 'function') {
+    showToast('✨ បានស្វែងរក និងបំពេញមុខវិជ្ជា ជំពូក និងចំណងជើងមេរៀនដោយស្វ័យប្រវត្តិ!', 'success');
+  }
+}
+window.autoDetectAndFillLessonMetadata = autoDetectAndFillLessonMetadata;
 
 // Generic Dropzone Helper
 function setupDropzone(dropzoneId, inputId, statusId, removeBtnId, onFileLoaded, onFileRemoved) {
