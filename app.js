@@ -796,8 +796,8 @@ const I18N_DICTIONARY = {
     loadingDesc: "កំពុងបង្កើតវត្ថុបំណង ៣ ផ្នែក សម្ភារឧបទេស និងដំណើរការបង្រៀន ៥ ជំហាន",
 
     // Step 1
-    step1Title: "ទម្រង់ & វិធីសាស្ត្របង្រៀន (Framework & Method)",
-    step1Desc: "ជ្រើសរើសប្រភេទកិច្ចតែងការ MoEYS និងវិធីសាស្ត្រគរុកោសល្យចម្បង",
+    step1Title: "ទម្រង់ & វិធីសាស្ត្របង្រៀន",
+    step1Desc: "",
     labelPresetTemplate: "ជ្រើសរើសប្រភេទកិច្ចតែងការ MoEYS៖",
     optPresetStandard: "កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)",
     optPresetFlipped: "⚡ កិច្ចតែងការតាមបែបត្រឡប់ (Flipped Learning)",
@@ -806,16 +806,16 @@ const I18N_DICTIONARY = {
     optPresetStem: "កិច្ចតែងការបែប STEM / 5E (វិទ្យាសាស្ត្រ និងពិសោធន៍)",
 
     // Step 2
-    step2Title: "ឯកសារ និងខ្លឹមសារមេរៀន (Lesson Material)",
-    step2Desc: "បញ្ចូលខ្លឹមសារ ឬភ្ជាប់ឯកសារមេរៀន ស្លាយ រូបភាព (DOCX, PDF, PPTX)",
+    step2Title: "ឯកសារ និងខ្លឹមសារមេរៀន",
+    step2Desc: "",
     dropPrimary: 'ទម្លាក់ឯកសារមេរៀន/ស្លាយ/រូបភាព នៅទីនេះ ឬ <span class="browse-link">ចុចដើម្បីរើសឯកសារ</span>',
     dropHint: "គាំទ្រ PowerPoint (.pptx), Word (.docx), PDF (.pdf), រូបភាពថតសៀវភៅ (.png, .jpg), TXT",
     lessonContentLabel: "ខ្លឹមសារមេរៀន / ចំណុចសំខាន់ៗ",
     lessonContentPlaceholder: "បញ្ចូល ឬបិទភ្ជាប់ខ្លឹមសារមេរៀន និយមន័យ រូបមន្ត លំហាត់ ឧទាហរណ៍ ឬអត្ថបទដកស្រង់ពីសៀវភៅពុម្ពនៅទីនេះ...",
 
     // Step 3
-    step3Title: "ព័ត៌មានរដ្ឋបាល និងខ្លឹមសារបង្រៀន",
-    step3Desc: "កំណត់ព័ត៌មានលម្អិតសម្រាប់ក្បាលកិច្ចតែងការ",
+    step3Title: "ព័ត៌មានរដ្ឋបាល និងក្បាលកិច្ចតែងការ",
+    step3Desc: "",
     btnSaveAdminInfo: "រក្សាទុក",
     schoolLabel: "ឈ្មោះសាលារៀន",
     schoolPlaceholder: "ឧ. វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម / វិទ្យាល័យ...",
@@ -938,8 +938,8 @@ const I18N_DICTIONARY = {
     loadingDesc: "Formulating 3-domain learning objectives, teaching aids, and 5-step active pedagogy",
 
     // Step 1
-    step1Title: "Framework & Teaching Method",
-    step1Desc: "Select MoEYS template type and core pedagogical methodology",
+    step1Title: "Template & Teaching Method",
+    step1Desc: "",
     labelPresetTemplate: "Select Lesson Plan Format:",
     optPresetStandard: "Standard 5-Step Lesson Plan (General / Secondary)",
     optPresetFlipped: "⚡ Flipped Learning Lesson Plan",
@@ -948,16 +948,16 @@ const I18N_DICTIONARY = {
     optPresetStem: "STEM / 5E Inquiry Lesson Plan (Science & Experiments)",
 
     // Step 2
-    step2Title: "Lesson Material & Content",
-    step2Desc: "Type content or attach lesson document/slides (DOCX, PDF, PPTX)",
+    step2Title: "Lesson Material",
+    step2Desc: "",
     dropPrimary: 'Drop lesson files/slides/images here or <span class="browse-link">browse files</span>',
     dropHint: "Supports PowerPoint (.pptx), Word (.docx), PDF (.pdf), Book photos (.png, .jpg), TXT",
     lessonContentLabel: "Lesson Content / Key Concepts",
     lessonContentPlaceholder: "Enter or paste lesson text, definitions, formulas, exercises, examples, or textbook excerpts here...",
 
     // Step 3
-    step3Title: "Administrative Details & Lesson Title",
-    step3Desc: "Configure header metadata for your lesson plan",
+    step3Title: "Administrative Details",
+    step3Desc: "",
     btnSaveAdminInfo: "Save Profile",
     schoolLabel: "School / Institution Name",
     schoolPlaceholder: "e.g., Preah Sisowath High School / Institute...",
