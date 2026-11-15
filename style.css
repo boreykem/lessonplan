@@ -1138,8 +1138,8 @@ textarea.form-control {
   padding: 4px 10px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  justify-content: flex-start;
+  gap: 6px;
   flex-wrap: nowrap;
   overflow-x: auto;
   scrollbar-width: thin;
@@ -1147,45 +1147,25 @@ textarea.form-control {
 }
 
 .toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-  white-space: nowrap;
+  display: none !important;
 }
 
 .preview-badge {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  white-space: nowrap;
-  flex-shrink: 0;
+  display: none !important;
 }
 
 .editable-indicator {
-  font-size: 0.7rem;
-  color: var(--accent);
-  background: var(--accent-light);
-  padding: 2px 6px;
-  border-radius: var(--radius-full);
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  white-space: nowrap;
-  flex-shrink: 0;
-  font-weight: 500;
+  display: none !important;
 }
 
 .toolbar-right {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   flex-wrap: nowrap;
-  justify-content: flex-end;
+  justify-content: flex-start;
   flex-shrink: 0;
+  width: 100%;
 }
 
 .zoom-controls {
