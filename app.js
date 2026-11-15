@@ -820,7 +820,7 @@ const I18N_DICTIONARY = {
     // Step 2
     step2Title: "ទម្រង់ & វិធីសាស្ត្របង្រៀន",
     step2Desc: "",
-    labelPresetTemplate: "ជ្រើសរើសប្រភេទកិច្ចតែងការ MoEYS៖",
+    labelPresetTemplate: "ប្រភេទកិច្ចតែងការ",
     optPresetStandard: "កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)",
     optPresetFlipped: "⚡ កិច្ចតែងការតាមបែបត្រឡប់ (Flipped Learning)",
     optPresetUbD: "កិច្ចតែងការតាមបែបត្រឡប់ (Backward Design / UbD ៣ ដំណាក់កាល)",
@@ -962,7 +962,7 @@ const I18N_DICTIONARY = {
     // Step 2
     step2Title: "Template & Teaching Method",
     step2Desc: "",
-    labelPresetTemplate: "Select Lesson Plan Format:",
+    labelPresetTemplate: "Lesson Plan Format",
     optPresetStandard: "Standard 5-Step Lesson Plan (General / Secondary)",
     optPresetFlipped: "⚡ Flipped Learning Lesson Plan",
     optPresetUbD: "Backward Design / UbD (3-Stage Framework)",
@@ -3028,18 +3028,18 @@ function isGenericStepTitle(title, stepIdx) {
   const t = title.trim();
   if (stepIdx === 3) {
     return t === 'ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី' ||
-           t === 'ជំហានទី ៣ : ដំណើរការបង្រៀន និងរៀន (មេរៀនថ្មី)' ||
-           t === 'ជំហានទី ៣ : ដំណើរការបង្រៀន និងរៀន' ||
-           t.includes('Mini-Lecture / Core Insights') ||
-           t.includes('Mini-Lecture & Framing');
+      t === 'ជំហានទី ៣ : ដំណើរការបង្រៀន និងរៀន (មេរៀនថ្មី)' ||
+      t === 'ជំហានទី ៣ : ដំណើរការបង្រៀន និងរៀន' ||
+      t.includes('Mini-Lecture / Core Insights') ||
+      t.includes('Mini-Lecture & Framing');
   }
   if (stepIdx === 4) {
     return t === 'ជំហានទី៤៖ ពង្រឹងចំណេះដឹង' ||
-           t === 'ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (វាយតម្លៃ)' ||
-           t === 'ជំហានទី ៤ : ពង្រឹងពុទ្ធិ' ||
-           t.includes('Active Learning & Gallery Walk') ||
-           t.includes('Problem-Based Learning & Challenge Scenario') ||
-           t.includes('Explain & Elaborate / Active STEM');
+      t === 'ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (វាយតម្លៃ)' ||
+      t === 'ជំហានទី ៤ : ពង្រឹងពុទ្ធិ' ||
+      t.includes('Active Learning & Gallery Walk') ||
+      t.includes('Problem-Based Learning & Challenge Scenario') ||
+      t.includes('Explain & Elaborate / Active STEM');
   }
   return false;
 }
