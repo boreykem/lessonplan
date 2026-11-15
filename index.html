@@ -757,6 +757,10 @@
             <i class="fa-solid fa-print"></i> PDF
           </button>
 
+          <button id="btnOpenWorksheetModal" class="btn-tool-action" style="background: #f0fdfa; color: #0d9488; border: 1.5px solid #0d9488; font-weight: 700;" onclick="openWorksheetModal()" title="បង្កើត និងទាញយកសន្លឹកកិច្ចការសិស្ស (Student Worksheet / Handout)">
+            <i class="fa-solid fa-file-signature"></i> <span>Worksheet</span>
+          </button>
+
           <button id="btnCopyText" class="btn-tool-action btn-copy" title="ចម្លងអត្ថបទទាំងអស់">
             <i class="fa-regular fa-copy"></i> <span data-i18n="btnCopy">ចម្លង</span>
           </button>
@@ -1353,6 +1357,72 @@
             <i class="fa-brands fa-google"></i> បន្តទៅ NotebookLM
           </button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📄 Student Worksheet / Handout Modal -->
+  <div id="worksheetModal" class="modal-overlay" style="display: none; z-index: 10003;">
+    <div class="modal-card" style="max-width: 820px; width: 95vw; max-height: 92vh; display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px rgba(0,0,0,0.25);">
+      
+      <!-- Modal Header -->
+      <div class="modal-header" style="background: linear-gradient(135deg, #0d9488 0%, #059669 100%); color: white; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="background: white; border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+            <i class="fa-solid fa-file-signature" style="color: #0d9488; font-size: 1.1rem;"></i>
+          </div>
+          <div>
+            <h4 style="color: white; font-weight: 700; margin: 0; font-size: 1.05rem;">សន្លឹកកិច្ចការសិស្ស & Handout (Student Worksheet Generator)</h4>
+            <div style="font-size: 0.78rem; opacity: 0.9; color: #ccfbf1;">រៀបចំសន្លឹកកិច្ចការ A4 ស្វ័យប្រវត្តសម្រាប់ចែកសិស្សធ្វើការងារជាក្រុម ឬបុគ្គលក្នុងថ្នាក់</div>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" onclick="closeWorksheetModal()" style="color: white; opacity: 0.85;"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <!-- Control Toolbar inside Modal -->
+      <div style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; padding: 12px 20px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <div style="font-size: 0.85rem; font-weight: 700; color: #1e293b;">ទម្រង់កិច្ចការ៖</div>
+          <div class="segmented-control" style="display: inline-flex; background: #e2e8f0; padding: 2px; border-radius: 8px;">
+            <button type="button" id="btnWsModeGroup" onclick="setWorksheetMode('group')" class="btn-segmented active" style="padding: 5px 12px; font-size: 0.82rem; border-radius: 6px; border: none; font-weight: 700; cursor: pointer; background: #0d9488; color: #ffffff;">👥 កិច្ចការក្រុម</button>
+            <button type="button" id="btnWsModeIndiv" onclick="setWorksheetMode('individual')" class="btn-segmented" style="padding: 5px 12px; font-size: 0.82rem; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; background: transparent; color: #334155;">👤 កិច្ចការបុគ្គល</button>
+          </div>
+          <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600; color: #334155; cursor: pointer;">
+            <input type="checkbox" id="chkWsRubric" checked onchange="renderWorksheetPreview()">
+            <span>តារាង Rubric វាយតម្លៃ</span>
+          </label>
+          <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600; color: #334155; cursor: pointer;">
+            <input type="checkbox" id="chkWsExitTicket" checked onchange="renderWorksheetPreview()">
+            <span>Exit Ticket 3-2-1</span>
+          </label>
+        </div>
+
+        <div style="display: flex; gap: 8px;">
+          <button type="button" onclick="exportWorksheetDocx()" class="btn-tool-action" style="background: #2563eb; color: white; border: none; font-weight: 700; padding: 7px 14px; font-size: 0.85rem; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <i class="fa-solid fa-file-word"></i> Word (.docx)
+          </button>
+          <button type="button" onclick="printWorksheet()" class="btn-tool-action" style="background: #0d9488; color: white; border: none; font-weight: 700; padding: 7px 14px; font-size: 0.85rem; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <i class="fa-solid fa-print"></i> បោះពុម្ព (Print/PDF)
+          </button>
+          <button type="button" onclick="copyWorksheetText()" class="btn-tool-action" style="background: #ffffff; color: #334155; border: 1px solid #cbd5e1; font-weight: 600; padding: 7px 12px; font-size: 0.85rem; border-radius: 8px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+            <i class="fa-regular fa-copy"></i> ចម្លង
+          </button>
+        </div>
+      </div>
+
+      <!-- A4 Styled Live Preview Container -->
+      <div class="modal-body" style="padding: 18px 20px; overflow-y: auto; background: #e2e8f0; flex: 1;">
+        <div id="worksheetA4Preview" style="background: white; max-width: 720px; margin: 0 auto; padding: 25px 30px; border-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); font-family: 'Kantumruy Pro', 'Khmer OS Siemreap', sans-serif; color: #0f172a; line-height: 1.6;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="modal-footer" style="padding: 10px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-size: 0.82rem; color: #64748b;">
+          💡 សន្លឹកកិច្ចការនេះរៀបចំឡើងស្របតាមស្តង់ដារក្រសួងអប់រំ យុវជន និងកីឡា សម្រាប់សកម្មភាពរៀនសកម្មក្នុងថ្នាក់រៀន។
+        </div>
+        <button type="button" class="btn-ghost" onclick="closeWorksheetModal()" style="font-size: 0.88rem; padding: 6px 16px;">បិទ</button>
       </div>
     </div>
   </div>

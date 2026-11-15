@@ -14130,4 +14130,638 @@ window.closeGameModal = function() {
   if (m) m.style.display = 'none';
 };
 
+// ==========================================================================
+// 📄 Student Worksheet & Activity Handout Generator (MoEYS Standard)
+// ==========================================================================
+let currentWorksheetMode = 'group'; // 'group' or 'individual'
+
+function openWorksheetModal() {
+  const data = state.generatedPlanData || state.currentPlan;
+  if (!data) {
+    showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
+    return;
+  }
+  const modal = document.getElementById('worksheetModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    renderWorksheetPreview();
+  }
+}
+window.openWorksheetModal = openWorksheetModal;
+
+function closeWorksheetModal() {
+  const modal = document.getElementById('worksheetModal');
+  if (modal) modal.style.display = 'none';
+}
+window.closeWorksheetModal = closeWorksheetModal;
+
+function setWorksheetMode(mode) {
+  currentWorksheetMode = mode;
+  const btnGroup = document.getElementById('btnWsModeGroup');
+  const btnIndiv = document.getElementById('btnWsModeIndiv');
+  if (btnGroup && btnIndiv) {
+    if (mode === 'group') {
+      btnGroup.classList.add('active');
+      btnGroup.style.background = '#0d9488';
+      btnGroup.style.color = '#ffffff';
+      btnIndiv.classList.remove('active');
+      btnIndiv.style.background = 'transparent';
+      btnIndiv.style.color = '#334155';
+    } else {
+      btnIndiv.classList.add('active');
+      btnIndiv.style.background = '#0d9488';
+      btnIndiv.style.color = '#ffffff';
+      btnGroup.classList.remove('active');
+      btnGroup.style.background = 'transparent';
+      btnGroup.style.color = '#334155';
+    }
+  }
+  renderWorksheetPreview();
+}
+window.setWorksheetMode = setWorksheetMode;
+
+function renderWorksheetPreview() {
+  const container = document.getElementById('worksheetA4Preview');
+  if (!container) return;
+
+  const data = state.generatedPlanData || state.currentPlan;
+  if (!data) {
+    container.innerHTML = '<div style="text-align: center; color: #64748b; padding: 40px;">សូមបង្កើតកិច្ចតែងការជាមុនសិន!</div>';
+    return;
+  }
+
+  const school = data.school || 'វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម';
+  const teacher = data.teacher || 'លោកគ្រូ កែម បូរី';
+  const subject = data.subject || 'ចិត្តវិទ្យាអប់រំ';
+  const grade = data.grade || 'គរុនិស្សិត ឆ្នាំទី ១';
+  const title = data.lessonTitle || 'មេរៀន';
+  const dateStr = data.dateStr || getKhmerFormattedDate();
+
+  const isGroup = currentWorksheetMode === 'group';
+  const includeRubric = document.getElementById('chkWsRubric')?.checked !== false;
+  const includeExitTicket = document.getElementById('chkWsExitTicket')?.checked !== false;
+
+  // Extract Objectives
+  let objList = [];
+  if (data.objectives) {
+    if (data.objectives.knowledge) objList.push(...data.objectives.knowledge);
+    if (data.objectives.skills) objList.push(...data.objectives.skills);
+  }
+  if (!objList.length) {
+    objList = [
+      `ស្វែងយល់ និងពន្យល់ពីគោលការណ៍គ្រឹះនៃ «${title}»`,
+      `ចេះវិភាគ ពិភាក្សា និងដោះស្រាយបញ្ហាក្នុងករណីសិក្សាជាក់ស្តែង`
+    ];
+  }
+
+  // Extract Key Concepts (from Step 3 or keyTakeaways)
+  let keyConcepts = [];
+  if (data.steps && Array.isArray(data.steps)) {
+    data.steps.forEach(st => {
+      const sTitle = st.stepTitle || '';
+      if (sTitle.includes('ទី៣') || sTitle.includes('មេរៀនថ្មី')) {
+        if (st.contentSummary && st.contentSummary.trim().length > 10) {
+          keyConcepts.push(st.contentSummary.trim());
+        }
+      }
+    });
+  }
+  if (!keyConcepts.length && data.notebooklmGuide?.keyTakeaways?.length) {
+    keyConcepts = data.notebooklmGuide.keyTakeaways;
+  }
+  if (!keyConcepts.length) {
+    keyConcepts = [
+      `គោលការណ៍គ្រឹះ និងនិយមន័យនៃ ${title}`,
+      `យន្តការដំណើរការ និងការផ្សារភ្ជាប់ទ្រឹស្តីទៅនឹងការបង្រៀនជាក់ស្តែង`
+    ];
+  }
+
+  // Extract In-Class Tasks (from Step 3 & 4 student activities)
+  let tasks = [];
+  if (data.steps && Array.isArray(data.steps)) {
+    data.steps.forEach(st => {
+      const sTitle = st.stepTitle || '';
+      if (sTitle.includes('ទី៣') || sTitle.includes('ទី៤') || sTitle.includes('មេរៀនថ្មី') || sTitle.includes('ពង្រឹង')) {
+        if (st.studentActivities && st.studentActivities.trim().length > 15) {
+          tasks.push(st.studentActivities.trim());
+        }
+      }
+    });
+  }
+  if (!tasks.length) {
+    tasks = [
+      `កិច្ចការទី ១ (វិភាគករណីសិក្សា)៖ សូមអានករណីសិក្សាដែលគ្រូបានផ្តល់ជូន រួចវិភាគរកឫសគល់នៃបញ្ហាតាមទ្រឹស្តីមេរៀន «${title}»។`,
+      `កិច្ចការទី ២ (ដំណោះស្រាយជាយុទ្ធសាស្ត្រ)៖ ពិភាក្សាក្នុងក្រុមដើម្បីរៀបចំផែនការសកម្មភាព ឬវិធីសាស្ត្រដោះស្រាយចំនួន ៣ ចំណុចជាក់ស្តែង។`
+    ];
+  }
+
+  // Build HTML Preview
+  let html = `
+    <!-- Top Header -->
+    <div style="text-align: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px;">
+      <div style="font-size: 0.88rem; font-weight: 700; color: #475569; text-transform: uppercase;">${school}</div>
+      <h2 style="font-size: 1.35rem; font-weight: 800; color: #0f172a; margin: 4px 0 6px 0;">សន្លឹកកិច្ចការសិស្ស (STUDENT ACTIVITY WORKSHEET)</h2>
+      <div style="font-size: 0.95rem; font-weight: 700; color: #0d9488;">
+        មេរៀន៖ «${title}» (${subject} ${grade})
+      </div>
+    </div>
+
+    <!-- Student / Group Info Box -->
+    <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 8px; padding: 10px 14px; margin-bottom: 16px; font-size: 0.88rem;">
+  `;
+
+  if (isGroup) {
+    html += `
+      <div style="display: flex; justify-content: space-between; margin-bottom: 6px; flex-wrap: wrap; gap: 8px;">
+        <div><strong>👥 ឈ្មោះក្រុម / ក្រុមទី៖</strong> <span style="display: inline-block; border-bottom: 1px dotted #64748b; width: 140px;">&nbsp;</span></div>
+        <div><strong>ប្រធានក្រុម៖</strong> <span style="display: inline-block; border-bottom: 1px dotted #64748b; width: 160px;">&nbsp;</span></div>
+        <div><strong>កាលបរិច្ឆេទ៖</strong> ${dateStr}</div>
+      </div>
+      <div><strong>សមាជិកក្រុម៖</strong> <span style="display: inline-block; border-bottom: 1px dotted #64748b; width: 85%;">&nbsp;</span></div>
+    `;
+  } else {
+    html += `
+      <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+        <div><strong>👤 ឈ្មោះសិស្ស៖</strong> <span style="display: inline-block; border-bottom: 1px dotted #64748b; width: 220px;">&nbsp;</span></div>
+        <div><strong>អត្តលេខ / លេខតុ៖</strong> <span style="display: inline-block; border-bottom: 1px dotted #64748b; width: 100px;">&nbsp;</span></div>
+        <div><strong>កាលបរិច្ឆេទ៖</strong> ${dateStr}</div>
+      </div>
+    `;
+  }
+
+  html += `
+    </div>
+
+    <!-- Section 1: Objectives & Key Concepts -->
+    <div style="margin-bottom: 16px;">
+      <div style="font-size: 0.95rem; font-weight: 700; color: #1e293b; background: #f1f5f9; padding: 4px 10px; border-left: 4px solid #0d9488; margin-bottom: 8px;">
+        🎯 ១. វត្ថុបំណងនៃការអនុវត្ត និងសញ្ញាណគន្លឹះ (Key Concepts & Objectives)
+      </div>
+      <div style="font-size: 0.88rem; color: #334155; padding-left: 10px;">
+        <div style="margin-bottom: 6px;"><strong>វត្ថុបំណង៖</strong></div>
+        <ul style="margin: 0 0 8px 18px; padding: 0;">
+          ${objList.map(o => `<li style="margin-bottom: 3px;">${o}</li>`).join('')}
+        </ul>
+        <div style="margin-bottom: 4px;"><strong>ខ្លឹមសារសង្ខេបជំនួយស្មារតី៖</strong></div>
+        <div style="background: #f8fafc; border: 1px dashed #cbd5e1; padding: 8px 12px; border-radius: 6px; font-size: 0.84rem; color: #475569; white-space: pre-line; line-height: 1.5;">
+          ${keyConcepts.join('\n')}
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: In-Class Tasks & Missions -->
+    <div style="margin-bottom: 16px;">
+      <div style="font-size: 0.95rem; font-weight: 700; color: #1e293b; background: #f1f5f9; padding: 4px 10px; border-left: 4px solid #2563eb; margin-bottom: 8px;">
+        👥 ២. បេសកកម្ម និងសកម្មភាពអនុវត្ត (Tasks & Missions)
+      </div>
+      <div style="font-size: 0.88rem; color: #334155; padding-left: 10px;">
+        ${tasks.map((t, idx) => `
+          <div style="margin-bottom: 10px;">
+            <div style="font-weight: 700; color: #1e293b; margin-bottom: 4px;">• បេសកកម្មទី ${idx + 1}៖</div>
+            <div style="background: #ffffff; border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 6px; line-height: 1.5;">${t}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Section 3: Response & Solution Space -->
+    <div style="margin-bottom: 16px;">
+      <div style="font-size: 0.95rem; font-weight: 700; color: #1e293b; background: #f1f5f9; padding: 4px 10px; border-left: 4px solid #7c3aed; margin-bottom: 8px;">
+        ✍️ ៣. កន្លែងសរសេរដំណោះស្រាយ និងចម្លើយរបស់ក្រុម/សិស្ស (Student Response Area)
+      </div>
+      <div style="border: 1.5px dashed #94a3b8; border-radius: 8px; min-height: 160px; padding: 12px; background: #fafafa;">
+        <div style="font-size: 0.82rem; color: #94a3b8; margin-bottom: 10px;">(សូមសរសេរចម្លើយ ទឡ្ហីករណ៍ ឬគូរដ្យាក្រាមដំណោះស្រាយខាងក្រោម)</div>
+        <div style="border-bottom: 1px dotted #cbd5e1; height: 32px;"></div>
+        <div style="border-bottom: 1px dotted #cbd5e1; height: 32px;"></div>
+        <div style="border-bottom: 1px dotted #cbd5e1; height: 32px;"></div>
+        <div style="border-bottom: 1px dotted #cbd5e1; height: 32px;"></div>
+        <div style="border-bottom: 1px dotted #cbd5e1; height: 32px;"></div>
+      </div>
+    </div>
+  `;
+
+  // Section 4: Exit Ticket 3-2-1
+  if (includeExitTicket) {
+    html += `
+      <div style="margin-bottom: 16px;">
+        <div style="font-size: 0.95rem; font-weight: 700; color: #1e293b; background: #f1f5f9; padding: 4px 10px; border-left: 4px solid #f59e0b; margin-bottom: 8px;">
+          🧠 ៤. សន្លឹកឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 & Muddiest Point
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 8px; font-size: 0.85rem;">
+          <div style="border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 6px; background: #ffffff;">
+            <strong>• ៣ ចំណុចដែលបានយល់ច្បាស់បំផុត៖</strong>
+            <div style="border-bottom: 1px dotted #cbd5e1; height: 24px; margin-top: 4px;"></div>
+          </div>
+          <div style="border: 1px solid #e2e8f0; padding: 8px 12px; border-radius: 6px; background: #ffffff;">
+            <strong>• ២ ចំណុចដែលចាប់អារម្មណ៍ចង់យកទៅអនុវត្ត៖</strong>
+            <div style="border-bottom: 1px dotted #cbd5e1; height: 24px; margin-top: 4px;"></div>
+          </div>
+          <div style="border: 1px solid #fed7aa; padding: 8px 12px; border-radius: 6px; background: #fffaf5;">
+            <strong style="color: #c2410c;">• ១ ចំណុចដែលនៅស្រពិចស្រពិល (Muddiest Point)៖</strong>
+            <div style="border-bottom: 1px dotted #fdba74; height: 24px; margin-top: 4px;"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Section 5: Rubric
+  if (includeRubric) {
+    html += `
+      <div style="margin-bottom: 12px;">
+        <div style="font-size: 0.95rem; font-weight: 700; color: #1e293b; background: #f1f5f9; padding: 4px 10px; border-left: 4px solid #10b981; margin-bottom: 8px;">
+          📊 ៥. តារាងរង្វាយតម្លៃរហ័ស (Quick Evaluation Rubric)
+        </div>
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem; text-align: left;">
+          <thead>
+            <tr style="background: #f1f5f9;">
+              <th style="border: 1px solid #cbd5e1; padding: 6px 8px;">លក្ខណៈវិនិច្ឆ័យ (Criteria)</th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center; width: 75px;">កម្រិត ១<br><span style="font-weight: normal; font-size: 0.72rem;">(កែលម្អ)</span></th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center; width: 75px;">កម្រិត ២<br><span style="font-weight: normal; font-size: 0.72rem;">(មធ្យម)</span></th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center; width: 75px;">កម្រិត ៣<br><span style="font-weight: normal; font-size: 0.72rem;">(ល្អ)</span></th>
+              <th style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center; width: 75px;">កម្រិត ៤<br><span style="font-weight: normal; font-size: 0.72rem;">(ឆ្នើម)</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px;">១. ការសហការ និងការចូលរួមក្នុងក្រុម</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px;">២. ការត្រិះរិះ និងការដោះស្រាយបញ្ហា</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px;">៣. គុណភាពនៃស្នាដៃ និងភាពត្រឹមត្រូវ</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+            </tr>
+            <tr>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px;">៤. ការធ្វើបទបង្ហាញ និងការពារទឡ្ហីករណ៍</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+              <td style="border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center;">⬜</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
+}
+window.renderWorksheetPreview = renderWorksheetPreview;
+
+async function exportWorksheetDocx() {
+  const data = state.generatedPlanData || state.currentPlan;
+  if (!data) {
+    showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
+    return;
+  }
+  if (!window.docx) {
+    showToast('បណ្ណាល័យ Word (.docx) មិនទាន់ផ្ទុកចប់នៅឡើយ!', 'error');
+    return;
+  }
+
+  showToast('កំពុងបង្កើតឯកសារសន្លឹកកិច្ចការ Word (.docx)...', 'info');
+
+  try {
+    const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle } = window.docx;
+
+    const school = data.school || 'វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម';
+    const teacher = data.teacher || 'លោកគ្រូ កែម បូរី';
+    const subject = data.subject || 'ចិត្តវិទ្យាអប់រំ';
+    const grade = data.grade || 'គរុនិស្សិត ឆ្នាំទី ១';
+    const title = data.lessonTitle || 'មេរៀន';
+    const dateStr = data.dateStr || getKhmerFormattedDate();
+
+    const isGroup = currentWorksheetMode === 'group';
+    const includeRubric = document.getElementById('chkWsRubric')?.checked !== false;
+    const includeExitTicket = document.getElementById('chkWsExitTicket')?.checked !== false;
+
+    const docChildren = [];
+
+    // Header
+    docChildren.push(
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ text: school, size: 22, bold: true, color: "475569" })]
+      }),
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ text: "សន្លឹកកិច្ចការសិស្ស (STUDENT ACTIVITY WORKSHEET)", bold: true, size: 28, color: "0F172A" })]
+      }),
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        children: [new TextRun({ text: `មេរៀន៖ «${title}» (${subject} ${grade})`, bold: true, size: 24, color: "0D9488" })]
+      }),
+      new Paragraph({ text: "" })
+    );
+
+    // Info Table
+    if (isGroup) {
+      docChildren.push(
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: { size: 50, type: WidthType.PERCENTAGE },
+                  borders: { top: { style: BorderStyle.SINGLE, color: "CBD5E1" }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.SINGLE, color: "CBD5E1" }, right: { style: BorderStyle.NONE } },
+                  children: [new Paragraph({ children: [new TextRun({ text: "ឈ្មោះក្រុម / ក្រុមទី៖ ........................................", bold: true, size: 22 })] })]
+                }),
+                new TableCell({
+                  width: { size: 50, type: WidthType.PERCENTAGE },
+                  borders: { top: { style: BorderStyle.SINGLE, color: "CBD5E1" }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.SINGLE, color: "CBD5E1" } },
+                  children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `កាលបរិច្ឆេទ៖ ${dateStr}`, size: 22 })] })]
+                })
+              ]
+            }),
+            new TableRow({
+              children: [
+                new TableCell({
+                  columnSpan: 2,
+                  borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.SINGLE, color: "CBD5E1" }, left: { style: BorderStyle.SINGLE, color: "CBD5E1" }, right: { style: BorderStyle.SINGLE, color: "CBD5E1" } },
+                  children: [
+                    new Paragraph({ children: [new TextRun({ text: "ប្រធានក្រុម៖ .....................................................  |  សមាជិក៖ ..........................................................................................", size: 22 })] })
+                  ]
+                })
+              ]
+            })
+          ]
+        }),
+        new Paragraph({ text: "" })
+      );
+    } else {
+      docChildren.push(
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: { size: 60, type: WidthType.PERCENTAGE },
+                  borders: { top: { style: BorderStyle.SINGLE, color: "CBD5E1" }, bottom: { style: BorderStyle.SINGLE, color: "CBD5E1" }, left: { style: BorderStyle.SINGLE, color: "CBD5E1" }, right: { style: BorderStyle.NONE } },
+                  children: [new Paragraph({ children: [new TextRun({ text: "ឈ្មោះសិស្ស៖ ...........................................................", bold: true, size: 22 })] })]
+                }),
+                new TableCell({
+                  width: { size: 40, type: WidthType.PERCENTAGE },
+                  borders: { top: { style: BorderStyle.SINGLE, color: "CBD5E1" }, bottom: { style: BorderStyle.SINGLE, color: "CBD5E1" }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.SINGLE, color: "CBD5E1" } },
+                  children: [new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: "លេខតុ/អត្តលេខ៖ .....................", size: 22 })] })]
+                })
+              ]
+            })
+          ]
+        }),
+        new Paragraph({ text: "" })
+      );
+    }
+
+    // Section 1: Objectives & Key Concepts
+    docChildren.push(
+      new Paragraph({ children: [new TextRun({ text: "១. វត្ថុបំណងនៃការអនុវត្ត និងសញ្ញាណគន្លឹះ", bold: true, size: 24, color: "0D9488" })] })
+    );
+
+    let objList = [];
+    if (data.objectives) {
+      if (data.objectives.knowledge) objList.push(...data.objectives.knowledge);
+      if (data.objectives.skills) objList.push(...data.objectives.skills);
+    }
+    if (!objList.length) {
+      objList = [`ស្វែងយល់ និងពន្យល់ពីគោលការណ៍គ្រឹះនៃ «${title}»`, `ចេះវិភាគ និងដោះស្រាយបញ្ហាក្នុងករណីសិក្សាជាក់ស្តែង`];
+    }
+    objList.forEach(o => {
+      docChildren.push(new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: o, size: 22 })] }));
+    });
+
+    docChildren.push(new Paragraph({ text: "" }));
+
+    // Section 2: Tasks
+    docChildren.push(
+      new Paragraph({ children: [new TextRun({ text: "២. បេសកកម្ម និងកិច្ចការអនុវត្ត (Tasks & Missions)", bold: true, size: 24, color: "2563EB" })] })
+    );
+
+    let tasks = [];
+    if (data.steps && Array.isArray(data.steps)) {
+      data.steps.forEach(st => {
+        const sTitle = st.stepTitle || '';
+        if (sTitle.includes('ទី៣') || sTitle.includes('ទី៤') || sTitle.includes('មេរៀនថ្មី') || sTitle.includes('ពង្រឹង')) {
+          if (st.studentActivities && st.studentActivities.trim().length > 15) {
+            tasks.push(st.studentActivities.trim());
+          }
+        }
+      });
+    }
+    if (!tasks.length) {
+      tasks = [
+        `កិច្ចការទី ១ (វិភាគករណីសិក្សា)៖ សូមអានករណីសិក្សាដែលគ្រូបានផ្តល់ជូន រួចវិភាគរកឫសគល់នៃបញ្ហាតាមទ្រឹស្តីមេរៀន «${title}»។`,
+        `កិច្ចការទី ២ (ដំណោះស្រាយជាយុទ្ធសាស្ត្រ)៖ ពិភាក្សាក្នុងក្រុមដើម្បីរៀបចំផែនការសកម្មភាព ឬវិធីសាស្ត្រដោះស្រាយចំនួន ៣ ចំណុចជាក់ស្តែង។`
+      ];
+    }
+    tasks.forEach((t, idx) => {
+      docChildren.push(
+        new Paragraph({ children: [new TextRun({ text: `• បេសកកម្មទី ${idx + 1}៖`, bold: true, size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: `  ${t}`, size: 22 })] }),
+        new Paragraph({ text: "" })
+      );
+    });
+
+    // Section 3: Response Box
+    docChildren.push(
+      new Paragraph({ children: [new TextRun({ text: "៣. កន្លែងសរសេរដំណោះស្រាយ និងចម្លើយ (Response Area)", bold: true, size: 24, color: "7C3AED" })] }),
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                borders: {
+                  top: { style: BorderStyle.DASHED, color: "94A3B8" },
+                  bottom: { style: BorderStyle.DASHED, color: "94A3B8" },
+                  left: { style: BorderStyle.DASHED, color: "94A3B8" },
+                  right: { style: BorderStyle.DASHED, color: "94A3B8" }
+                },
+                children: [
+                  new Paragraph({ children: [new TextRun({ text: "(សូមសរសេរចម្លើយ ទឡ្ហីករណ៍ ឬគូរដ្យាក្រាមដំណោះស្រាយខាងក្រោម)", italics: true, size: 20, color: "94A3B8" })] }),
+                  new Paragraph({ text: "\n\n\n\n\n\n\n\n" })
+                ]
+              })
+            ]
+          })
+        ]
+      }),
+      new Paragraph({ text: "" })
+    );
+
+    // Section 4: Exit Ticket
+    if (includeExitTicket) {
+      docChildren.push(
+        new Paragraph({ children: [new TextRun({ text: "៤. សន្លឹកឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 & Muddiest Point", bold: true, size: 24, color: "D97706" })] }),
+        new Paragraph({ children: [new TextRun({ text: "• ៣ ចំណុចដែលបានយល់ច្បាស់បំផុត៖ .................................................................................................................", size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: "• ២ ចំណុចដែលចាប់អារម្មណ៍ចង់យកទៅអនុវត្ត៖ .................................................................................................", size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: "• ១ ចំណុចដែលនៅស្រពិចស្រពិល (Muddiest Point)៖ .........................................................................................", size: 22, bold: true, color: "C2410C" })] }),
+        new Paragraph({ text: "" })
+      );
+    }
+
+    // Section 5: Rubric
+    if (includeRubric) {
+      docChildren.push(
+        new Paragraph({ children: [new TextRun({ text: "៥. តារាងរង្វាយតម្លៃរហ័ស (Quick Evaluation Rubric)", bold: true, size: 24, color: "059669" })] }),
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({ width: { size: 40, type: WidthType.PERCENTAGE }, children: [new Paragraph({ children: [new TextRun({ text: "លក្ខណៈវិនិច្ឆ័យ (Criteria)", bold: true, size: 20 })] })] }),
+                new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "កម្រិត ១\n(កែលម្អ)", bold: true, size: 18 })] })] }),
+                new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "កម្រិត ២\n(មធ្យម)", bold: true, size: 18 })] })] }),
+                new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "កម្រិត ៣\n(ល្អ)", bold: true, size: 18 })] })] }),
+                new TableCell({ width: { size: 15, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "កម្រិត ៤\n(ឆ្នើម)", bold: true, size: 18 })] })] })
+              ]
+            }),
+            ...[
+              "១. ការសហការ និងការចូលរួមក្នុងក្រុម",
+              "២. ការត្រិះរិះ និងការដោះស្រាយបញ្ហា",
+              "៣. គុណភាពនៃស្នាដៃ និងភាពត្រឹមត្រូវ",
+              "៤. ការធ្វើបទបង្ហាញ និងការពារទឡ្ហីករណ៍"
+            ].map(crit => new TableRow({
+              children: [
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: crit, size: 20 })] })] }),
+                new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "⬜", size: 20 })] })] }),
+                new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "⬜", size: 20 })] })] }),
+                new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "⬜", size: 20 })] })] }),
+                new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "⬜", size: 20 })] })] })
+              ]
+            }))
+          ]
+        })
+      );
+    }
+
+    const doc = new Document({
+      styles: {
+        default: {
+          document: {
+            run: {
+              font: "Kantumruy Pro",
+              size: 22
+            }
+          }
+        }
+      },
+      sections: [{ children: docChildren }]
+    });
+
+    const blob = await Packer.toBlob(doc);
+    const fileName = `សន្លឹកកិច្ចការសិស្ស_${(data.subject || 'មេរៀន')}_${(data.lessonTitle || 'កិច្ចការ')}.docx`.replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '_');
+    
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    showToast(`✅ បានទាញយកសន្លឹកកិច្ចការ ${fileName} ជោគជ័យ!`, 'success');
+  } catch (err) {
+    console.error('exportWorksheetDocx error:', err);
+    showToast('បរាជ័យក្នុងការបង្កើត Word Worksheet: ' + err.message, 'error');
+  }
+}
+window.exportWorksheetDocx = exportWorksheetDocx;
+
+function printWorksheet() {
+  const previewEl = document.getElementById('worksheetA4Preview');
+  if (!previewEl) return;
+  
+  const printWindow = window.open('', '_blank', 'width=850,height=900');
+  if (!printWindow) {
+    showToast('សូមអនុញ្ញាត Popup ដើម្បីបោះពុម្ពសន្លឹកកិច្ចការ!', 'warning');
+    return;
+  }
+  
+  const contentHtml = previewEl.innerHTML;
+  printWindow.document.open();
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="km">
+    <head>
+      <meta charset="UTF-8">
+      <title>សន្លឹកកិច្ចការសិស្ស - Student Worksheet</title>
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+      <style>
+        @page {
+          size: A4 portrait;
+          margin: 12mm 15mm;
+        }
+        body {
+          font-family: 'Kantumruy Pro', 'Khmer OS Siemreap', sans-serif;
+          color: #000;
+          background: #fff;
+          margin: 0;
+          padding: 0;
+          line-height: 1.5;
+          font-size: 11pt;
+        }
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin: 10px 0;
+        }
+        th, td {
+          border: 1px solid #475569;
+          padding: 6px 10px;
+          text-align: left;
+        }
+        th {
+          background-color: #f1f5f9;
+        }
+      </style>
+    </head>
+    <body>
+      ${contentHtml}
+      <script>
+        window.onload = function() {
+          setTimeout(function() {
+            window.print();
+            window.close();
+          }, 350);
+        };
+      <\/script>
+    </body>
+    </html>
+  `);
+  printWindow.document.close();
+}
+window.printWorksheet = printWorksheet;
+
+async function copyWorksheetText() {
+  const previewEl = document.getElementById('worksheetA4Preview');
+  if (!previewEl) return;
+
+  const plainText = previewEl.innerText;
+  try {
+    await navigator.clipboard.writeText(plainText);
+    showToast('✨ បានចម្លងខ្លឹមសារសន្លឹកកិច្ចការចូល Clipboard រួចរាល់!', 'success');
+  } catch (err) {
+    showToast('មិនអាចចម្លងបានទេ: ' + err.message, 'error');
+  }
+}
+window.copyWorksheetText = copyWorksheetText;
+
 
