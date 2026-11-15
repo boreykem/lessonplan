@@ -2822,6 +2822,164 @@ function isBackwardDesignRequest(params) {
   return false;
 }
 
+// ==========================================================================
+// 🧭 Pedagogical Strategy Matrix: Template Mode × Teaching Method
+// Harmonizes 5 Primary Teaching Methods across MoEYS Standard & Flipped Learning
+// ==========================================================================
+function detectMethodType(method) {
+  const m = (method || '').toLowerCase();
+  if (m.includes('5e') || m.includes('inquiry') || m.includes('stem') || m.includes('រិះរក') || m.includes('ពិសោធ')) return '5e';
+  if (m.includes('jigsaw') || m.includes('concept map') || m.includes('role-play') || m.includes('សហការ') || m.includes('collaborative') || m.includes('cooperative')) return 'jigsaw';
+  if (m.includes('problem') || m.includes('pbl') || m.includes('ដោះស្រាយបញ្ហា')) return 'pbl';
+  if (m.includes('direct') || m.includes('ពន្យល់បង្ហាញ') || m.includes('i do')) return 'direct';
+  return 'student_centered';
+}
+
+function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '') {
+  const methodType = detectMethodType(method);
+  const methodName = method || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)';
+  const titleStr = lessonTitle ? `នៃ «${lessonTitle}»` : '';
+
+  if (isFlipped) {
+    switch (methodType) {
+      case 'pbl':
+        return `
+10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា (Problem-Based Learning - PBL)» ក្នុងទម្រង់ Flipped Classroom៖
+   - ដោយសារទ្រឹស្តីគោលសិស្សបានមើលវីដេអូរៀនមុនម៉ោងរួចហើយ ដំណើរការក្នុងថ្នាក់ត្រូវផ្តោត ១០០% លើការដោះស្រាយបញ្ហាជាក់ស្តែង (Real-World Problem Scenario)៖
+     • ជំហានទី ២ (១០%): ពិនិត្យការយល់ដឹងពីផ្ទះ ស្រាយចម្ងល់ Muddiest Points និងភ្ជាប់ទ្រឹស្តីទៅនឹងបញ្ហាប្រឈមក្នុងសង្គម/វិជ្ជាជីវៈ។
+     • ជំហានទី ៣ (១០%): គ្រូចោទសំណួរតម្រង់ទិស ៤ សំណួរ និងប្រគល់ «សន្លឹកបេសកកម្មដោះស្រាយបញ្ហា (Problem Challenge Scenario)» ជាក់ស្តែងមួយដែលមានឧបសគ្គស្មុគស្មាញ${titleStr}។
+     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): ត្រូវរៀបចំជា ៤ ដំណាក់កាល PBL យ៉ាងច្បាស់លាស់៖
+       + ដំណាក់កាល ១ (វិភាគបញ្ហា & ស្វែងរកឫសគល់): ក្រុមនីមួយៗវិភាគសេណារីយ៉ូបញ្ហា កំណត់ឫសគល់ និងទិន្នន័យចាំបាច់ [ការគិតស៊ីជម្រៅ]
+       + ដំណាក់កាល ២ (បង្កើតសម្មតិកម្ម & ដំណោះស្រាយច្នៃប្រឌិត): សហការរៀបចំយុទ្ធសាស្ត្រដោះស្រាយ និងសរសេរផែនការសកម្មភាពលើផ្ទាំង Flipchart A0 [ការសហការ & ភាពច្នៃប្រឌិត]
+       + ដំណាក់កាល ៣ (ការពារដំណោះស្រាយ & ដេញដោល): តំណាងក្រុមឡើងការពារដំណោះស្រាយ ឆ្លើយតបសំណួរជំទាស់ពីក្រុមដទៃ [ការប្រាស្រ័យទាក់ទង]
+       + ដំណាក់កាល ៤ (វាយតម្លៃ & សំយោគក្បួន): វាយតម្លៃដំណោះស្រាយតាម Rubric ៤ កម្រិត និងគ្រូជួយសំយោគក្បួនដោះស្រាយរួមថ្នាក់
+     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 ឆ្លុះបញ្ចាំងពីដំណោះស្រាយបញ្ហា និងកិច្ចការស្រាវជ្រាវបន្ត។`;
+
+      case 'jigsaw':
+        return `
+10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្រសហការកម្រិតខ្ពស់ (Jigsaw, Concept Mapping, Role-Play)» ក្នុងទម្រង់ Flipped Classroom៖
+   - រៀបចំដំណើរការក្នុងថ្នាក់ដោយប្រើបច្ចេកទេស Jigsaw និងផែនទីគំនិតឱ្យមានអន្តរកម្មកម្រិតខ្ពស់បំផុត៖
+     • ជំហានទី ២ (១០%): ពិនិត្យលទ្ធផល Pre-Test ស្រាយចម្ងល់ Muddiest Points និងផ្ទៀងផ្ទាត់ចំណេះដឹងជាមូលដ្ឋាន។
+     • ជំហានទី ៣ (១០%): គ្រូចោទសំណួរគន្លឹះ ៤ សំណួរ បែងចែកសិស្សជា «ក្រុមដើម (Home Groups)» រួចបញ្ជូនតំណាងទៅកាន់ «ក្រុមអ្នកជំនាញ (Expert Groups)» តាមប្រធានបទរងនៃមេរៀន${titleStr}។
+     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): ត្រូវរៀបចំជា ៤ ដំណាក់កាលសហការស៊ីជម្រៅ៖
+       + ដំណាក់កាល ១ (ក្រុមអ្នកជំនាញស្រាវជ្រាវស៊ីជម្រៅ): Expert Groups ប្រជុំវិភាគឯកសារ ស្វែងយល់ផ្នែកជំនាញរបស់ខ្លួន និងរៀបចំយុទ្ធសាស្ត្របង្រៀនបន្ត [ការគិតស៊ីជម្រៅ]
+       + ដំណាក់កាល ២ (ត្រឡប់ទៅក្រុមដើមដើម្បីបង្រៀនគ្នា - Jigsaw Sharing): សមាជិកត្រឡប់ទៅ Home Groups វិញ បង្រៀនគ្នាទៅវិញទៅមកលើគ្រប់ផ្នែកនៃមេរៀន [ការប្រាស្រ័យទាក់ទង & សហការ]
+       + ដំណាក់កាល ៣ (សំយោគគំនិតរួមលើ Concept Map / Flipchart): ក្រុមដើមរួមគ្នាចងក្រងជា «ផែនទីគំនិតរួម (Comprehensive Concept Map)» ឬសេណារីយ៉ូ Role-Play [ភាពច្នៃប្រឌិត]
+       + ដំណាក់កាល ៤ (Gallery Walk & វាយតម្លៃគ្នាទៅវិញទៅមក): ដើរទស្សនាស្នាដៃក្រុមដទៃ ផ្តល់ Feedback និងវាយតម្លៃតាម Rubric
+     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 សង្ខេបចំណេះដឹងពីក្រុមអ្នកជំនាញ និងកិច្ចការផ្ទះ។`;
+
+      case '5e':
+        return `
+10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «ការរិះរក និងពិសោធន៍ តាមបែប 5E (Inquiry-based / STEM)» ក្នុងទម្រង់ Flipped Classroom៖
+   - ត្រូវរៀបចំដំណាក់កាលទាំង ៥ នៃ 5E ឱ្យឆ្លុះបញ្ចាំងយ៉ាងច្បាស់ក្នុង ៥ ជំហាន៖
+     • ជំហានទី ១ & ២: ផ្សារភ្ជាប់ដំណាក់កាល Engage (ឈានចូល & បំផុសចំណាប់អារម្មណ៍ តាមរយៈលទ្ធផល Pre-Test QCM & ដោះស្រាយ Muddiest Points ពីផ្ទះ)
+     • ជំហានទី ៣: ផ្សារភ្ជាប់ដំណាក់កាល Explore (រុករក & ពិសោធន៍ តាមសន្លឹកបេសកកម្ម Challenge Scenario / ឧបករណ៍ពិសោធន៍ STEM${titleStr})
+     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): ផ្សារភ្ជាប់ដំណាក់កាល Explain & Elaborate៖
+       + Explain: ក្រុមនីមួយៗពន្យល់ និងការពារទិន្នន័យ/របកគំហើញដែលបានរកឃើញ គ្រូបូកសរុបគោលការណ៍គន្លឹះ
+       + Elaborate: សិស្សយកចំណេះដឹងទៅពង្រីកអនុវត្តដោះស្រាយបញ្ហាប្រឈមថ្មី (Transfer of Learning) លើផ្ទាំង Flipchart A0
+     • ជំហានទី ៥: ផ្សារភ្ជាប់ដំណាក់កាល Evaluate (វាយតម្លៃសមត្ថភាព តាមរយៈ Exit Ticket 3-2-1, Rubric និង Post-Test)។`;
+
+      case 'direct':
+        return `
+10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង (Direct Instruction / I Do - We Do - You Do)» ក្នុងទម្រង់ Flipped Classroom៖
+   - ដោយសារដំណាក់កាល "I Do" (ការពន្យល់ទ្រឹស្តីមូលដ្ឋាន) សិស្សបានរៀនតាមវីដេអូមុនម៉ោងរួចហើយ ម៉ោងក្នុងថ្នាក់ត្រូវប្រែក្លាយទៅជា "Advanced We Do" និង "Intensive You Do (៧០%)"៖
+     • ជំហានទី ២ (១០%): ត្រួតពិនិត្យ Pre-Test ស្រាយចម្ងល់ Muddiest Points និងធ្វើ Mini-Modeling (I Do បំភ្លឺចំណុចពិបាកបំផុត ២-៣ នាទី)។
+     • ជំហានទី ៣ (១០%): ដំណាក់កាល Guided Practice (We Do) គ្រូនាំសិស្សអនុវត្តគំរូលំហាត់គន្លឹះរួមគ្នា ៤ សំណួរ ដើម្បីពង្រឹងក្បួនខ្នាត${titleStr}។
+     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): ដំណាក់កាល Intensive Independent & Collaborative Practice (You Do)៖
+       + ដំណាក់កាល ១ (អនុវត្តជាគូ): សិស្សដោះស្រាយលំហាត់កម្រិតមធ្យមជាដៃគូ និងត្រួតពិនិត្យចម្លើយគ្នាទៅវិញទៅមក
+       + ដំណាក់កាល ២ (អនុវត្តកម្រិតខ្ពស់ជាក្រុម): ដោះស្រាយលំហាត់ស្មុគស្មាញ ឬស្ថានភាពអនុវត្តជាក់ស្តែងលើ Flipchart A0 [ការដោះស្រាយបញ្ហា]
+       + ដំណាក់កាល ៣ (បង្ហាញលទ្ធផល & ពិនិត្យកែកំហុស): ឡើងបង្ហាញដំណោះស្រាយលើក្តារខៀន គ្រូនិងសិស្សពិនិត្យកំហុសទូទៅ (Error Analysis)
+       + ដំណាក់កាល ៤ (ស្វ័យវាយតម្លៃ): សិស្សផ្ទៀងផ្ទាត់ចម្លើយផ្ទាល់ខ្លួន និងកែសម្រួលឱ្យបាន ១០០% ត្រឹមត្រូវ
+     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 វាស់ស្ទង់ភាពស្ទាត់ជំនាញ និងលំហាត់ពង្រឹងសមត្ថភាពនៅផ្ទះ។`;
+
+      default: // student_centered
+        return `
+10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)» ក្នុងទម្រង់ Flipped Classroom៖
+   - អនុវត្តយ៉ាងម៉ឺងម៉ាត់នូវគោលការណ៍ TTT 30% / STT 70% និងជំនាញសតវត្សទី២១ (4Cs)៖
+     • ជំហានទី ២ (១០%): សិស្សជាអ្នកលើកឡើង Muddiest Points ពីផ្ទះ គ្រូដើរតួជាអ្នកសម្របសម្រួល (Facilitator) បំផុសឱ្យសិស្សឆ្លើយបំភ្លឺគ្នាទៅវិញទៅមក។
+     • ជំហានទី ៣ (១០%): គ្រូចោទសួរ ៤ សំណួរដាស់ការត្រិះរិះ និងប្រគល់កិច្ចការស្វ័យសិក្សាជាក្រុម${titleStr}។
+     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): សិស្សគ្រប់គ្រងការរៀនដោយខ្លួនឯង (Learner Autonomy)៖
+       + ដំណាក់កាល ១ (រិះរកដោយស្វ័យភាព): ក្រុមសិស្សពិភាក្សា វិភាគទិន្នន័យ និងស្រង់ខ្លឹមសារដោយសេរីតាមទស្សនៈផ្ទាល់ខ្លួន [ការគិតស៊ីជម្រៅ]
+       + ដំណាក់កាល ២ (សហការផលិតស្នាដៃ): ផលិតលទ្ធផលរួមលើ Flipchart A0 ដោយបែងចែកតួនាទីច្បាស់លាស់ [ការសហការ]
+       + ដំណាក់កាល ៣ (បទបង្ហាញដឹកនាំដោយសិស្ស): សិស្សដឹកនាំការធ្វើបទបង្ហាញ និងសួរសំណួរដេញដោលគ្នា [ការប្រាស្រ័យទាក់ទង]
+       + ដំណាក់កាល ៤ (ការឆ្លុះបញ្ចាំងរួម): ឆ្លុះបញ្ចាំងលើដំណើរការរៀន (Metacognition) និងវាយតម្លៃតាម Rubric
+     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 ស្ទង់មតិសិស្សលើការយល់ដឹង និងកិច្ចការស្វ័យសិក្សាបន្ត។`;
+    }
+  } else {
+    // Standard 5-Step MoEYS Format
+    switch (methodType) {
+      case 'pbl':
+        return `
+៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
+   - ជំហានទី ២ (រំលឹកមេរៀន): គ្រូចោទសួរសំណួររំលឹកដែលជាស្ពានចម្លងផ្សារភ្ជាប់ទៅកាន់ស្ថានភាពបញ្ហាជាក់ស្តែងនៃមេរៀនថ្មី។
+   - ជំហានទី ៣ (មេរៀនថ្មី - Problem Presentation & Knowledge Acquisition):
+     • គ្រូលើកយក «ស្ថានភាពបញ្ហាជាក់ស្តែង (Real-World Problem Scenario)» មួយដែលពាក់ព័ន្ធនឹង «${lessonTitle || 'មេរៀនថ្មី'}» មកបង្ហាញលើក្តារខៀន ឬស្លាយ។
+     • គ្រូចោទសួរសំណួរគន្លឹះដាស់ការត្រិះរិះ ដើម្បីឱ្យសិស្សវិភាគរកឫសគល់នៃបញ្ហា និងរកឃើញតម្រូវការនៃទ្រឹស្តី/រូបមន្តថ្មី។
+     • គ្រូសម្របសម្រួល និងពន្យល់ទ្រឹស្តីគន្លឹះដែលជាឧបករណ៍សម្រាប់ដោះស្រាយបញ្ហានោះ។
+   - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - Collaborative Problem-Solving & Defense ៧០% STT):
+     • [សកម្មភាព PBL ជាក្រុម]: គ្រូបែងចែកសិស្សជាក្រុម ដាក់សេណារីយ៉ូបញ្ហាជាក់ស្តែងឱ្យក្រុមនីមួយៗរៀបចំយុទ្ធសាស្ត្រដោះស្រាយលើផ្ទាំង Flipchart ឬក្ដារឆ្នួន។
+     • សិស្សពិភាក្សា ដោះស្រាយ ធ្វើតេស្តសម្មតិកម្ម និងឡើងការពារដំណោះស្រាយរបស់ក្រុម [ជំនាញដោះស្រាយបញ្ហា និងការគិតស៊ីជម្រៅ]។
+     • គ្រូនិងសិស្សវាយតម្លៃដំណោះស្រាយតាមលក្ខណៈវិនិច្ឆ័យរួម។
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ): ដាក់កិច្ចការបញ្ហាជាក់ស្តែងថ្មីមួយសម្រាប់សិស្សដោះស្រាយនៅផ្ទះ។`;
+
+      case 'jigsaw':
+        return `
+៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
+   - ជំហានទី ២ (រំលឹកមេរៀន): រំលឹកចំណេះដឹងគ្រឹះដែលជាមូលដ្ឋានសម្រាប់បែងចែកប្រធានបទជំនាញ។
+   - ជំហានទី ៣ (មេរៀនថ្មី - Jigsaw Phase 1: Expert Groups):
+     • គ្រូណែនាំប្រធានបទមេរៀន «${lessonTitle || 'មេរៀនថ្មី'}» និងបែងចែកខ្លឹមសារជាផ្នែករងតូចៗ។
+     • គ្រូបែងចែកសិស្សជា «ក្រុមអ្នកជំនាញ (Expert Groups)» ទៅតាមផ្នែករងនីមួយៗ ដើម្បីអាន ពិភាក្សា និងយល់ឱ្យស៊ីជម្រៅលើផ្នែករបស់ខ្លួន។
+     • គ្រូដើរសម្របសម្រួល និងផ្ទៀងផ្ទាត់ការយល់ដឹងរបស់ក្រុមអ្នកជំនាញនីមួយៗ។
+   - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - Jigsaw Phase 2 & Concept Mapping ៧០% STT):
+     • សិស្សត្រឡប់ទៅ «ក្រុមដើម (Home Groups)» វិញ។
+     • អ្នកជំនាញម្នាក់ៗធ្វើបទបង្ហាញបង្រៀនមិត្តរួមក្រុមដើមពីផ្នែកដែលខ្លួនបានរៀន [ជំនាញទំនាក់ទំនង និងការសហការ]។
+     • សមាជិកក្រុមដើមទាំងអស់រួមគ្នាចងក្រងខ្លឹមសារទាំងមូលជា «ផែនទីគំនិត (Concept Map)» ឬសង្ខេបលើផ្ទាំង Flipchart រួចធ្វើ Gallery Walk។
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ): Exit Ticket 3-2-1 និងកិច្ចការស្រាវជ្រាវពង្រឹងការយល់ដឹង។`;
+
+      case '5e':
+        return `
+៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
+   - ជំហានទី ១ & ២: ដំណាក់កាល Engage (ឈានចូល & បំផុស) — គ្រូចោទសួរ ឬបង្ហាញបាតុភូតចម្លែកដើម្បីជំរុញការចង់ដឹង និងផ្សារភ្ជាប់មេរៀនចាស់។
+   - ជំហានទី ៣ (មេរៀនថ្មី - Explore & Explain):
+     • ដំណាក់កាល Explore (រុករក/ពិសោធន៍): សិស្សធ្វើការជាក្រុម សង្កេត ពិសោធន៍ ឬអានស្រាវជ្រាវឯកសារដើម្បីស្វែងរកទិន្នន័យ។
+     • ដំណាក់កាល Explain (ពន្យល់/បកស្រាយ): សិស្សពន្យល់ពីអ្វីដែលបានរកឃើញតាមភាសារបស់ខ្លួន រួចគ្រូជួយបំពេញបន្ថែម និងកំណត់និយមន័យ/រូបមន្តផ្លូវការ។
+   - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - Elaborate & Evaluate ៧០% STT):
+     • ដំណាក់កាល Elaborate (ពង្រីកចំណេះដឹង): សិស្សអនុវត្តចំណេះដឹងថ្មីទៅដោះស្រាយលំហាត់ ឬស្ថានភាពស្មុគស្មាញថ្មីជាក្រុម [ការគិតស៊ីជម្រៅ]។
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ - Evaluate):
+     • ដំណាក់កាល Evaluate (វាយតម្លៃ): ធ្វើតេស្តរហ័ស ឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 និងដាក់កិច្ចការផ្ទះ។`;
+
+      case 'direct':
+        return `
+៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
+   - ជំហានទី ២ (រំលឹកមេរៀន): ពិនិត្យចំណេះដឹងបុរេលក្ខខណ្ឌដែលចាំបាច់សម្រាប់ការរៀនក្បួនថ្មី។
+   - ជំហានទី ៣ (មេរៀនថ្មី - Explicit Teaching: "I Do" & "We Do"):
+     • ដំណាក់កាល "I Do" (គ្រូពន្យល់ និងធ្វើជាគំរូ): គ្រូពន្យល់គោលការណ៍ ច្បាប់ ឬរូបមន្តយ៉ាងក្បោះក្បាយ បង្ហាញដំណោះស្រាយគំរូមួយជំហានម្តងៗលើក្តារខៀន ដោយបញ្ជាក់ពីហេតុផលនៅពីក្រោយជំហាននីមួយៗ។
+     • ដំណាក់កាល "We Do" (អនុវត្តរួមគ្នាដឹកនាំដោយគ្រូ): គ្រូនាំសិស្សទាំងអស់ធ្វើលំហាត់គំរូទី២ រួមគ្នា ដោយចោទសួរឱ្យសិស្សឆ្លើយជំហានបន្ទាប់ ដើម្បីពិនិត្យការយល់ដឹង។
+   - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - "You Do" Independent & Pair Practice ៧០% STT):
+     • ដំណាក់កាល "You Do" (សិស្សអនុវត្តដោយឯករាជ្យ): គ្រូដាក់កម្រងលំហាត់អនុវត្តពីងាយទៅពិបាក សិស្សធ្វើដោយខ្លួនឯង ឬជាដៃគូ។
+     • គ្រូដើរត្រួតពិនិត្យ ផ្តល់ Feedback ភ្លាមៗ (Immediate Scaffolding) និងហៅសិស្សឡើងកែលើក្តារខៀន។
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ): ដាក់លំហាត់អនុវត្តបន្ថែមសម្រាប់ពង្រឹងភាពស្ទាត់ជំនាញ (Fluency) នៅផ្ទះ។`;
+
+      default: // student_centered
+        return `
+៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
+   - ជំហានទី ២ (រំលឹកមេរៀន): សិស្សជាអ្នករំលឹក និងសង្ខេបមេរៀនចាស់ដោយសេរី គ្រូគ្រាន់តែជាអ្នកសម្របសម្រួល។
+   - ជំហានទី ៣ (មេរៀនថ្មី - Guided Discovery & Inquiry):
+     • គ្រូមិនបង្រៀនដោយការសូត្រទ្រឹស្តីទេ តែប្រើសំណួរគន្លឹះចំហ (Open-ended Questions) ដើម្បីជំរុញឱ្យសិស្សពិភាក្សា រុករក និងបង្កើតនិយមន័យដោយខ្លួនឯង។
+     • សិស្សកត់ត្រា និងបូកសរុបគំនិតសំខាន់ៗដែលខ្លួនរកឃើញ។
+   - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - Active Group Application ៧០% STT):
+     • អនុវត្តយ៉ាងម៉ឺងម៉ាត់នូវច្បាប់ TTT 30% / STT 70%៖ សិស្សធ្វើការជាក្រុមលើកិច្ចការអនុវត្តជាក់ស្តែង ធ្វើបទបង្ហាញការពារលើ Flipchart ឬក្ដារឆ្នួន [ជំនាញ 4Cs]។
+     • គ្រូដើរជួយសម្របសម្រួល មិនជ្រៀតជ្រែកការគិតរបស់សិស្ស។
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ): Exit Ticket 3-2-1 និងការស្រាវជ្រាវបន្តតាមចំណាប់អារម្មណ៍។`;
+    }
+  }
+}
+
 
 // ==========================================================================
 // AI Generation Core Engine
@@ -3201,7 +3359,11 @@ async function generateWithGroqAPI(params) {
   const totalMin = parseDurationToMinutes(params.duration);
   const stepTimeHints = calculateStepDurations(params.duration, isFlipped ? 'flipped' : (isBd ? 'backward_design' : 'standard'));
 
-  const prompt = `Generate a complete MoEYS Lesson Plan in Khmer for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}). Include 3 objectives (Knowledge, Skills, Attitudes), materials, teaching method, and ${isBd ? "3-stage UbD learning activities" : "5 in-class teaching steps with teacher activity, lesson content, and student activity"}. Do NOT include pre-test/post-test questions in this output (they are generated separately on-demand). Return strictly valid JSON.`;
+  const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle);
+  const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS Standard 5-Step'} Lesson Plan in Khmer for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}).
+Teaching Method: ${params.method || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)'}.
+${methodPrompt}
+Include 3 objectives (Knowledge, Skills, Attitudes using Action-Condition-Standard formula), materials, teaching method, and ${isBd ? "3-stage UbD learning activities" : "5 in-class teaching steps with teacher activity, lesson content, and student activity"}. Do NOT include pre-test/post-test questions in this output (they are generated separately on-demand). Return strictly valid JSON.`;
 
   const candidateModels = [
     'llama-3.3-70b-versatile',
@@ -3262,7 +3424,12 @@ async function generateWithGroqAPI(params) {
 async function generateWithOpenRouterAPI(params) {
   const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
   const isFlipped = isFlippedLearningRequest(params);
-  const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS'} Lesson Plan in Khmer for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}). Return strictly valid JSON.`;
+  const isBd = !isFlipped && isBackwardDesignRequest(params);
+  const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle);
+  const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS Standard 5-Step'} Lesson Plan in Khmer for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}).
+Teaching Method: ${params.method || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)'}.
+${methodPrompt}
+Return strictly valid JSON.`;
 
   const models = [
     'meta-llama/llama-3.3-70b-instruct:free',
@@ -3458,22 +3625,13 @@ ${isLongSession ? `• This is an EXTENDED ${totalMin}-minute block (Multi-hour 
    - [C - Condition / លក្ខខណ្ឌ]: មធ្យោបាយ ឬវិធីសាស្ត្ររៀន (ឧ. «តាមរយៈការពន្យល់របស់គ្រូ និងការសង្កេតស្លាយ/វីដេអូ», «តាមរយៈការអានឯកសារគោល», «តាមរយៈការអនុវត្តលំហាត់ជាក់ស្តែង និងការពិភាក្សាជាក្រុម», «តាមរយៈការឆ្លុះបញ្ចាំងលើ Exit Ticket»...)
    - [S / D - Standard / ស្ដង់ដារ ឬ កម្រិតកំណត់]: កម្រិតកំណត់នៃការសម្រេចបាន (ឧ. «បានត្រឹមត្រូវ និងក្បោះក្បាយ», «បានយ៉ាងហោចណាស់ ៨០% ត្រឹមត្រូវ», «បានច្បាស់លាស់ឥតខុសឆ្គង», «ប្រកបដោយភាពជឿជាក់ និងស្ទាត់ជំនាញ», «ប្រកបដោយស្មារតីទទួលខុសត្រូវខ្ពស់»)
    ⚠️ ហាមដាច់ខាតសរសេរតែសកម្មភាពកាត់ៗ (ឧ. «ពន្យល់បានពី...») ដោយគ្មានលក្ខខណ្ឌ (Condition: តាមរយៈ...) និងគ្មានស្ដង់ដារ (Standard: បានត្រឹមត្រូវ...)!
-10. INTEGRATION OF PRIMARY TEACHING METHOD (${params.method || '5E'}):
-   - វិធីសាស្ត្របង្រៀនចម្បងដែលលោកគ្រូ/អ្នកគ្រូបានជ្រើសរើសគឺ៖ «${params.method}»។
-   - ត្រូវបញ្ចូលវិធីសាស្ត្រនេះចូលក្នុងដំណើរការបង្រៀន ៥ ជំហាន (steps) ជាពិសេសជំហានទី ៣ និងទី ៤ ឱ្យស៊ីជម្រៅបំផុត។
-   ${(params.method || '').toLowerCase().includes('5e') ? `
-   - ដោយសារវិធីសាស្ត្រ «5E» ត្រូវបានជ្រើសរើស ត្រូវរៀបចំដំណាក់កាលទាំង ៥ នៃ 5E ឱ្យឆ្លុះបញ្ចាំងក្នុង ៥ ជំហាន៖
-     • ជំហានទី ១ & ២: ផ្សារភ្ជាប់ដំណាក់កាល Engage (ឈានចូល & បំផុសចំណាប់អារម្មណ៍ តាមរយៈលទ្ធផល Pre-Test & Muddiest Points)
-     • ជំហានទី ៣: ផ្សារភ្ជាប់ដំណាក់កាល Explore (រុករក & ពិសោធន៍ តាមសន្លឹកបេសកកម្ម Challenge Scenario)
-     • ជំហានទី ៤: ផ្សារភ្ជាប់ដំណាក់កាល Explain & Elaborate (ពន្យល់រកឃើញ និងពង្រីកចំណេះដឹងដោះស្រាយបញ្ហាស៊ីជម្រៅ ៧០%)
-     • ជំហានទី ៥: ផ្សារភ្ជាប់ដំណាក់កាល Evaluate (វាយតម្លៃសមត្ថភាព តាមរយៈ Exit Ticket 3-2-1 & Post-Test)
-   ` : ''}
+${getMethodPedagogicalPrompt(params.method, true, false, params.lessonTitle)}
 
 CRITICAL INSTRUCTIONS FOR AI GENERATION:
 1. Deep Content Analysis: Thoroughly examine the provided lesson content. Extract real definitions, terms, rules, formulas, and examples. Use them everywhere in the plan.
 2. Objectives: Strictly format every single objective statement using the 3 components: [Action] + [Content] + [Condition: តាមរយៈ...] + [Standard: បានត្រឹមត្រូវ/ច្បាស់លាស់...]!
 3. Core Focus: Focus 100% of your pedagogical output on Objectives, Materials, and the 5-Step Teaching Process (5%-10%-10%-70%-5%). Do NOT generate pre-test or post-test question arrays in this JSON (they are generated separately on-demand).
-4. Step 4 (Active Learning Core 70%): You MUST dynamically choose and apply ONE of these 4 advanced pedagogies: (1) Jigsaw Cooperative Learning (ក្រុមអ្នកជំនាញ), (2) Concept Mapping (ការគូសផែនទីគំនិត), (3) Role-Play/Phenomenon-Based Simulation (ការដើរតួដោះស្រាយវិបត្តិ), or (4) Metacognitive Reflection/Advanced Exit Tickets (ការត្រិះរិះពិចារណាពីការគិត). Describe a SPECIFIC, RICH group activity applying this chosen pedagogy directly based on the lesson content with clear progressive phases.
+4. Step 4 (Active Learning Core 70%): You MUST strictly apply the chosen primary teaching method («${params.method || 'សិស្សមជ្ឈមណ្ឌល'}») in Step 4 with rich, concrete classroom tasks, collaborative phases, and direct alignment with the lesson content.
 
 Return ONLY valid JSON matching this schema:
 {
@@ -3491,7 +3649,7 @@ Return ONLY valid JSON matching this schema:
   "duration": "${params.duration}",
   "chapter": "${params.chapter || ''}",
   "lessonTitle": "${params.lessonTitle}",
-  "method": "ការរៀនបែបត្រឡប់",
+  "method": "${params.method || 'ការរៀនបែបត្រឡប់'}",
   "dateStr": "ថ្ងៃ... ខែ... ឆ្នាំ២០២...",
   "objectives": {
     "intro": "បន្ទាប់ពីរៀនមេរៀននេះចប់ គរុនិស្សិតនឹង៖",
@@ -3713,6 +3871,7 @@ STEP DURATION ALLOCATION (${totalMin} MINUTES TOTAL):
    - ច្បាប់ TTT 30% / STT 70%: នៅក្នុងជំហានទី៤ ត្រូវរៀបចំសកម្មភាពយ៉ាងណាឱ្យគ្រូនិយាយត្រឹមតែ ៣០% និងសិស្សអនុវត្ត/ពិភាក្សា ៧០%។
    - ជំនាញសតវត្សទី២១ (4Cs): ត្រូវដាក់រង្វង់ក្រចកបញ្ជាក់ពីជំនាញ 4Cs នៅចុងសកម្មភាពសិស្ស (ឧ. [ជំនាញសហការ និងការគិតស៊ីជម្រៅ])។
    - Exit Ticket 3-2-1: នៅក្នុងជំហានទី៥ ត្រូវដាក់សកម្មភាពវាយតម្លៃចុងម៉ោង (Exit Ticket 3-2-1: ៣ចំណុចដែលបានរៀន ២ចំណុចដែលចាប់អារម្មណ៍ ១ចំណុចដែលឆ្ងល់)។
+${getMethodPedagogicalPrompt(params.method, false, false, params.lessonTitle)}
 
 ⛔ ABSOLUTE PROHIBITIONS:
 - NEVER write "...", "...", or any ellipsis as content
@@ -4799,6 +4958,29 @@ function synthesizeLessonPlanOffline(params) {
   const postTestMCQ = [];
 
   if (isFlipped) {
+    const methodType = detectMethodType(method);
+    let flippedStep3Teacher = `• គ្រូពន្យល់សង្ខេបតែលើគំនិតស្នូល និងក្របខណ្ឌទ្រឹស្តីសំខាន់ៗនៃ «${lessonTitle}»\n• គ្រូចោទសួរ និងដោះស្រាយចម្ងល់គន្លឹះរបស់សិស្ស`;
+    let flippedStep4Teacher = `• គ្រូបែងចែកក្រុមការងារ និងប្រគល់សន្លឹកកិច្ចការករណីសិក្សាជាក់ស្តែង (Challenge Scenario) លើ Flipchart A0/A1\n• គ្រូដើរសម្របសម្រួល ផ្តល់ Feedback និងដឹកនាំ Gallery Walk ការពារលទ្ធផលក្រុម`;
+    let flippedStep4Student = `• ធ្វើការរួមគ្នាក្នុងក្រុម វិភាគបញ្ហាដោយប្រើទ្រឹស្តីដែលបានរៀន\n• សរសេរដំណោះស្រាយលើ Flipchart តំណាងក្រុមឡើងការពារ និងឆ្លើយសំណួរដេញដោល [ជំនាញសហការ និងការគិតស៊ីជម្រៅ]`;
+
+    if (methodType === 'pbl') {
+      flippedStep3Teacher = `• គ្រូចោទសួរ ៤ សំណួរតម្រង់ទិស និងប្រគល់ «សន្លឹកបេសកកម្មដោះស្រាយបញ្ហា (Challenge Scenario)» ជាក់ស្តែងនៃ «${lessonTitle}»\n• គ្រូពន្យល់លក្ខណៈវិនិច្ឆ័យវាយតម្លៃ និងតម្រង់ទិសក្រុម`;
+      flippedStep4Teacher = `• ដំណើរការ Problem-Based Learning (PBL) ៤ ដំណាក់កាល៖ (១) វិភាគឫសគល់បញ្ហា, (២) សហការរៀបចំយុទ្ធសាស្ត្រដោះស្រាយលើ Flipchart A0, (៣) តំណាងក្រុមឡើងការពារដំណោះស្រាយ និងដេញដោល, (៤) វាយតម្លៃតាម Rubric ៤ កម្រិត\n• គ្រូសម្របសម្រួល និងសំយោគក្បួនរួមថ្នាក់`;
+      flippedStep4Student = `• សិស្សធ្វើការជាក្រុមវិភាគឫសគល់នៃបញ្ហា និងបង្កើតសម្មតិកម្មដំណោះស្រាយ [ការគិតស៊ីជម្រៅ]\n• រៀបចំយុទ្ធសាស្ត្រលើ Flipchart A0 ឡើងការពារ និងឆ្លើយតបសំណួរជំទាស់ពីក្រុមដទៃ [ជំនាញដោះស្រាយបញ្ហា និងការប្រាស្រ័យទាក់ទង]`;
+    } else if (methodType === 'jigsaw') {
+      flippedStep3Teacher = `• គ្រូបែងចែកសិស្សជា «ក្រុមដើម (Home Groups)» និងចាត់តាំង «ក្រុមអ្នកជំនាញ (Expert Groups)» តាមប្រធានបទរងនៃ «${lessonTitle}»\n• គ្រូចោទសួរសំណួរគន្លឹះ ៤ សំណួរតម្រង់ទិសក្រុមអ្នកជំនាញ`;
+      flippedStep4Teacher = `• ដំណើរការ Jigsaw & Concept Mapping ៤ ដំណាក់កាល៖ (១) ក្រុមអ្នកជំនាញស្រាវជ្រាវស៊ីជម្រៅ, (២) ត្រឡប់ទៅក្រុមដើមបង្រៀនគ្នា (Jigsaw Sharing), (៣) ចងក្រង «ផែនទីគំនិត (Concept Map)» លើ Flipchart A0, (៤) ដឹកនាំ Gallery Walk និងវាយតម្លៃគ្នាទៅវិញទៅមក\n• គ្រូសម្របសម្រួល និងបូកសរុបចំណុចគន្លឹះ`;
+      flippedStep4Student = `• សមាជិកក្រុមអ្នកជំនាញវិភាគឯកសារ រួចត្រឡប់ទៅក្រុមដើមបង្រៀនមិត្តរួមក្រុម [ជំនាញទំនាក់ទំនង]\n• ក្រុមដើមរួមគ្នាចងក្រង Concept Map លើ Flipchart A0 និងចូលរួម Gallery Walk វាយតម្លៃគ្នា [ការសហការ និងភាពច្នៃប្រឌិត]`;
+    } else if (methodType === '5e') {
+      flippedStep3Teacher = `• ដំណាក់កាល Explore (រុករក/ពិសោធន៍): គ្រូប្រគល់សន្លឹកបេសកកម្ម Challenge Scenario / សម្ភារពិសោធន៍ STEM ទាក់ទងនឹង «${lessonTitle}» ឱ្យក្រុមសិស្សរុករក\n• គ្រូដើរសម្របសម្រួល និងចោទសួរបំផុស`;
+      flippedStep4Teacher = `• ដំណាក់កាល Explain & Elaborate (៧០%): គ្រូឱ្យតំណាងក្រុមឡើងពន្យល់របកគំហើញ រួចគ្រូបូកសរុបគោលការណ៍គន្លឹះ\n• គ្រូដាក់ស្ថានភាពបញ្ហាប្រឈមថ្មី (Elaborate) ឱ្យសិស្សយកចំណេះដឹងទៅពង្រីកអនុវត្តលើ Flipchart A0\n• គ្រូដឹកនាំការវាយតម្លៃតាម Rubric ៤ កម្រិត`;
+      flippedStep4Student = `• ក្រុមសិស្សឡើងពន្យល់ទិន្នន័យ និងរបកគំហើញដែលបានរកឃើញ (Explain)\n• សហការដោះស្រាយបញ្ហាប្រឈមថ្មីលើ Flipchart A0 (Elaborate) ប្រកបដោយភាពច្នៃប្រឌិត [ការគិតស៊ីជម្រៅ និង STEM]`;
+    } else if (methodType === 'direct') {
+      flippedStep3Teacher = `• ដំណាក់កាល Guided Practice (We Do): ដោយសារទ្រឹស្តី "I Do" បានរៀនតាមវីដេអូរួចហើយ គ្រូនាំសិស្សអនុវត្តលំហាត់គំរូគន្លឹះ ៤ សំណួររួមគ្នាលើក្តារខៀនដើម្បីពង្រឹងក្បួនខ្នាត\n• គ្រូផ្ទៀងផ្ទាត់ការយល់ដឹងមុនឱ្យសិស្សអនុវត្តផ្ទាល់`;
+      flippedStep4Teacher = `• ដំណាក់កាល Intensive Practice (You Do ៧០%): គ្រូដាក់កម្រងលំហាត់អនុវត្តពីងាយទៅពិបាកឱ្យសិស្សដោះស្រាយជាដៃគូ និងជាក្រុមលើ Flipchart A0\n• គ្រូដើរត្រួតពិនិត្យ ផ្តល់ Feedback ភ្លាមៗ (Immediate Scaffolding) និងដឹកនាំការវិភាគកែកំហុស (Error Analysis)`;
+      flippedStep4Student = `• សិស្សអនុវត្តដោះស្រាយលំហាត់ជាដៃគូ និងផ្ទៀងផ្ទាត់ចម្លើយគ្នាទៅវិញទៅមក\n• សហការដោះស្រាយលំហាត់កម្រិតខ្ពស់ជាក្រុមលើ Flipchart A0 ឡើងកែលើក្តារខៀន និងស្វ័យវាយតម្លៃភាពត្រឹមត្រូវ [ភាពស្ទាត់ជំនាញ]`;
+    }
+
     const flippedSteps = [
       {
         stepNumber: 1,
@@ -4820,7 +5002,7 @@ function synthesizeLessonPlanOffline(params) {
         stepNumber: 3,
         stepTitle: "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី",
         duration: stepTimes.step3,
-        teacherActivity: `• គ្រូពន្យល់សង្ខេបតែលើគំនិតស្នូល និងក្របខណ្ឌទ្រឹស្តីសំខាន់ៗនៃ «${lessonTitle}»\n• គ្រូចោទសួរ និងដោះស្រាយចម្ងល់គន្លឹះរបស់សិស្ស`,
+        teacherActivity: flippedStep3Teacher,
         contentSummary: `«${lessonTitle}»\n• ខ្លឹមសារ និងទ្រឹស្តីស្នូលនៃមេរៀន៖\n` + (mainPoints.length > 0 ? mainPoints.map(p => `  - ${p}`).join('\n') : `  - និយមន័យ និងគោលការណ៍គ្រឹះនៃ ${lessonTitle}\n  - ការផ្សារភ្ជាប់ទ្រឹស្តីទៅនឹងការអនុវត្តជាក់ស្តែង`),
         studentActivity: `• សិស្សយកចិត្តទុកដាក់ស្តាប់ការពន្យល់ និងកត់ត្រាគំនិតគន្លឹះ\n• ឆ្លើយតប និងសួរសំណួរបំភ្លឺបន្ថែមឱ្យកាន់តែស៊ីជម្រៅ`
       },
@@ -4828,9 +5010,9 @@ function synthesizeLessonPlanOffline(params) {
         stepNumber: 4,
         stepTitle: "ជំហានទី៤៖ ពង្រឹងចំណេះដឹង",
         duration: stepTimes.step4,
-        teacherActivity: `• គ្រូបែងចែកក្រុមការងារ និងប្រគល់សន្លឹកកិច្ចការករណីសិក្សាជាក់ស្តែង (Challenge Scenario) លើ Flipchart A0/A1\n• គ្រូដើរសម្របសម្រួល ផ្តល់ Feedback និងដឹកនាំ Gallery Walk ការពារលទ្ធផលក្រុម`,
+        teacherActivity: flippedStep4Teacher,
         contentSummary: `• សកម្មភាពអនុវត្តស៊ីជម្រៅ និងដោះស្រាយករណីសិក្សាជាក់ស្តែង៖\n` + (mainPoints.length > 0 ? mainPoints.map(p => `  • ${p}`).join('\n') : `  • ការវិភាគករណីសិក្សា និងយុទ្ធសាស្ត្រគរុកោសល្យ\n  • ការវាយតម្លៃ និងការឆ្លុះបញ្ចាំងបែបស្ថាបនា`),
-        studentActivity: `• ធ្វើការរួមគ្នាក្នុងក្រុម វិភាគបញ្ហាដោយប្រើទ្រឹស្តីដែលបានរៀន\n• សរសេរដំណោះស្រាយលើ Flipchart តំណាងក្រុមឡើងការពារ និងឆ្លើយសំណួរដេញដោល`
+        studentActivity: flippedStep4Student
       },
       {
         stepNumber: 5,
@@ -4954,6 +5136,29 @@ function synthesizeLessonPlanOffline(params) {
   }
 
   // Standard 5-Step MoEYS / Primary / STEM
+  const stdMethodType = detectMethodType(method);
+  let stdStep3Teacher = `• គ្រូសរសេរចំណងជើងមេរៀន «${lessonTitle}» លើក្ដារខៀន\n• គ្រូពន្យល់ បង្ហាញរូបភាព/ស្លាយ និងចោទសួរសំណួរគន្លឹះ\n• គ្រូសម្របសម្រួលការពិភាក្សា និងបូកសរុបចម្លើយសិស្ស`;
+  let stdStep4Teacher = `• គ្រូដាក់សំណួរពង្រឹងការយល់ដឹង ឬលំហាត់អនុវត្តរហ័សទាក់ទងនឹង «${lessonTitle}»\n• គ្រូដើរសង្កេត ណែនាំសិស្ស និងកែសម្រួលចម្លើយរួមថ្នាក់`;
+  let stdStep4Student = "• សិស្សគិត គណនា និងឆ្លើយសំណួរពង្រឹងពុទ្ធិលើក្ដារឆ្នួន ឬសៀវភៅ\n• ផ្ទៀងផ្ទាត់ចម្លើយ និងកែតម្រូវចំណុចខុសឆ្គង [ជំនាញសហការ និងការគិតស៊ីជម្រៅ]";
+
+  if (stdMethodType === 'pbl') {
+    stdStep3Teacher = `• គ្រូបង្ហាញ «ស្ថានភាពបញ្ហាជាក់ស្តែង (Problem Scenario)» ពាក់ព័ន្ធនឹង «${lessonTitle}» លើក្តារខៀន/ស្លាយ\n• គ្រូចោទសំណួរដាស់ការត្រិះរិះដើម្បីឱ្យសិស្សវិភាគរកឫសគល់បញ្ហា និងពន្យល់ទ្រឹស្តីគន្លឹះសម្រាប់ដោះស្រាយ`;
+    stdStep4Teacher = `• គ្រូបែងចែកក្រុមការងារ ដាក់សេណារីយ៉ូបញ្ហាជាក់ស្តែងឱ្យក្រុមសិស្សដោះស្រាយលើ Flipchart ឬក្ដារឆ្នួន (TTT 30% / STT 70%)\n• គ្រូសម្របសម្រួលការឡើងការពារដំណោះស្រាយ និងវាយតម្លៃតាម Rubric`;
+    stdStep4Student = `• ក្រុមសិស្សសហការវិភាគបញ្ហា សាកល្បងសម្មតិកម្ម និងសរសេរដំណោះស្រាយលើ Flipchart [ការដោះស្រាយបញ្ហា]\n• តំណាងក្រុមឡើងការពារដំណោះស្រាយ និងឆ្លើយតបសំណួរជំទាស់`;
+  } else if (stdMethodType === 'jigsaw') {
+    stdStep3Teacher = `• គ្រូណែនាំប្រធានបទ «${lessonTitle}» និងបែងចែកសិស្សជា «ក្រុមអ្នកជំនាញ (Expert Groups)» តាមផ្នែករងនៃមេរៀន\n• គ្រូដើរសម្របសម្រួល និងផ្ទៀងផ្ទាត់ការយល់ដឹងរបស់ក្រុមអ្នកជំនាញនីមួយៗ`;
+    stdStep4Teacher = `• គ្រូឱ្យសិស្សត្រឡប់ទៅ «ក្រុមដើម (Home Groups)» វិញដើម្បីបង្រៀនគ្នា (Jigsaw Sharing ៧០% STT)\n• គ្រូណែនាំឱ្យក្រុមដើមចងក្រង «ផែនទីគំនិត (Concept Map)» លើ Flipchart និងដឹកនាំ Gallery Walk`;
+    stdStep4Student = `• អ្នកជំនាញម្នាក់ៗបង្រៀនមិត្តរួមក្រុមដើមពីផ្នែកដែលខ្លួនបានរៀន [ជំនាញទំនាក់ទំនង]\n• សមាជិកក្រុមដើមរួមគ្នាចងក្រង Concept Map លើ Flipchart និងដើរទស្សនា Gallery Walk [ការសហការ]`;
+  } else if (stdMethodType === '5e') {
+    stdStep3Teacher = `• ដំណាក់កាល Explore & Explain: គ្រូឱ្យសិស្សធ្វើការជាក្រុម រុករក/ពិសោធន៍ស្វែងរកទិន្នន័យនៃ «${lessonTitle}»\n• គ្រូឱ្យសិស្សពន្យល់របកគំហើញ រួចគ្រូបូកសរុប និងកំណត់និយមន័យ/រូបមន្តផ្លូវការ`;
+    stdStep4Teacher = `• ដំណាក់កាល Elaborate (៧០% STT): គ្រូដាក់លំហាត់/ស្ថានភាពស្មុគស្មាញថ្មីឱ្យសិស្សយកចំណេះដឹងទៅពង្រីកអនុវត្តជាក្រុម\n• គ្រូដើរសម្របសម្រួល និងវាយតម្លៃការយល់ដឹង`;
+    stdStep4Student = `• សិស្សពន្យល់ពីអ្វីដែលបានរកឃើញតាមភាសារបស់ខ្លួន (Explain)\n• សហការអនុវត្តចំណេះដឹងដោះស្រាយស្ថានភាពថ្មីលើ Flipchart ឬក្ដារឆ្នួន [ការគិតស៊ីជម្រៅ 4Cs]`;
+  } else if (stdMethodType === 'direct') {
+    stdStep3Teacher = `• ដំណាក់កាល "I Do" & "We Do": គ្រូពន្យល់ច្បាប់/រូបមន្តនៃ «${lessonTitle}» និងបង្ហាញដំណោះស្រាយគំរូលើក្តារខៀនមួយជំហានម្តងៗ\n• គ្រូនាំសិស្សធ្វើលំហាត់គំរូទី២ រួមគ្នាដើម្បីពិនិត្យការយល់ដឹង`;
+    stdStep4Teacher = `• ដំណាក់កាល "You Do" (៧០% STT): គ្រូដាក់កម្រងលំហាត់អនុវត្តពីងាយទៅពិបាកឱ្យសិស្សដោះស្រាយដោយឯករាជ្យ ឬជាដៃគូ\n• គ្រូដើរត្រួតពិនិត្យ ផ្តល់ Feedback ភ្លាមៗ និងហៅសិស្សឡើងកែលើក្តារខៀន`;
+    stdStep4Student = `• សិស្សយកចិត្តទុកដាក់ស្តាប់ការពន្យល់ និងចូលរួមឆ្លើយជំហានអនុវត្តរួមគ្នា (We Do)\n• សិស្សដោះស្រាយលំហាត់ដោយឯករាជ្យ ឬជាដៃគូ ឡើងកែលើក្តារខៀន និងស្វ័យវាយតម្លៃ [ភាពស្ទាត់ជំនាញ]`;
+  }
+
   const steps = [
     {
       stepNumber: 1,
@@ -4975,7 +5180,7 @@ function synthesizeLessonPlanOffline(params) {
       stepNumber: 3,
       stepTitle: "ជំហានទី ៣ : ដំណើរការបង្រៀន និងរៀន (មេរៀនថ្មី)",
       duration: stepTimes.step3,
-      teacherActivity: `• គ្រូសរសេរចំណងជើងមេរៀន «${lessonTitle}» លើក្ដារខៀន\n• គ្រូពន្យល់ បង្ហាញរូបភាព/ស្លាយ និងចោទសួរសំណួរគន្លឹះ\n• គ្រូសម្របសម្រួលការពិភាក្សា និងបូកសរុបចម្លើយសិស្ស`,
+      teacherActivity: stdStep3Teacher,
       contentSummary: `«${lessonTitle}»\n• ខ្លឹមសារស្នូល និងចំណុចសំខាន់ៗ៖\n` + (mainPoints.length > 0 ? mainPoints.map(p => `  - ${p}`).join('\n') : `  - និយមន័យ និងទ្រឹស្តីមូលដ្ឋាននៃ ${lessonTitle}\n  - ឧទាហរណ៍ និងរូបមន្តគន្លឹះ\n  - ការអនុវត្តជាក់ស្តែង`),
       studentActivity: `• សិស្សកត់ត្រាចំណងជើងមេរៀន «${lessonTitle}» ចូលសៀវភៅ\n• យកចិត្តទុកដាក់ស្តាប់ការពន្យល់ និងចូលរួមឆ្លើយសំណួរគ្រូ\n• សហការពិភាក្សាក្នុងក្រុម និងកត់ចំណាំខ្លឹមសារសំខាន់ៗ`
     },
@@ -4983,9 +5188,9 @@ function synthesizeLessonPlanOffline(params) {
       stepNumber: 4,
       stepTitle: "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (វាយតម្លៃ)",
       duration: stepTimes.step4,
-      teacherActivity: `• គ្រូដាក់សំណួរពង្រឹងការយល់ដឹង ឬលំហាត់អនុវត្តរហ័សទាក់ទងនឹង «${lessonTitle}»\n• គ្រូដើរសង្កេត ណែនាំសិស្ស និងកែសម្រួលចម្លើយរួមថ្នាក់`,
+      teacherActivity: stdStep4Teacher,
       contentSummary: `• សំណួរវាស់ស្ទង់ការយល់ដឹង ឬលំហាត់សង្ខេប\n• កំណែចម្លើយត្រឹមត្រូវ និងការកែតម្រូវចំណុចខ្វះខាត`,
-      studentActivity: "• សិស្សគិត គណនា និងឆ្លើយសំណួរពង្រឹងពុទ្ធិលើក្ដារឆ្នួន ឬសៀវភៅ\n• ផ្ទៀងផ្ទាត់ចម្លើយ និងកែតម្រូវចំណុចខុសឆ្គង"
+      studentActivity: stdStep4Student
     },
     {
       stepNumber: 5,
@@ -5945,43 +6150,131 @@ function getKhmerFormattedDate() {
   return `ថ្ងៃទី ${d} ខែ ${m} ឆ្នាំ ${y}`;
 }
 
-// 🎯 Render Comprehensive Teaching Method HTML (Harmonizing 5E, Active Learning & Flipped Learning Model)
-function renderTeachingMethodContent(method) {
-  const m = (method || '').trim();
-  const is5E = m.toLowerCase().includes('5e') || m.includes('engage') || m.includes('explore');
+// 🎯 Render Comprehensive Teaching Method HTML (Pedagogical Strategy Matrix: Template Mode × Teaching Method)
+function renderTeachingMethodContent(method, templateType = '5_steps') {
+  const m = (method || '').trim() || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)';
+  const methodType = detectMethodType(m);
+  const isFlipped = templateType === 'flipped_learning' || m.toLowerCase().includes('ត្រឡប់') || m.toLowerCase().includes('flipped');
 
-  if (is5E) {
+  if (isFlipped) {
+    let methodBreakdownHtml = '';
+    switch (methodType) {
+      case 'pbl':
+        methodBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>ជំហានទី ២ (១០%):</strong> ពិនិត្យការយល់ដឹងពីផ្ទះ ស្រាយចម្ងល់ Muddiest Points និងភ្ជាប់ទ្រឹស្តីទៅបញ្ហាជាក់ស្តែង</li>
+            <li><strong>ជំហានទី ៣ (១០%):</strong> គ្រូចោទសំណួរតម្រង់ទិស និងប្រគល់ «សន្លឹកបេសកកម្មដោះស្រាយបញ្ហា (Challenge Scenario)»</li>
+            <li><strong>ជំហានទី ៤ (៧០% - Core Active Learning):</strong> ដំណើរការ PBL ៤ ដំណាក់កាល៖ (១) វិភាគបញ្ហា & ស្វែងរកឫសគល់ [ការគិតស៊ីជម្រៅ], (២) សហការរៀបចំយុទ្ធសាស្ត្រ & គូសវាសដំណោះស្រាយលើ Flipchart A0, (៣) តំណាងក្រុមឡើងការពារដំណោះស្រាយ & ដេញដោល [ការប្រាស្រ័យទាក់ទង], (៤) វាយតម្លៃតាម Rubric ៤ កម្រិត & សំយោគក្បួនរួម</li>
+            <li><strong>ជំហានទី ៥ (៥%):</strong> ឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 និងដាក់កិច្ចការបញ្ហាស្រាវជ្រាវបន្ត</li>
+          </ul>`;
+        break;
+      case 'jigsaw':
+        methodBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>ជំហានទី ២ (១០%):</strong> ត្រួតពិនិត្យ Pre-Test ស្រាយចម្ងល់ Muddiest Points ពីការស្វ័យសិក្សាតាមវីដេអូ</li>
+            <li><strong>ជំហានទី ៣ (១០%):</strong> ចោទសួរសំណួរគន្លឹះ បែងចែក «ក្រុមដើម (Home Groups)» និងចាត់តាំង «ក្រុមអ្នកជំនាញ (Expert Groups)»</li>
+            <li><strong>ជំហានទី ៤ (៧០% - Core Active Learning):</strong> ដំណើរការ Jigsaw ៤ ដំណាក់កាល៖ (១) ក្រុមអ្នកជំនាញវិភាគស៊ីជម្រៅលើផ្នែកជំនាញ, (២) ត្រឡប់ទៅក្រុមដើមបង្រៀនគ្នាទៅវិញទៅមក (Jigsaw Sharing), (៣) សហការចងក្រង «ផែនទីគំនិត (Concept Map)» / Role-Play លើ Flipchart A0, (៤) Gallery Walk និងវាយតម្លៃគ្នាទៅវិញទៅមក</li>
+            <li><strong>ជំហានទី ៥ (៥%):</strong> Exit Ticket 3-2-1 សង្ខេបចំណេះដឹងពីក្រុមអ្នកជំនាញ និងកិច្ចការផ្ទះ</li>
+          </ul>`;
+        break;
+      case '5e':
+        methodBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>១. Engage (ឈានចូល / បំផុសចំណាប់អារម្មណ៍):</strong> ស្វ័យសិក្សាតាមវីដេអូបង្រៀន Micro-Lecture មុនម៉ោង ឆ្លើយសំណួរ Pre-Test QCM និងដោះស្រាយ Muddiest Points ក្នុងជំហានទី ២</li>
+            <li><strong>២. Explore (រុករក / ពិសោធន៍):</strong> សិស្សធ្វើការជាក្រុម អនុវត្តបេសកកម្ម Challenge Scenario / ពិសោធន៍ជាក់ស្តែងក្នុងជំហានទី ៣</li>
+            <li><strong>៣. Explain (ពន្យល់ / បកស្រាយ):</strong> ក្រុមនិស្សិតឡើងពន្យល់ និងការពាររបកគំហើញ គ្រូសម្របសម្រួល និងបូកសរុបគោលការណ៍គន្លឹះក្នុងជំហានទី ៤</li>
+            <li><strong>៤. Elaborate (ពង្រីកចំណេះដឹង / អនុវត្តស៊ីជម្រៅ ៧០%):</strong> អនុវត្តដោះស្រាយបញ្ហាក្នុងស្ថានភាពថ្មីលើ Flipchart A0 ក្នុងជំហានទី ៤</li>
+            <li><strong>៥. Evaluate (វាយតម្លៃ):</strong> Exit Ticket 3-2-1, Rubric សហការ ៤ កម្រិត និងកម្រងសំណួរ Post-Test MCQ ក្នុងជំហានទី ៥</li>
+          </ul>`;
+        break;
+      case 'direct':
+        methodBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>Pre-Class & ជំហានទី ២ (១០%):</strong> ដំណាក់កាល "I Do" ផ្នែកទ្រឹស្តីមូលដ្ឋានបានរៀនតាមវីដេអូពីផ្ទះ; ក្នុងថ្នាក់គ្រូបំភ្លឺចំណុចពិបាក (Mini-Modeling) តាម Muddiest Points</li>
+            <li><strong>ជំហានទី ៣ (១០%):</strong> ដំណាក់កាល "We Do" (គ្រូនាំធ្វើ) — គ្រូនាំសិស្សអនុវត្តលំហាត់គំរូគន្លឹះ ៤ សំណួររួមគ្នាដើម្បីពង្រឹងក្បួនខ្នាត</li>
+            <li><strong>ជំហានទី ៤ (៧០% - Core Active Learning):</strong> ដំណាក់កាល "Intensive You Do"៖ (១) អនុវត្តជាដៃគូលើលំហាត់កម្រិតមធ្យម, (២) អនុវត្តជាក្រុមលើស្ថានភាពស្មុគស្មាញ Flipchart A0, (៣) បង្ហាញដំណោះស្រាយ និងវិភាគកែកំហុស (Error Analysis), (៤) ស្វ័យវាយតម្លៃភាពត្រឹមត្រូវ</li>
+            <li><strong>ជំហានទី ៥ (៥%):</strong> Exit Ticket 3-2-1 ស្ទង់ភាពស្ទាត់ជំនាញ និងលំហាត់ពង្រឹងសមត្ថភាពបន្ត</li>
+          </ul>`;
+        break;
+      default: // student_centered
+        methodBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>ជំហានទី ២ (១០%):</strong> សិស្សជាអ្នកលើកឡើង Muddiest Points ពីផ្ទះ គ្រូដើរតួជាអ្នកសម្របសម្រួល (Facilitator) បំផុសឱ្យសិស្សឆ្លើយបំភ្លឺគ្នាទៅវិញទៅមក</li>
+            <li><strong>ជំហានទី ៣ (១០%):</strong> គ្រូចោទសួរ ៤ សំណួរដាស់ការត្រិះរិះ និងប្រគល់កិច្ចការស្វ័យសិក្សាជាក្រុម</li>
+            <li><strong>ជំហានទី ៤ (៧០% - Core Active Learning):</strong> សិស្សគ្រប់គ្រងការរៀនដោយខ្លួនឯង (Learner Autonomy)៖ (១) ក្រុមពិភាក្សា & រិះរកដោយសេរី [ការគិតស៊ីជម្រៅ], (២) សហការផលិតស្នាដៃលើ Flipchart A0 [ការសហការ], (៣) ធ្វើបទបង្ហាញដឹកនាំដោយសិស្ស [ការប្រាស្រ័យទាក់ទង], (៤) ឆ្លុះបញ្ចាំងរួម (Metacognition) & វាយតម្លៃតាម Rubric</li>
+            <li><strong>ជំហានទី ៥ (៥%):</strong> Exit Ticket 3-2-1 ស្ទង់មតិសិស្សលើការយល់ដឹង និងកិច្ចការស្វ័យសិក្សាបន្ត</li>
+          </ul>`;
+        break;
+    }
+
     return `
       <ul class="doc-list" style="margin-top: 4px; line-height: 1.8;">
-        <li><strong>វិធីសាស្ត្របង្រៀនចម្បង៖</strong> វិធីសាស្ត្រ 5E (Engage, Explore, Explain, Elaborate, Evaluate)</li>
-        <li><strong>គំរូ និងទម្រង់រៀបចំការរៀន៖</strong> ការរៀនបែបត្រឡប់ (Flipped Learning Model) — ផ្សារភ្ជាប់ការស្វ័យសិក្សាត្រៀមមុនម៉ោង (Pre-Class Phase តាមវីដេអូបង្រៀន Micro-Lecture NotebookLM និងបុរេតេស្ត Pre-Test QCM) ជាមួយការរៀនសកម្មក្នុងថ្នាក់ (In-Class Active Collaborative Learning)។</li>
-        <li><strong>ការផ្សារភ្ជាប់ដំណាក់កាល 5E ជាមួយ Flipped Learning (៥ ដំណាក់កាលគរុកោសល្យ)៖</strong>
-          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
-            <li><strong>១. Engage (ឈានចូល / បំផុសចំណាប់អារម្មណ៍)៖</strong> ស្វ័យសិក្សាតាមវីដេអូបង្រៀនមុនម៉ោង ឆ្លើយសំណួរ Pre-Test និងការស្រាយចម្ងល់ Muddiest Points នៅដើមម៉ោងរៀន</li>
-            <li><strong>២. Explore (រុករក / ពិសោធន៍ / ស្រាវជ្រាវ)៖</strong> សិស្សធ្វើការជាក្រុម អនុវត្តការងាររុករក ដោះស្រាយលំហាត់ ឬពិសោធន៍ជាក់ស្តែងក្នុងថ្នាក់</li>
-            <li><strong>៣. Explain (ពន្យល់ / បកស្រាយ)៖</strong> តំណាងក្រុមឡើងធ្វើបទបង្ហាញការពារលទ្ធផលរកឃើញ គ្រូសម្របសម្រួល និងបូកសរុបគោលការណ៍គន្លឹះ</li>
-            <li><strong>៤. Elaborate (ពង្រីកចំណេះដឹង / អនុវត្តស៊ីជម្រៅ)៖</strong> អនុវត្តដោះស្រាយបញ្ហាក្នុងស្ថានភាពថ្មី ឬករណីសិក្សាស៊ីជម្រៅ (សកម្មភាពស្នូល ៧០% នៃម៉ោងរៀន)</li>
-            <li><strong>៥. Evaluate (វាយតម្លៃលទ្ធផល)៖</strong> វាស់ស្ទង់សមត្ថភាពតាមរយៈកម្រងសំណួរ Post-Test MCQ, Active Rubric ៤ កម្រិត និងការឆ្លុះបញ្ចាំង Exit Ticket 3-2-1</li>
-          </ul>
+        <li><strong>វិធីសាស្ត្របង្រៀនចម្បង៖</strong> ${escapeHtml(m)}</li>
+        <li><strong>គំរូ និងទម្រង់រៀបចំការរៀន៖</strong> ការរៀនបែបត្រឡប់ (Flipped Learning Model) ៥ ជំហាន (៥% - ១០% - ១០% - ៧០% - ៥%) — ផ្សារភ្ជាប់ការស្វ័យសិក្សាត្រៀមមុនម៉ោង (Pre-Class Phase តាមវីដេអូបង្រៀន Micro-Lecture NotebookLM និងបុរេតេស្ត Pre-Test QCM) ជាមួយការរៀនសកម្មក្នុងថ្នាក់ (In-Class Active Learning ៧០%)។</li>
+        <li><strong>ការរៀបចំដំណាក់កាលអនុវត្តវិធីសាស្ត្រក្នុងថ្នាក់៖</strong>
+          ${methodBreakdownHtml}
         </li>
       </ul>
     `;
   }
 
-  if (m && !m.toLowerCase().startsWith('ថ្នាក់រៀនត្រឡប់')) {
-    return `
-      <ul class="doc-list" style="margin-top: 4px; line-height: 1.8;">
-        <li><strong>វិធីសាស្ត្របង្រៀនចម្បង៖</strong> ${escapeHtml(m)}</li>
-        <li><strong>គំរូ និងទម្រង់រៀបចំការរៀន៖</strong> ការរៀនបែបត្រឡប់ (Flipped Learning Model) — ផ្សារភ្ជាប់ការស្វ័យសិក្សាត្រៀមមុនម៉ោង (Pre-Class Phase តាមវីដេអូបង្រៀន Micro-Lecture NotebookLM និងបុរេតេស្ត) ជាមួយការរៀនសកម្មក្នុងថ្នាក់ (In-Class Active Learning)។</li>
-        <li><strong>បច្ចេកទេសបង្រៀនគាំទ្រ (Active Learning Techniques)៖</strong> ការសហការជាក្រុម (Collaborative Learning), ការដោះស្រាយបញ្ហាជាក់ស្តែង (Problem-Solving), និងកិច្ចការស្ទាបស្ទង់យល់ដឹង (Exit Ticket & Muddiest Point)</li>
-      </ul>
-    `;
+  // Standard 5-Step MoEYS Model
+  let standardBreakdownHtml = '';
+  switch (methodType) {
+    case 'pbl':
+      standardBreakdownHtml = `
+        <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+          <li><strong>ជំហានទី ២ (រំលឹកមេរៀន):</strong> ចោទសួរសំណួររំលឹកដែលជាស្ពានចម្លងផ្សារភ្ជាប់ទៅកាន់ស្ថានភាពបញ្ហាជាក់ស្តែង</li>
+          <li><strong>ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី):</strong> បង្ហាញ «ស្ថានភាពបញ្ហាជាក់ស្តែង (Problem Scenario)», សិស្សវិភាគឫសគល់បញ្ហា, គ្រូពន្យល់ទ្រឹស្តី/ក្បួនគន្លឹះសម្រាប់ដោះស្រាយ</li>
+          <li><strong>ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT):</strong> សិស្សធ្វើការជាក្រុមដោះស្រាយបញ្ហាលើ Flipchart/ក្ដារឆ្នួន, ធ្វើតេស្តសម្មតិកម្ម, ឡើងការពារដំណោះស្រាយ [ការគិតស៊ីជម្រៅ & ដោះស្រាយបញ្ហា]</li>
+          <li><strong>ជំហានទី ៥ (កិច្ចការផ្ទះ):</strong> ដាក់កិច្ចការបញ្ហាជាក់ស្តែងថ្មីសម្រាប់សិស្សដោះស្រាយនៅផ្ទះ និងឆ្លុះបញ្ចាំង Exit Ticket 3-2-1</li>
+        </ul>`;
+      break;
+    case 'jigsaw':
+      standardBreakdownHtml = `
+        <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+          <li><strong>ជំហានទី ២ (រំលឹកមេរៀន):</strong> រំលឹកចំណេះដឹងគ្រឹះចាំបាច់សម្រាប់ការសិក្សាផ្នែកជំនាញ</li>
+          <li><strong>ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី):</strong> បែងចែកសិស្សជា «ក្រុមអ្នកជំនាញ (Expert Groups)» សិក្សាស្វែងយល់ផ្នែករងនីមួយៗនៃមេរៀនថ្មី គ្រូដើរសម្របសម្រួល</li>
+          <li><strong>ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT):</strong> សិស្សត្រឡប់ទៅ «ក្រុមដើម (Home Groups)» បង្រៀនគ្នាទៅវិញទៅមក (Jigsaw), រួមគ្នាចងក្រង «ផែនទីគំនិត (Concept Map)» លើ Flipchart, និងធ្វើ Gallery Walk</li>
+          <li><strong>ជំហានទី ៥ (កិច្ចការផ្ទះ):</strong> Exit Ticket 3-2-1 សង្ខេបចំណុចសំខាន់ៗ និងលំហាត់ស្រាវជ្រាវ</li>
+        </ul>`;
+      break;
+    case '5e':
+      standardBreakdownHtml = `
+        <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+          <li><strong>ជំហានទី ១ & ២:</strong> Engage (ឈានចូល & បំផុស) — គ្រូចោទសួរ ឬបង្ហាញបាតុភូតចម្លែកដើម្បីជំរុញការចង់ដឹង និងផ្សារភ្ជាប់មេរៀនចាស់</li>
+          <li><strong>ជំហានទី ៣:</strong> Explore (រុករក/ពិសោធន៍ជាក្រុម) & Explain (សិស្សពន្យល់របកគំហើញ រួចគ្រូបូកសរុបក្បួនគន្លឹះផ្លូវការ)</li>
+          <li><strong>ជំហានទី ៤:</strong> Elaborate (ពង្រីកចំណេះដឹង ៧០% STT) — សិស្សអនុវត្តចំណេះដឹងដោះស្រាយលំហាត់/ស្ថានភាពស្មុគស្មាញថ្មី [ជំនាញ 4Cs]</li>
+          <li><strong>ជំហានទី ៥:</strong> Evaluate (វាយតម្លៃ) — តេស្តរហ័ស Exit Ticket 3-2-1 និងការបូកសរុបវាយតម្លៃ</li>
+        </ul>`;
+      break;
+    case 'direct':
+      standardBreakdownHtml = `
+        <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+          <li><strong>ជំហានទី ២ (រំលឹកមេរៀន):</strong> ពិនិត្យចំណេះដឹងបុរេលក្ខខណ្ឌដែលចាំបាច់សម្រាប់ការរៀនក្បួនថ្មី</li>
+          <li><strong>ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី):</strong> ដំណាក់កាល "I Do" (គ្រូពន្យល់ច្បាប់/រូបមន្ត & បង្ហាញដំណោះស្រាយគំរូលើក្តារខៀនមួយជំហានម្តងៗ) + ដំណាក់កាល "We Do" (គ្រូនាំសិស្សធ្វើលំហាត់គំរូទី២ រួមគ្នាដើម្បីពិនិត្យការយល់ដឹង)</li>
+          <li><strong>ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT):</strong> ដំណាក់កាល "You Do" (សិស្សអនុវត្តដោះស្រាយលំហាត់ពីងាយទៅពិបាកដោយឯករាជ្យ ឬជាដៃគូ, គ្រូផ្តល់ Feedback ភ្លាមៗ)</li>
+          <li><strong>ជំហានទី ៥ (កិច្ចការផ្ទះ):</strong> ដាក់លំហាត់អនុវត្តបន្ថែមសម្រាប់ពង្រឹងភាពស្ទាត់ជំនាញ (Fluency) នៅផ្ទះ</li>
+        </ul>`;
+      break;
+    default: // student_centered
+      standardBreakdownHtml = `
+        <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+          <li><strong>ជំហានទី ២ (រំលឹកមេរៀន):</strong> សិស្សជាអ្នករំលឹក និងសង្ខេបមេរៀនចាស់ គ្រូដើរតួជាអ្នកសម្របសម្រួល</li>
+          <li><strong>ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី):</strong> Guided Discovery — គ្រូប្រើសំណួរគន្លឹះចំហ (Open-ended Questions) ជំរុញឱ្យសិស្សរុករក និងបង្កើតនិយមន័យដោយខ្លួនឯង</li>
+          <li><strong>ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT):</strong> ច្បាប់ TTT 30% / STT 70% — សិស្សធ្វើការជាក្រុមអនុវត្តជាក់ស្តែង ធ្វើបទបង្ហាញការពារលើ Flipchart ឬក្ដារឆ្នួន [ជំនាញ 4Cs]</li>
+          <li><strong>ជំហានទី ៥ (កិច្ចការផ្ទះ):</strong> Exit Ticket 3-2-1 និងការស្រាវជ្រាវបន្តតាមចំណាប់អារម្មណ៍</li>
+        </ul>`;
+      break;
   }
 
   return `
     <ul class="doc-list" style="margin-top: 4px; line-height: 1.8;">
-      <li><strong>គំរូ និងទម្រង់រៀបចំការរៀន៖</strong> ការរៀនបែបត្រឡប់ (Flipped Learning Model) ៥ ជំហាន (៥% - ១០% - ១០% - ៧០% - ៥%)</li>
-      <li><strong>វិធីសាស្ត្របង្រៀនគន្លឹះ៖</strong> វិធីសាស្ត្រសិស្សមជ្ឈមណ្ឌល (Student-Centered Approach) គួបផ្សំការរៀនសហការជាក្រុម និងការដោះស្រាយបញ្ហាជាក់ស្តែង</li>
+      <li><strong>វិធីសាស្ត្របង្រៀនចម្បង៖</strong> ${escapeHtml(m)}</li>
+      <li><strong>ទម្រង់កិច្ចតែងការ៖</strong> កិច្ចតែងការស្តង់ដារ ៥ ជំហាន ក្រសួងអប់រំ យុវជន និងកីឡា (MoEYS Standard 5-Step Process)</li>
+      <li><strong>ការរៀបចំដំណាក់កាលគរុកោសល្យក្នុង ៥ ជំហាន៖</strong>
+        ${standardBreakdownHtml}
+      </li>
     </ul>
   `;
 }
@@ -7392,7 +7685,7 @@ function renderLessonPlanToA4(data) {
       <!-- Section 3: Method -->
       <div class="doc-section-title">៣. វិធីសាស្រ្ដបង្រៀន</div>
       <div style="margin-left: 10px; margin-bottom: 12px; font-size: 10pt;">
-        <div>- ការរៀនបែបត្រឡប់ (Flipped Learning ៥ ជំហាន: ៥% - ១០% - ១០% - ៧០% - ៥%)</div>
+        ${renderTeachingMethodContent(data.method, 'flipped_learning')}
       </div>
 
       <!-- Section 4: In-Class Process (3 Columns) -->
@@ -7623,12 +7916,11 @@ function renderLessonPlanToA4(data) {
       <div style="margin-top: 4px;">• <strong>សម្រាប់សិស្ស៖</strong> ${escapeHtml((data.materials?.student || []).join(', '))}</div>
     </div>
 
-    ${data.method ? `
     <!-- Teaching Method -->
     <div class="doc-section-title" style="font-size: 11.5pt;">៣. វិធីសាស្រ្ដបង្រៀន</div>
     <div style="margin-left: 10px; margin-bottom: 12px; font-size: 10pt;">
-      ${renderTeachingMethodContent(data.method)}
-    </div>` : ''}
+      ${renderTeachingMethodContent(data.method, '5_steps')}
+    </div>
 
     <!-- Section IV: In-Class Process -->
     <div class="doc-section-title">IV. ដំណើរការបង្រៀន និងរៀនក្នុងថ្នាក់ (In-Class Teaching Process)</div>
@@ -8217,9 +8509,52 @@ async function handleExportWord() {
       );
 
       // Section 3: Method
+      const methodTitle = data.method || 'ការរៀនបែបត្រឡប់';
+      const methodType = detectMethodType(methodTitle);
+      let methodPhases = [];
+      if (methodType === 'pbl') {
+        methodPhases = [
+          "ជំហានទី ២ (១០%): ពិនិត្យការយល់ដឹងពីផ្ទះ ស្រាយចម្ងល់ Muddiest Points និងភ្ជាប់ទ្រឹស្តីទៅបញ្ហាជាក់ស្តែង",
+          "ជំហានទី ៣ (១០%): គ្រូចោទសំណួរតម្រង់ទិស និងប្រគល់ «សន្លឹកបេសកកម្មដោះស្រាយបញ្ហា (Challenge Scenario)»",
+          "ជំហានទី ៤ (៧០% - Core Active Learning): PBL ៤ ដំណាក់កាល (វិភាគបញ្ហា, សហការដោះស្រាយលើ Flipchart, ការពារដំណោះស្រាយ, វាយតម្លៃតាម Rubric)",
+          "ជំហានទី ៥ (៥%): ឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 និងដាក់កិច្ចការបញ្ហាស្រាវជ្រាវបន្ត"
+        ];
+      } else if (methodType === 'jigsaw') {
+        methodPhases = [
+          "ជំហានទី ២ (១០%): ពិនិត្យ Pre-Test ស្រាយចម្ងល់ Muddiest Points ពីការស្វ័យសិក្សាតាមវីដេអូ",
+          "ជំហានទី ៣ (១០%): បែងចែកក្រុមដើម (Home Groups) និងចាត់តាំងក្រុមអ្នកជំនាញ (Expert Groups)",
+          "ជំហានទី ៤ (៧០% - Core Active Learning): Jigsaw ៤ ដំណាក់កាល (ក្រុមអ្នកជំនាញវិភាគស៊ីជម្រៅ, ត្រឡប់ទៅក្រុមដើមបង្រៀនគ្នា, ចងក្រង Concept Map លើ Flipchart, Gallery Walk)",
+          "ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 សង្ខេបចំណេះដឹង និងកិច្ចការផ្ទះ"
+        ];
+      } else if (methodType === '5e') {
+        methodPhases = [
+          "Engage (ជំហានទី ១ & ២): ស្វ័យសិក្សាតាមវីដេអូ Micro-Lecture, Pre-Test QCM, និងដោះស្រាយ Muddiest Points",
+          "Explore (ជំហានទី ៣): សិស្សធ្វើការជាក្រុម អនុវត្តបេសកកម្ម Challenge Scenario / ពិសោធន៍ជាក់ស្តែង",
+          "Explain & Elaborate (ជំហានទី ៤ - ៧០%): ក្រុមសិស្សពន្យល់របកគំហើញ និងពង្រីកចំណេះដឹងដោះស្រាយបញ្ហាថ្មីលើ Flipchart A0",
+          "Evaluate (ជំហានទី ៥): Exit Ticket 3-2-1, Rubric សហការ ៤ កម្រិត និងកម្រងសំណួរ Post-Test MCQ"
+        ];
+      } else if (methodType === 'direct') {
+        methodPhases = [
+          "Pre-Class & ជំហានទី ២ (១០%): I Do ផ្នែកទ្រឹស្តីមូលដ្ឋានបានរៀនតាមវីដេអូពីផ្ទះ; គ្រូបំភ្លឺចំណុចពិបាក (Mini-Modeling) តាម Muddiest Points",
+          "ជំហានទី ៣ (១០%): We Do (គ្រូនាំធ្វើ) — គ្រូនាំសិស្សអនុវត្តលំហាត់គំរូគន្លឹះរួមគ្នាដើម្បីពង្រឹងក្បួនខ្នាត",
+          "ជំហានទី ៤ (៧០% - Core Active Learning): Intensive You Do (អនុវត្តជាដៃគូ, អនុវត្តជាក្រុមលើស្ថានភាពស្មុគស្មាញ, បង្ហាញ & កែកំហុស, ស្វ័យវាយតម្លៃ)",
+          "ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 ស្ទង់ភាពស្ទាត់ជំនាញ និងលំហាត់ពង្រឹងសមត្ថភាពបន្ត"
+        ];
+      } else {
+        methodPhases = [
+          "ជំហានទី ២ (១០%): សិស្សលើកឡើង Muddiest Points ពីផ្ទះ គ្រូដើរតួជា Facilitator សម្របសម្រួលបំភ្លឺ",
+          "ជំហានទី ៣ (១០%): គ្រូចោទ ៤ សំណួរដាស់ការត្រិះរិះ និងប្រគល់កិច្ចការស្វ័យសិក្សាជាក្រុម",
+          "ជំហានទី ៤ (៧០% - Core Active Learning): សិស្សរៀនដោយស្វ័យភាព (TTT 30% / STT 70%, សហការផលិតស្នាដៃលើ Flipchart, ការពារ និងឆ្លុះបញ្ចាំង Metacognition)",
+          "ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 ស្ទង់មតិសិស្សលើការយល់ដឹង និងកិច្ចការស្វ័យសិក្សា"
+        ];
+      }
+
       docChildren.push(
         new Paragraph({ children: [new TextRun({ text: "៣. វិធីសាស្រ្ដបង្រៀន", bold: true, size: 24 })] }),
-        new Paragraph({ children: [new TextRun({ text: "     - ការរៀនបែបត្រឡប់", size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: `• វិធីសាស្ត្របង្រៀនចម្បង៖ ${methodTitle}`, bold: true, size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: "• គំរូ និងទម្រង់រៀបចំការរៀន៖ ការរៀនបែបត្រឡប់ (Flipped Learning Model ៥ ជំហាន: ៥% - ១០% - ១០% - ៧០% - ៥%) — ផ្សារភ្ជាប់ការស្វ័យសិក្សាត្រៀមមុនម៉ោង (Pre-Class តាមវីដេអូបង្រៀន Micro-Lecture NotebookLM និងបុរេតេស្ត Pre-Test QCM) ជាមួយការរៀនសកម្មក្នុងថ្នាក់ (In-Class Active Learning ៧០%)។", size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: "• ដំណាក់កាលអនុវត្តវិធីសាស្ត្រក្នុងថ្នាក់៖", italics: true, size: 22 })] }),
+        ...methodPhases.map(p => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: p, size: 22 })] })),
         new Paragraph({ text: "" })
       );
 
@@ -8454,6 +8789,56 @@ async function handleExportWord() {
         new Paragraph({ children: [new TextRun({ text: "II. សម្ភារឧបទេស (Materials)", bold: true, size: 24 })] }),
         new Paragraph({ children: [new TextRun({ text: `• សម្រាប់គ្រូ៖ ${(data.materials?.teacher || []).join(', ')}`, size: 22 })] }),
         new Paragraph({ children: [new TextRun({ text: `• សម្រាប់សិស្ស៖ ${(data.materials?.student || []).join(', ')}`, size: 22 })] }),
+        new Paragraph({ text: "" })
+      );
+
+      // Section III: Method
+      const stdMethodTitle = data.method || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)';
+      const stdMethodType = detectMethodType(stdMethodTitle);
+      let standardMethodPhases = [];
+      if (stdMethodType === 'pbl') {
+        standardMethodPhases = [
+          "ជំហានទី ២ (រំលឹកមេរៀន): ចោទសួរសំណួររំលឹកជាស្ពានចម្លងផ្សារភ្ជាប់ទៅស្ថានភាពបញ្ហាជាក់ស្តែង",
+          "ជំហានទី ៣ (មេរៀនថ្មី): បង្ហាញស្ថានភាពបញ្ហាជាក់ស្តែង (Problem Scenario), សិស្សវិភាគឫសគល់, គ្រូពន្យល់ទ្រឹស្តី/ក្បួនគន្លឹះដោះស្រាយ",
+          "ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT): ក្រុមសិស្សដោះស្រាយបញ្ហាលើ Flipchart/ក្ដារឆ្នួន, ធ្វើតេស្តសម្មតិកម្ម, ការពារដំណោះស្រាយ [ការគិតស៊ីជម្រៅ]",
+          "ជំហានទី ៥ (កិច្ចការផ្ទះ): ដាក់កិច្ចការបញ្ហាជាក់ស្តែងថ្មីសម្រាប់ដោះស្រាយនៅផ្ទះ និងឆ្លុះបញ្ចាំង Exit Ticket 3-2-1"
+        ];
+      } else if (stdMethodType === 'jigsaw') {
+        standardMethodPhases = [
+          "ជំហានទី ២ (រំលឹកមេរៀន): រំលឹកចំណេះដឹងគ្រឹះចាំបាច់សម្រាប់ការសិក្សាផ្នែកជំនាញ",
+          "ជំហានទី ៣ (មេរៀនថ្មី): បែងចែកក្រុមអ្នកជំនាញ (Expert Groups) សិក្សាស្វែងយល់ផ្នែករងនីមួយៗនៃមេរៀនថ្មី",
+          "ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT): ត្រឡប់ទៅក្រុមដើម (Home Groups) បង្រៀនគ្នា (Jigsaw), ចងក្រង Concept Map លើ Flipchart, និងធ្វើ Gallery Walk",
+          "ជំហានទី ៥ (កិច្ចការផ្ទះ): Exit Ticket 3-2-1 សង្ខេបចំណុចសំខាន់ៗ និងលំហាត់ស្រាវជ្រាវ"
+        ];
+      } else if (stdMethodType === '5e') {
+        standardMethodPhases = [
+          "ជំហានទី ១ & ២ (Engage): បំផុសចំណាប់អារម្មណ៍តាមបាតុភូតជាក់ស្តែង និងផ្សារភ្ជាប់មេរៀនចាស់",
+          "ជំហានទី ៣ (Explore & Explain): សិស្សរុករក/ពិសោធន៍ជាក្រុម និងពន្យល់របកគំហើញ រួចគ្រូបូកសរុបក្បួនគន្លឹះផ្លូវការ",
+          "ជំហានទី ៤ (Elaborate ៧០% STT): អនុវត្តចំណេះដឹងដោះស្រាយលំហាត់/ស្ថានភាពស្មុគស្មាញថ្មី [ជំនាញ 4Cs]",
+          "ជំហានទី ៥ (Evaluate): តេស្តរហ័ស Exit Ticket 3-2-1 និងការបូកសរុបវាយតម្លៃ"
+        ];
+      } else if (stdMethodType === 'direct') {
+        standardMethodPhases = [
+          "ជំហានទី ២ (រំលឹកមេរៀន): ពិនិត្យចំណេះដឹងបុរេលក្ខខណ្ឌចាំបាច់សម្រាប់ការរៀនក្បួនថ្មី",
+          "ជំហានទី ៣ (មេរៀនថ្មី): I Do (គ្រូពន្យល់ & ធ្វើដំណោះស្រាយគំរូមួយជំហានម្តងៗ) + We Do (គ្រូនាំសិស្សអនុវត្តលំហាត់គំរូទី២ រួមគ្នា)",
+          "ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT): You Do (សិស្សអនុវត្តដោះស្រាយលំហាត់ពីងាយទៅពិបាកដោយឯករាជ្យ ឬជាដៃគូ, គ្រូផ្តល់ Feedback ភ្លាមៗ)",
+          "ជំហានទី ៥ (កិច្ចការផ្ទះ): ដាក់លំហាត់អនុវត្តបន្ថែមសម្រាប់ពង្រឹងភាពស្ទាត់ជំនាញ (Fluency) នៅផ្ទះ"
+        ];
+      } else {
+        standardMethodPhases = [
+          "ជំហានទី ២ (រំលឹកមេរៀន): សិស្សរំលឹក និងសង្ខេបមេរៀនចាស់ គ្រូដើរតួជាអ្នកសម្របសម្រួល",
+          "ជំហានទី ៣ (មេរៀនថ្មី): Guided Discovery — គ្រូប្រើសំណួរគន្លឹះចំហជំរុញឱ្យសិស្សរុករក និងបង្កើតនិយមន័យដោយខ្លួនឯង",
+          "ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT): ច្បាប់ TTT 30% / STT 70% — សិស្សធ្វើការជាក្រុមអនុវត្តជាក់ស្តែង ការពារលើ Flipchart [ជំនាញ 4Cs]",
+          "ជំហានទី ៥ (កិច្ចការផ្ទះ): Exit Ticket 3-2-1 និងការស្រាវជ្រាវបន្តតាមចំណាប់អារម្មណ៍"
+        ];
+      }
+
+      docChildren.push(
+        new Paragraph({ children: [new TextRun({ text: "III. វិធីសាស្រ្ដបង្រៀន (Teaching Method)", bold: true, size: 24 })] }),
+        new Paragraph({ children: [new TextRun({ text: `• វិធីសាស្ត្របង្រៀនចម្បង៖ ${stdMethodTitle}`, bold: true, size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: "• ទម្រង់កិច្ចតែងការ៖ កិច្ចតែងការស្តង់ដារ ៥ ជំហាន ក្រសួងអប់រំ យុវជន និងកីឡា (MoEYS Standard 5-Step Process)", size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: "• ការរៀបចំដំណាក់កាលគរុកោសល្យក្នុង ៥ ជំហាន៖", italics: true, size: 22 })] }),
+        ...standardMethodPhases.map(p => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: p, size: 22 })] })),
         new Paragraph({ text: "" })
       );
 
