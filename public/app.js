@@ -8543,20 +8543,53 @@ function loadSavedAdminProfile() {
 
 function clearSavedAdminProfile() {
   localStorage.removeItem(ADMIN_STORAGE_KEY);
+
+  // Clear all filled input fields in Section 1 to prepare for new data
+  const schoolEl = document.getElementById('inputSchool');
+  if (schoolEl) schoolEl.value = '';
+
+  const teacherEl = document.getElementById('inputTeacher');
+  if (teacherEl) teacherEl.value = '';
+
+  const degreeEl = document.getElementById('inputDegree');
+  if (degreeEl) degreeEl.value = 'lower_sec';
+  if (typeof updateGradeOptions === 'function') updateGradeOptions('lower_sec');
+
+  const customGradeEl = document.getElementById('inputCustomGradeText');
+  if (customGradeEl) customGradeEl.value = '';
+  const customGradeWrap = document.getElementById('customGradeWrap');
+  if (customGradeWrap) customGradeWrap.style.display = 'none';
+
+  const subjectEl = document.getElementById('inputSubject');
+  if (subjectEl) subjectEl.selectedIndex = 0;
+
+  if (typeof selectDurationChip === 'function') {
+    selectDurationChip('៦០ នាទី (១ ម៉ោងពេញ)');
+  } else if (typeof setDurationValue === 'function') {
+    setDurationValue('៦០ នាទី (១ ម៉ោងពេញ)');
+  }
+
+  const chkAutoRemember = document.getElementById('chkAutoRememberAdmin');
+  if (chkAutoRemember) chkAutoRemember.checked = false;
+
   updateSavedProfileUI(false);
   if (typeof updateTeacherProfileSummaryLive === 'function') updateTeacherProfileSummaryLive();
+
+  // Keep drawer open and focus on school name to easily type new details
   const fields = document.getElementById('teacherProfileFields');
   const btnText = document.getElementById('btnToggleProfileEditText');
   if (fields) fields.style.display = 'flex';
   if (btnText) btnText.textContent = 'បង្រួម';
-  showToast('បានលុបព័ត៌មានរដ្ឋបាលដែលបានចងចាំចេញរួចរាល់', 'info');
+  if (schoolEl) schoolEl.focus();
+
+  showToast('បានលុបព័ត៌មានផ្នែកទី១រួចរាល់ ត្រៀមបញ្ចូលថ្មី!', 'info');
 }
 
 function updateSavedProfileUI(hasSaved) {
   const badge = document.getElementById('savedProfileBadge');
   const btnClear = document.getElementById('btnClearAdminInfo');
   if (badge) badge.style.display = hasSaved ? 'inline-flex' : 'none';
-  if (btnClear) btnClear.style.display = hasSaved ? 'inline-flex' : 'none';
+  if (btnClear) btnClear.style.display = 'inline-flex';
 }
 
 // Reset Form Handler (Clears lesson content and uploaded files, preserving Section 1 admin profile info)

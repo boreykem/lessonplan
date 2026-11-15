@@ -453,8 +453,8 @@
                   <button type="button" id="btnSaveAdminInfo" class="btn-pill-action" title="រក្សាទុកព័ត៌មានរដ្ឋបាល">
                     <i class="fa-solid fa-floppy-disk"></i> រក្សាទុក
                   </button>
-                  <button type="button" id="btnClearAdminInfo" class="btn-pill-ghost" title="លុបព័ត៌មានដែលបានចងចាំ"
-                    style="display: none;">
+                  <button type="button" id="btnClearAdminInfo" class="btn-pill-ghost" title="លុបព័ត៌មានដែលបានបំពេញ ដើម្បីបញ្ចូលថ្មី"
+                    style="display: inline-flex;">
                     <i class="fa-solid fa-trash-can"></i>
                   </button>
                   <span id="savedProfileBadge" class="saved-profile-pill" style="display: none;">
@@ -850,19 +850,13 @@
           </button>
         </div>
 
-        <!-- Intellectual Property & Associated Partner Footer -->
-        <footer class="app-ip-footer" style="margin-top: 6px; padding: 2px 0 0 0;">
-          <div class="associated-partner-badge"
-            style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 6px 12px; background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(124, 58, 237, 0.08)); border: 1.5px solid rgba(79, 70, 229, 0.22); border-radius: 12px; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.06);">
-            <img src="/ac-mart-logo-circle.png" alt="AC Mart Logo"
-              style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 2px solid #ffffff; flex-shrink: 0;">
-            <div style="text-align: left; line-height: 1.25;">
-              <span
-                style="display: block; font-size: 0.68rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"
-                data-i18n="partnerTag">ដៃគូសហការផ្លូវការ (Official Partner)</span>
-              <strong
-                style="font-size: 0.95rem; color: var(--primary); font-weight: 800; font-family: 'Kantumruy Pro', sans-serif;">AC
-                Mart</strong>
+        <!-- Official Partner Footer -->
+        <footer class="app-ip-footer">
+          <div class="associated-partner-badge">
+            <img src="/ac-mart-logo-circle.png" alt="AC Mart Logo" class="partner-logo">
+            <div class="partner-meta">
+              <span class="partner-tag" data-i18n="partnerTag">ដៃគូសហការផ្លូវការ (Official Partner)</span>
+              <strong class="partner-name">AC Mart</strong>
             </div>
           </div>
         </footer>

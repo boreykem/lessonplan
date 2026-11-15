@@ -1776,15 +1776,73 @@ textarea.form-control {
 }
 
 /* ==========================================================================
-   Intellectual Property & Commercial Protection Styles
+   Official Partner Badge Styles (Left Sidebar Footer)
    ========================================================================== */
 .app-ip-footer {
-  margin-top: 24px;
-  padding: 14px 12px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  margin-top: auto;
+  padding: 4px 0 2px 0;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
   text-align: center;
+}
+
+.associated-partner-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.06), rgba(124, 58, 237, 0.06));
+  border: 1px solid rgba(79, 70, 229, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.05);
+  transition: all 0.25s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+[data-theme="dark"] .associated-partner-badge {
+  background: rgba(30, 41, 59, 0.5);
+  border-color: rgba(99, 102, 241, 0.28);
+}
+
+.associated-partner-badge:hover {
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(124, 58, 237, 0.1));
+  border-color: rgba(79, 70, 229, 0.35);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1);
+}
+
+.associated-partner-badge .partner-logo {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  border: 2px solid #ffffff;
+  flex-shrink: 0;
+}
+
+.associated-partner-badge .partner-meta {
+  text-align: left;
+  line-height: 1.25;
+}
+
+.associated-partner-badge .partner-tag {
+  display: block;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.associated-partner-badge .partner-name {
+  font-size: 0.95rem;
+  color: var(--primary);
+  font-weight: 800;
+  font-family: 'Kantumruy Pro', sans-serif;
 }
 
 .ip-badge {
