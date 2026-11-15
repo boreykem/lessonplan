@@ -464,70 +464,6 @@
               </div>
             </div>
           </div>
-
-          <!-- Teaching Duration Quick Chips (User Request 3: ៦០ នាទី, ១២០ នាទី, ១៨០ នាទី) -->
-          <div class="control-group mt-2">
-            <div class="label-with-action">
-              <label for="inputDurationSelect" data-i18n="durationLabel">
-                <i class="fa-solid fa-clock text-primary" style="margin-right: 4px;"></i> រយៈពេលបង្រៀន (Duration) <span
-                  class="req">*</span>
-              </label>
-              <span id="activeDurationLabel" style="font-size: 0.76rem; font-weight: 700; color: #4f46e5;">៦០ នាទី (១
-                ម៉ោងពេញ)</span>
-            </div>
-
-            <!-- Quick Chips Grid -->
-            <div class="duration-chips-grid" id="durationChipsGrid">
-              <button type="button" class="duration-chip" data-duration="៥០ នាទី (១ ម៉ោងសិក្សា)"
-                onclick="selectDurationChip('៥០ នាទី (១ ម៉ោងសិក្សា)')">៥០ នាទី</button>
-              <button type="button" class="duration-chip active" data-duration="៦០ នាទី (១ ម៉ោងពេញ)"
-                onclick="selectDurationChip('៦០ នាទី (១ ម៉ោងពេញ)')">៦០ នាទី</button>
-              <button type="button" class="duration-chip" data-duration="៩០ នាទី (២ ម៉ោងសិក្សា)"
-                onclick="selectDurationChip('៩០ នាទី (២ ម៉ោងសិក្សា)')">៩០ នាទី</button>
-              <button type="button" class="duration-chip" data-duration="១២០ នាទី (២ ម៉ោងពេញ)"
-                onclick="selectDurationChip('១២០ នាទី (២ ម៉ោងពេញ)')">១២០ នាទី</button>
-              <button type="button" class="duration-chip" data-duration="១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)"
-                onclick="selectDurationChip('១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)')">១៨០ នាទី</button>
-              <button type="button" class="duration-chip" id="chipCustomDuration" data-duration="custom"
-                onclick="selectDurationChip('custom')">✏️ ផ្ទាល់ខ្លួន</button>
-            </div>
-
-            <!-- Native select kept in DOM for 100% backward compatibility -->
-            <select id="inputDurationSelect" class="form-control" style="display: none;">
-              <option value="៥០ នាទី (១ ម៉ោងសិក្សា)">៥០ នាទី (១ ម៉ោងសិក្សា)</option>
-              <option value="៦០ នាទី (១ ម៉ោងពេញ)" selected>៦០ នាទី (១ ម៉ោងពេញ)</option>
-              <option value="៩០ នាទី (២ ម៉ោងសិក្សា)">៩០ នាទី (២ ម៉ោងសិក្សា)</option>
-              <option value="១០០ នាទី (២ ម៉ោងសិក្សា)">១០០ នាទី (២ ម៉ោងសិក្សា)</option>
-              <option value="១២០ នាទី (២ ម៉ោងពេញ)">១២០ នាទី (២ ម៉ោងពេញ)</option>
-              <option value="១៣៥ នាទី (៣ ម៉ោងសិក្សា)">១៣៥ នាទី (៣ ម៉ោងសិក្សា)</option>
-              <option value="១៥០ នាទី (៣ ម៉ោងសិក្សា)">១៥០ នាទី (៣ ម៉ោងសិក្សា)</option>
-              <option value="១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)">១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)</option>
-              <option value="២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)">២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)</option>
-              <option value="custom">✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)</option>
-            </select>
-
-            <!-- Custom Duration Text Input (Smooth inline animation) -->
-            <div id="customDurationWrap" class="custom-sub-input-wrap" style="display: none;">
-              <div class="input-icon-wrap">
-                <i class="fa-solid fa-clock"></i>
-                <input type="text" id="inputCustomDurationText" class="form-control"
-                  placeholder="ឧ. ៦០ នាទី / ៣ ម៉ោង / ២ សប្តាហ៍...">
-              </div>
-            </div>
-          </div>
-
-          <!-- Prompt Customization -->
-          <div class="control-group mt-2">
-            <label for="inputCustomNotes" data-i18n="customNotesLabel">ចំណាំ ឬសំណូមពរបន្ថែម (Prompt
-              Customization)</label>
-            <div class="input-icon-wrap">
-              <i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i>
-              <input type="text" id="inputCustomNotes" class="form-control"
-                placeholder="ឧ. សុំផ្ដោតលើការពិសោធន៍ជាក់ស្ដែង និងមានល្បែងពង្រឹងពុទ្ធិ...">
-            </div>
-          </div>
-          <!-- Hidden input for inputCustomNotes for backward compatibility -->
-          <input type="hidden" id="inputCustomNotes" value="">
         </section>
 
         <!-- STEP 2: Upload / Select Template & Methodology -->
@@ -810,25 +746,21 @@
               <!-- Sleek Integrated Action Toolbar (User Request 2) -->
               <div class="lesson-unified-box">
                 <div class="label-with-action"
-                  style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
-                  <label for="lessonContentText" data-i18n="lessonContentLabel"
-                    style="margin: 0; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-file-lines text-primary"></i> <span>ខ្លឹមសារមេរៀន / ចំណុចសំខាន់ៗ</span> <span
-                      class="req">*</span>
-                  </label>
+                  style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 6px; gap: 6px;">
+                  <div class="lesson-actions-toolbar" style="display: flex; gap: 6px; align-items: center; width: 100%; justify-content: space-between;">
+                    <div style="display: flex; gap: 6px; align-items: center;">
+                      <!-- Attachment button -->
+                      <button type="button" id="btnAttachLessonFile" class="btn-attach-pill"
+                        onclick="document.getElementById('lessonFileInput').click()"
+                        title="ភ្ជាប់ឯកសារមេរៀន (PowerPoint, Word, PDF, ឬ រូបភាពសៀវភៅ)">
+                        <i class="fa-solid fa-paperclip"></i> <span>ភ្ជាប់ឯកសារ</span>
+                      </button>
 
-                  <div class="lesson-actions-toolbar" style="display: flex; gap: 6px; align-items: center;">
-                    <!-- Attachment button: user's request "រូបទី២ គ្រាន់តែដាក់សញ្ញា ដាក់បញ្ចូលឯកសារ បានហើយ!" -->
-                    <button type="button" id="btnAttachLessonFile" class="btn-attach-pill"
-                      onclick="document.getElementById('lessonFileInput').click()"
-                      title="ភ្ជាប់ឯកសារមេរៀន (PowerPoint, Word, PDF, ឬ រូបភាពសៀវភៅ)">
-                      <i class="fa-solid fa-paperclip"></i> <span>ភ្ជាប់ឯកសារ</span>
-                    </button>
-
-                    <button type="button" class="btn-paste-pill" onclick="pasteToLessonContent()"
-                      title="Paste ពី Clipboard">
-                      <i class="fa-solid fa-paste"></i> <span>Paste</span>
-                    </button>
+                      <button type="button" class="btn-paste-pill" onclick="pasteToLessonContent()"
+                        title="Paste ពី Clipboard">
+                        <i class="fa-solid fa-paste"></i> <span>Paste</span>
+                      </button>
+                    </div>
 
                     <span class="badge-tag" id="charCount">0 ពាក្យ</span>
                   </div>
@@ -847,13 +779,13 @@
 
                 <!-- Lesson Text Box (Direct, always visible, drag & drop aware) -->
                 <div id="lessonTextareaWrapper" class="control-group">
-                  <textarea id="lessonContentText" class="form-control" rows="5"
+                  <textarea id="lessonContentText" class="form-control" rows="3"
                     placeholder="បញ្ចូល ឬបិទភ្ជាប់ខ្លឹមសារមេរៀន និយមន័យ រូបមន្ត លំហាត់ ឧទាហរណ៍ ឬអត្ថបទដកស្រង់ពីសៀវភៅពុម្ពនៅទីនេះ (ឬចុច «ភ្ជាប់ឯកសារ» ខាងលើ)..."></textarea>
                 </div>
               </div>
 
               <!-- Lesson Title (Spacious Full Width) -->
-              <div class="control-group mt-3" id="lessonTitleWrap">
+              <div class="control-group mt-2" id="lessonTitleWrap">
                 <label for="inputLessonTitle" data-i18n="lessonTitleLabel">
                   <i class="fa-solid fa-book-bookmark text-primary" style="margin-right: 4px;"></i> ចំណងជើងមេរៀន <span
                     class="req">*</span>
@@ -865,6 +797,18 @@
                 </div>
               </div>
               <input type="hidden" id="inputChapter" value="">
+
+              <!-- Prompt Customization (At the bottom of Step 3) -->
+              <div class="control-group mt-2" id="promptCustomizationWrap">
+                <label for="inputCustomNotes" data-i18n="customNotesLabel" style="font-size: 0.8rem; font-weight: 600;">
+                  <i class="fa-solid fa-lightbulb" style="color: #f59e0b; margin-right: 4px;"></i> ចំណាំ ឬសំណូមពរបន្ថែម (Prompt Customization)
+                </label>
+                <div class="input-icon-wrap">
+                  <i class="fa-solid fa-wand-magic-sparkles" style="color: #f59e0b;"></i>
+                  <input type="text" id="inputCustomNotes" class="form-control"
+                    placeholder="ឧ. សុំផ្ដោតលើការពិសោធន៍ជាក់ស្ដែង និងមានល្បែងពង្រឹងពុទ្ធិ...">
+                </div>
+              </div>
 
               <!-- Remember / Auto-Save Lesson Bar (Hidden as requested) -->
               <div class="remember-profile-bar mt-2" style="display: none;">
@@ -907,40 +851,23 @@
         </div>
 
         <!-- Intellectual Property & Associated Partner Footer -->
-        <footer class="app-ip-footer">
+        <footer class="app-ip-footer" style="margin-top: 6px; padding: 2px 0 0 0;">
           <div class="associated-partner-badge"
-            style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 12px; padding: 10px 16px; background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(124, 58, 237, 0.08)); border: 1.5px solid rgba(79, 70, 229, 0.25); border-radius: 14px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08);">
+            style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 6px 12px; background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(124, 58, 237, 0.08)); border: 1.5px solid rgba(79, 70, 229, 0.22); border-radius: 12px; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.06);">
             <img src="/ac-mart-logo-circle.png" alt="AC Mart Logo"
-              style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; box-shadow: 0 3px 10px rgba(0,0,0,0.18); border: 2px solid #ffffff; flex-shrink: 0;">
-            <div style="text-align: left; line-height: 1.35;">
+              style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; box-shadow: 0 2px 6px rgba(0,0,0,0.15); border: 2px solid #ffffff; flex-shrink: 0;">
+            <div style="text-align: left; line-height: 1.25;">
               <span
-                style="display: block; font-size: 0.74rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"
+                style="display: block; font-size: 0.68rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"
                 data-i18n="partnerTag">ដៃគូសហការផ្លូវការ (Official Partner)</span>
               <strong
-                style="font-size: 1.1rem; color: var(--primary); font-weight: 800; font-family: 'Kantumruy Pro', sans-serif;">AC
+                style="font-size: 0.95rem; color: var(--primary); font-weight: 800; font-family: 'Kantumruy Pro', sans-serif;">AC
                 Mart</strong>
             </div>
-            <!-- Associated Partner Card at Bottom -->
-            <div class="associated-partner-badge"
-              style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: auto; padding: 10px 16px; background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(124, 58, 237, 0.08)); border: 1.5px solid rgba(79, 70, 229, 0.25); border-radius: 14px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08);">
-              <img src="/ac-mart-logo-circle.png" alt="AC Mart Logo"
-                style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover; box-shadow: 0 3px 10px rgba(0,0,0,0.18); border: 2px solid #ffffff; flex-shrink: 0;">
-              <div style="text-align: left; line-height: 1.35;">
-                <span
-                  style="display: block; font-size: 0.74rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;"
-                  data-i18n="partnerTag">ដៃគូសហការផ្លូវការ (Official Partner)</span>
-                <strong
-                  style="font-size: 1.1rem; color: var(--primary); font-weight: 800; font-family: 'Kantumruy Pro', sans-serif;">AC
-                  Mart</strong>
-              </div>
-              <div class="ip-copyright" style="font-size: 0.86rem; margin-bottom: 4px;">© 2026 <strong>AI Lesson Plan
-                  Studio™</strong> & <strong>AC Mart</strong> - រក្សាសិទ្ធិគ្រប់យ៉ាង</div>
-              <div class="ip-subtext" data-i18n="ipSubtext">បច្ចេកវិទ្យា
-                និងទម្រង់គរុកោសល្យត្រូវបានការពារដោយច្បាប់ស្ដីពីកម្មសិទ្ធិបញ្ញានៃព្រះរាជាណាចក្រកម្ពុជា</div>
+          </div>
         </footer>
       </div>
 
-      </div>
     </aside>
 
     <!-- RIGHT PANEL: Live A4 Document Canvas & Studio -->
