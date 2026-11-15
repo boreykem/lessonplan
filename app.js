@@ -2873,6 +2873,70 @@ function detectMethodType(method) {
   return 'student_centered';
 }
 
+function getMethodStepTitle(stepIdx, method, isFlipped) {
+  const methodType = detectMethodType(method);
+  if (isFlipped) {
+    if (stepIdx === 1) return "ជំហានទី១៖ រដ្ឋបាលថ្នាក់ និងត្រួតពិនិត្យការត្រៀមខ្លួន";
+    if (stepIdx === 2) return "ជំហានទី២៖ រំលឹកមេរៀនចាស់ និងត្រួតពិនិត្យការស្វ័យសិក្សា (Pre-Test QCM & Muddiest Points)";
+    if (stepIdx === 3) {
+      if (methodType === 'jigsaw') return "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី និងការបែងចែកក្រុមជំនាញ (Expert Groups)";
+      if (methodType === 'pbl') return "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី និងប្រគល់សន្លឹកបេសកកម្មដោះស្រាយបញ្ហា (Challenge Scenario)";
+      if (methodType === '5e') return "ជំហានទី៣៖ ដំណាក់កាលរុករក និងពិសោធន៍ (5E Model: Explore Phase)";
+      if (methodType === 'direct') return "ជំហានទី៣៖ ការអនុវត្តដោយមានការណែនាំ (Guided Practice / We Do)";
+      return "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី និងសំណួរគន្លឹះតម្រង់ទិស (Mini-Lecture & Framing)";
+    }
+    if (stepIdx === 4) {
+      if (methodType === 'jigsaw') return "ជំហានទី៤៖ ដំណើរការ Jigsaw ៤ ដំណាក់កាល និងចងក្រងផែនទីគំនិត (Jigsaw, Concept Mapping & Role-Play)";
+      if (methodType === 'pbl') return "ជំហានទី៤៖ ដំណើរការ PBL ៤ ដំណាក់កាល និងដោះស្រាយបញ្ហាលើ Flipchart (Problem-Based Learning)";
+      if (methodType === '5e') return "ជំហានទី៤៖ ដំណាក់កាលពន្យល់ និងពង្រីកចំណេះដឹងលើ Flipchart (5E: Explain & Elaborate STEM)";
+      if (methodType === 'direct') return "ជំហានទី៤៖ ការអនុវត្តជាក់ស្តែងស៊ីជម្រៅ (Intensive Practice / You Do)";
+      return "ជំហានទី៤៖ ការរៀនសកម្មដោយស្វ័យភាព និងការឆ្លុះបញ្ចាំង (Active Learning & Metacognition)";
+    }
+    if (stepIdx === 5) return "ជំហានទី៥៖ បូកសរុប វាយតម្លៃបច្ឆិមតេស្ត និងកិច្ចការស្រាវជ្រាវបន្ត (Synthesis & Homework)";
+  } else {
+    // Standard 5-Step MoEYS
+    if (stepIdx === 1) return "ជំហានទី ១ : រដ្ឋបាលថ្នាក់";
+    if (stepIdx === 2) return "ជំហានទី ២ : រំលឹកមេរៀនចាស់ / ទំនាក់ទំនងមេរៀន";
+    if (stepIdx === 3) {
+      if (methodType === 'jigsaw') return "ជំហានទី ៣ : មេរៀនថ្មី (ក្រុមអ្នកជំនាញ - Expert Groups)";
+      if (methodType === 'pbl') return "ជំហានទី ៣ : មេរៀនថ្មី និងស្ថានភាពបញ្ហា (Problem Scenario)";
+      if (methodType === '5e') return "ជំហានទី ៣ : មេរៀនថ្មី (រុករក & ពិសោធន៍ - Explore & Explain)";
+      if (methodType === 'direct') return "ជំហានទី ៣ : ដំណើរការបង្រៀន និងអនុវត្តគំរូ (I Do & We Do)";
+      return "ជំហានទី ៣ : ដំណើរការបង្រៀន និងរៀន (មេរៀនថ្មី & Guided Discovery)";
+    }
+    if (stepIdx === 4) {
+      if (methodType === 'jigsaw') return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (Jigsaw Sharing & Concept Mapping)";
+      if (methodType === 'pbl') return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (ដំណើរការដោះស្រាយបញ្ហាជាក្រុមលើ Flipchart)";
+      if (methodType === '5e') return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (ពង្រីកចំណេះដឹង - Elaborate STEM)";
+      if (methodType === 'direct') return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (សិស្សអនុវត្តដោយឯករាជ្យ - You Do)";
+      return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (ការអនុវត្តសកម្មជាក្រុម & 4Cs)";
+    }
+    if (stepIdx === 5) return "ជំហានទី ៥ : បណ្តាំផ្ញើ និងកិច្ចការផ្ទះ";
+  }
+  return `ជំហានទី ${stepIdx}`;
+}
+
+function isGenericStepTitle(title, stepIdx) {
+  if (!title || typeof title !== 'string') return true;
+  const t = title.trim();
+  if (stepIdx === 3) {
+    return t === 'ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី' ||
+           t === 'ជំហានទី ៣ : ដំណើរការបង្រៀន និងរៀន (មេរៀនថ្មី)' ||
+           t === 'ជំហានទី ៣ : ដំណើរការបង្រៀន និងរៀន' ||
+           t.includes('Mini-Lecture / Core Insights') ||
+           t.includes('Mini-Lecture & Framing');
+  }
+  if (stepIdx === 4) {
+    return t === 'ជំហានទី៤៖ ពង្រឹងចំណេះដឹង' ||
+           t === 'ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (វាយតម្លៃ)' ||
+           t === 'ជំហានទី ៤ : ពង្រឹងពុទ្ធិ' ||
+           t.includes('Active Learning & Gallery Walk') ||
+           t.includes('Problem-Based Learning & Challenge Scenario') ||
+           t.includes('Explain & Elaborate / Active STEM');
+  }
+  return false;
+}
+
 function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '') {
   const methodType = detectMethodType(method);
   const methodName = method || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)';
@@ -3724,19 +3788,19 @@ Return ONLY valid JSON matching this schema:
     },
     {
       "stepNumber": 3,
-      "stepTitle": "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី",
+      "stepTitle": "${getMethodStepTitle(3, params.method, true)}",
       "duration": "${stepTimeHints.step3}",
-      "teacherActivity": "ពន្យល់សង្ខេបតែលើគំនិតស្នូល និងក្របខណ្ឌទ្រឹស្តីសំខាន់ៗនៃមេរៀន",
+      "teacherActivity": "ពន្យល់សង្ខេបតែលើគំនិតស្នូល និងក្របខណ្ឌទ្រឹស្តីសំខាន់ៗនៃមេរៀន និងចោទសួរ ៤ សំណួរតម្រង់ទិស",
       "contentSummary": "ខ្លឹមសារស្នូល និងទ្រឹស្តីគន្លឹះនៃមេរៀន",
       "studentActivity": "យកចិត្តទុកដាក់ស្តាប់ កត់ត្រាគំនិតសំខាន់ៗ និងសួរសំណួរ"
     },
     {
       "stepNumber": 4,
-      "stepTitle": "ជំហានទី៤៖ ពង្រឹងចំណេះដឹង",
+      "stepTitle": "${getMethodStepTitle(4, params.method, true)}",
       "duration": "${stepTimeHints.step4}",
-      "teacherActivity": "[ពិពណ៌នាសកម្មភាពគ្រូដោយប្រើវិធីសាស្ត្រមួយក្នុងចំណោម៖ Jigsaw, Concept Mapping, Role-Play, ឬ Metacognition។ ធានាថាគ្រូនិយាយត្រឹម ៣០%]...",
+      "teacherActivity": "[ពិពណ៌នាសកម្មភាពគ្រូយ៉ាងលម្អិតតាមវិធីសាស្ត្រ «${params.method}» ជា ៤ ដំណាក់កាលច្បាស់លាស់ ធានាថាគ្រូដើរតួជា Facilitator ៣០%]...",
       "contentSummary": "[សង្ខេបខ្លឹមសារសកម្មភាព និងទ្រឹស្តីគន្លឹះ]...",
-      "studentActivity": "[សកម្មភាពសិស្សឆ្លើយតបទៅនឹងវិធីសាស្ត្រដែលបានជ្រើសរើស]... [ជំនាញសហការ និងការគិតស៊ីជម្រៅ 4Cs]"
+      "studentActivity": "[សកម្មភាពសិស្សយ៉ាងសកម្មឆ្លើយតបទៅនឹងវិធីសាស្ត្រ «${params.method}» ជា ៤ ដំណាក់កាលច្បាស់លាស់ ៧០% STT]... [ជំនាញសហការ និងការគិតស៊ីជម្រៅ 4Cs]"
     },
     {
       "stepNumber": 5,
@@ -3966,19 +4030,19 @@ Return ONLY valid JSON:
     },
     {
       "stepNumber": 3,
-      "stepTitle": "ជំហានទី ៣ : ដំណើរការបង្រៀន និងរៀន (មេរៀនថ្មី)",
+      "stepTitle": "${getMethodStepTitle(3, params.method, false)}",
       "duration": "${stepTimeHints.step3}",
-      "teacherActivity": "• គ្រូសរសេរចំណងជើងមេរៀនលើក្ដារខៀន៖ «${params.lessonTitle}»\n• គ្រូពន្យល់ខ្លឹមសារគន្លឹះ និងសួរសំណួរទៅកាន់សិស្ស៖\n  ១. «[សំណួរគន្លឹះទី១ នៃមេរៀនថ្មី]?»\n  ២. «[សំណួរគន្លឹះទី២ នៃមេរៀនថ្មី]?»\n• គ្រូបែងចែកសិស្សជាក្រុម ដាក់កិច្ចការពិភាក្សា និងដើរសម្របសម្រួលតាមក្រុម",
+      "teacherActivity": "• គ្រូសរសេរចំណងជើងមេរៀនលើក្ដារខៀន៖ «${params.lessonTitle}»\n• គ្រូពន្យល់ខ្លឹមសារគន្លឹះ និងសួរសំណួរទៅកាន់សិស្សតាមវិធីសាស្ត្រ «${params.method}»៖\n  ១. «[សំណួរគន្លឹះទី១ នៃមេរៀនថ្មី]?»\n  ២. «[សំណួរគន្លឹះទី២ នៃមេរៀនថ្មី]?»\n• គ្រូបែងចែកសិស្សជាក្រុម ដាក់កិច្ចការពិភាក្សា និងដើរសម្របសម្រួលតាមក្រុម",
       "contentSummary": "«${params.lessonTitle}»\n• ខ្លឹមសារស្នូល និងចម្លើយនៃសំណួរ៖\n  - ចម្លើយទី១៖ [សរសេរចម្លើយពេញលេញ និយមន័យ ទ្រឹស្តីត្រឹមត្រូវ]\n  - ចម្លើយទី២៖ [សរសេរចម្លើយពេញលេញ រូបមន្ត ឧទាហរណ៍ជាក់ស្ដែង]\n  - [ខ្លឹមសារលម្អិតបន្ថែម ៤-៦ ចំណុចចេញពីមេរៀន]",
       "studentActivity": "• សិស្សកត់ត្រាចំណងជើងមេរៀនចូលក្នុងសៀវភៅ និងយកចិត្តទុកដាក់ស្តាប់ការពន្យល់\n• សិស្សឆ្លើយសំណួររបស់គ្រូ (ចម្លើយរំពឹងទុក)៖\n  - សិស្សឆ្លើយ៖ «[សង្ខេបចម្លើយរំពឹងទុករបស់សិស្សលើសំណួរទី១ និងទី២ ចេញពីខ្លឹមសារខាងលើ]»\n• សិស្សចូលរួមពិភាក្សាដោះស្រាយកិច្ចការជាក្រុម និងកត់ត្រាខ្លឹមសារត្រឹមត្រូវ"
     },
     {
       "stepNumber": 4,
-      "stepTitle": "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (វាយតម្លៃ)",
+      "stepTitle": "${getMethodStepTitle(4, params.method, false)}",
       "duration": "${stepTimeHints.step4}",
-      "teacherActivity": "• គ្រូដាក់សំណួរពង្រឹងពុទ្ធិ ឬលំហាត់អនុវត្តរហ័ស៖\n  ១. «[សំណួរពង្រឹងពុទ្ធិទី១]?»\n  ២. «[សំណួរពង្រឹងពុទ្ធិទី២ ឬលំហាត់អនុវត្ត]?»\n• គ្រូឱ្យសិស្សឆ្លើយលើក្ដារឆ្នួន ឬសរសេរក្នុងសៀវភៅ និងវាយតម្លៃការយល់ដឹង",
-      "contentSummary": "• ចម្លើយនៃសំណួរពង្រឹងពុទ្ធិ និងដំណោះស្រាយ៖\n  - ចម្លើយទី១៖ [ចម្លើយត្រឹមត្រូវពេញលេញនៃសំណួរទី១]\n  - ចម្លើយទី២៖ [ចម្លើយ ឬដំណោះស្រាយពេញលេញនៃសំណួរទី២]\n• ក្បួនគន្លឹះដែលសិស្សត្រូវចងចាំ",
-      "studentActivity": "• សិស្សយកចិត្តទុកដាក់ដោះស្រាយលំហាត់/សំណួរជាបុគ្គល ឬដៃគូ\n• សិស្សឆ្លើយ (ចម្លើយរំពឹងទុក)៖ «[សង្ខេបចម្លើយរំពឹងទុករបស់សិស្សលើសំណួរពង្រឹងពុទ្ធិ]»\n• សិស្សលើកបង្ហាញចម្លើយលើក្ដារឆ្នួន និងកែតម្រូវតាមការណែនាំរបស់គ្រូ"
+      "teacherActivity": "• [ពិពណ៌នាសកម្មភាពគ្រូយ៉ាងសកម្មតាមវិធីសាស្ត្រ «${params.method}» ធានាថាគ្រូសម្របសម្រួល ៣០% STT ៧០%]...\n• គ្រូដាក់សំណួរ/កិច្ចការអនុវត្តជាក្រុមលើ Flipchart ឬក្ដារឆ្នួន និងវាយតម្លៃតាម Rubric",
+      "contentSummary": "• ចម្លើយនៃកិច្ចការអនុវត្ត និងដំណោះស្រាយជាក្រុម៖\n  - ចម្លើយ ឬដំណោះស្រាយពេញលេញតាមវិធីសាស្ត្រ\n• ក្បួនគន្លឹះដែលសិស្សត្រូវចងចាំ",
+      "studentActivity": "• [សកម្មភាពសិស្សអនុវត្តយ៉ាងសកម្មតាមវិធីសាស្ត្រ «${params.method}» លើ Flipchart/ក្ដារឆ្នួន ៧០% STT]... [ជំនាញ 4Cs]"
     },
     {
       "stepNumber": 5,
@@ -5003,26 +5067,30 @@ function synthesizeLessonPlanOffline(params) {
 
     if (methodType === 'pbl') {
       flippedStep3Teacher = `• គ្រូចោទសួរ ៤ សំណួរតម្រង់ទិស និងប្រគល់ «សន្លឹកបេសកកម្មដោះស្រាយបញ្ហា (Challenge Scenario)» ជាក់ស្តែងនៃ «${lessonTitle}»\n• គ្រូពន្យល់លក្ខណៈវិនិច្ឆ័យវាយតម្លៃ និងតម្រង់ទិសក្រុម`;
-      flippedStep4Teacher = `• ដំណើរការ Problem-Based Learning (PBL) ៤ ដំណាក់កាល៖ (១) វិភាគឫសគល់បញ្ហា, (២) សហការរៀបចំយុទ្ធសាស្ត្រដោះស្រាយលើ Flipchart A0, (៣) តំណាងក្រុមឡើងការពារដំណោះស្រាយ និងដេញដោល, (៤) វាយតម្លៃតាម Rubric ៤ កម្រិត\n• គ្រូសម្របសម្រួល និងសំយោគក្បួនរួមថ្នាក់`;
-      flippedStep4Student = `• សិស្សធ្វើការជាក្រុមវិភាគឫសគល់នៃបញ្ហា និងបង្កើតសម្មតិកម្មដំណោះស្រាយ [ការគិតស៊ីជម្រៅ]\n• រៀបចំយុទ្ធសាស្ត្រលើ Flipchart A0 ឡើងការពារ និងឆ្លើយតបសំណួរជំទាស់ពីក្រុមដទៃ [ជំនាញដោះស្រាយបញ្ហា និងការប្រាស្រ័យទាក់ទង]`;
+      flippedStep4Teacher = `• ដំណើរការ Problem-Based Learning (PBL) ៤ ដំណាក់កាល៖\n  (១) វិភាគឫសគល់បញ្ហា: ក្រុមនីមួយៗវិភាគសេណារីយ៉ូបញ្ហា និងកំណត់ទិន្នន័យចាំបាច់\n  (២) សហការរៀបចំយុទ្ធសាស្ត្រ: បង្កើតសម្មតិកម្ម និងគូសវាសដំណោះស្រាយលើ Flipchart A0\n  (៣) ការពារដំណោះស្រាយ & ដេញដោល: តំណាងក្រុមឡើងការពារដំណោះស្រាយ និងឆ្លើយសំណួរជំទាស់ពីក្រុមដទៃ\n  (៤) វាយតម្លៃ & សំយោគក្បួន: វាយតម្លៃតាម Rubric ៤ កម្រិត និងគ្រូជួយសំយោគក្បួនដោះស្រាយរួមថ្នាក់`;
+      flippedStep4Student = `• ដំណើរការដោះស្រាយបញ្ហាជាក្រុម (PBL) ៤ ដំណាក់កាល៖\n  (១) វិភាគឫសគល់នៃបញ្ហា និងកំណត់ទិន្នន័យចាំបាច់ [ការគិតស៊ីជម្រៅ]\n  (២) សហការបង្កើតសម្មតិកម្ម និងគូសវាសផែនការដោះស្រាយលើ Flipchart A0 [ការសហការ & ភាពច្នៃប្រឌិត]\n  (៣) តំណាងក្រុមឡើងការពារដំណោះស្រាយ និងឆ្លើយតបសំណួរជំទាស់ពីក្រុមដទៃ [ការប្រាស្រ័យទាក់ទង]\n  (៤) វាយតម្លៃដំណោះស្រាយតាម Rubric ៤ កម្រិត និងកត់ត្រាក្បួនដោះស្រាយរួមថ្នាក់`;
     } else if (methodType === 'jigsaw') {
       flippedStep3Teacher = `• គ្រូបែងចែកសិស្សជា «ក្រុមដើម (Home Groups)» និងចាត់តាំង «ក្រុមអ្នកជំនាញ (Expert Groups)» តាមប្រធានបទរងនៃ «${lessonTitle}»\n• គ្រូចោទសួរសំណួរគន្លឹះ ៤ សំណួរតម្រង់ទិសក្រុមអ្នកជំនាញ`;
-      flippedStep4Teacher = `• ដំណើរការ Jigsaw & Concept Mapping ៤ ដំណាក់កាល៖ (១) ក្រុមអ្នកជំនាញស្រាវជ្រាវស៊ីជម្រៅ, (២) ត្រឡប់ទៅក្រុមដើមបង្រៀនគ្នា (Jigsaw Sharing), (៣) ចងក្រង «ផែនទីគំនិត (Concept Map)» លើ Flipchart A0, (៤) ដឹកនាំ Gallery Walk និងវាយតម្លៃគ្នាទៅវិញទៅមក\n• គ្រូសម្របសម្រួល និងបូកសរុបចំណុចគន្លឹះ`;
-      flippedStep4Student = `• សមាជិកក្រុមអ្នកជំនាញវិភាគឯកសារ រួចត្រឡប់ទៅក្រុមដើមបង្រៀនមិត្តរួមក្រុម [ជំនាញទំនាក់ទំនង]\n• ក្រុមដើមរួមគ្នាចងក្រង Concept Map លើ Flipchart A0 និងចូលរួម Gallery Walk វាយតម្លៃគ្នា [ការសហការ និងភាពច្នៃប្រឌិត]`;
+      flippedStep4Teacher = `• ដំណើរការ Jigsaw ៤ ដំណាក់កាល៖\n  (១) ក្រុមអ្នកជំនាញស្រាវជ្រាវស៊ីជម្រៅលើផ្នែកជំនាញ\n  (២) ត្រឡប់ទៅក្រុមដើមបង្រៀនគ្នាទៅវិញទៅមក (Jigsaw Sharing)\n  (៣) ចងក្រង «ផែនទីគំនិត (Concept Map)» / Role-Play លើ Flipchart A0\n  (៤) ដឹកនាំ Gallery Walk និងវាយតម្លៃគ្នាទៅវិញទៅមកតាម Rubric`;
+      flippedStep4Student = `• ដំណើរការ Jigsaw ៤ ដំណាក់កាល៖\n  (១) ក្រុមអ្នកជំនាញវិភាគស៊ីជម្រៅលើឯកសារ [ការគិតស៊ីជម្រៅ]\n  (២) ត្រឡប់ទៅក្រុមដើមបង្រៀនគ្នាទៅវិញទៅមក (Jigsaw Sharing) [ការប្រាស្រ័យទាក់ទង]\n  (៣) សហការចងក្រង Concept Map លើ Flipchart A0 [ការសហការ & ភាពច្នៃប្រឌិត]\n  (៤) ចូលរួម Gallery Walk វាយតម្លៃគ្នាទៅវិញទៅមកតាម Rubric`;
     } else if (methodType === '5e') {
       flippedStep3Teacher = `• ដំណាក់កាល Explore (រុករក/ពិសោធន៍): គ្រូប្រគល់សន្លឹកបេសកកម្ម Challenge Scenario / សម្ភារពិសោធន៍ STEM ទាក់ទងនឹង «${lessonTitle}» ឱ្យក្រុមសិស្សរុករក\n• គ្រូដើរសម្របសម្រួល និងចោទសួរបំផុស`;
-      flippedStep4Teacher = `• ដំណាក់កាល Explain & Elaborate (៧០%): គ្រូឱ្យតំណាងក្រុមឡើងពន្យល់របកគំហើញ រួចគ្រូបូកសរុបគោលការណ៍គន្លឹះ\n• គ្រូដាក់ស្ថានភាពបញ្ហាប្រឈមថ្មី (Elaborate) ឱ្យសិស្សយកចំណេះដឹងទៅពង្រីកអនុវត្តលើ Flipchart A0\n• គ្រូដឹកនាំការវាយតម្លៃតាម Rubric ៤ កម្រិត`;
-      flippedStep4Student = `• ក្រុមសិស្សឡើងពន្យល់ទិន្នន័យ និងរបកគំហើញដែលបានរកឃើញ (Explain)\n• សហការដោះស្រាយបញ្ហាប្រឈមថ្មីលើ Flipchart A0 (Elaborate) ប្រកបដោយភាពច្នៃប្រឌិត [ការគិតស៊ីជម្រៅ និង STEM]`;
+      flippedStep4Teacher = `• ដំណើរការ 5E ដំណាក់កាល Explain & Elaborate (៧០% STT)៖\n  (១) Explain (ពន្យល់): គ្រូឱ្យតំណាងក្រុមឡើងពន្យល់របកគំហើញ រួចគ្រូបូកសរុបគោលការណ៍គន្លឹះ\n  (២) Elaborate (ពង្រីកចំណេះដឹង): គ្រូដាក់ស្ថានភាពបញ្ហាប្រឈមថ្មី ឱ្យសិស្សយកចំណេះដឹងទៅពង្រីកអនុវត្តលើ Flipchart A0\n  (៣) Evaluate (វាយតម្លៃ): គ្រូដឹកនាំការវាយតម្លៃលទ្ធផលតាម Rubric ៤ កម្រិត`;
+      flippedStep4Student = `• ដំណើរការ 5E (Explain & Elaborate)៖\n  (១) Explain: ក្រុមសិស្សឡើងពន្យល់ទិន្នន័យ និងការពាររបកគំហើញដែលបានរកឃើញ [ការប្រាស្រ័យទាក់ទង]\n  (២) Elaborate: សហការយកចំណេះដឹងទៅពង្រីកអនុវត្តដោះស្រាយបញ្ហាប្រឈមថ្មីលើ Flipchart A0 [ការគិតស៊ីជម្រៅ]\n  (៣) Evaluate: ចូលរួមវាយតម្លៃស្នាដៃតាម Rubric ៤ កម្រិត និងឆ្លុះបញ្ចាំងការយល់ដឹង`;
     } else if (methodType === 'direct') {
-      flippedStep3Teacher = `• ដំណាក់កាល Guided Practice (We Do): ដោយសារទ្រឹស្តី "I Do" បានរៀនតាមវីដេអូរួចហើយ គ្រូនាំសិស្សអនុវត្តលំហាត់គំរូគន្លឹះ ៤ សំណួររួមគ្នាលើក្តារខៀនដើម្បីពង្រឹងក្បួនខ្នាត\n• គ្រូផ្ទៀងផ្ទាត់ការយល់ដឹងមុនឱ្យសិស្សអនុវត្តផ្ទាល់`;
-      flippedStep4Teacher = `• ដំណាក់កាល Intensive Practice (You Do ៧០%): គ្រូដាក់កម្រងលំហាត់អនុវត្តពីងាយទៅពិបាកឱ្យសិស្សដោះស្រាយជាដៃគូ និងជាក្រុមលើ Flipchart A0\n• គ្រូដើរត្រួតពិនិត្យ ផ្តល់ Feedback ភ្លាមៗ (Immediate Scaffolding) និងដឹកនាំការវិភាគកែកំហុស (Error Analysis)`;
-      flippedStep4Student = `• សិស្សអនុវត្តដោះស្រាយលំហាត់ជាដៃគូ និងផ្ទៀងផ្ទាត់ចម្លើយគ្នាទៅវិញទៅមក\n• សហការដោះស្រាយលំហាត់កម្រិតខ្ពស់ជាក្រុមលើ Flipchart A0 ឡើងកែលើក្តារខៀន និងស្វ័យវាយតម្លៃភាពត្រឹមត្រូវ [ភាពស្ទាត់ជំនាញ]`;
+      flippedStep3Teacher = `• ដំណាក់កាល Guided Practice (We Do): ដោយសារទ្រឹស្តី "I Do" បានរៀនតាមវីដេអូរួចហើយ គ្រូនាំសិស្សអនុវត្តលំហាត់គំរូគន្លឹះ ៤ សំណួររួមគ្នាលើក្តារខៀនដើម្បីពង្រឹងក្បួនខ្នាតនៃ «${lessonTitle}»\n• គ្រូផ្ទៀងផ្ទាត់ការយល់ដឹងមុនឱ្យសិស្សអនុវត្តផ្ទាល់`;
+      flippedStep4Teacher = `• ដំណាក់កាល Intensive Practice (You Do ៧០%) ៤ ជំហាន៖\n  (១) អនុវត្តជាដៃគូ: គ្រូដាក់លំហាត់កម្រិតមធ្យមឱ្យសិស្សដោះស្រាយជាគូ\n  (២) អនុវត្តជាក្រុម: គ្រូដាក់លំហាត់ស្មុគស្មាញលើ Flipchart A0 ឱ្យក្រុមសហការដោះស្រាយ\n  (៣) បង្ហាញ & វិភាគកែកំហុស (Error Analysis): គ្រូហៅឡើងកែលើក្តារខៀន និងវិភាគចំណុចខុសទូទៅ\n  (៤) ស្វ័យវាយតម្លៃ: គ្រូឱ្យសិស្សផ្ទៀងផ្ទាត់ចម្លើយ និងកែតម្រូវឱ្យបាន ១០០%`;
+      flippedStep4Student = `• ដំណាក់កាល "Intensive You Do" (សិស្សអនុវត្តផ្ទាល់ ៧០%)៖\n  (១) អនុវត្តជាដៃគូ: ដោះស្រាយលំហាត់កម្រិតមធ្យមជាគូ និងផ្ទៀងផ្ទាត់ចម្លើយគ្នា [ការសហការ]\n  (២) អនុវត្តជាក្រុម: សហការដោះស្រាយលំហាត់ស្មុគស្មាញលើ Flipchart A0 [ការគិតស៊ីជម្រៅ]\n  (៣) បង្ហាញ & វិភាគកែកំហុស: ឡើងកែលើក្តារខៀន ចូលរួមវិភាគកំហុសទូទៅ (Error Analysis)\n  (៤) ស្វ័យវាយតម្លៃ: ផ្ទៀងផ្ទាត់ចម្លើយ និងកែតម្រូវឱ្យបាន ១០០% ត្រឹមត្រូវ [ភាពស្ទាត់ជំនាញ]`;
+    } else {
+      flippedStep3Teacher = `• គ្រូសង្ខេបក្របខណ្ឌទ្រឹស្តីគន្លឹះ និងគំនិតស្នូលនៃ «${lessonTitle}» រយៈពេលខ្លី\n• គ្រូចោទសួរ ៤ សំណួរដាស់ការត្រិះរិះ និងប្រគល់កិច្ចការស្វ័យសិក្សាជាក្រុម`;
+      flippedStep4Teacher = `• ដំណើរការរៀនសកម្មដោយស្វ័យភាព (Learner Autonomy ៧០%) ៤ ដំណាក់កាល៖\n  (១) រិះរកដោយស្វ័យភាព: ក្រុមសិស្សពិភាក្សា វិភាគទិន្នន័យ និងស្រង់ខ្លឹមសារដោយសេរី [ការគិតស៊ីជម្រៅ]\n  (២) សហការផលិតស្នាដៃ: ផលិតលទ្ធផលរួមលើ Flipchart A0 ដោយបែងចែកតួនាទីច្បាស់លាស់ [ការសហការ]\n  (៣) បទបង្ហាញដឹកនាំដោយសិស្ស: សិស្សដឹកនាំការធ្វើបទបង្ហាញ និងសួរសំណួរដេញដោលគ្នា [ការប្រាស្រ័យទាក់ទង]\n  (៤) ការឆ្លុះបញ្ចាំងរួម: ឆ្លុះបញ្ចាំងលើដំណើរការរៀន (Metacognition) និងវាយតម្លៃតាម Rubric`;
+      flippedStep4Student = `• ដំណើរការរៀនសកម្មដោយស្វ័យភាព (Learner Autonomy ៧០%)៖\n  (១) រិះរកដោយស្វ័យភាព: ក្រុមពិភាក្សា វិភាគទិន្នន័យ និងស្រង់ខ្លឹមសារដោយសេរី [ការគិតស៊ីជម្រៅ]\n  (២) សហការផលិតស្នាដៃ: ផលិតលទ្ធផលរួមលើ Flipchart A0 ដោយបែងចែកតួនាទី [ការសហការ]\n  (៣) បទបង្ហាញដឹកនាំដោយសិស្ស: សិស្សដឹកនាំការធ្វើបទបង្ហាញ និងដេញដោល [ការប្រាស្រ័យទាក់ទង]\n  (៤) ឆ្លុះបញ្ចាំងរួម: ឆ្លុះបញ្ចាំង Metacognition និងវាយតម្លៃតាម Rubric`;
     }
 
     const flippedSteps = [
       {
         stepNumber: 1,
-        stepTitle: "ជំហានទី១៖ រដ្ឋបាលថ្នាក់",
+        stepTitle: getMethodStepTitle(1, method, true),
         duration: stepTimes.step1,
         teacherActivity: "• គ្រូពិនិត្យអនាម័យ សណ្ដាប់ធ្នាប់ក្នុងថ្នាក់ និងសម្លៀកបំពាក់សិស្ស\n• គ្រូពិនិត្យវត្តមាន និងសម្រង់វត្តមានសិស្សប្រចាំថ្ងៃ",
         contentSummary: "• ការពិនិត្យអនាម័យ សម្រង់វត្តមាន និងសណ្ដាប់ធ្នាប់ទូទៅក្នុងថ្នាក់\n• រៀបចំបរិយាកាស និងស្មារតីសម្រាប់ការរៀនសកម្ម",
@@ -5030,7 +5098,7 @@ function synthesizeLessonPlanOffline(params) {
       },
       {
         stepNumber: 2,
-        stepTitle: "ជំហានទី២៖ រំលឹកមេរៀនចាស់",
+        stepTitle: getMethodStepTitle(2, method, true),
         duration: stepTimes.step2,
         teacherActivity: `• គ្រូត្រួតពិនិត្យការស្វ័យសិក្សា និងរំលឹកចំណុចគន្លឹះនៃ «${lessonTitle}»\n• គ្រូបង្ហាញលទ្ធផលបុរេតេស្ត (Pre-Test QCM ៥ សំណួរ) និងស្រាយចម្ងល់ Muddiest Points`,
         contentSummary: `• ពិនិត្យការស្វ័យសិក្សា និងវិភាគលទ្ធផលបុរេតេស្ត (Pre-Test QCM ៥ សំណួរ)\n• បំភ្លឺចំណុចស្រពេចស្រពិល និងភ្ជាប់ទៅសកម្មភាពអនុវត្ត`,
@@ -5038,7 +5106,7 @@ function synthesizeLessonPlanOffline(params) {
       },
       {
         stepNumber: 3,
-        stepTitle: "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី",
+        stepTitle: getMethodStepTitle(3, method, true),
         duration: stepTimes.step3,
         teacherActivity: flippedStep3Teacher,
         contentSummary: `«${lessonTitle}»\n• ខ្លឹមសារ និងទ្រឹស្តីស្នូលនៃមេរៀន៖\n` + (mainPoints.length > 0 ? mainPoints.map(p => `  - ${p}`).join('\n') : `  - និយមន័យ និងគោលការណ៍គ្រឹះនៃ ${lessonTitle}\n  - ការផ្សារភ្ជាប់ទ្រឹស្តីទៅនឹងការអនុវត្តជាក់ស្តែង`),
@@ -5046,7 +5114,7 @@ function synthesizeLessonPlanOffline(params) {
       },
       {
         stepNumber: 4,
-        stepTitle: "ជំហានទី៤៖ ពង្រឹងចំណេះដឹង",
+        stepTitle: getMethodStepTitle(4, method, true),
         duration: stepTimes.step4,
         teacherActivity: flippedStep4Teacher,
         contentSummary: `• សកម្មភាពអនុវត្តស៊ីជម្រៅ និងដោះស្រាយករណីសិក្សាជាក់ស្តែង៖\n` + (mainPoints.length > 0 ? mainPoints.map(p => `  • ${p}`).join('\n') : `  • ការវិភាគករណីសិក្សា និងយុទ្ធសាស្ត្រគរុកោសល្យ\n  • ការវាយតម្លៃ និងការឆ្លុះបញ្ចាំងបែបស្ថាបនា`),
@@ -5054,7 +5122,7 @@ function synthesizeLessonPlanOffline(params) {
       },
       {
         stepNumber: 5,
-        stepTitle: "ជំហានទី៥៖ កិច្ចការផ្ទះ និងបណ្ដាំផ្ញើ",
+        stepTitle: getMethodStepTitle(5, method, true),
         duration: stepTimes.step5,
         teacherActivity: `• គ្រូបូកសរុបគន្លឹះនៃមេរៀន ${lessonTitle} និងណែនាំការធ្វើតេស្តបញ្ចប់ (Post-Test ៥ សំណួរ)\n• គ្រូដាក់កិច្ចការស្រាវជ្រាវ និងណែនាំមាតិកាស្វ័យសិក្សាសម្រាប់សប្តាហ៍បន្ទាប់`,
         contentSummary: `• បូកសរុបការវាយតម្លៃលទ្ធផលសិក្សា (Post-Test ៥ សំណួរ)\n• កិច្ចការស្រាវជ្រាវ និងការត្រៀមសម្រាប់មេរៀនបន្ត`,
@@ -5195,12 +5263,16 @@ function synthesizeLessonPlanOffline(params) {
     stdStep3Teacher = `• ដំណាក់កាល "I Do" & "We Do": គ្រូពន្យល់ច្បាប់/រូបមន្តនៃ «${lessonTitle}» និងបង្ហាញដំណោះស្រាយគំរូលើក្តារខៀនមួយជំហានម្តងៗ\n• គ្រូនាំសិស្សធ្វើលំហាត់គំរូទី២ រួមគ្នាដើម្បីពិនិត្យការយល់ដឹង`;
     stdStep4Teacher = `• ដំណាក់កាល "You Do" (៧០% STT): គ្រូដាក់កម្រងលំហាត់អនុវត្តពីងាយទៅពិបាកឱ្យសិស្សដោះស្រាយដោយឯករាជ្យ ឬជាដៃគូ\n• គ្រូដើរត្រួតពិនិត្យ ផ្តល់ Feedback ភ្លាមៗ និងហៅសិស្សឡើងកែលើក្តារខៀន`;
     stdStep4Student = `• សិស្សយកចិត្តទុកដាក់ស្តាប់ការពន្យល់ និងចូលរួមឆ្លើយជំហានអនុវត្តរួមគ្នា (We Do)\n• សិស្សដោះស្រាយលំហាត់ដោយឯករាជ្យ ឬជាដៃគូ ឡើងកែលើក្តារខៀន និងស្វ័យវាយតម្លៃ [ភាពស្ទាត់ជំនាញ]`;
+  } else {
+    stdStep3Teacher = `• គ្រូសរសេរចំណងជើងមេរៀន «${lessonTitle}» លើក្ដារខៀន\n• គ្រូប្រើសំណួរគន្លឹះចំហ (Guided Discovery) ជំរុញឱ្យសិស្សរុករក និងបង្កើតនិយមន័យដោយខ្លួនឯង\n• គ្រូដើរសម្របសម្រួល មិនជ្រៀតជ្រែកការគិត`;
+    stdStep4Teacher = `• ការអនុវត្តសកម្មជាក្រុម (TTT 30% / STT 70%)៖\n• គ្រូប្រគល់កិច្ចការអនុវត្តជាក់ស្តែងនៃ «${lessonTitle}» ឱ្យក្រុមសិស្សធ្វើការរួមគ្នាលើ Flipchart ឬក្ដារឆ្នួន\n• គ្រូសម្របសម្រួលការធ្វើបទបង្ហាញការពារ និងវាយតម្លៃតាម Rubric`;
+    stdStep4Student = `• ក្រុមសិស្សសហការអនុវត្តជាក់ស្តែង និងសរសេរដំណោះស្រាយលើ Flipchart ឬក្ដារឆ្នួន [ការសហការ]\n• តំណាងក្រុមឡើងការពារលទ្ធផល ឆ្លើយសំណួរដេញដោល និងឆ្លុះបញ្ចាំងការយល់ដឹង [ជំនាញ 4Cs]`;
   }
 
   const steps = [
     {
       stepNumber: 1,
-      stepTitle: "ជំហានទី ១ : រដ្ឋបាលថ្នាក់",
+      stepTitle: getMethodStepTitle(1, method, false),
       duration: stepTimes.step1,
       teacherActivity: "• គ្រូពិនិត្យអនាម័យ សណ្ដាប់ធ្នាប់ក្នុងថ្នាក់ និងសម្លៀកបំពាក់សិស្ស\n• គ្រូពិនិត្យវត្តមាន និងកត់ត្រាចំនួនសិស្សអវត្តមានក្នុងបញ្ជីវត្តមាន",
       contentSummary: "• ពង្រឹងវិន័យ អនាម័យថ្នាក់រៀន និងបរិស្ថានសិក្សា\n• សម្រង់វត្តមានសិស្សប្រចាំថ្ងៃ",
@@ -5208,7 +5280,7 @@ function synthesizeLessonPlanOffline(params) {
     },
     {
       stepNumber: 2,
-      stepTitle: "ជំហានទី ២ : រំលឹកមេរៀនចាស់ / ទំនាក់ទំនងមេរៀន",
+      stepTitle: getMethodStepTitle(2, method, false),
       duration: stepTimes.step2,
       teacherActivity: `• គ្រូសួរសំណួររំលឹកមេរៀនចាស់ ឬចោទជាបញ្ហាខ្លីៗទាក់ទងនឹង ${subject}\n• គ្រូកោតសរសើរ និងភ្ជាប់ទំនាក់ទំនងទៅកាន់មេរៀនថ្មី «${lessonTitle}»`,
       contentSummary: `• រំលឹកខ្លឹមសារគន្លឹះនៃមេរៀនមុន\n• ស្ពានចម្លងគំនិតចូលមេរៀនថ្មី៖ «${lessonTitle}»`,
@@ -5216,7 +5288,7 @@ function synthesizeLessonPlanOffline(params) {
     },
     {
       stepNumber: 3,
-      stepTitle: "ជំហានទី ៣ : ដំណើរការបង្រៀន និងរៀន (មេរៀនថ្មី)",
+      stepTitle: getMethodStepTitle(3, method, false),
       duration: stepTimes.step3,
       teacherActivity: stdStep3Teacher,
       contentSummary: `«${lessonTitle}»\n• ខ្លឹមសារស្នូល និងចំណុចសំខាន់ៗ៖\n` + (mainPoints.length > 0 ? mainPoints.map(p => `  - ${p}`).join('\n') : `  - និយមន័យ និងទ្រឹស្តីមូលដ្ឋាននៃ ${lessonTitle}\n  - ឧទាហរណ៍ និងរូបមន្តគន្លឹះ\n  - ការអនុវត្តជាក់ស្តែង`),
@@ -5224,7 +5296,7 @@ function synthesizeLessonPlanOffline(params) {
     },
     {
       stepNumber: 4,
-      stepTitle: "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (វាយតម្លៃ)",
+      stepTitle: getMethodStepTitle(4, method, false),
       duration: stepTimes.step4,
       teacherActivity: stdStep4Teacher,
       contentSummary: `• សំណួរវាស់ស្ទង់ការយល់ដឹង ឬលំហាត់សង្ខេប\n• កំណែចម្លើយត្រឹមត្រូវ និងការកែតម្រូវចំណុចខ្វះខាត`,
@@ -5232,7 +5304,7 @@ function synthesizeLessonPlanOffline(params) {
     },
     {
       stepNumber: 5,
-      stepTitle: "ជំហានទី ៥ : បណ្តាំផ្ញើ និងកិច្ចការផ្ទះ",
+      stepTitle: getMethodStepTitle(5, method, false),
       duration: stepTimes.step5,
       teacherActivity: `• គ្រូសង្ខេបចំណុចសំខាន់ៗនៃមេរៀន ${lessonTitle} ឡើងវិញ\n• គ្រូដាក់កិច្ចការផ្ទះទាក់ទងនឹង ${lessonTitle}\n• គ្រូផ្ដាំផ្ញើអប់រំទូន្មានសីលធម៌ និងការមើលមេរៀនបន្តសម្រាប់ម៉ោងក្រោយ`,
       contentSummary: `• ចំណុចសំខាន់ៗដែលសិស្សត្រូវចងចាំពីមេរៀន ${lessonTitle}\n• កិច្ចការផ្ទះ៖ លំហាត់អនុវត្តសម្រាប់ផ្ទះ\n• បណ្ដាំផ្ញើអប់រំសីលធម៌ និងសុវត្ថិភាព`,
@@ -6521,33 +6593,20 @@ function normalizeLessonPlanData(data, params = {}) {
     const currentMethodVal = data.method || params.method || (document.getElementById('inputMethod') ? document.getElementById('inputMethod').value : '');
     const methodType = detectMethodType(currentMethodVal);
 
-    let step4TitleFlipped = "ជំហានទី៤៖ ការរៀនសកម្ម ស៊ីជម្រៅ និងដោះស្រាយករណីសិក្សាជាក្រុម (Active Learning & Gallery Walk)";
-    let step3TitleFlipped = "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី និងក្របខណ្ឌទ្រឹស្តីគន្លឹះ (Mini-Lecture / Core Insights)";
-    if (methodType === 'jigsaw') {
-      step3TitleFlipped = "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី និងបែងចែកក្រុមជំនាញ (Expert Groups)";
-      step4TitleFlipped = "ជំហានទី៤៖ ដំណើរការ Jigsaw ៤ ដំណាក់កាល និងចងក្រងផែនទីគំនិត (Jigsaw & Concept Mapping)";
-    } else if (methodType === 'pbl') {
-      step4TitleFlipped = "ជំហានទី៤៖ ការរៀនសកម្មតាមបែបដោះស្រាយបញ្ហា (Problem-Based Learning & Challenge Scenario)";
-    } else if (methodType === '5e') {
-      step4TitleFlipped = "ជំហានទី៤៖ ការរៀនសកម្មតាមបែប 5E (Explain & Elaborate / Active STEM)";
-    } else if (methodType === 'direct') {
-      step4TitleFlipped = "ជំហានទី៤៖ ការអនុវត្តជាក់ស្តែងស៊ីជម្រៅ (Intensive Practice / You Do)";
-    }
-
     const stepTitlesFlipped = [
-      "ជំហានទី១៖ រដ្ឋបាលថ្នាក់ និងត្រួតពិនិត្យការត្រៀមខ្លួន",
-      "ជំហានទី២៖ រំលឹកមេរៀនចាស់ និងត្រួតពិនិត្យការស្វ័យសិក្សា (Pre-Test QCM & Muddiest Points)",
-      step3TitleFlipped,
-      step4TitleFlipped,
-      "ជំហានទី៥៖ បូកសរុប វាយតម្លៃបច្ឆិមតេស្ត និងកិច្ចការស្រាវជ្រាវបន្ត (Synthesis & Homework)"
+      getMethodStepTitle(1, currentMethodVal, true),
+      getMethodStepTitle(2, currentMethodVal, true),
+      getMethodStepTitle(3, currentMethodVal, true),
+      getMethodStepTitle(4, currentMethodVal, true),
+      getMethodStepTitle(5, currentMethodVal, true)
     ];
 
     const stepTitlesStandard = [
-      "ជំហានទី ១ : រដ្ឋបាលថ្នាក់",
-      "ជំហានទី ២ : រំលឹកមេរៀនចាស់ / ទំនាក់ទំនងមេរៀន",
-      methodType === 'jigsaw' ? "ជំហានទី ៣ : មេរៀនថ្មី (ក្រុមអ្នកជំនាញ - Expert Groups)" : "ជំហានទី ៣ : ដំណើរការបង្រៀន និងរៀន (មេរៀនថ្មី)",
-      methodType === 'jigsaw' ? "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (Jigsaw Sharing & Concept Mapping)" : "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (វាយតម្លៃ)",
-      "ជំហានទី ៥ : បណ្តាំផ្ញើ និងកិច្ចការផ្ទះ"
+      getMethodStepTitle(1, currentMethodVal, false),
+      getMethodStepTitle(2, currentMethodVal, false),
+      getMethodStepTitle(3, currentMethodVal, false),
+      getMethodStepTitle(4, currentMethodVal, false),
+      getMethodStepTitle(5, currentMethodVal, false)
     ];
 
     const defaultTitles = isFlipped ? stepTitlesFlipped : stepTitlesStandard;
@@ -6568,7 +6627,13 @@ function normalizeLessonPlanData(data, params = {}) {
       let safeContent = contentSum;
       let safeStudent = studentAct;
 
-      if (!safeTeacher || safeTeacher.trim().length < 5) {
+      const isLegacyGenericTeacher4 = teacherAct && (
+        teacherAct.includes("គ្រូបែងចែកក្រុម ដាក់សន្លឹកកិច្ចការករណីសិក្សាជាក់ស្តែងនៃ") ||
+        teacherAct.includes("គ្រូដើរសម្របសម្រួល ផ្តល់ការគាំទ្រ និងដឹកនាំការធ្វើ Gallery Walk")
+      );
+      const isTeacherTooShort = !safeTeacher || safeTeacher.trim().length < 5;
+
+      if (isTeacherTooShort || (stepIdx === 4 && isLegacyGenericTeacher4)) {
         if (stepIdx === 1) {
           safeTeacher = "• គ្រូពិនិត្យអនាម័យ សណ្ដាប់ធ្នាប់ក្នុងថ្នាក់ និងសម្លៀកបំពាក់សិស្ស\n• គ្រូពិនិត្យវត្តមាន និងកត់ត្រាចំនួនសិស្សអវត្តមានក្នុងបញ្ជីវត្តមាន";
         } else if (stepIdx === 2) {
@@ -6580,6 +6645,18 @@ function normalizeLessonPlanData(data, params = {}) {
             safeTeacher = isFlipped
               ? `• គ្រូចោទសួរសំណួរគន្លឹះ ៤ សំណួរតម្រង់ទិស និងបែងចែកសិស្សជា «ក្រុមដើម (Home Groups)»\n• គ្រូចាត់តាំងតំណាងសិស្សទៅកាន់ «ក្រុមអ្នកជំនាញ (Expert Groups)» តាមប្រធានបទរងនៃ «${lessonTitle}»`
               : `• គ្រូណែនាំប្រធានបទ «${lessonTitle}» និងបែងចែកសិស្សជា «ក្រុមអ្នកជំនាញ (Expert Groups)» តាមប្រធានបទរងនីមួយៗ\n• គ្រូដើរសម្របសម្រួល និងផ្ទៀងផ្ទាត់ការយល់ដឹង`;
+          } else if (methodType === 'pbl') {
+            safeTeacher = isFlipped
+              ? `• គ្រូចោទសួរ ៤ សំណួរតម្រង់ទិស និងប្រគល់ «សន្លឹកបេសកកម្មដោះស្រាយបញ្ហា (Challenge Scenario)» ជាក់ស្តែងនៃ «${lessonTitle}»\n• គ្រូពន្យល់លក្ខណៈវិនិច្ឆ័យវាយតម្លៃតាម Rubric ៤ កម្រិត និងតម្រង់ទិសក្រុម`
+              : `• គ្រូបង្ហាញ «ស្ថានភាពបញ្ហាជាក់ស្តែង (Problem Scenario)» ពាក់ព័ន្ធនឹង «${lessonTitle}» លើក្តារខៀន ឬស្លាយ\n• គ្រូចោទសួរដាស់ការត្រិះរិះដើម្បីឱ្យសិស្សវិភាគរកឫសគល់បញ្ហា និងពន្យល់ទ្រឹស្តីគន្លឹះដោះស្រាយ`;
+          } else if (methodType === '5e') {
+            safeTeacher = isFlipped
+              ? `• ដំណាក់កាល Explore (រុករក/ពិសោធន៍): គ្រូប្រគល់សន្លឹកបេសកកម្ម Challenge Scenario / សម្ភារពិសោធន៍ STEM ទាក់ទងនឹង «${lessonTitle}» ឱ្យក្រុមសិស្សរុករក\n• គ្រូដើរសម្របសម្រួល និងចោទសួរបំផុស`
+              : `• ដំណាក់កាល Explore & Explain: គ្រូឱ្យសិស្សធ្វើការជាក្រុម រុករក/ពិសោធន៍ស្វែងរកទិន្នន័យនៃ «${lessonTitle}»\n• គ្រូឱ្យសិស្សពន្យល់របកគំហើញ រួចគ្រូបូកសរុប និងកំណត់និយមន័យ/រូបមន្តផ្លូវការ`;
+          } else if (methodType === 'direct') {
+            safeTeacher = isFlipped
+              ? `• ដំណាក់កាល Guided Practice (We Do): ដោយសារទ្រឹស្តី "I Do" បានរៀនតាមវីដេអូរួចហើយ គ្រូនាំសិស្សអនុវត្តលំហាត់គំរូគន្លឹះ ៤ សំណួររួមគ្នាលើក្តារខៀនដើម្បីពង្រឹងក្បួនខ្នាតនៃ «${lessonTitle}»\n• គ្រូផ្ទៀងផ្ទាត់ការយល់ដឹងមុនឱ្យសិស្សអនុវត្តផ្ទាល់`
+              : `• ដំណាក់កាល "I Do" & "We Do": គ្រូពន្យល់ច្បាប់/រូបមន្តនៃ «${lessonTitle}» និងបង្ហាញដំណោះស្រាយគំរូលើក្តារខៀនមួយជំហានម្តងៗ\n• គ្រូនាំសិស្សធ្វើលំហាត់គំរូទី២ រួមគ្នាដើម្បីពិនិត្យការយល់ដឹង`;
           } else {
             safeTeacher = isFlipped
               ? `• គ្រូសង្ខេបក្របខណ្ឌទ្រឹស្តីគន្លឹះ និងគំនិតស្នូលនៃ «${lessonTitle}» រយៈពេលខ្លី\n• គ្រូចោទសំណួរបំផុសគំនិត និងណែនាំបេសកកម្មសិក្សាជាក្រុម`
@@ -6589,18 +6666,35 @@ function normalizeLessonPlanData(data, params = {}) {
           if (methodType === 'jigsaw') {
             safeTeacher = isFlipped
               ? `• ដំណើរការ Jigsaw ៤ ដំណាក់កាល៖\n  (១) ក្រុមអ្នកជំនាញ (Expert Groups): គ្រូចាត់តាំងសិស្សតាមប្រធានបទរងនៃ «${lessonTitle}» និងសម្របសម្រួលការវិភាគឯកសារ\n  (២) ត្រឡប់ទៅក្រុមដើម (Home Groups / Jigsaw Sharing): គ្រូណែនាំសមាជិកបង្រៀនគ្នាទៅវិញទៅមកលើគ្រប់ផ្នែក\n  (៣) ចងក្រងផែនទីគំនិត (Concept Map) / Role-Play: គ្រូប្រគល់ Flipchart A0 ឱ្យក្រុមដើមសហការចងក្រងស្នាដៃរួម\n  (៤) Gallery Walk & វាយតម្លៃ: គ្រូដឹកនាំដើរទស្សនាស្នាដៃ និងសម្របសម្រួលការវាយតម្លៃគ្នាទៅវិញទៅមកតាម Rubric`
-              : `• គ្រូឱ្យសិស្សត្រឡប់ទៅ «ក្រុមដើម (Home Groups)» បង្រៀនគ្នាទៅវិញទៅមក (Jigsaw Sharing)\n• គ្រូឱ្យក្រុមនីមួយៗសហការចងក្រង «ផែនទីគំនិត (Concept Map)» លើ Flipchart A0 និងធ្វើ Gallery Walk`;
+              : `• គ្រូឱ្យសិស្សត្រឡប់ទៅ «ក្រុមដើម (Home Groups)» បង្រៀនគ្នាទៅវិញទៅមក (Jigsaw Sharing ៧០% STT)\n• គ្រូឱ្យក្រុមនីមួយៗសហការចងក្រង «ផែនទីគំនិត (Concept Map)» លើ Flipchart A0 និងធ្វើ Gallery Walk`;
+          } else if (methodType === 'pbl') {
+            safeTeacher = isFlipped
+              ? `• ដំណើរការ Problem-Based Learning (PBL) ៤ ដំណាក់កាល៖\n  (១) វិភាគឫសគល់បញ្ហា: គ្រូណែនាំក្រុមវិភាគសេណារីយ៉ូបញ្ហា និងកំណត់ទិន្នន័យចាំបាច់\n  (២) សហការរៀបចំយុទ្ធសាស្ត្រ: គ្រូប្រគល់ Flipchart A0 ឱ្យក្រុមរៀបចំយុទ្ធសាស្ត្រ និងគូសវាសដំណោះស្រាយ\n  (៣) ការពារដំណោះស្រាយ & ដេញដោល: គ្រូសម្របសម្រួលឱ្យតំណាងក្រុមឡើងការពារដំណោះស្រាយ និងឆ្លើយសំណួរជំទាស់ពីក្រុមដទៃ\n  (៤) វាយតម្លៃ & សំយោគក្បួន: គ្រូដឹកនាំវាយតម្លៃតាម Rubric ៤ កម្រិត និងសំយោគក្បួនដោះស្រាយរួមថ្នាក់`
+              : `• ដំណើរការដោះស្រាយបញ្ហាជាក្រុម (PBL ៧០% STT)៖\n• គ្រូបែងចែកក្រុមការងារ ដាក់សេណារីយ៉ូបញ្ហាជាក់ស្តែងនៃ «${lessonTitle}» ឱ្យក្រុមសិស្សដោះស្រាយលើ Flipchart ឬក្ដារឆ្នួន\n• គ្រូសម្របសម្រួលការឡើងការពារដំណោះស្រាយ និងវាយតម្លៃតាម Rubric ៤ កម្រិត`;
+          } else if (methodType === '5e') {
+            safeTeacher = isFlipped
+              ? `• ដំណើរការ 5E ដំណាក់កាល Explain & Elaborate (៧០% STT)៖\n  (១) Explain (ពន្យល់): គ្រូឱ្យតំណាងក្រុមឡើងពន្យល់របកគំហើញ រួចគ្រូបូកសរុបគោលការណ៍គន្លឹះ\n  (២) Elaborate (ពង្រីកចំណេះដឹង): គ្រូដាក់ស្ថានភាពបញ្ហាប្រឈមថ្មី ឱ្យសិស្សយកចំណេះដឹងទៅពង្រីកអនុវត្តលើ Flipchart A0\n  (៣) Evaluate (វាយតម្លៃ): គ្រូដឹកនាំការវាយតម្លៃលទ្ធផលតាម Rubric ៤ កម្រិត`
+              : `• ដំណាក់កាល Elaborate (ពង្រីកចំណេះដឹង ៧០% STT)៖\n• គ្រូដាក់លំហាត់/ស្ថានភាពស្មុគស្មាញថ្មីនៃ «${lessonTitle}» ឱ្យសិស្សយកចំណេះដឹងទៅពង្រីកអនុវត្តជាក្រុមលើ Flipchart ឬក្ដារឆ្នួន\n• គ្រូដើរសម្របសម្រួល ផ្តល់ការគាំទ្រ និងវាយតម្លៃការយល់ដឹង`;
+          } else if (methodType === 'direct') {
+            safeTeacher = isFlipped
+              ? `• ដំណាក់កាល Intensive Practice (You Do ៧០%) ៤ ជំហាន៖\n  (១) អនុវត្តជាដៃគូ: គ្រូដាក់លំហាត់កម្រិតមធ្យមឱ្យសិស្សដោះស្រាយជាគូ\n  (២) អនុវត្តជាក្រុម: គ្រូដាក់លំហាត់ស្មុគស្មាញលើ Flipchart A0 ឱ្យក្រុមសហការដោះស្រាយ\n  (៣) បង្ហាញ & វិភាគកែកំហុស (Error Analysis): គ្រូហៅឡើងកែលើក្តារខៀន និងវិភាគចំណុចខុសទូទៅ\n  (៤) ស្វ័យវាយតម្លៃ: គ្រូឱ្យសិស្សផ្ទៀងផ្ទាត់ចម្លើយ និងកែតម្រូវឱ្យបាន ១០០%`
+              : `• ដំណាក់កាល "You Do" (៧០% STT)៖\n• គ្រូដាក់កម្រងលំហាត់អនុវត្តពីងាយទៅពិបាកនៃ «${lessonTitle}» ឱ្យសិស្សដោះស្រាយដោយឯករាជ្យ ឬជាដៃគូ\n• គ្រូដើរត្រួតពិនិត្យ ផ្តល់ Feedback ភ្លាមៗ (Immediate Scaffolding) និងហៅសិស្សឡើងកែលើក្តារខៀន`;
           } else {
             safeTeacher = isFlipped
-              ? `• គ្រូបែងចែកក្រុម ដាក់សន្លឹកកិច្ចការករណីសិក្សាជាក់ស្តែងនៃ «${lessonTitle}»\n• គ្រូដើរសម្របសម្រួល ផ្តល់ការគាំទ្រ និងដឹកនាំការធ្វើ Gallery Walk`
-              : `• គ្រូដាក់សំណួរពង្រឹងពុទ្ធិ ឬលំហាត់អនុវត្តរហ័សទាក់ទងនឹង «${lessonTitle}»\n• គ្រូឱ្យសិស្សអនុវត្តជាបុគ្គល ឬដៃគូ និងត្រួតពិនិត្យការយល់ដឹង`;
+              ? `• ដំណើរការរៀនសកម្មដោយស្វ័យភាព (Learner Autonomy ៧០%) ៤ ដំណាក់កាល៖\n  (១) រិះរកដោយស្វ័យភាព: ក្រុមសិស្សពិភាក្សា វិភាគទិន្នន័យ និងស្រង់ខ្លឹមសារដោយសេរី [ការគិតស៊ីជម្រៅ]\n  (២) សហការផលិតស្នាដៃ: ផលិតលទ្ធផលរួមលើ Flipchart A0 ដោយបែងចែកតួនាទីច្បាស់លាស់ [ការសហការ]\n  (៣) បទបង្ហាញដឹកនាំដោយសិស្ស: សិស្សដឹកនាំការធ្វើបទបង្ហាញ និងសួរសំណួរដេញដោលគ្នា [ការប្រាស្រ័យទាក់ទង]\n  (៤) ការឆ្លុះបញ្ចាំងរួម: ឆ្លុះបញ្ចាំងលើដំណើរការរៀន (Metacognition) និងវាយតម្លៃតាម Rubric`
+              : `• ការអនុវត្តសកម្មជាក្រុម (TTT 30% / STT 70%)៖\n• គ្រូប្រគល់កិច្ចការអនុវត្តជាក់ស្តែងនៃ «${lessonTitle}» ឱ្យក្រុមសិស្សធ្វើការរួមគ្នាលើ Flipchart ឬក្ដារឆ្នួន\n• គ្រូដើរសម្របសម្រួល មិនជ្រៀតជ្រែកការគិត និងដឹកនាំការធ្វើបទបង្ហាញការពារ`;
           }
         } else {
           safeTeacher = `• គ្រូបូកសរុបចំណុចសំខាន់ៗនៃមេរៀន «${lessonTitle}» ឡើងវិញ\n• គ្រូដាក់កិច្ចការផ្ទះស្រាវជ្រាវ និងផ្ដាំផ្ញើអប់រំសីលធម៌ សុវត្ថិភាព`;
         }
       }
 
-      if (!safeContent || safeContent.trim().length < 5) {
+      const isLegacyGenericContent4 = contentSum && (
+        contentSum.includes("ដំណោះស្រាយករណីសិក្សា និងលទ្ធផលការងារជាក់ស្តែងរបស់ក្រុម")
+      );
+      const isContentTooShort = !safeContent || safeContent.trim().length < 5;
+
+      if (isContentTooShort || (stepIdx === 4 && isLegacyGenericContent4)) {
         if (stepIdx === 1) {
           safeContent = "• ការពិនិត្យអនាម័យ បរិស្ថានសិក្សា និងសម្រង់វត្តមានសិស្សប្រចាំថ្ងៃ";
         } else if (stepIdx === 2) {
@@ -6614,6 +6708,18 @@ function normalizeLessonPlanData(data, params = {}) {
             safeContent = isFlipped
               ? `• ខ្លឹមសារលម្អិតតាមផ្នែកជំនាញនៃ «${lessonTitle}» ដែលក្រុមអ្នកជំនាញបានស្រាវជ្រាវ\n• ផលិតផលសម្រេច៖ ផែនទីគំនិតរួម (Concept Map) ឬ Role-Play លើ Flipchart A0`
               : `• ចំណេះដឹងគ្រប់ផ្នែកនៃ «${lessonTitle}» ពីក្រុមអ្នកជំនាញ\n• ផែនទីគំនិត (Concept Map) បូកសរុបមេរៀន`;
+          } else if (methodType === 'pbl') {
+            safeContent = isFlipped
+              ? `• ដំណោះស្រាយសេណារីយ៉ូបញ្ហាប្រឈមជាក់ស្តែងនៃ «${lessonTitle}»\n• យុទ្ធសាស្ត្រ និងផែនការសកម្មភាពដោះស្រាយច្នៃប្រឌិតលើ Flipchart A0\n• ក្បួនខ្នាត និងការសំយោគវិធីសាស្ត្ររួមថ្នាក់`
+              : `• ដំណោះស្រាយស្ថានភាពបញ្ហាជាក់ស្តែងនៃ «${lessonTitle}»\n• លទ្ធផលការងារជាក្រុម និងក្បួនដោះស្រាយបញ្ហាគន្លឹះ`;
+          } else if (methodType === '5e') {
+            safeContent = isFlipped
+              ? `• របកគំហើញពីការពិសោធន៍/រុករក និងការពន្យល់បែបវិទ្យាសាស្ត្រ (Explain)\n• ដំណោះស្រាយលើស្ថានភាពបញ្ហាប្រឈមថ្មីលើ Flipchart A0 (Elaborate)`
+              : `• ទិន្នន័យរបកគំហើញពីការរុករក/ពិសោធន៍នៃ «${lessonTitle}»\n• ចំណេះដឹងដែលបានពង្រីកអនុវត្តក្នុងស្ថានភាពថ្មី (Elaborate)`;
+          } else if (methodType === 'direct') {
+            safeContent = isFlipped
+              ? `• កម្រងលំហាត់អនុវត្តកម្រិតមធ្យម និងកម្រិតខ្ពស់នៃ «${lessonTitle}»\n• ដំណោះស្រាយត្រឹមត្រូវ និងការវិភាគកែកំហុស (Error Analysis) លើ Flipchart A0`
+              : `• កម្រងលំហាត់អនុវត្តពីងាយទៅពិបាកនៃ «${lessonTitle}»\n• កំណែចម្លើយគំរូត្រឹមត្រូវ និងវិធានគន្លឹះក្នុងការដោះស្រាយ`;
           } else {
             safeContent = isFlipped
               ? `• ដំណោះស្រាយករណីសិក្សា និងលទ្ធផលការងារជាក់ស្តែងរបស់ក្រុមនិស្សិត\n• ការទាញក្បួនគន្លឹះរួម និងការឆ្លុះបញ្ចាំងលើបញ្ហាប្រឈម`
@@ -6624,7 +6730,13 @@ function normalizeLessonPlanData(data, params = {}) {
         }
       }
 
-      if (!safeStudent || safeStudent.trim().length < 5) {
+      const isLegacyGenericStudent4 = studentAct && (
+        studentAct.includes("សិស្សពិភាក្សាជាក្រុមយ៉ាងសកម្ម ដោះស្រាយករណីសិក្សា និងសរសេរលើ Flipchart") ||
+        studentAct.includes("សិស្សចូលរួមធ្វើ Gallery Walk ឡើងការពារ និងឆ្លើយសំណួរដេញដោល")
+      );
+      const isStudentTooShort = !safeStudent || safeStudent.trim().length < 5;
+
+      if (isStudentTooShort || (stepIdx === 4 && isLegacyGenericStudent4)) {
         if (stepIdx === 1) {
           safeStudent = "• ប្រធានថ្នាក់ឡើងរាយការណ៍ពីវត្តមានសិស្ស\n• សិស្សទាំងអស់រៀបចំសម្ភារសិក្សា និងរក្សាភាពស្ងប់ស្ងាត់គោរពវិន័យ";
         } else if (stepIdx === 2) {
@@ -6636,6 +6748,18 @@ function normalizeLessonPlanData(data, params = {}) {
             safeStudent = isFlipped
               ? `• សិស្សស្តាប់សំណួរគន្លឹះរបស់គ្រូ និងទទួលការចាត់តាំងចូល «ក្រុមដើម»\n• សិស្សបំបែកទៅកាន់ «ក្រុមអ្នកជំនាញ» តាមប្រធានបទរងរៀងៗខ្លួនដើម្បីត្រៀមស្រាវជ្រាវ`
               : `• សិស្សចូលរួមក្នុង «ក្រុមអ្នកជំនាញ» អាន ពិភាក្សា និងយល់ឱ្យស៊ីជម្រៅលើផ្នែករងដែលបានចាត់តាំង\n• សិស្សសួរសំណួរ និងកត់ត្រាចំណុចសំខាន់ៗ`;
+          } else if (methodType === 'pbl') {
+            safeStudent = isFlipped
+              ? `• សិស្សស្តាប់ការចោទសួរសំណួរតម្រង់ទិស ៤ សំណួរ និងទទួល «សន្លឹកបេសកកម្មដោះស្រាយបញ្ហា»\n• ពិភាក្សាដំបូងក្នុងក្រុមដើម្បីកំណត់ទិសដៅ និងយល់ច្បាស់ពីបញ្ហាប្រឈម`
+              : `• សិស្សសង្កេតស្ថានភាពបញ្ហាជាក់ស្តែងដែលគ្រូបានបង្ហាញ\n• សិស្សចូលរួមឆ្លើយសំណួរដាស់ការត្រិះរិះ និងកត់ត្រាទ្រឹស្តីគន្លឹះដោះស្រាយ`;
+          } else if (methodType === '5e') {
+            safeStudent = isFlipped
+              ? `• ក្រុមសិស្សទទួលសន្លឹកបេសកកម្ម Challenge Scenario ឬសម្ភារពិសោធន៍ STEM\n• សហការរុករក ប្រមូលទិន្នន័យ និងកត់ត្រាលទ្ធផលបឋម (Explore)`
+              : `• ក្រុមសិស្សសហការរុករក/ពិសោធន៍តាមការណែនាំ (Explore)\n• សិស្សឡើងពន្យល់ពីអ្វីដែលបានរកឃើញតាមភាសារបស់ខ្លួន (Explain)`;
+          } else if (methodType === 'direct') {
+            safeStudent = isFlipped
+              ? `• សិស្សយកចិត្តទុកដាក់ស្តាប់ការពន្យល់បំភ្លឺចំណុចពិបាក (Mini-Modeling)\n• ចូលរួមអនុវត្តលំហាត់គំរូគន្លឹះរួមគ្នាជាមួយគ្រូលើក្តារខៀន (We Do) និងកត់ត្រាក្បួនខ្នាត`
+              : `• សិស្សយកចិត្តទុកដាក់ស្តាប់ការពន្យល់ និងសង្កេតដំណោះស្រាយគំរូរបស់គ្រូ (I Do)\n• ចូលរួមឆ្លើយជំហានអនុវត្តលំហាត់គំរូទី២ រួមគ្នាជាមួយគ្រូ (We Do)`;
           } else {
             safeStudent = isFlipped
               ? "• សិស្សកត់ត្រាចំណងជើងមេរៀន យកចិត្តទុកដាក់ស្តាប់ និងកត់ត្រាគំនិតសំខាន់ៗ\n• សិស្សសួរសំណួរចម្ងល់ និងឆ្លើយសំណួរបំផុសរបស់គ្រូ"
@@ -6644,21 +6768,38 @@ function normalizeLessonPlanData(data, params = {}) {
         } else if (stepIdx === 4) {
           if (methodType === 'jigsaw') {
             safeStudent = isFlipped
-              ? `• (១) សិស្សក្នុង «ក្រុមអ្នកជំនាញ» វិភាគឯកសារស៊ីជម្រៅលើផ្នែកជំនាញ និងត្រៀមក្បួនបង្រៀន [ការគិតស៊ីជម្រៅ]\n• (២) ត្រឡប់ទៅ «ក្រុមដើម» បង្រៀនគ្នាទៅវិញទៅមកឱ្យយល់គ្រប់ផ្នែកនៃមេរៀន (Jigsaw Sharing) [ការប្រាស្រ័យទាក់ទង]\n• (៣) សហការចងក្រង «ផែនទីគំនិត (Concept Map)» ឬសម្តែង Role-Play លើ Flipchart A0 [ការសហការ & ភាពច្នៃប្រឌិត]\n• (៤) ចូលរួម Gallery Walk ដើរទស្សនាស្នាដៃ ផ្តល់ Feedback និងវាយតម្លៃគ្នាទៅវិញទៅមកតាម Rubric`
+              ? `• ដំណើរការ Jigsaw ៤ ដំណាក់កាល៖\n  (១) ក្រុមអ្នកជំនាញ: វិភាគឯកសារស៊ីជម្រៅលើផ្នែកជំនាញ និងត្រៀមក្បួនបង្រៀន [ការគិតស៊ីជម្រៅ]\n  (២) ត្រឡប់ទៅក្រុមដើម: បង្រៀនគ្នាទៅវិញទៅមកឱ្យយល់គ្រប់ផ្នែកនៃមេរៀន (Jigsaw Sharing) [ការប្រាស្រ័យទាក់ទង]\n  (៣) ចងក្រង Concept Map / Role-Play: សហការចងក្រងស្នាដៃរួមលើ Flipchart A0 [ការសហការ & ភាពច្នៃប្រឌិត]\n  (៤) Gallery Walk & វាយតម្លៃ: ដើរទស្សនាស្នាដៃ ផ្តល់ Feedback និងវាយតម្លៃគ្នាទៅវិញទៅមកតាម Rubric`
               : `• សិស្សត្រឡប់ទៅក្រុមដើម បង្រៀនមិត្តរួមក្រុមលើផ្នែកជំនាញរបស់ខ្លួន\n• សហការគូរផែនទីគំនិតលើ Flipchart A0 និងចូលរួម Gallery Walk វាយតម្លៃគ្នា`;
+          } else if (methodType === 'pbl') {
+            safeStudent = isFlipped
+              ? `• ដំណើរការដោះស្រាយបញ្ហាជាក្រុម (PBL) ៤ ដំណាក់កាល៖\n  (១) វិភាគឫសគល់នៃបញ្ហា: កំណត់ទិន្នន័យចាំបាច់ និងឫសគល់បញ្ហា [ការគិតស៊ីជម្រៅ]\n  (២) សហការរៀបចំយុទ្ធសាស្ត្រ: បង្កើតសម្មតិកម្ម និងគូសវាសផែនការដោះស្រាយលើ Flipchart A0 [ការសហការ & ភាពច្នៃប្រឌិត]\n  (៣) ការពារដំណោះស្រាយ: តំណាងក្រុមឡើងការពារដំណោះស្រាយ និងឆ្លើយសំណួរដេញដោល [ការប្រាស្រ័យទាក់ទង]\n  (៤) វាយតម្លៃ & សំយោគក្បួន: វាយតម្លៃតាម Rubric ៤ កម្រិត និងកត់ត្រាក្បួនដោះស្រាយរួមថ្នាក់`
+              : `• ក្រុមសិស្សសហការវិភាគបញ្ហា សាកល្បងសម្មតិកម្ម និងសរសេរដំណោះស្រាយលើ Flipchart ឬក្ដារឆ្នួន [ការដោះស្រាយបញ្ហា]\n• តំណាងក្រុមឡើងការពារដំណោះស្រាយ ឆ្លើយសំណួរដេញដោល និងវាយតម្លៃតាម Rubric`;
+          } else if (methodType === '5e') {
+            safeStudent = isFlipped
+              ? `• ដំណើរការ 5E (Explain & Elaborate)៖\n  (១) Explain: ក្រុមសិស្សឡើងពន្យល់ទិន្នន័យ និងការពាររបកគំហើញដែលបានរកឃើញ [ការប្រាស្រ័យទាក់ទង]\n  (២) Elaborate: សហការយកចំណេះដឹងទៅពង្រីកអនុវត្តដោះស្រាយបញ្ហាប្រឈមថ្មីលើ Flipchart A0 [ការគិតស៊ីជម្រៅ]\n  (៣) Evaluate: ចូលរួមវាយតម្លៃស្នាដៃតាម Rubric ៤ កម្រិត និងឆ្លុះបញ្ចាំងការយល់ដឹង`
+              : `• សិស្សពន្យល់ពីអ្វីដែលបានរកឃើញតាមភាសារបស់ខ្លួន (Explain)\n• សហការយកចំណេះដឹងទៅពង្រីកដោះស្រាយលំហាត់/ស្ថានភាពស្មុគស្មាញថ្មីលើ Flipchart ឬក្ដារឆ្នួន (Elaborate) [ជំនាញ 4Cs]`;
+          } else if (methodType === 'direct') {
+            safeStudent = isFlipped
+              ? `• ដំណាក់កាល "Intensive You Do" (សិស្សអនុវត្តផ្ទាល់ ៧០%)៖\n  (១) អនុវត្តជាដៃគូ: ដោះស្រាយលំហាត់កម្រិតមធ្យមជាគូ និងផ្ទៀងផ្ទាត់ចម្លើយគ្នា [ការសហការ]\n  (២) អនុវត្តជាក្រុម: សហការដោះស្រាយលំហាត់ស្មុគស្មាញលើ Flipchart A0 [ការគិតស៊ីជម្រៅ]\n  (៣) បង្ហាញ & វិភាគកែកំហុស: ឡើងកែលើក្តារខៀន ចូលរួមវិភាគកំហុសទូទៅ (Error Analysis)\n  (៤) ស្វ័យវាយតម្លៃ: ផ្ទៀងផ្ទាត់ចម្លើយ និងកែតម្រូវឱ្យបាន ១០០% ត្រឹមត្រូវ [ភាពស្ទាត់ជំនាញ]`
+              : `• សិស្សអនុវត្តដោះស្រាយលំហាត់ពីងាយទៅពិបាកដោយឯករាជ្យ ឬជាដៃគូ (You Do)\n• ឡើងកែលើក្តារខៀន ទទួល Feedback ពីគ្រូ និងស្វ័យវាយតម្លៃភាពត្រឹមត្រូវ [ភាពស្ទាត់ជំនាញ]`;
           } else {
             safeStudent = isFlipped
-              ? "• សិស្សពិភាក្សាជាក្រុមយ៉ាងសកម្ម ដោះស្រាយករណីសិក្សា និងសរសេរលើ Flipchart\n• សិស្សចូលរួមធ្វើ Gallery Walk ឡើងការពារ និងឆ្លើយសំណួរដេញដោល"
-              : "• សិស្សយកចិត្តទុកដាក់ដោះស្រាយលំហាត់/សំណួរពង្រឹងពុទ្ធិលើក្ដារឆ្នួន ឬសៀវភៅ\n• សិស្សលើកបង្ហាញចម្លើយ និងកែតម្រូវតាមការណែនាំរបស់គ្រូ";
+              ? `• ដំណើរការរៀនសកម្មដោយស្វ័យភាព (Learner Autonomy ៧០%)៖\n  (១) រិះរកដោយស្វ័យភាព: ក្រុមពិភាក្សា វិភាគទិន្នន័យ និងស្រង់ខ្លឹមសារដោយសេរី [ការគិតស៊ីជម្រៅ]\n  (២) សហការផលិតស្នាដៃ: ផលិតលទ្ធផលរួមលើ Flipchart A0 ដោយបែងចែកតួនាទី [ការសហការ]\n  (៣) បទបង្ហាញដឹកនាំដោយសិស្ស: សិស្សដឹកនាំការធ្វើបទបង្ហាញ និងដេញដោល [ការប្រាស្រ័យទាក់ទង]\n  (៤) ឆ្លុះបញ្ចាំងរួម: ឆ្លុះបញ្ចាំង Metacognition និងវាយតម្លៃតាម Rubric`
+              : `• សិស្សពិភាក្សាជាក្រុមយ៉ាងសកម្ម អនុវត្តជាក់ស្តែង និងសរសេរលើ Flipchart ឬក្ដារឆ្នួន [ការសហការ]\n• សិស្សឡើងការពារលទ្ធផលការងារក្រុម ឆ្លើយសំណួរដេញដោល និងឆ្លុះបញ្ចាំងការយល់ដឹង [ជំនាញ 4Cs]`;
           }
         } else {
           safeStudent = "• សិស្សកត់ត្រាកិច្ចការផ្ទះ និងបណ្ដាំផ្ញើចូលក្នុងសៀវភៅដោយយកចិត្តទុកដាក់\n• សិស្សរៀបចំសម្ភារ និងជម្រាបលាគ្រូ";
         }
       }
 
+      let chosenTitle = existing.stepTitle || existing.step_title;
+      if (!chosenTitle || isGenericStepTitle(chosenTitle, stepIdx)) {
+        chosenTitle = defaultTitles[i];
+      }
+
       normalizedSteps.push({
         stepNumber: stepIdx,
-        stepTitle: existing.stepTitle || existing.step_title || defaultTitles[i],
+        stepTitle: chosenTitle,
         duration: existing.duration || defaultDur,
         teacherActivity: safeTeacher,
         contentSummary: safeContent,
