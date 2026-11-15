@@ -14930,7 +14930,7 @@ window.toggleGameFullscreen = function() {
 };
 
 window.openGameModal = function() {
-  window.open('https://ac-kahoot.onrender.com', '_blank');
+  window.open('https://game-ac.pages.dev/', '_blank');
 };
 
 window.closeGameModal = function() {

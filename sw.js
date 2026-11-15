@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lessonplan-cache-v81';
+const CACHE_NAME = 'lessonplan-cache-v82';
 const ASSETS_TO_CACHE = [
   './',
   'index.html',
@@ -46,10 +46,10 @@ self.addEventListener('fetch', (event) => {
 
   // Never cache backend API calls or external AI service requests
   if (
-    url.pathname.startsWith('/api') || 
-    url.hostname.includes('googleapis') || 
-    url.hostname.includes('groq.com') || 
-    url.hostname.includes('openrouter.ai') || 
+    url.pathname.startsWith('/api') ||
+    url.hostname.includes('googleapis') ||
+    url.hostname.includes('groq.com') ||
+    url.hostname.includes('openrouter.ai') ||
     event.request.method !== 'GET'
   ) {
     return;
