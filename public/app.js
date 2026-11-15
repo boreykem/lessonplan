@@ -1139,31 +1139,25 @@ function setLanguage(lang, showNotification = false) {
 
   // 7. Translate Degree Select
   const degreeSelect = document.getElementById('inputDegree');
-  if (degreeSelect && degreeSelect.options.length >= 9) {
+  if (degreeSelect && degreeSelect.options.length >= 6) {
     const degreesEn = [
-      "🏫 Lower Secondary (Grades 7-9)",
-      "🎓 Upper Secondary (Grades 10-12)",
-      "📚 Primary Education (Grades 1-6)",
-      "🌱 Kindergarten / Early Childhood",
-      "🏛️ TEC Kampong Cham Institute",
-      "👨‍🏫 Teacher Training & NIE",
-      "🏛️ Higher Education / University",
-      "🛠️ TVET / Vocational Training",
-      "✏️ Custom / Other"
+      "Primary Education",
+      "Lower Secondary",
+      "Upper Secondary",
+      "Teacher Training Institute",
+      "Higher Education",
+      "Other / Custom"
     ];
     const degreesKm = [
-      "🏫 អនុវិទ្យាល័យ (Lower Secondary: ថ្នាក់ទី ៧-៩)",
-      "🎓 វិទ្យាល័យ (Upper Secondary: ថ្នាក់ទី ១០-១២)",
-      "📚 បឋមសិក្សា (Primary: ថ្នាក់ទី ១-៦)",
-      "🌱 មត្តេយ្យសិក្សា (Kindergarten)",
-      "🏛️ វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម (TEC Kampong Cham)",
-      "👨‍🏫 គរុកោសល្យ និង NIE (Teacher Training)",
-      "🏛️ ឧត្តមសិក្សា / បរិញ្ញាបត្រ (Higher Education)",
-      "🛠️ បណ្តុះបណ្តាលវិជ្ជាជីវៈ (TVET / Vocational)",
-      "✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)"
+      "បឋមសិក្សា",
+      "អនុវិទ្យាល័យ",
+      "វិទ្យាល័យ",
+      "គ្រឹះស្ថានបណ្ដុះបណ្ដាលគ្រូ",
+      "គ្រឹះស្ថានឧត្តមសិក្សា",
+      "ផ្សេងៗ"
     ];
     const targetDegrees = isEn ? degreesEn : degreesKm;
-    for (let i = 0; i < targetDegrees.length; i++) {
+    for (let i = 0; i < targetDegrees.length && i < degreeSelect.options.length; i++) {
       if (degreeSelect.options[i]) degreeSelect.options[i].text = targetDegrees[i];
     }
   }
@@ -1362,91 +1356,64 @@ window.toggleLanguage = toggleLanguage;
 
 // Study Degrees & Grades Dictionary
 const STUDY_DEGREES = {
+  primary: {
+    id: "primary",
+    name: "បឋមសិក្សា",
+    shortName: "បឋមសិក្សា",
+    grades: ["ថ្នាក់ទី ១", "ថ្នាក់ទី ២", "ថ្នាក់ទី ៣", "ថ្នាក់ទី ៤", "ថ្នាក់ទី ៥", "ថ្នាក់ទី ៦"]
+  },
   lower_sec: {
     id: "lower_sec",
-    name: "🏫 អនុវិទ្យាល័យ (Lower Secondary: ថ្នាក់ទី ៧-៩)",
+    name: "អនុវិទ្យាល័យ",
     shortName: "អនុវិទ្យាល័យ",
     grades: ["ថ្នាក់ទី ៧", "ថ្នាក់ទី ៨", "ថ្នាក់ទី ៩"]
   },
   upper_sec: {
     id: "upper_sec",
-    name: "🎓 វិទ្យាល័យ (Upper Secondary: ថ្នាក់ទី ១០-១២)",
+    name: "វិទ្យាល័យ",
     shortName: "វិទ្យាល័យ",
     grades: ["ថ្នាក់ទី ១០", "ថ្នាក់ទី ១១", "ថ្នាក់ទី ១២"]
   },
-  primary: {
-    id: "primary",
-    name: "📚 បឋមសិក្សា (Primary: ថ្នាក់ទី ១-៦)",
-    shortName: "បឋមសិក្សា",
-    grades: ["ថ្នាក់ទី ១", "ថ្នាក់ទី ២", "ថ្នាក់ទី ៣", "ថ្នាក់ទី ៤", "ថ្នាក់ទី ៥", "ថ្នាក់ទី ៦"]
-  },
-  kindergarten: {
-    id: "kindergarten",
-    name: "🌱 មត្តេយ្យសិក្សា (Kindergarten)",
-    shortName: "មត្តេយ្យសិក្សា",
-    grades: [
-      "មត្តេយ្យកម្រិតទាប (អាយុ ៣ ឆ្នាំ)",
-      "មត្តេយ្យកម្រិតមធ្យម (អាយុ ៤ ឆ្នាំ)",
-      "មត្តេយ្យកម្រិតខ្ពស់ (អាយុ ៥ ឆ្នាំ)"
-    ]
-  },
-  tec_kampongcham: {
-    id: "tec_kampongcham",
-    name: "🏛️ វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម (TEC Kampong Cham)",
-    shortName: "វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម",
+  teacher_training: {
+    id: "teacher_training",
+    name: "គ្រឹះស្ថានបណ្ដុះបណ្ដាលគ្រូ",
+    shortName: "គ្រឹះស្ថានបណ្ដុះបណ្ដាលគ្រូ",
     grades: [
       "គរុនិស្សិត ឆ្នាំទី ១ (បរិញ្ញាបត្រអប់រំ ១២+៤)",
       "គរុនិស្សិត ឆ្នាំទី ២ (បរិញ្ញាបត្រអប់រំ ១២+៤)",
       "គរុនិស្សិត ឆ្នាំទី ៣ (បរិញ្ញាបត្រអប់រំ ១២+៤)",
       "គរុនិស្សិត ឆ្នាំទី ៤ (បរិញ្ញាបត្រអប់រំ ១២+៤)",
       "គរុសិស្សមូលដ្ឋាន (១២+២ / អនុវិទ្យាល័យ)",
-      "គរុសិស្សបឋមសិក្សា (១២+២ / បឋមសិក្សា)",
-      "គរុសិស្សមត្តេយ្យសិក្សា",
-      "វគ្គបណ្តុះបណ្តាលវិក្រឹតការ / អភិវឌ្ឍវិជ្ជាជីវៈ"
-    ]
-  },
-  teacher_training: {
-    id: "teacher_training",
-    name: "👨‍🏫 គរុកោសល្យ និង NIE (Teacher Training & NIE)",
-    shortName: "គរុកោសល្យ",
-    grades: [
-      "គរុកោសល្យមត្តេយ្យ",
       "គរុសិស្សបឋមសិក្សា (១២+២)",
-      "គរុសិស្សមូលដ្ឋាន (១២+២ / គរុកោសល្យភូមិភាគ)",
-      "គរុនិស្សិត TEC (១២+៤ / វិទ្យាស្ថានគរុកោសល្យ)",
-      "គរុសិស្សជាន់ខ្ពស់ (១២+៤ / NIE)"
+      "គរុសិស្សមត្តេយ្យសិក្សា",
+      "គរុសិស្សជាន់ខ្ពស់ (១២+៤ / NIE)",
+      "វគ្គបណ្តុះបណ្តាលវិក្រឹតការ / អភិវឌ្ឍវិជ្ជាជីវៈ"
     ]
   },
   higher_ed: {
     id: "higher_ed",
-    name: "🏛️ ឧត្តមសិក្សា / បរិញ្ញាបត្រ (Higher Education)",
-    shortName: "ឧត្តមសិក្សា",
+    name: "គ្រឹះស្ថានឧត្តមសិក្សា",
+    shortName: "គ្រឹះស្ថានឧត្តមសិក្សា",
     grades: [
-      "បរិញ្ញាបត្រ ឆ្នាំទី ១ (ឆ្នាំសិក្សាមូលដ្ឋាន)",
-      "បរិញ្ញាបត្រ ឆ្នាំទី ២",
-      "បរិញ្ញាបត្រ ឆ្នាំទី ៣",
-      "បរិញ្ញាបត្រ ឆ្នាំទី ៤",
-      "ថ្នាក់អនុបណ្ឌិត (Master's Degree)",
-      "ថ្នាក់បណ្ឌិត (Doctorate / PhD)"
-    ]
-  },
-  tvet: {
-    id: "tvet",
-    name: "🛠️ បណ្តុះបណ្តាលវិជ្ជាជីវៈ (TVET / Vocational)",
-    shortName: "បណ្តុះបណ្តាលវិជ្ជាជីវៈ",
-    grades: [
-      "វិញ្ញាបនបត្របច្ចេកទេស និងវិជ្ជាជីវៈ (C1/C2/C3)",
-      "សញ្ញាបត្រជាន់ខ្ពស់បច្ចេកទេស (Higher Diploma)",
-      "វគ្គបណ្តុះបណ្តាលខ្លី"
+      "ឆ្នាំទី ១ (ឆ្នាំសិក្សាមូលដ្ឋាន)",
+      "ឆ្នាំទី ២",
+      "ឆ្នាំទី ៣",
+      "ឆ្នាំទី ៤",
+      "ថ្នាក់អនុបណ្ឌិត",
+      "ថ្នាក់បណ្ឌិត"
     ]
   },
   custom: {
     id: "custom",
-    name: "✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)",
+    name: "ផ្សេងៗ",
     shortName: "ផ្សេងៗ",
     grades: []
   }
 };
+// Backward compatibility aliases
+STUDY_DEGREES.tec_kampongcham = STUDY_DEGREES.teacher_training;
+STUDY_DEGREES.kindergarten = STUDY_DEGREES.primary;
+STUDY_DEGREES.tvet = STUDY_DEGREES.higher_ed;
 
 // Populate Grades Dropdown based on Selected Study Degree
 function updateGradeOptions(degreeKey, preselectGrade = null) {
@@ -1828,16 +1795,13 @@ window.pasteToLessonContent = pasteToLessonContent;
 function findDegreeKeyForGrade(gradeName) {
   if (!gradeName) return 'lower_sec';
   for (const [key, def] of Object.entries(STUDY_DEGREES)) {
-    if (def.grades.includes(gradeName)) return key;
+    if (def.grades && def.grades.includes(gradeName)) return key;
   }
-  if (gradeName.includes('កំពង់ចាម') || gradeName.includes('TEC')) return 'tec_kampongcham';
-  if (gradeName.includes('គរុកោសល្យ') || gradeName.includes('គរុសិស្ស') || gradeName.includes('គរុនិស្សិត')) return 'teacher_training';
+  if (gradeName.includes('កំពង់ចាម') || gradeName.includes('TEC') || gradeName.includes('គរុកោសល្យ') || gradeName.includes('គរុសិស្ស') || gradeName.includes('គរុនិស្សិត') || gradeName.includes('NIE')) return 'teacher_training';
   if (gradeName.includes('ថ្នាក់ទី ១០') || gradeName.includes('ថ្នាក់ទី ១១') || gradeName.includes('ថ្នាក់ទី ១២')) return 'upper_sec';
   if (gradeName.includes('ថ្នាក់ទី ៧') || gradeName.includes('ថ្នាក់ទី ៨') || gradeName.includes('ថ្នាក់ទី ៩')) return 'lower_sec';
-  if (gradeName.includes('ថ្នាក់ទី ១') || gradeName.includes('ថ្នាក់ទី ២') || gradeName.includes('ថ្នាក់ទី ៣') || gradeName.includes('ថ្នាក់ទី ៤') || gradeName.includes('ថ្នាក់ទី ៥') || gradeName.includes('ថ្នាក់ទី ៦')) return 'primary';
-  if (gradeName.includes('មត្តេយ្យ')) return 'kindergarten';
-  if (gradeName.includes('បរិញ្ញាបត្រ') || gradeName.includes('អនុបណ្ឌិត')) return 'higher_ed';
-  if (gradeName.includes('វិជ្ជាជីវៈ') || gradeName.includes('បច្ចេកទេស')) return 'tvet';
+  if (gradeName.includes('ថ្នាក់ទី ១') || gradeName.includes('ថ្នាក់ទី ២') || gradeName.includes('ថ្នាក់ទី ៣') || gradeName.includes('ថ្នាក់ទី ៤') || gradeName.includes('ថ្នាក់ទី ៥') || gradeName.includes('ថ្នាក់ទី ៦') || gradeName.includes('មត្តេយ្យ')) return 'primary';
+  if (gradeName.includes('បរិញ្ញាបត្រ') || gradeName.includes('អនុបណ្ឌិត') || gradeName.includes('បណ្ឌិត') || gradeName.includes('វិជ្ជាជីវៈ') || gradeName.includes('បច្ចេកទេស')) return 'higher_ed';
   return 'lower_sec';
 }
 
@@ -2135,12 +2099,6 @@ function initEventListeners() {
   if (inputDegree) {
     inputDegree.addEventListener('change', (e) => {
       updateGradeOptions(e.target.value);
-      if (e.target.value === 'tec_kampongcham') {
-        const schoolInput = document.getElementById('inputSchool');
-        if (schoolInput && (!schoolInput.value || schoolInput.value.trim() === '')) {
-          schoolInput.value = 'វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម';
-        }
-      }
     });
     // Initial populate of grades based on default selected degree
     updateGradeOptions(inputDegree.value);
@@ -8522,7 +8480,10 @@ function loadSavedAdminProfile() {
     if (profile.subject !== undefined) document.getElementById('inputSubject').value = profile.subject;
     if (profile.duration !== undefined) setDurationValue(profile.duration);
 
-    const activeDegree = profile.degree || (degreeSelect ? degreeSelect.value : 'lower_sec');
+    let activeDegree = profile.degree || (degreeSelect ? degreeSelect.value : 'lower_sec');
+    if (activeDegree === 'tec_kampongcham') activeDegree = 'teacher_training';
+    if (activeDegree === 'kindergarten') activeDegree = 'primary';
+    if (activeDegree === 'tvet') activeDegree = 'higher_ed';
     if (degreeSelect) degreeSelect.value = activeDegree;
     const targetGrade = profile.grade === 'custom' ? profile.customGrade : profile.grade;
     updateGradeOptions(activeDegree, targetGrade);
