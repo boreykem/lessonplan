@@ -3349,6 +3349,9 @@ async function handleGenerateLessonPlan() {
   // Show Loading Animation
   const loadingOverlay = document.getElementById('loadingOverlay');
   loadingOverlay.style.display = 'flex';
+  if (typeof setMobileWorkspaceView === 'function' && window.innerWidth < 1024) {
+    setMobileWorkspaceView('preview');
+  }
 
   const genParams = {
     school, teacher, subject, grade, duration, chapter, lessonTitle, method, customNotes, lessonContent,
@@ -7991,6 +7994,10 @@ function renderLessonPlanToA4(data) {
   const doc = document.getElementById('printableDoc');
   if (!doc) return;
 
+  if (typeof setMobileWorkspaceView === 'function' && window.innerWidth < 1024) {
+    setMobileWorkspaceView('preview');
+  }
+
   data = normalizeLessonPlanData(data, data);
   state.currentPlan = data;
   state.generatedPlanData = data;
@@ -10032,8 +10039,16 @@ function openSavedPlanInCanvas(id) {
     return;
   }
 
+  if (typeof closeSavedPlansModal === 'function') {
+    closeSavedPlansModal();
+  }
+
   state.generatedPlanData = record.planData;
   renderLessonPlanToA4(record.planData);
+
+  if (typeof setMobileWorkspaceView === 'function' && window.innerWidth < 1024) {
+    setMobileWorkspaceView('preview');
+  }
 
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('printableDoc').style.display = 'block';
@@ -16149,5 +16164,49 @@ async function copyWorksheetText() {
   }
 }
 window.copyWorksheetText = copyWorksheetText;
+
+// ==========================================================================
+// Responsive Mobile & Tablet Workspace View Switcher
+// ==========================================================================
+function setMobileWorkspaceView(view) {
+  const workspace = document.querySelector('.app-workspace');
+  const tabForm = document.getElementById('tabBtnForm');
+  const tabPreview = document.getElementById('tabBtnPreview');
+  const previewDot = document.getElementById('mobilePreviewDot');
+
+  if (!workspace) return;
+
+  if (view === 'preview') {
+    workspace.classList.remove('view-form');
+    workspace.classList.add('view-preview');
+    if (tabForm) tabForm.classList.remove('active');
+    if (tabPreview) tabPreview.classList.add('active');
+    if (previewDot) previewDot.style.display = 'none';
+
+    // Auto-scroll canvas to top smoothly
+    const canvas = document.getElementById('canvasContainer');
+    if (canvas) canvas.scrollTop = 0;
+  } else {
+    workspace.classList.remove('view-preview');
+    workspace.classList.add('view-form');
+    if (tabPreview) tabPreview.classList.remove('active');
+    if (tabForm) tabForm.classList.add('active');
+  }
+}
+window.setMobileWorkspaceView = setMobileWorkspaceView;
+
+// Listen to viewport resize to automatically adapt layout
+window.addEventListener('resize', () => {
+  const workspace = document.querySelector('.app-workspace');
+  if (!workspace) return;
+  if (window.innerWidth >= 1024) {
+    workspace.classList.remove('view-form', 'view-preview');
+  } else {
+    if (!workspace.classList.contains('view-preview')) {
+      workspace.classList.add('view-form');
+    }
+  }
+});
+
 
 

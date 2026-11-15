@@ -261,8 +261,21 @@
     </div>
   </header>
 
+  <!-- Mobile Workspace Segmented Navigation (Visible on screen < 1024px) -->
+  <nav class="mobile-workspace-tabs" id="mobileWorkspaceTabs" aria-label="ផ្ទាំងប្តូរទិដ្ឋភាព">
+    <button type="button" class="mobile-tab-btn active" id="tabBtnForm" onclick="setMobileWorkspaceView('form')">
+      <i class="fa-solid fa-pen-to-square"></i>
+      <span>ទម្រង់បញ្ចូល (Form)</span>
+    </button>
+    <button type="button" class="mobile-tab-btn" id="tabBtnPreview" onclick="setMobileWorkspaceView('preview')">
+      <i class="fa-solid fa-file-circle-check"></i>
+      <span>សន្លឹកកិច្ចតែងការ (Preview)</span>
+      <span id="mobilePreviewDot" class="mobile-tab-dot" style="display: none;"></span>
+    </button>
+  </nav>
+
   <!-- Main Application Workspace -->
-  <main class="app-workspace">
+  <main class="app-workspace view-form">
 
     <!-- LEFT PANEL: Input & Upload Studio -->
     <aside class="sidebar-panel">
@@ -887,6 +900,12 @@
       <!-- Preview Studio Toolbar -->
       <div class="preview-toolbar">
         <div class="toolbar-left">
+          <!-- Mobile Back to Form Button (Only visible on screens < 1024px) -->
+          <button type="button" class="btn-tool-action btn-mobile-back-to-form" id="btnMobileBackToForm"
+            onclick="setMobileWorkspaceView('form')" title="ត្រឡប់ទៅទម្រង់បញ្ចូល (Back to Form)">
+            <i class="fa-solid fa-chevron-left"></i> <span>ទម្រង់</span>
+          </button>
+
           <span class="preview-badge"><i class="fa-solid fa-file-circle-check"></i> <span class="badge-title"
               data-i18n="previewBadgeTitle">សន្លឹកកិច្ចតែងការ</span> <span class="preview-badge-sub"
               data-i18n="previewBadgeSub">(Live A4)</span></span>
