@@ -674,7 +674,7 @@
                 <i class="fa-solid fa-paperclip"></i> <span data-i18n="btnAttachFile">ភ្ជាប់ឯកសារ</span>
               </button>
 
-              <button type="button" class="btn-paste-pill" onclick="pasteToLessonContent()" title="Paste ពី Clipboard">
+              <button type="button" class="btn-paste-pill" id="btnPasteLessonContent" onclick="pasteToLessonContent()" title="Paste ពី Clipboard" style="display: none !important;">
                 <i class="fa-solid fa-paste"></i> <span>Paste</span>
               </button>
 
@@ -900,10 +900,10 @@
       <!-- Preview Studio Toolbar -->
       <div class="preview-toolbar">
         <div class="toolbar-left">
-          <!-- Mobile Back to Form Button (Only visible on screens < 1024px) -->
+          <!-- Mobile Back to Form Button (Hidden as requested: user switches via top mobile tabs) -->
           <button type="button" class="btn-tool-action btn-mobile-back-to-form" id="btnMobileBackToForm"
-            onclick="setMobileWorkspaceView('form')" title="ត្រឡប់ទៅទម្រង់បញ្ចូល (Back to Form)">
-            <i class="fa-solid fa-chevron-left"></i> <span data-i18n="btnMobileBackForm">ទម្រង់</span>
+            onclick="setMobileWorkspaceView('form')" title="ត្រឡប់ទៅទម្រង់បញ្ចូល (Back to Form)" style="display: none !important;">
+            <i class="fa-solid fa-chevron-left"></i>
           </button>
 
           <span class="preview-badge"><i class="fa-solid fa-file-circle-check"></i> <span class="badge-title"

@@ -308,7 +308,7 @@ html, body {
 }
 
 .btn-mobile-back-to-form {
-  display: none;
+  display: none !important;
   background: rgba(99, 102, 241, 0.12) !important;
   color: var(--primary) !important;
   border: 1px solid rgba(99, 102, 241, 0.3) !important;
@@ -2530,7 +2530,7 @@ textarea.form-control {
   }
 
   .btn-mobile-back-to-form {
-    display: inline-flex !important;
+    display: none !important;
   }
 
   .preview-badge-sub {
@@ -3331,7 +3331,7 @@ textarea.form-control {
 }
 
 .btn-paste-pill {
-  display: inline-flex;
+  display: none !important;
   align-items: center;
   gap: 5px;
   background: rgba(16, 185, 129, 0.08);
