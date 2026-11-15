@@ -372,7 +372,7 @@
                   <i class="fa-solid fa-shapes text-primary" style="margin-right: 4px;"></i> មុខវិជ្ជា <span
                     class="req">*</span>
                 </label>
-                <select id="inputSubject" class="form-control" onchange="updateTeacherProfileSummaryLive()">
+                <select id="inputSubject" class="form-control" onchange="handleSubjectChange()">
                   <option value="រូបវិទ្យា">រូបវិទ្យា</option>
                   <option value="គណិតវិទ្យា">គណិតវិទ្យា</option>
                   <option value="ភាសាខ្មែរ">ភាសាខ្មែរ</option>
@@ -385,7 +385,25 @@
                   <option value="ពលរដ្ឋវិជ្ជា">ពលរដ្ឋវិជ្ជា</option>
                   <option value="ភាសាអង់គ្លេស">ភាសាអង់គ្លេស</option>
                   <option value="ផែនដីវិទ្យា">ផែនដីវិទ្យា</option>
+                  <option value="custom">✏️ ផ្សេងៗ / បន្ថែមមុខវិជ្ជាថ្មី...</option>
                 </select>
+              </div>
+
+              <!-- Custom Subject Input Wrap (Shown when 'custom' is selected) -->
+              <div id="customSubjectWrap" class="custom-sub-input-wrap mt-1" style="display: none;">
+                <div style="display: flex; gap: 6px; align-items: center;">
+                  <div class="input-icon-wrap" style="flex: 1;">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <input type="text" id="inputCustomSubjectText" class="form-control form-control-sm"
+                      placeholder="វាយបញ្ចូលឈ្មោះមុខវិជ្ជាថ្មី (ឧ. គំនូរ, តន្ត្រី, សេដ្ឋកិច្ចវិទ្យា...)"
+                      oninput="updateTeacherProfileSummaryLive()">
+                  </div>
+                  <button type="button" class="btn btn-sm btn-primary" onclick="confirmAddCustomSubject()"
+                    style="white-space: nowrap; padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;"
+                    title="បន្ថែមមុខវិជ្ជានេះទៅក្នុងបញ្ជី">
+                    <i class="fa-solid fa-plus"></i> បន្ថែម
+                  </button>
+                </div>
               </div>
 
               <!-- Teaching Duration Quick Chips (Moved INSIDE drawer below Subject as requested) -->
@@ -450,8 +468,8 @@
                   <button type="button" id="btnSaveAdminInfo" class="btn-pill-action" title="រក្សាទុកព័ត៌មានរដ្ឋបាល">
                     <i class="fa-solid fa-floppy-disk"></i> រក្សាទុក
                   </button>
-                  <button type="button" id="btnClearAdminInfo" class="btn-pill-ghost" title="លុបព័ត៌មានដែលបានបំពេញ ដើម្បីបញ្ចូលថ្មី"
-                    style="display: inline-flex;">
+                  <button type="button" id="btnClearAdminInfo" class="btn-pill-ghost"
+                    title="លុបព័ត៌មានដែលបានបំពេញ ដើម្បីបញ្ចូលថ្មី" style="display: inline-flex;">
                     <i class="fa-solid fa-trash-can"></i>
                   </button>
                   <span id="savedProfileBadge" class="saved-profile-pill" style="display: none;">
@@ -744,7 +762,8 @@
               <div class="lesson-unified-box">
                 <div class="label-with-action"
                   style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 6px; gap: 6px;">
-                  <div class="lesson-actions-toolbar" style="display: flex; gap: 6px; align-items: center; width: 100%; justify-content: space-between;">
+                  <div class="lesson-actions-toolbar"
+                    style="display: flex; gap: 6px; align-items: center; width: 100%; justify-content: space-between;">
                     <div style="display: flex; gap: 6px; align-items: center;">
                       <!-- Attachment button -->
                       <button type="button" id="btnAttachLessonFile" class="btn-attach-pill"
@@ -795,44 +814,48 @@
               </div>
               <input type="hidden" id="inputChapter" value="">
 
-              <!-- Prompt Customization (Hidden as requested) -->
-              <div class="control-group mt-2" id="promptCustomizationWrap" style="display: none;">
-                <label for="inputCustomNotes" data-i18n="customNotesLabel" style="font-size: 0.8rem; font-weight: 600;">
-                  <i class="fa-solid fa-lightbulb" style="color: #f59e0b; margin-right: 4px;"></i> ចំណាំ ឬសំណូមពរបន្ថែម (Prompt Customization)
-                </label>
-                <div class="input-icon-wrap">
-                  <i class="fa-solid fa-wand-magic-sparkles" style="color: #f59e0b;"></i>
-                  <input type="text" id="inputCustomNotes" class="form-control"
-                    placeholder="ឧ. សុំផ្ដោតលើការពិសោធន៍ជាក់ស្ដែង និងមានល្បែងពង្រឹងពុទ្ធិ...">
+              <!-- Prompt Customization (At the bottom of Step 3) -->
+              <div class="control-group mt-2" id="promptCustomizationWrap">
+                <!-- Prompt Customization (Hidden as requested) -->
+                <div class="control-group mt-2" id="promptCustomizationWrap" style="display: none;">
+                  <label for="inputCustomNotes" data-i18n="customNotesLabel"
+                    style="font-size: 0.8rem; font-weight: 600;">
+                    <i class="fa-solid fa-lightbulb" style="color: #f59e0b; margin-right: 4px;"></i> ចំណាំ
+                    ឬសំណូមពរបន្ថែម (Prompt Customization)
+                  </label>
+                  <div class="input-icon-wrap">
+                    <i class="fa-solid fa-wand-magic-sparkles" style="color: #f59e0b;"></i>
+                    <input type="text" id="inputCustomNotes" class="form-control"
+                      placeholder="ឧ. សុំផ្ដោតលើការពិសោធន៍ជាក់ស្ដែង និងមានល្បែងពង្រឹងពុទ្ធិ...">
+                  </div>
+                </div>
+
+                <!-- Remember / Auto-Save Lesson Bar (Hidden as requested) -->
+                <div class="remember-profile-bar mt-2" style="display: none;">
+                  <label class="remember-checkbox-label">
+                    <input type="checkbox" id="chkAutoRememberLesson">
+                    <span>ចងចាំ និងរក្សាទុកខ្លឹមសារមេរៀននេះដោយស្វ័យប្រវត្តិ (Auto-remember Lesson)</span>
+                  </label>
+                  <span id="savedLessonBadge" class="saved-profile-pill" style="display: none;">
+                    <i class="fa-solid fa-check"></i> បានចងចាំ
+                  </span>
+                </div>
+
+                <!-- Save Lesson Action Bar (Hidden as requested) -->
+                <div id="saveLessonActionBar" class="save-template-bar mt-3" style="display: none;">
+                  <div class="input-icon-wrap" style="flex: 1;">
+                    <i class="fa-solid fa-bookmark"></i>
+                    <input type="text" id="inputSaveLessonName" class="form-control form-control-sm"
+                      placeholder="ដាក់ឈ្មោះសម្គាល់មេរៀន (ឧ. រូបវិទ្យា ថ្នាក់ទី៨ - ច្បាប់ញូតុន)...">
+                  </div>
+                  <button type="button" id="btnSaveLessonMaterial" class="btn btn-sm btn-success"
+                    style="white-space: nowrap;" title="រក្សាទុកមេរៀននេះទៅក្នុងបណ្ណាល័យ">
+                    <i class="fa-solid fa-floppy-disk"></i> រក្សាទុកមេរៀនទៅក្នុងបណ្ណាល័យ
+                  </button>
                 </div>
               </div>
 
-              <!-- Remember / Auto-Save Lesson Bar (Hidden as requested) -->
-              <div class="remember-profile-bar mt-2" style="display: none;">
-                <label class="remember-checkbox-label">
-                  <input type="checkbox" id="chkAutoRememberLesson">
-                  <span>ចងចាំ និងរក្សាទុកខ្លឹមសារមេរៀននេះដោយស្វ័យប្រវត្តិ (Auto-remember Lesson)</span>
-                </label>
-                <span id="savedLessonBadge" class="saved-profile-pill" style="display: none;">
-                  <i class="fa-solid fa-check"></i> បានចងចាំ
-                </span>
-              </div>
-
-              <!-- Save Lesson Action Bar (Hidden as requested) -->
-              <div id="saveLessonActionBar" class="save-template-bar mt-3" style="display: none;">
-                <div class="input-icon-wrap" style="flex: 1;">
-                  <i class="fa-solid fa-bookmark"></i>
-                  <input type="text" id="inputSaveLessonName" class="form-control form-control-sm"
-                    placeholder="ដាក់ឈ្មោះសម្គាល់មេរៀន (ឧ. រូបវិទ្យា ថ្នាក់ទី៨ - ច្បាប់ញូតុន)...">
-                </div>
-                <button type="button" id="btnSaveLessonMaterial" class="btn btn-sm btn-success"
-                  style="white-space: nowrap;" title="រក្សាទុកមេរៀននេះទៅក្នុងបណ្ណាល័យ">
-                  <i class="fa-solid fa-floppy-disk"></i> រក្សាទុកមេរៀនទៅក្នុងបណ្ណាល័យ
-                </button>
-              </div>
             </div>
-
-          </div>
         </section>
 
         <!-- Generate Action Button -->

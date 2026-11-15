@@ -1179,6 +1179,10 @@ function setLanguage(lang, showNotification = false) {
     for (let i = 0; i < targetSubjects.length; i++) {
       if (subjectSelect.options[i]) subjectSelect.options[i].text = targetSubjects[i];
     }
+    const customOpt = subjectSelect.querySelector('option[value="custom"]');
+    if (customOpt) {
+      customOpt.text = isEn ? "✏️ Other / Add New Subject..." : "✏️ ផ្សេងៗ / បន្ថែមមុខវិជ្ជាថ្មី...";
+    }
   }
 
   // 9. Translate Duration
@@ -1713,6 +1717,160 @@ function toggleTeacherProfileFields() {
 }
 window.toggleTeacherProfileFields = toggleTeacherProfileFields;
 
+// ==========================================================================
+// Custom Subjects Management
+// ==========================================================================
+const CUSTOM_SUBJECTS_STORAGE_KEY = 'custom_user_subjects';
+
+function getSubjectValue() {
+  const select = document.getElementById('inputSubject');
+  if (!select) return 'រូបវិទ្យា';
+  if (select.value === 'custom') {
+    const customInput = document.getElementById('inputCustomSubjectText');
+    const customVal = customInput ? customInput.value.trim() : '';
+    return customVal || 'មុខវិជ្ជាទូទៅ';
+  }
+  return select.value;
+}
+window.getSubjectValue = getSubjectValue;
+
+function setSubjectValue(val) {
+  if (!val) return;
+  const select = document.getElementById('inputSubject');
+  if (!select) return;
+
+  const cleanVal = val.trim();
+  let found = false;
+  for (let i = 0; i < select.options.length; i++) {
+    if (select.options[i].value === cleanVal) {
+      select.selectedIndex = i;
+      found = true;
+      break;
+    }
+  }
+
+  if (!found) {
+    addCustomSubjectOption(cleanVal, true);
+  }
+
+  const customWrap = document.getElementById('customSubjectWrap');
+  if (customWrap) {
+    customWrap.style.display = (select.value === 'custom') ? 'block' : 'none';
+  }
+  if (typeof updateTeacherProfileSummaryLive === 'function') updateTeacherProfileSummaryLive();
+}
+window.setSubjectValue = setSubjectValue;
+
+function handleSubjectChange() {
+  const select = document.getElementById('inputSubject');
+  const customWrap = document.getElementById('customSubjectWrap');
+  const customInput = document.getElementById('inputCustomSubjectText');
+  const chkAutoRemember = document.getElementById('chkAutoRememberAdmin');
+  if (!select) return;
+
+  if (select.value === 'custom') {
+    if (customWrap) customWrap.style.display = 'block';
+    if (customInput) customInput.focus();
+  } else {
+    if (customWrap) customWrap.style.display = 'none';
+    if (chkAutoRemember && chkAutoRemember.checked && typeof saveAdminProfile === 'function') {
+      saveAdminProfile(true);
+    }
+  }
+
+  if (typeof updateTeacherProfileSummaryLive === 'function') {
+    updateTeacherProfileSummaryLive();
+  }
+}
+window.handleSubjectChange = handleSubjectChange;
+
+function addCustomSubjectOption(name, selectIt = false) {
+  const select = document.getElementById('inputSubject');
+  if (!select || !name || !name.trim()) return;
+  const cleanName = name.trim();
+
+  // Check if exists
+  for (let i = 0; i < select.options.length; i++) {
+    if (select.options[i].value === cleanName) {
+      if (selectIt) select.selectedIndex = i;
+      return;
+    }
+  }
+
+  const customOpt = select.querySelector('option[value="custom"]');
+  const newOpt = document.createElement('option');
+  newOpt.value = cleanName;
+  newOpt.textContent = cleanName;
+
+  if (customOpt) {
+    select.insertBefore(newOpt, customOpt);
+  } else {
+    select.appendChild(newOpt);
+  }
+
+  if (selectIt) {
+    newOpt.selected = true;
+  }
+
+  saveCustomSubjectToStorage(cleanName);
+}
+window.addCustomSubjectOption = addCustomSubjectOption;
+
+function confirmAddCustomSubject() {
+  const input = document.getElementById('inputCustomSubjectText');
+  const val = input ? input.value.trim() : '';
+  if (!val) {
+    showToast('សូមបញ្ចូលឈ្មោះមុខវិជ្ជាជាមុនសិន!', 'warning');
+    if (input) input.focus();
+    return;
+  }
+
+  addCustomSubjectOption(val, true);
+  const customWrap = document.getElementById('customSubjectWrap');
+  if (customWrap) customWrap.style.display = 'none';
+  if (input) input.value = '';
+
+  const chkAutoRemember = document.getElementById('chkAutoRememberAdmin');
+  if (chkAutoRemember && chkAutoRemember.checked && typeof saveAdminProfile === 'function') {
+    saveAdminProfile(true);
+  }
+
+  if (typeof updateTeacherProfileSummaryLive === 'function') updateTeacherProfileSummaryLive();
+  showToast(`✅ បានបន្ថែមមុខវិជ្ជា «${val}» ទៅក្នុងបញ្ជីជោគជ័យ!`, 'success');
+}
+window.confirmAddCustomSubject = confirmAddCustomSubject;
+
+function saveCustomSubjectToStorage(name) {
+  try {
+    const raw = localStorage.getItem(CUSTOM_SUBJECTS_STORAGE_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    if (!list.includes(name)) {
+      list.push(name);
+      localStorage.setItem(CUSTOM_SUBJECTS_STORAGE_KEY, JSON.stringify(list));
+    }
+  } catch (e) {
+    console.error('Error saving custom subject:', e);
+  }
+}
+
+function loadCustomSubjectsFromStorage() {
+  try {
+    const raw = localStorage.getItem(CUSTOM_SUBJECTS_STORAGE_KEY);
+    if (!raw) return;
+    const list = JSON.parse(raw);
+    if (Array.isArray(list)) {
+      list.forEach(subj => {
+        if (subj && typeof subj === 'string') {
+          addCustomSubjectOption(subj, false);
+        }
+      });
+    }
+  } catch (e) {
+    console.error('Error loading custom subjects:', e);
+  }
+}
+window.loadCustomSubjectsFromStorage = loadCustomSubjectsFromStorage;
+
 function updateTeacherProfileSummaryLive() {
   const teacherInput = document.getElementById('inputTeacher');
   const schoolInput = document.getElementById('inputSchool');
@@ -1737,6 +1895,7 @@ function updateTeacherProfileSummaryLive() {
     }
   }
 
+  const subjVal = (typeof getSubjectValue === 'function') ? getSubjectValue() : 'រូបវិទ្យា';
   const summaryName = document.getElementById('summaryTeacherName');
   const summarySchool = document.getElementById('summarySchoolName');
   const summaryMeta = document.getElementById('summaryDegreeGrade');
@@ -1748,7 +1907,7 @@ function updateTeacherProfileSummaryLive() {
 
   if (summaryName) summaryName.textContent = teacherName;
   if (summarySchool) summarySchool.textContent = schoolName;
-  if (summaryMeta) summaryMeta.textContent = `${degreeText} • ${gradeText} • ${durationVal}`;
+  if (summaryMeta) summaryMeta.textContent = `${subjVal} • ${degreeText} • ${gradeText} • ${durationVal}`;
 }
 window.updateTeacherProfileSummaryLive = updateTeacherProfileSummaryLive;
 
@@ -1825,6 +1984,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try { updateEmptyStateApiStatus(); } catch (e) { console.error('updateEmptyStateApiStatus err:', e); }
   try { setLanguage(state.language || 'km', false); } catch (e) { console.error('setLanguage err:', e); }
   try { updateWordCount(); } catch (e) { console.error('updateWordCount err:', e); }
+  try { loadCustomSubjectsFromStorage(); } catch (e) { console.error('loadCustomSubjectsFromStorage err:', e); }
   try { loadSavedAdminProfile(); } catch (e) { console.error('loadSavedAdminProfile err:', e); }
   try { loadSavedTemplates(); } catch (e) { console.error('loadSavedTemplates err:', e); }
   try { loadSavedLessons(); } catch (e) { console.error('loadSavedLessons err:', e); }
@@ -3169,7 +3329,7 @@ async function handleGenerateLessonPlan() {
     return;
   }
 
-  const subject = document.getElementById('inputSubject').value;
+  const subject = (typeof getSubjectValue === 'function') ? getSubjectValue() : document.getElementById('inputSubject').value;
   const grade = getGradeValue();
   const lessonTitle = document.getElementById('inputLessonTitle').value.trim();
   const chapter = document.getElementById('inputChapter').value.trim();
@@ -8426,7 +8586,7 @@ function saveAdminProfile(silent = false) {
   const degree = document.getElementById('inputDegree').value;
   const grade = document.getElementById('inputGrade').value;
   const customGrade = document.getElementById('inputCustomGradeText').value.trim();
-  const subject = document.getElementById('inputSubject').value;
+  const subject = (typeof getSubjectValue === 'function') ? getSubjectValue() : document.getElementById('inputSubject').value;
   const duration = getDurationValue();
   const method = document.getElementById('inputMethod').value;
 
@@ -8477,7 +8637,10 @@ function loadSavedAdminProfile() {
     if (profile.school !== undefined) document.getElementById('inputSchool').value = profile.school;
     if (profile.teacher !== undefined) document.getElementById('inputTeacher').value = profile.teacher;
     if (profile.method !== undefined) document.getElementById('inputMethod').value = profile.method;
-    if (profile.subject !== undefined) document.getElementById('inputSubject').value = profile.subject;
+    if (profile.subject !== undefined) {
+      if (typeof setSubjectValue === 'function') setSubjectValue(profile.subject);
+      else document.getElementById('inputSubject').value = profile.subject;
+    }
     if (profile.duration !== undefined) setDurationValue(profile.duration);
 
     let activeDegree = profile.degree || (degreeSelect ? degreeSelect.value : 'lower_sec');
@@ -8523,6 +8686,10 @@ function clearSavedAdminProfile() {
 
   const subjectEl = document.getElementById('inputSubject');
   if (subjectEl) subjectEl.selectedIndex = 0;
+  const customSubjWrap = document.getElementById('customSubjectWrap');
+  if (customSubjWrap) customSubjWrap.style.display = 'none';
+  const customSubjInput = document.getElementById('inputCustomSubjectText');
+  if (customSubjInput) customSubjInput.value = '';
 
   if (typeof selectDurationChip === 'function') {
     selectDurationChip('៦០ នាទី (១ ម៉ោងពេញ)');
@@ -9581,7 +9748,7 @@ function saveCurrentLessonMaterial(name, silent = false) {
     return;
   }
 
-  const subject = document.getElementById('inputSubject').value;
+  const subject = (typeof getSubjectValue === 'function') ? getSubjectValue() : document.getElementById('inputSubject').value;
   const grade = getGradeValue();
   const chapter = document.getElementById('inputChapter').value.trim();
   const lessonTitle = document.getElementById('inputLessonTitle').value.trim();
@@ -9643,7 +9810,10 @@ function applySavedLesson(id) {
   state.lessonContent = lesson.content;
   state.lessonFileName = lesson.fileName || '';
 
-  if (lesson.subject) document.getElementById('inputSubject').value = lesson.subject;
+  if (lesson.subject) {
+    if (typeof setSubjectValue === 'function') setSubjectValue(lesson.subject);
+    else document.getElementById('inputSubject').value = lesson.subject;
+  }
   if (lesson.chapter) document.getElementById('inputChapter').value = lesson.chapter;
   if (lesson.lessonTitle) document.getElementById('inputLessonTitle').value = lesson.lessonTitle;
 
@@ -9869,7 +10039,10 @@ function openSavedPlanInCanvas(id) {
   document.getElementById('printableDoc').style.display = 'block';
 
   // Also pre-fill the form inputs with this plan's info
-  if (record.planData.subject) document.getElementById('inputSubject').value = record.planData.subject;
+  if (record.planData.subject) {
+    if (typeof setSubjectValue === 'function') setSubjectValue(record.planData.subject);
+    else document.getElementById('inputSubject').value = record.planData.subject;
+  }
   if (record.planData.school) document.getElementById('inputSchool').value = record.planData.school;
   if (record.planData.teacher) document.getElementById('inputTeacher').value = record.planData.teacher;
   if (record.planData.duration) setDurationValue(record.planData.duration);
