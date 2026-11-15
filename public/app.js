@@ -862,8 +862,8 @@ const I18N_DICTIONARY = {
     modalHistoryRecentList: "បញ្ជីកិច្ចតែងការចុងក្រោយ (រក្សាទុកក្នុងកុំព្យូទ័រនេះ)",
     modalHistoryClearAll: "លុបប្រវត្តិទាំងអស់",
 
-    modalPptxTitle: "បង្កើតស្លាយ PowerPoint (Gemini AI Studio)",
-    modalPptxDesc: "ប្រព័ន្ធនឹងអានកិច្ចតែងការ ឬឯកសារយោង រួចរៀបចំ Master Prompt កម្រិតខ្ពស់សម្រាប់យកទៅបង្កើតស្លាយក្នុង Google Gemini (Web) ខាងក្រៅដោយស្វ័យប្រវត្តិ។",
+    modalPptxTitle: "បង្កើតស្លាយ PowerPoint (.pptx) - AI Presentation Studio",
+    modalPptxDesc: "ប្រព័ន្ធ AI នឹងអានកិច្ចតែងការ ឬឯកសារយោង រួចបង្កើត និងទាញយកជាឯកសារ PowerPoint (.pptx) ស្វ័យប្រវត្តិតាមស្តង់ដារ MoEYS ជាមួយរូបភាព និង Speaker Notes។",
     modalPptxSourceLabel: "ជ្រើសរើសឯកសារយោង (Source / Attachment):",
     modalPptxBtnUpload: "បង្ហោះឯកសារថ្មី",
     modalPptxNumSlidesLabel: "ចំនួនស្លាយ (Number of Slides):",
@@ -871,7 +871,7 @@ const I18N_DICTIONARY = {
     modalPptxImagesHint: 'ជម្រើស "បង្កើតរូបភាពដោយ AI" នឹងបង្កើតរូបគំនូរអប់រំ និងដ្យាក្រាមស្របតាមខ្លឹមសារស្លាយនីមួយៗដោយស្វ័យប្រវត្តិ។',
     modalPptxThemeLabel: "រចនាបទពណ៌ (Theme Color):",
     modalPptxBtnCancel: "បោះបង់",
-    modalPptxBtnGenerate: "បង្កើតស្លាយជាមួយ Gemini Web",
+    modalPptxBtnGenerate: "បង្កើត និងទាញយកស្លាយ PPTX (.pptx)",
 
     modalUpdateTitle: "ប្រព័ន្ធអាប់ដេតស្វ័យប្រវត្ត (Cloud Auto-Updater)",
     modalUpdateInstalledVersion: "កំណែកម្មវិធីបច្ចុប្បន្ន (Installed Version):",
@@ -1004,8 +1004,8 @@ const I18N_DICTIONARY = {
     modalHistoryRecentList: "Recent Lesson Plans (Saved on this device)",
     modalHistoryClearAll: "Clear All History",
 
-    modalPptxTitle: "PowerPoint Slides Studio (Gemini AI)",
-    modalPptxDesc: "The system reads your lesson plan or attached document to craft an advanced Master Prompt, copies it to clipboard, and opens Gemini Web automatically.",
+    modalPptxTitle: "PowerPoint Presentation Studio (.pptx)",
+    modalPptxDesc: "AI analyzes your lesson plan or attached document to generate and download a professional PowerPoint (.pptx) presentation with visuals and speaker notes.",
     modalPptxSourceLabel: "Select Reference Source / Attachment:",
     modalPptxBtnUpload: "Upload New File",
     modalPptxNumSlidesLabel: "Number of Slides:",
@@ -1013,7 +1013,7 @@ const I18N_DICTIONARY = {
     modalPptxImagesHint: 'The "AI Generated Images" option will automatically generate educational diagrams and illustrations aligned with each slide topic.',
     modalPptxThemeLabel: "Theme Color:",
     modalPptxBtnCancel: "Cancel",
-    modalPptxBtnGenerate: "Generate Slides via Gemini Web",
+    modalPptxBtnGenerate: "Generate & Download PPTX (.pptx)",
 
     modalUpdateTitle: "Cloud Auto-Updater System",
     modalUpdateInstalledVersion: "Installed App Version:",
@@ -12211,35 +12211,48 @@ function sanitizeEnglishPrompt(text) {
 const EDUCATIONAL_IMAGE_CATEGORIES = {
   reflective: [
     'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=1024&q=80',
-    'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1024&q=80'
+    'https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1024&q=80',
+    'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1024&q=80'
   ],
   research: [
     'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1024&q=80',
-    'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=1024&q=80'
+    'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=1024&q=80',
+    'https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=1024&q=80'
   ],
   learner: [
     'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1024&q=80',
-    'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1024&q=80'
+    'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1024&q=80',
+    'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1024&q=80',
+    'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=1024&q=80'
   ],
   psychology: [
     'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1024&q=80',
-    'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1024&q=80'
+    'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=1024&q=80',
+    'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1024&q=80',
+    'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1024&q=80',
+    'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=1024&q=80'
   ],
   teacher: [
     'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=1024&q=80',
-    'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1024&q=80'
+    'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1024&q=80',
+    'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1024&q=80',
+    'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1024&q=80'
   ],
   group: [
     'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1024&q=80',
-    'https://images.unsplash.com/photo-1513258496099-48168024aec0?w=1024&q=80'
+    'https://images.unsplash.com/photo-1513258496099-48168024aec0?w=1024&q=80',
+    'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1024&q=80',
+    'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1024&q=80'
   ],
   summary: [
     'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=1024&q=80',
-    'https://images.unsplash.com/photo-1491841573634-28140fc7ced7?w=1024&q=80'
+    'https://images.unsplash.com/photo-1491841573634-28140fc7ced7?w=1024&q=80',
+    'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1024&q=80'
   ],
   science: [
     'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=1024&q=80',
-    'https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=1024&q=80'
+    'https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=1024&q=80',
+    'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1024&q=80'
   ],
   math: [
     'https://images.unsplash.com/photo-1509228468518-180dd4864904?w=1024&q=80',
@@ -12283,7 +12296,7 @@ async function getSlideImage(slideDef, data, imageMode, theme, slideIndex) {
       const seed = Math.floor(Math.random() * 900000) + 100000;
       const aiUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=1024&height=768&nologo=true&seed=${seed}`;
       try {
-        const base64 = await fetchImageAsBase64(aiUrl, 3500);
+        const base64 = await fetchImageAsBase64(aiUrl, 8500);
         if (base64 && base64.startsWith('data:image')) {
           return { data: base64 };
         }
@@ -12677,6 +12690,233 @@ window.confirmCopyAndOpenGemini = async function() {
   }
 };
 
+// ==============================================================================
+// 📥 Gemini Web Markdown / Outline to Slides Parser
+// ==============================================================================
+function parseGeminiMarkdownToSlides(text) {
+  if (!text || typeof text !== 'string') return [];
+  
+  let raw = text.replace(/^```[a-z]*\s*/i, '').replace(/```\s*$/, '').trim();
+  const lines = raw.split(/\r?\n/);
+  const slideChunks = [];
+  let currentChunk = [];
+  
+  const isSlideHeader = (line) => {
+    const l = line.trim();
+    return /^(?:---|___|\*\*\*)$/.test(l) ||
+           /(?:🎬|#+|\*{1,2})?\s*(?:ស្លាយទី|Slide)\s*([០-៩\d]+)/i.test(l);
+  };
+  
+  for (let line of lines) {
+    if (isSlideHeader(line) && currentChunk.length > 0) {
+      slideChunks.push(currentChunk.join('\n'));
+      currentChunk = [line];
+    } else {
+      currentChunk.push(line);
+    }
+  }
+  if (currentChunk.length > 0) {
+    slideChunks.push(currentChunk.join('\n'));
+  }
+  
+  const slides = [];
+  slideChunks.forEach((chunk) => {
+    const chunkLines = chunk.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (chunkLines.length === 0) return;
+    if (chunkLines.length === 1 && /^(?:---|___|\*\*\*)$/.test(chunkLines[0])) return;
+    
+    let title = '';
+    let subtitle = '';
+    let speakerNotes = '';
+    let bullets = [];
+    let currentBulletHeading = '';
+    let currentBulletBody = [];
+    let inNotes = false;
+    let foundTitle = false;
+    
+    for (let i = 0; i < chunkLines.length; i++) {
+      let line = chunkLines[i];
+      if (/^(?:---|___|\*\*\*)$/.test(line)) continue;
+      
+      if (!foundTitle) {
+        const titleMatch = line.match(/(?:🎬|#+|\*{1,2})?\s*(?:ស្លាយទី|Slide)\s*[០-៩\d]+[:：\s\-–]*(.*)/i);
+        if (titleMatch) {
+          title = (titleMatch[1] || '').replace(/^\*+|\*+$/g, '').trim();
+          foundTitle = true;
+          continue;
+        } else if (/^#+\s*(.*)/.test(line)) {
+          title = line.replace(/^#+\s*/, '').replace(/^\*+|\*+$/g, '').trim();
+          foundTitle = true;
+          continue;
+        }
+      }
+      
+      if (/^!\[.*?\]\(.*?\)/.test(line) || /^https?:\/\/image\.pollinations\.ai/i.test(line)) {
+        continue;
+      }
+      
+      if (/(?:🗣️|>)?\s*(?:\*{1,2})?(?:ការណែនាំសម្រាប់គ្រូ|ការណែនាំគ្រូ|Speaker Notes)/i.test(line)) {
+        inNotes = true;
+        const noteMatch = line.match(/(?:ការណែនាំសម្រាប់គ្រូ|ការណែនាំគ្រូ|Speaker Notes)[^:：]*[:：]\s*(.*)/i);
+        if (noteMatch && noteMatch[1]) {
+          speakerNotes = noteMatch[1].replace(/^\*+|\*+$/g, '').trim();
+        }
+        continue;
+      }
+      
+      if (inNotes) {
+        const cleanNoteLine = line.replace(/^>\s*/, '').replace(/^\*+|\*+$/g, '').trim();
+        if (cleanNoteLine) {
+          speakerNotes += (speakerNotes ? ' ' : '') + cleanNoteLine;
+        }
+        continue;
+      }
+      
+      const cardMatch = line.match(/^(?:###\s*)?(?:[❖✦◆●★►•\-*]|\d+\.|\(\d+\))\s*(.*)/);
+      if (cardMatch) {
+        if (currentBulletHeading) {
+          bullets.push(currentBulletHeading + (currentBulletBody.length ? ' ៖ ' + currentBulletBody.join(' ') : ''));
+        }
+        currentBulletHeading = cardMatch[1].replace(/^\*+|\*+$/g, '').trim();
+        currentBulletBody = [];
+      } else {
+        if (currentBulletHeading) {
+          currentBulletBody.push(line.replace(/^\*+|\*+$/g, '').trim());
+        } else if (!title) {
+          title = line.replace(/^#+\s*/, '').replace(/^\*+|\*+$/g, '').trim();
+        } else if (!subtitle && slides.length === 0) {
+          subtitle = line.replace(/^\*+|\*+$/g, '').trim();
+        } else {
+          currentBulletHeading = line.replace(/^\*+|\*+$/g, '').trim();
+          currentBulletBody = [];
+        }
+      }
+    }
+    
+    if (currentBulletHeading) {
+      bullets.push(currentBulletHeading + (currentBulletBody.length ? ' ៖ ' + currentBulletBody.join(' ') : ''));
+    }
+    
+    if (title || bullets.length > 0) {
+      slides.push({
+        type: slides.length === 0 ? 'title' : 'content',
+        title: title || `ស្លាយទី ${slides.length + 1}`,
+        subtitle: subtitle,
+        bullets: bullets,
+        speakerNotes: speakerNotes
+      });
+    }
+  });
+  
+  return slides;
+}
+window.parseGeminiMarkdownToSlides = parseGeminiMarkdownToSlides;
+
+window.switchPptxTab = function(tab) {
+  const tabDirect = document.getElementById('pptxTabDirect');
+  const tabImport = document.getElementById('pptxTabImport');
+  const btnDirect = document.getElementById('tabBtnPptxDirect');
+  const btnImport = document.getElementById('tabBtnPptxImport');
+  const footerDirect = document.getElementById('pptxFooterDirect');
+  const footerImport = document.getElementById('pptxFooterImport');
+
+  if (tab === 'import') {
+    if (tabDirect) tabDirect.style.display = 'none';
+    if (tabImport) tabImport.style.display = 'block';
+    if (footerDirect) footerDirect.style.display = 'none';
+    if (footerImport) footerImport.style.display = 'flex';
+    if (btnDirect) {
+      btnDirect.style.borderBottomColor = 'transparent';
+      btnDirect.style.color = '#64748b';
+      btnDirect.style.fontWeight = '600';
+    }
+    if (btnImport) {
+      btnImport.style.borderBottomColor = '#2563eb';
+      btnImport.style.color = '#2563eb';
+      btnImport.style.fontWeight = '700';
+    }
+  } else {
+    if (tabDirect) tabDirect.style.display = 'block';
+    if (tabImport) tabImport.style.display = 'none';
+    if (footerDirect) footerDirect.style.display = 'flex';
+    if (footerImport) footerImport.style.display = 'none';
+    if (btnDirect) {
+      btnDirect.style.borderBottomColor = '#e11d48';
+      btnDirect.style.color = '#e11d48';
+      btnDirect.style.fontWeight = '700';
+    }
+    if (btnImport) {
+      btnImport.style.borderBottomColor = 'transparent';
+      btnImport.style.color = '#64748b';
+      btnImport.style.fontWeight = '600';
+    }
+  }
+};
+
+window.pasteFromClipboardToPptxImport = async function() {
+  try {
+    const text = await navigator.clipboard.readText();
+    const textarea = document.getElementById('pptxImportText');
+    if (textarea && text) {
+      textarea.value = text;
+      showToast('📋 បាន Paste អត្ថបទពី Clipboard រួចរាល់!', 'success');
+    }
+  } catch (e) {
+    showToast('💡 សូមចុច Ctrl + V ក្នុងប្រអប់ដើម្បី Paste!', 'info');
+  }
+};
+
+window.convertPastedGeminiToPptx = async function() {
+  if (state.isPptxGenerating) {
+    showToast('⚠️ កំពុងមានដំណើរការបង្កើតស្លាយមួយរួចហើយ សូមរង់ចាំបន្តិច...', 'warning');
+    return;
+  }
+
+  const text = (document.getElementById('pptxImportText')?.value || '').trim();
+  if (!text) {
+    showToast('⚠️ សូមបិទភ្ជាប់ (Paste) អត្ថបទស្លាយពី Gemini Web ជាមុនសិន!', 'warning', 5000);
+    return;
+  }
+
+  const imageMode = document.getElementById('pptxImportIncludeImages')?.value || 'ai';
+  const theme = document.getElementById('pptxImportTheme')?.value || 'modern_blue';
+
+  let slidesData = extractAndParseSlidesJson(text);
+  if (!slidesData || !Array.isArray(slidesData) || slidesData.length === 0) {
+    slidesData = parseGeminiMarkdownToSlides(text);
+  }
+
+  if (!slidesData || !Array.isArray(slidesData) || slidesData.length === 0) {
+    showToast('⚠️ មិនអាចស្រង់ស្លាយពីអត្ថបទបានទេ។ សូមប្រាកដថាអត្ថបទមាន «ស្លាយទី...» ឬទម្រង់ JSON។', 'error', 6000);
+    return;
+  }
+
+  closePptxModal();
+  state.isPptxGenerating = true;
+  showPptxWidget(`🎬 កំពុងបម្លែង ${slidesData.length} ស្លាយទៅជា PPTX...`);
+  updatePptxWidgetStatus(`🧠 បានស្រង់ឃើញ ${slidesData.length} ស្លាយ... កំពុងរៀបចំរូបភាព & Layout`, 35);
+
+  const originalDocTitle = document.title;
+  document.title = `⏳ (កំពុងបម្លែង ${slidesData.length} ស្លាយ...) ` + originalDocTitle.replace(/^\[.*?\]\s*/, '').replace(/^⏳\s*\(.*?\)\s*/, '');
+
+  try {
+    const defaultTitle = (document.getElementById('lessonTitleInput')?.value || '').trim();
+    const meta = {
+      lessonTitle: slidesData[0]?.title || defaultTitle || 'Lesson Presentation',
+      subject: (document.getElementById('subjectSelect')?.value || 'ទូទៅ').trim(),
+      grade: (document.getElementById('gradeSelect')?.value || 'ទូទៅ').trim()
+    };
+    await buildPptxPresentation(slidesData, meta, { theme, imageMode });
+  } catch (err) {
+    console.error('Convert PPTX error:', err);
+    finishPptxWidgetError('បរាជ័យ: ' + err.message);
+    showToast('❌ បរាជ័យក្នុងការបម្លែងស្លាយ: ' + err.message, 'error');
+  } finally {
+    state.isPptxGenerating = false;
+    document.title = originalDocTitle;
+  }
+};
+
 function extractAndParseSlidesJson(text) {
   if (!text) return null;
   let clean = text.trim();
@@ -12833,6 +13073,7 @@ window.openPptxModal = function() {
     m.style.display = 'flex';
     m.classList.add('active');
     updatePptxAttachmentOptions();
+    if (typeof switchPptxTab === 'function') switchPptxTab('direct');
   }
 };
 
@@ -13333,351 +13574,7 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
       return; // Exit cleanly without creating fake/repetitive dummy presentation!
     }
 
-    updatePptxWidgetStatus(`🎬 កំពុងផ្គុំឯកសារ PPTX & រូបភាព AI... (រៀបចំ ${slidesData.length} ស្លាយ)`, 55);
-
-    if (typeof PptxGenJS === 'undefined') {
-      throw new Error('បណ្ណាល័យ PPTXGenJS មិនទាន់ដំណើរការ។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត!');
-    }
-
-    let pptx = new PptxGenJS();
-    pptx.layout = 'LAYOUT_16x9';
-
-    // Theme definitions with curated 3-color palette & modern card styling
-    let bg = 'F8FAFC', titleColor = '0F172A', bodyColor = '334155', accentPrimary = '2563EB', accentSecondary = 'D97706', cardBg = 'FFFFFF', cardBorder = 'E2E8F0';
-    if (theme === 'modern_blue') {
-      bg = 'F8FAFC'; titleColor = '1E3A8A'; bodyColor = '334155'; accentPrimary = '2563EB'; accentSecondary = 'D97706'; cardBg = 'FFFFFF'; cardBorder = 'E2E8F0';
-    } else if (theme === 'eco_green') {
-      bg = 'F0FDF4'; titleColor = '14532D'; bodyColor = '1E293B'; accentPrimary = '059669'; accentSecondary = 'D97706'; cardBg = 'FFFFFF'; cardBorder = 'DCFCE7';
-    } else if (theme === 'dark_mode') {
-      bg = '0F172A'; titleColor = 'F8FAFC'; bodyColor = 'CBD5E1'; accentPrimary = '38BDF8'; accentSecondary = 'F59E0B'; cardBg = '1E293B'; cardBorder = '334155';
-    } else if (theme === 'simple_light') {
-      bg = 'FFFFFF'; titleColor = '1E293B'; bodyColor = '475569'; accentPrimary = '4F46E5'; accentSecondary = 'EA580C'; cardBg = 'F8FAFC'; cardBorder = 'E2E8F0';
-    }
-
-    pptx.defineSlideMaster({
-      title: 'MASTER_SLIDE',
-      background: { color: bg },
-      slideNumber: { x: 0.3, y: '92%', color: bodyColor, fontSize: 10, fontFace: 'Kantumruy Pro' }
-    });
-
-    // Dynamic icon bullet pool for conceptual cards (no robotic 01-04 on every slide!)
-    const bulletIcons = ['✦', '◆', '●', '★', '►', '❖'];
-
-    // Helper: Parse bullet into { isNumbered, badge, heading, desc }
-    const parseCardContent = (bulletStr, itemIdx) => {
-      let str = String(bulletStr || '').trim();
-      let heading = '';
-      let desc = '';
-      let badge = '';
-      let isNumbered = false;
-
-      // 1. Extract bold lead-in: **Heading:** Body
-      const boldMatch = str.match(/^\*\*(.*?)\*\*(.*)/);
-      if (boldMatch) {
-        heading = boldMatch[1].trim();
-        desc = boldMatch[2].trim().replace(/^[:：\-–\s]+/, '');
-      } else {
-        const colonParts = str.split(/[:：]/);
-        if (colonParts.length > 1) {
-          heading = colonParts[0].trim();
-          desc = colonParts.slice(1).join('៖').trim();
-        } else {
-          heading = str.substring(0, 36);
-          desc = str.length > 36 ? str.substring(36).trim() : '';
-        }
-      }
-
-      // 2. Clean trailing colons from heading to avoid double colons "៖ ៖"
-      heading = heading.replace(/[:：\s]+$/, '').trim();
-
-      // 3. Detect if bullet explicitly mentions a step, stage, or number
-      const stepMatch = heading.match(/^(?:ជំហានទី|ដំណាក់កាលទី|ចំណុចទី|គន្លឹះទី)?\s*([០-៩\d]{1,2})[\.\s\:\)៖\-]*/);
-      if (stepMatch && (heading.includes('ជំហាន') || heading.includes('ដំណាក់កាល') || heading.includes('ចំណុចទី'))) {
-        isNumbered = true;
-        badge = stepMatch[1];
-        heading = heading.replace(stepMatch[0], '').trim();
-      } else {
-        // Conceptual card: Use dynamic aesthetic symbol icon
-        isNumbered = false;
-        badge = bulletIcons[itemIdx % bulletIcons.length];
-      }
-
-      return { isNumbered, badge, heading, desc };
-    };
-
-    // 🚀 High-Speed Sequential Image Fetching (Instant 100ms per slide, completely avoids rate-limits!)
-    let slideImages = [];
-    if (imageMode !== 'no') {
-      updatePptxWidgetStatus(`🎨 កំពុងរៀបចំរូបភាពអប់រំគុណភាពខ្ពស់ស្របតាមខ្លឹមសារស្លាយទាំង ${slidesData.length}...`, 60);
-      for (let sIdx = 0; sIdx < slidesData.length; sIdx++) {
-        const img = await getSlideImage(slidesData[sIdx], data, imageMode, theme, sIdx + 1);
-        slideImages.push(img);
-      }
-    }
-
-    for (let idx = 0; idx < slidesData.length; idx++) {
-      const slideDef = slidesData[idx];
-      let slide = pptx.addSlide({ masterName: 'MASTER_SLIDE' });
-      if (slideDef.speakerNotes) slide.addNotes(slideDef.speakerNotes);
-
-      const slideProgress = 65 + Math.round(((idx + 1) / slidesData.length) * 30);
-      updatePptxWidgetStatus(
-        `🎬 កំពុងរៀបចំស្លាយទី ${idx + 1}/${slidesData.length}: <b>${escapeHtml((slideDef.title || 'ខ្លឹមសារ').substring(0, 35))}</b>`,
-        slideProgress
-      );
-
-      const picObj = slideImages[idx] || null;
-
-      if (slideDef.type === 'title') {
-        // Title Slide: Clean hero layout with Kantumruy Pro font and contrasting multi-color typography
-        if (picObj && picObj.data) {
-          slide.addImage({ x: 0, y: 0, w: 10, h: 5.625, data: picObj.data, sizing: { type: 'cover', w: 10, h: 5.625 } });
-          slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 10, h: 5.625, fill: { color: '0A0F1D', transparency: 45 } });
-          slide.addText(slideDef.title, { x: 0.8, y: 1.6, w: 8.4, h: 1.8, fontSize: 32, bold: true, color: 'FFFFFF', align: 'center', fontFace: 'Kantumruy Pro' });
-          slide.addText(slideDef.subtitle || '', { x: 1, y: 3.5, w: 8, h: 0.9, fontSize: 18, color: 'FDBA74', align: 'center', fontFace: 'Kantumruy Pro', bold: true });
-        } else {
-          slide.addShape(pptx.ShapeType.roundRect, { x: 0.8, y: 0.8, w: 8.4, h: 4.0, rectRadius: 0.2, fill: { color: cardBg }, line: { color: cardBorder, width: 2 } });
-          slide.addText(slideDef.title, { x: 1.0, y: 1.5, w: 8.0, h: 1.6, fontSize: 32, bold: true, color: titleColor, align: 'center', fontFace: 'Kantumruy Pro' });
-          slide.addText(slideDef.subtitle || '', { x: 1.2, y: 3.2, w: 7.6, h: 0.9, fontSize: 18, color: accentSecondary, align: 'center', fontFace: 'Kantumruy Pro', bold: true });
-        }
-      } else {
-        // Content Slide: Modern Card / Pill Concept Layout (Like Gemini Canvas)
-        // 1. Header Topic Title (fontSize 22 >= 12, Kantumruy Pro, Primary Color)
-        slide.addText(slideDef.title || 'ខ្លឹមសារមេរៀន', {
-          x: 0.6,
-          y: 0.35,
-          w: 8.8,
-          h: 0.8,
-          fontSize: 22,
-          bold: true,
-          color: titleColor,
-          fontFace: 'Kantumruy Pro'
-        });
-
-        const rawBullets = Array.isArray(slideDef.bullets) ? slideDef.bullets : [String(slideDef.bullets || '')];
-        const parsedItems = rawBullets.slice(0, 5).map((b, i) => parseCardContent(b, i));
-
-        if (picObj && picObj.data) {
-          // Half layout: Left side cards (w: 4.8), Right side image (w: 4.0, h: 3.8)
-          const totalCards = Math.max(1, parsedItems.length);
-          const availH = 3.9;
-          const cardH = Math.min(1.15, Math.max(0.68, (availH - (totalCards - 1) * 0.12) / totalCards));
-          const cardGap = 0.12;
-          const startY = 1.25;
-
-          parsedItems.forEach((item, cIdx) => {
-            const cardY = startY + cIdx * (cardH + cardGap);
-
-            // Background card shape (soft pill with rounded corners)
-            slide.addShape(pptx.ShapeType.roundRect, {
-              x: 0.6,
-              y: cardY,
-              w: 4.8,
-              h: cardH,
-              rectRadius: 0.12,
-              fill: { color: cardBg },
-              line: { color: cardBorder, width: 1.5 }
-            });
-
-            // Accent Pill / Icon (Amber/Orange accent, dynamic icon or step number)
-            slide.addText(item.badge, {
-              x: 0.72,
-              y: cardY + 0.05,
-              w: 0.55,
-              h: cardH - 0.1,
-              fontSize: item.isNumbered ? 15 : 16,
-              bold: true,
-              color: accentSecondary, // Color 1: Warm Amber / Orange (#D97706)
-              align: 'center',
-              valign: 'middle',
-              fontFace: 'Kantumruy Pro'
-            });
-
-            // Card Text: Color 2 (Heading: Bold Primary) + Color 3 (Description: Slate/Muted)
-            // Strictly font size >= 12! (Heading 13pt bold, Desc 12pt)
-            let textRuns = [];
-            if (item.heading) {
-              textRuns.push({
-                text: item.heading + (item.desc ? ' ៖ ' : ''),
-                options: {
-                  fontSize: 13,
-                  bold: true,
-                  color: accentPrimary, // Color 2: Bold Indigo / Royal Blue (#2563EB)
-                  fontFace: 'Kantumruy Pro'
-                }
-              });
-            }
-            if (item.desc) {
-              textRuns.push({
-                text: item.desc,
-                options: {
-                  fontSize: 12, // User requirement: Font size 12 and larger!
-                  color: bodyColor, // Color 3: Slate Body (#334155)
-                  fontFace: 'Kantumruy Pro'
-                }
-              });
-            }
-
-            slide.addText(textRuns, {
-              x: 1.32,
-              y: cardY + 0.04,
-              w: 3.95,
-              h: cardH - 0.08,
-              align: 'left',
-              valign: 'middle',
-              paraSpaceAfter: 0
-            });
-          });
-
-          // Right side: AI Educational Image with rounded border frame
-          slide.addImage({
-            x: 5.65,
-            y: 1.25,
-            w: 3.95,
-            h: 3.9,
-            data: picObj.data,
-            sizing: { type: 'cover', w: 3.95, h: 3.9 }
-          });
-          slide.addShape(pptx.ShapeType.roundRect, {
-            x: 5.65,
-            y: 1.25,
-            w: 3.95,
-            h: 3.9,
-            rectRadius: 0.15,
-            fill: { type: 'none' },
-            line: { color: cardBorder, width: 2 }
-          });
-        } else {
-          // Full-width cards (e.g. 2x2 grid or horizontal cards across 8.8 width)
-          const totalCards = Math.max(1, parsedItems.length);
-          if (totalCards === 4) {
-            // 2x2 Grid Layout
-            const colW = 4.25;
-            const rowH = 1.8;
-            const colGap = 0.3;
-            const rowGap = 0.25;
-            parsedItems.forEach((item, cIdx) => {
-              const col = cIdx % 2;
-              const row = Math.floor(cIdx / 2);
-              const cardX = 0.6 + col * (colW + colGap);
-              const cardY = 1.3 + row * (rowH + rowGap);
-
-              slide.addShape(pptx.ShapeType.roundRect, {
-                x: cardX,
-                y: cardY,
-                w: colW,
-                h: rowH,
-                rectRadius: 0.15,
-                fill: { color: cardBg },
-                line: { color: cardBorder, width: 1.5 }
-              });
-
-              slide.addText(item.badge, {
-                x: cardX + 0.15,
-                y: cardY + 0.15,
-                w: 0.6,
-                h: 0.4,
-                fontSize: item.isNumbered ? 16 : 18,
-                bold: true,
-                color: accentSecondary,
-                align: 'center',
-                fontFace: 'Kantumruy Pro'
-              });
-
-              let gridRuns = [
-                {
-                  text: item.heading + '\n',
-                  options: { fontSize: 15, bold: true, color: accentPrimary, fontFace: 'Kantumruy Pro' }
-                }
-              ];
-              if (item.desc) {
-                gridRuns.push({
-                  text: item.desc,
-                  options: { fontSize: 13, color: bodyColor, fontFace: 'Kantumruy Pro' }
-                });
-              }
-
-              slide.addText(gridRuns, {
-                x: cardX + 0.2,
-                y: cardY + 0.55,
-                w: colW - 0.4,
-                h: rowH - 0.65,
-                align: 'left',
-                valign: 'top'
-              });
-            });
-          } else {
-            // Horizontal stacked wide cards
-            const availH = 3.9;
-            const cardH = Math.min(1.2, Math.max(0.72, (availH - (totalCards - 1) * 0.14) / totalCards));
-            const cardGap = 0.14;
-            const startY = 1.25;
-
-            parsedItems.forEach((item, cIdx) => {
-              const cardY = startY + cIdx * (cardH + cardGap);
-              slide.addShape(pptx.ShapeType.roundRect, {
-                x: 0.6,
-                y: cardY,
-                w: 8.8,
-                h: cardH,
-                rectRadius: 0.12,
-                fill: { color: cardBg },
-                line: { color: cardBorder, width: 1.5 }
-              });
-
-              slide.addText(item.badge, {
-                x: 0.8,
-                y: cardY + 0.05,
-                w: 0.6,
-                h: cardH - 0.1,
-                fontSize: item.isNumbered ? 15 : 18,
-                bold: true,
-                color: accentSecondary,
-                align: 'center',
-                valign: 'middle',
-                fontFace: 'Kantumruy Pro'
-              });
-
-              let fullRuns = [];
-              if (item.heading) {
-                fullRuns.push({
-                  text: item.heading + (item.desc ? ' ៖ ' : ''),
-                  options: { fontSize: 14, bold: true, color: accentPrimary, fontFace: 'Kantumruy Pro' }
-                });
-              }
-              if (item.desc) {
-                fullRuns.push({
-                  text: item.desc,
-                  options: { fontSize: 13, color: bodyColor, fontFace: 'Kantumruy Pro' }
-                });
-              }
-
-              slide.addText(fullRuns, {
-                x: 1.5,
-                y: cardY + 0.05,
-                w: 7.7,
-                h: cardH - 0.1,
-                align: 'left',
-                valign: 'middle'
-              });
-            });
-          }
-        }
-      }
-    }
-
-    updatePptxWidgetStatus('📦 កំពុងបង្កើត និងទាញយកឯកសារ .pptx ទៅកាន់កុំព្យូទ័រ...', 98);
-
-    // Clean lesson title to avoid double extension .docx.pptx and illegal filename characters
-    let cleanTitle = (data.lessonTitle || 'Lesson')
-      .replace(/\.(docx|pdf|pptx|txt|doc)$/gi, '')
-      .replace(/[\\/:*?"<>|]/g, '_')
-      .trim();
-    const fileName = `PPT_${cleanTitle || 'Lesson'}.pptx`;
-    await pptx.writeFile({ fileName: fileName });
-    
-    finishPptxWidgetSuccess(fileName);
-    showToast(`✅ បានទាញយកស្លាយ ${fileName} ជោគជ័យ!`, 'success', 10000);
+    await buildPptxPresentation(slidesData, data, { theme, imageMode });
 
   } catch (error) {
     console.error('PPTX error:', error);
@@ -13688,6 +13585,358 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
     document.title = originalDocTitle;
   }
 };
+
+window.buildPptxPresentation = async function(slidesData, meta, options) {
+  meta = meta || {};
+  options = options || {};
+  const imageMode = options.imageMode || 'ai';
+  const theme = options.theme || 'modern_blue';
+
+  updatePptxWidgetStatus(`🎬 កំពុងផ្គុំឯកសារ PPTX & រូបភាព AI... (រៀបចំ ${slidesData.length} ស្លាយ)`, 55);
+
+  if (typeof PptxGenJS === 'undefined') {
+    throw new Error('បណ្ណាល័យ PPTXGenJS មិនទាន់ដំណើរការ។ សូមពិនិត្យការតភ្ជាប់អ៊ីនធឺណិត!');
+  }
+
+  let pptx = new PptxGenJS();
+  pptx.layout = 'LAYOUT_16x9';
+
+  // Theme definitions with curated 3-color palette & modern card styling
+  let bg = 'F8FAFC', titleColor = '0F172A', bodyColor = '334155', accentPrimary = '2563EB', accentSecondary = 'D97706', cardBg = 'FFFFFF', cardBorder = 'E2E8F0';
+  if (theme === 'modern_blue') {
+    bg = 'F8FAFC'; titleColor = '1E3A8A'; bodyColor = '334155'; accentPrimary = '2563EB'; accentSecondary = 'D97706'; cardBg = 'FFFFFF'; cardBorder = 'E2E8F0';
+  } else if (theme === 'eco_green') {
+    bg = 'F0FDF4'; titleColor = '14532D'; bodyColor = '1E293B'; accentPrimary = '059669'; accentSecondary = 'D97706'; cardBg = 'FFFFFF'; cardBorder = 'DCFCE7';
+  } else if (theme === 'dark_mode') {
+    bg = '0F172A'; titleColor = 'F8FAFC'; bodyColor = 'CBD5E1'; accentPrimary = '38BDF8'; accentSecondary = 'F59E0B'; cardBg = '1E293B'; cardBorder = '334155';
+  } else if (theme === 'simple_light') {
+    bg = 'FFFFFF'; titleColor = '1E293B'; bodyColor = '475569'; accentPrimary = '4F46E5'; accentSecondary = 'EA580C'; cardBg = 'F8FAFC'; cardBorder = 'E2E8F0';
+  }
+
+  pptx.defineSlideMaster({
+    title: 'MASTER_SLIDE',
+    background: { color: bg },
+    slideNumber: { x: 0.3, y: '92%', color: bodyColor, fontSize: 10, fontFace: 'Kantumruy Pro' }
+  });
+
+  // Dynamic icon bullet pool for conceptual cards (no robotic 01-04 on every slide!)
+  const bulletIcons = ['✦', '◆', '●', '★', '►', '❖'];
+
+  // Helper: Parse bullet into { isNumbered, badge, heading, desc }
+  const parseCardContent = (bulletStr, itemIdx) => {
+    let str = String(bulletStr || '').trim();
+    let heading = '';
+    let desc = '';
+    let badge = '';
+    let isNumbered = false;
+
+    // 1. Extract bold lead-in: **Heading:** Body
+    const boldMatch = str.match(/^\*\*(.*?)\*\*(.*)/);
+    if (boldMatch) {
+      heading = boldMatch[1].trim();
+      desc = boldMatch[2].trim().replace(/^[:：\-–\s]+/, '');
+    } else {
+      const colonParts = str.split(/[:：]/);
+      if (colonParts.length > 1) {
+        heading = colonParts[0].trim();
+        desc = colonParts.slice(1).join('៖').trim();
+      } else {
+        heading = str.substring(0, 36);
+        desc = str.length > 36 ? str.substring(36).trim() : '';
+      }
+    }
+
+    // 2. Clean trailing colons from heading to avoid double colons "៖ ៖"
+    heading = heading.replace(/[:：\s]+$/, '').trim();
+
+    // 3. Detect if bullet explicitly mentions a step, stage, or number
+    const stepMatch = heading.match(/^(?:ជំហានទី|ដំណាក់កាលទី|ចំណុចទី|គន្លឹះទី)?\s*([០-៩\d]{1,2})[\.\s\:\)៖\-]*/);
+    if (stepMatch && (heading.includes('ជំហាន') || heading.includes('ដំណាក់កាល') || heading.includes('ចំណុចទី'))) {
+      isNumbered = true;
+      badge = stepMatch[1];
+      heading = heading.replace(stepMatch[0], '').trim();
+    } else {
+      // Conceptual card: Use dynamic aesthetic symbol icon
+      isNumbered = false;
+      badge = bulletIcons[itemIdx % bulletIcons.length];
+    }
+
+    return { isNumbered, badge, heading, desc };
+  };
+
+  // 🚀 High-Speed Sequential Image Fetching
+  let slideImages = [];
+  if (imageMode !== 'no') {
+    updatePptxWidgetStatus(`🎨 កំពុងរៀបចំរូបភាពអប់រំគុណភាពខ្ពស់ស្របតាមខ្លឹមសារស្លាយទាំង ${slidesData.length}...`, 60);
+    for (let sIdx = 0; sIdx < slidesData.length; sIdx++) {
+      const img = await getSlideImage(slidesData[sIdx], meta, imageMode, theme, sIdx + 1);
+      slideImages.push(img);
+    }
+  }
+
+  for (let idx = 0; idx < slidesData.length; idx++) {
+    const slideDef = slidesData[idx];
+    let slide = pptx.addSlide({ masterName: 'MASTER_SLIDE' });
+    if (slideDef.speakerNotes) slide.addNotes(slideDef.speakerNotes);
+
+    const slideProgress = 65 + Math.round(((idx + 1) / slidesData.length) * 30);
+    updatePptxWidgetStatus(
+      `🎬 កំពុងរៀបចំស្លាយទី ${idx + 1}/${slidesData.length}: <b>${escapeHtml((slideDef.title || 'ខ្លឹមសារ').substring(0, 35))}</b>`,
+      slideProgress
+    );
+
+    const picObj = slideImages[idx] || null;
+
+    if (slideDef.type === 'title') {
+      const sub = slideDef.subtitle || (meta.subject ? `${meta.subject} - ${meta.grade || ''}` : '');
+      if (picObj && picObj.data) {
+        slide.addImage({ x: 0, y: 0, w: 10, h: 5.625, data: picObj.data, sizing: { type: 'cover', w: 10, h: 5.625 } });
+        slide.addShape(pptx.ShapeType.rect, { x: 0, y: 0, w: 10, h: 5.625, fill: { color: '0A0F1D', transparency: 45 } });
+        slide.addText(slideDef.title, { x: 0.8, y: 1.6, w: 8.4, h: 1.8, fontSize: 32, bold: true, color: 'FFFFFF', align: 'center', fontFace: 'Kantumruy Pro' });
+        slide.addText(sub, { x: 1, y: 3.5, w: 8, h: 0.9, fontSize: 18, color: 'FDBA74', align: 'center', fontFace: 'Kantumruy Pro', bold: true });
+      } else {
+        slide.addShape(pptx.ShapeType.roundRect, { x: 0.8, y: 0.8, w: 8.4, h: 4.0, rectRadius: 0.2, fill: { color: cardBg }, line: { color: cardBorder, width: 2 } });
+        slide.addText(slideDef.title, { x: 1.0, y: 1.5, w: 8.0, h: 1.6, fontSize: 32, bold: true, color: titleColor, align: 'center', fontFace: 'Kantumruy Pro' });
+        slide.addText(sub, { x: 1.2, y: 3.2, w: 7.6, h: 0.9, fontSize: 18, color: accentSecondary, align: 'center', fontFace: 'Kantumruy Pro', bold: true });
+      }
+    } else {
+      // Content Slide: Modern Card / Pill Concept Layout (Like Gemini Canvas)
+      slide.addText(slideDef.title || 'ខ្លឹមសារមេរៀន', {
+        x: 0.6,
+        y: 0.35,
+        w: 8.8,
+        h: 0.8,
+        fontSize: 22,
+        bold: true,
+        color: titleColor,
+        fontFace: 'Kantumruy Pro'
+      });
+
+      const rawBullets = Array.isArray(slideDef.bullets) ? slideDef.bullets : [String(slideDef.bullets || '')];
+      const parsedItems = rawBullets.slice(0, 5).map((b, i) => parseCardContent(b, i));
+
+      if (picObj && picObj.data) {
+        // Half layout: Left side cards (w: 4.8), Right side image (w: 4.0, h: 3.8)
+        const totalCards = Math.max(1, parsedItems.length);
+        const availH = 3.9;
+        const cardH = Math.min(1.15, Math.max(0.68, (availH - (totalCards - 1) * 0.12) / totalCards));
+        const cardGap = 0.12;
+        const startY = 1.25;
+
+        parsedItems.forEach((item, cIdx) => {
+          const cardY = startY + cIdx * (cardH + cardGap);
+
+          // Background card shape (soft pill with rounded corners)
+          slide.addShape(pptx.ShapeType.roundRect, {
+            x: 0.6,
+            y: cardY,
+            w: 4.8,
+            h: cardH,
+            rectRadius: 0.12,
+            fill: { color: cardBg },
+            line: { color: cardBorder, width: 1.5 }
+          });
+
+          // Accent Pill / Icon
+          slide.addText(item.badge, {
+            x: 0.72,
+            y: cardY + 0.05,
+            w: 0.55,
+            h: cardH - 0.1,
+            fontSize: item.isNumbered ? 15 : 16,
+            bold: true,
+            color: accentSecondary,
+            align: 'center',
+            valign: 'middle',
+            fontFace: 'Kantumruy Pro'
+          });
+
+          // Card Text
+          let textRuns = [];
+          if (item.heading) {
+            textRuns.push({
+              text: item.heading + (item.desc ? ' ៖ ' : ''),
+              options: {
+                fontSize: 13,
+                bold: true,
+                color: accentPrimary,
+                fontFace: 'Kantumruy Pro'
+              }
+            });
+          }
+          if (item.desc) {
+            textRuns.push({
+              text: item.desc,
+              options: {
+                fontSize: 12,
+                color: bodyColor,
+                fontFace: 'Kantumruy Pro'
+              }
+            });
+          }
+
+          slide.addText(textRuns, {
+            x: 1.32,
+            y: cardY + 0.04,
+            w: 3.95,
+            h: cardH - 0.08,
+            align: 'left',
+            valign: 'middle',
+            paraSpaceAfter: 0
+          });
+        });
+
+        // Right side: AI Educational Image with rounded border frame
+        slide.addImage({
+          x: 5.65,
+          y: 1.25,
+          w: 3.95,
+          h: 3.9,
+          data: picObj.data,
+          sizing: { type: 'cover', w: 3.95, h: 3.9 }
+        });
+        slide.addShape(pptx.ShapeType.roundRect, {
+          x: 5.65,
+          y: 1.25,
+          w: 3.95,
+          h: 3.9,
+          rectRadius: 0.15,
+          fill: { type: 'none' },
+          line: { color: cardBorder, width: 2 }
+        });
+      } else {
+        // Full-width cards (e.g. 2x2 grid or horizontal cards across 8.8 width)
+        const totalCards = Math.max(1, parsedItems.length);
+        if (totalCards === 4) {
+          // 2x2 Grid Layout
+          const colW = 4.25;
+          const rowH = 1.8;
+          const colGap = 0.3;
+          const rowGap = 0.25;
+          parsedItems.forEach((item, cIdx) => {
+            const col = cIdx % 2;
+            const row = Math.floor(cIdx / 2);
+            const cardX = 0.6 + col * (colW + colGap);
+            const cardY = 1.3 + row * (rowH + rowGap);
+
+            slide.addShape(pptx.ShapeType.roundRect, {
+              x: cardX,
+              y: cardY,
+              w: colW,
+              h: rowH,
+              rectRadius: 0.15,
+              fill: { color: cardBg },
+              line: { color: cardBorder, width: 1.5 }
+            });
+
+            slide.addText(item.badge, {
+              x: cardX + 0.15,
+              y: cardY + 0.15,
+              w: 0.6,
+              h: 0.4,
+              fontSize: item.isNumbered ? 16 : 18,
+              bold: true,
+              color: accentSecondary,
+              align: 'center',
+              fontFace: 'Kantumruy Pro'
+            });
+
+            let gridRuns = [
+              {
+                text: item.heading + '\n',
+                options: { fontSize: 15, bold: true, color: accentPrimary, fontFace: 'Kantumruy Pro' }
+              }
+            ];
+            if (item.desc) {
+              gridRuns.push({
+                text: item.desc,
+                options: { fontSize: 13, color: bodyColor, fontFace: 'Kantumruy Pro' }
+              });
+            }
+
+            slide.addText(gridRuns, {
+              x: cardX + 0.2,
+              y: cardY + 0.55,
+              w: colW - 0.4,
+              h: rowH - 0.65,
+              align: 'left',
+              valign: 'top'
+            });
+          });
+        } else {
+          // Horizontal stacked wide cards
+          const availH = 3.9;
+          const cardH = Math.min(1.2, Math.max(0.72, (availH - (totalCards - 1) * 0.14) / totalCards));
+          const cardGap = 0.14;
+          const startY = 1.25;
+
+          parsedItems.forEach((item, cIdx) => {
+            const cardY = startY + cIdx * (cardH + cardGap);
+            slide.addShape(pptx.ShapeType.roundRect, {
+              x: 0.6,
+              y: cardY,
+              w: 8.8,
+              h: cardH,
+              rectRadius: 0.12,
+              fill: { color: cardBg },
+              line: { color: cardBorder, width: 1.5 }
+            });
+
+            slide.addText(item.badge, {
+              x: 0.8,
+              y: cardY + 0.05,
+              w: 0.6,
+              h: cardH - 0.1,
+              fontSize: item.isNumbered ? 15 : 18,
+              bold: true,
+              color: accentSecondary,
+              align: 'center',
+              valign: 'middle',
+              fontFace: 'Kantumruy Pro'
+            });
+
+            let fullRuns = [];
+            if (item.heading) {
+              fullRuns.push({
+                text: item.heading + (item.desc ? ' ៖ ' : ''),
+                options: { fontSize: 14, bold: true, color: accentPrimary, fontFace: 'Kantumruy Pro' }
+              });
+            }
+            if (item.desc) {
+              fullRuns.push({
+                text: item.desc,
+                options: { fontSize: 13, color: bodyColor, fontFace: 'Kantumruy Pro' }
+              });
+            }
+
+            slide.addText(fullRuns, {
+              x: 1.5,
+              y: cardY + 0.05,
+              w: 7.7,
+              h: cardH - 0.1,
+              align: 'left',
+              valign: 'middle'
+            });
+          });
+        }
+      }
+    }
+  }
+
+  updatePptxWidgetStatus('📦 កំពុងបង្កើត និងទាញយកឯកសារ .pptx ទៅកាន់កុំព្យូទ័រ...', 98);
+
+  let cleanTitle = (meta.lessonTitle || 'Lesson')
+    .replace(/\.(docx|pdf|pptx|txt|doc)$/gi, '')
+    .replace(/[\\/:*?"<>|]/g, '_')
+    .trim();
+  const fileName = `PPT_${cleanTitle || 'Lesson'}.pptx`;
+  await pptx.writeFile({ fileName: fileName });
+
+  finishPptxWidgetSuccess(fileName);
+  showToast(`✅ បានទាញយកស្លាយ ${fileName} ជោគជ័យ!`, 'success', 10000);
+  return fileName;
+};
+
 // ==========================================================================
 // 🎮 AC Kahoot Game Integration
 // ==========================================================================

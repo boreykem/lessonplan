@@ -1707,16 +1707,28 @@
   
       <!-- PPTX Generator Modal -->
   <div id="pptxModal" class="modal-overlay modal-backdrop" style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.8); backdrop-filter: blur(6px); z-index: 10000; align-items: center; justify-content: center;">
-    <div class="modal modal-card" style="max-width: 520px; width: 95%; background: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);">
+    <div class="modal modal-card" style="max-width: 600px; width: 95%; background: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);">
       <div class="modal-header" style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
         <div class="modal-title" style="color: #e11d48; font-weight: 700; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
-          <i class="fa-solid fa-file-powerpoint"></i> <span data-i18n="modalPptxTitle">បង្កើតស្លាយ PowerPoint (AI Generator)</span>
+          <i class="fa-solid fa-file-powerpoint"></i> <span data-i18n="modalPptxTitle">បង្កើតស្លាយ PowerPoint (.pptx) - AI Studio</span>
         </div>
         <button class="modal-close" onclick="closePptxModal()" style="font-size: 1.3rem; background: none; border: none; cursor: pointer; color: #64748b;"><i class="fa-solid fa-times"></i></button>
       </div>
-      <div class="modal-body" style="padding: 20px; max-height: 75vh; overflow-y: auto;">
-        <div style="font-size: 9.5pt; color: #475569; margin-bottom: 16px; line-height: 1.5;" data-i18n="modalPptxDesc">
-          ប្រព័ន្ធនឹងអានកិច្ចតែងការ ឬឯកសារយោង រួចរៀបចំ Master Prompt កម្រិតខ្ពស់សម្រាប់យកទៅបង្កើតស្លាយក្នុង Google Gemini (Web) ខាងក្រៅដោយស្វ័យប្រវត្តិ។
+
+      <!-- Tab Navigation -->
+      <div style="display: flex; border-bottom: 2px solid #e2e8f0; background: #f8fafc; padding: 0 16px;">
+        <button type="button" id="tabBtnPptxDirect" onclick="switchPptxTab('direct')" style="padding: 11px 16px; font-weight: 700; font-size: 9pt; border: none; background: transparent; border-bottom: 3px solid #e11d48; color: #e11d48; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: 'Kantumruy Pro', sans-serif;">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> <span>បង្កើតដោយ AI ស្វ័យប្រវត្តិ (Direct PPTX)</span>
+        </button>
+        <button type="button" id="tabBtnPptxImport" onclick="switchPptxTab('import')" style="padding: 11px 16px; font-weight: 600; font-size: 9pt; border: none; background: transparent; border-bottom: 3px solid transparent; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: 'Kantumruy Pro', sans-serif;">
+          <i class="fa-solid fa-paste"></i> <span>បម្លែងអត្ថបទពី Gemini Web ទៅជា PPTX</span>
+        </button>
+      </div>
+
+      <!-- Tab 1: AI Direct Generation & PPTX Download -->
+      <div id="pptxTabDirect" class="pptx-tab-content" style="padding: 20px; max-height: 72vh; overflow-y: auto;">
+        <div style="font-size: 9.2pt; color: #475569; margin-bottom: 14px; line-height: 1.5; background: #fff1f2; padding: 10px 14px; border-radius: 8px; border: 1px solid #ffe4e6;" data-i18n="modalPptxDesc">
+          <i class="fa-solid fa-circle-check" style="color: #e11d48;"></i> ប្រព័ន្ធ AI នឹងអានកិច្ចតែងការ ឬឯកសារយោង រួចបង្កើត និងទាញយកជាឯកសារ PowerPoint (.pptx) ស្វ័យប្រវត្តិតាមស្តង់ដារ MoEYS ជាមួយរូបភាព និង Speaker Notes។
         </div>
         
         <!-- Attachment / Reference Source Dropdown & Upload Button -->
@@ -1796,10 +1808,68 @@
           </select>
         </div>
       </div>
-      <div class="modal-footer" style="justify-content: flex-end; background: #fff1f2; padding: 14px 20px; border-top: 1px solid #ffe4e6; display: flex; gap: 10px; align-items: center;">
-        <button class="btn-secondary" onclick="closePptxModal()" style="border-color: #fda4af; color: #e11d48;" data-i18n="modalPptxBtnCancel">បោះបង់</button>
-        <button class="btn-primary" onclick="generateGeminiSlidePrompt()" style="background: #e11d48; border: none; padding: 9px 20px; font-weight: 600; border-radius: 8px; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;" title="រៀបចំ Master Prompt & បើកផ្ទាំងកូពី">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="modalPptxBtnGenerate">បង្កើតស្លាយជាមួយ Gemini Web</span>
+
+      <!-- Tab 2: Convert Text from Gemini Web to PPTX -->
+      <div id="pptxTabImport" class="pptx-tab-content" style="display: none; padding: 20px; max-height: 72vh; overflow-y: auto;">
+        <div style="font-size: 9.2pt; color: #1e3a8a; background: #eff6ff; padding: 12px 14px; border-radius: 8px; border: 1px solid #bfdbfe; margin-bottom: 14px; line-height: 1.6;">
+          <i class="fa-solid fa-circle-info" style="color: #2563eb;"></i> <b>ដំណោះស្រាយសម្រាប់អត្ថបទដែលបានបង្កើតក្នុង Gemini Web៖</b><br>
+          ដោយសារ Google Gemini Web (ផ្ទាំង Chat) បង្ហាញត្រឹមតែអត្ថបទ និងមិនអាចទាញយកឯកសារ .pptx ឬបង្ហាញរូបភាពក្នុងស្លាយបានឡើយ លោកគ្រូគ្រាន់តែ <b>Copy (ចម្លង)</b> អត្ថបទទាំងអស់ពី Gemini Web រួចយកមក <b>Paste (បិទភ្ជាប់)</b> ក្នុងប្រអប់ខាងក្រោម។ ប្រព័ន្ធនឹងស្រង់ស្លាយនីមួយៗ ដាក់រូបភាពអប់រំ និងបង្កើតជាឯកសារ <b>PowerPoint (.pptx)</b> ទាញយកភ្លាមៗ!
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 14px;">
+          <label style="font-weight: 600; color: #1e293b; font-size: 9.5pt; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+            <span><i class="fa-solid fa-paste" style="color: #2563eb;"></i> បិទភ្ជាប់អត្ថបទស្លាយពី Gemini Web នៅទីនេះ៖</span>
+            <button type="button" onclick="pasteFromClipboardToPptxImport()" style="background: none; border: none; color: #2563eb; font-size: 8.5pt; cursor: pointer; text-decoration: underline; font-weight: 600;"><i class="fa-solid fa-clipboard"></i> Paste ពី Clipboard</button>
+          </label>
+          <textarea id="pptxImportText" rows="9" class="form-control" placeholder="ឧទាហរណ៍៖ បិទភ្ជាប់អត្ថបទពី Gemini Web នៅទីនេះ...
+🎬 ស្លាយទី 1: មេរៀនទី១...
+❖ ជំពូកទី ១...
+🗣️ ការណែនាំសម្រាប់គ្រូបង្រៀន (Speaker Notes)..." style="font-family: 'Kantumruy Pro', sans-serif; font-size: 9.2pt; line-height: 1.6; resize: vertical;"></textarea>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px;">
+          <div class="form-group" style="margin: 0;">
+            <label style="font-weight: 600; color: #1e293b; font-size: 9pt; margin-bottom: 6px; display: block;">
+              <i class="fa-solid fa-wand-magic-sparkles" style="color: #06b6d4;"></i> រូបភាពស្លាយ (Auto-Pictures):
+            </label>
+            <select id="pptxImportIncludeImages" class="form-control" style="font-size: 9pt;">
+              <option value="ai" selected>🎨 បង្កើតរូបភាពដោយ AI</option>
+              <option value="web">🌐 រូបថតអប់រំគុណភាពខ្ពស់</option>
+              <option value="no">📄 ទេ (អក្សរសុទ្ធ)</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin: 0;">
+            <label style="font-weight: 600; color: #1e293b; font-size: 9pt; margin-bottom: 6px; display: block;">
+              <i class="fa-solid fa-palette" style="color: #ec4899;"></i> រចនាបទពណ៌ (Theme Color):
+            </label>
+            <select id="pptxImportTheme" class="form-control" style="font-size: 9pt;">
+              <option value="modern_blue" selected>Modern Blue (ខៀវទំនើប)</option>
+              <option value="eco_green">Eco Green (បៃតងធម្មជាតិ)</option>
+              <option value="dark_mode">Dark Mode (ស្រមោលងងឹត)</option>
+              <option value="simple_light">Simple Light (ស/ស្អាត)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer for Tab 1 (Direct Generation) -->
+      <div id="pptxFooterDirect" class="modal-footer" style="justify-content: space-between; background: #fff1f2; padding: 14px 20px; border-top: 1px solid #ffe4e6; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        <button type="button" class="btn-tool-action" onclick="generateGeminiSlidePrompt()" style="background: #ffffff; color: #1e40af; border: 1px solid #93c5fd; padding: 8px 12px; font-size: 8.5pt; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 600;" title="ចម្លង Master Prompt សម្រាប់យកទៅប្រើក្នុង gemini.google.com">
+          <i class="fa-brands fa-google" style="color: #2563eb;"></i> <span>ចម្លង Prompt ទៅ Gemini Web</span>
+        </button>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button class="btn-secondary" onclick="closePptxModal()" style="border-color: #fda4af; color: #e11d48;" data-i18n="modalPptxBtnCancel">បោះបង់</button>
+          <button class="btn-primary" onclick="generatePptxSlides()" style="background: linear-gradient(135deg, #e11d48, #be123c); border: none; padding: 9px 20px; font-weight: 700; border-radius: 8px; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(225,29,72,0.35);">
+            <i class="fa-solid fa-file-powerpoint"></i> <span data-i18n="modalPptxBtnGenerate">បង្កើត និងទាញយកស្លាយ PPTX (.pptx)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Footer for Tab 2 (Import / Convert from Gemini Text) -->
+      <div id="pptxFooterImport" class="modal-footer" style="display: none; justify-content: flex-end; background: #eff6ff; padding: 14px 20px; border-top: 1px solid #bfdbfe; gap: 10px; align-items: center;">
+        <button class="btn-secondary" onclick="closePptxModal()" style="border-color: #cbd5e1; color: #64748b;">បោះបង់</button>
+        <button class="btn-primary" onclick="convertPastedGeminiToPptx()" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border: none; padding: 9px 22px; font-weight: 700; border-radius: 8px; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(37,99,235,0.35);">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> <span>បម្លែងជាឯកសារ PPTX & ទាញយកភ្លាមៗ</span>
         </button>
       </div>
     </div>
