@@ -774,6 +774,8 @@ const I18N_DICTIONARY = {
     headerWheelTitle: "បង្វិលកងចៃដន្យ (Lucky Wheel & Group Maker)",
     headerHistory: "ប្រវត្តិ",
     headerHistoryTitle: "ប្រវត្តិកិច្ចតែងការ (History Dashboard)",
+    headerLibrary: "បណ្ណាល័យ",
+    headerLibraryTitle: "បើកបណ្ណាល័យកិច្ចតែងការដែលបានរក្សាទុក (Saved Lesson Plans Library)",
     headerLicense: "អាជ្ញាបណ្ណ",
     headerLicenseTitle: "ព័ត៌មានអាជ្ញាបណ្ណ និងការ Activate កម្មវិធី",
     headerApiKey: "API Key",
@@ -781,6 +783,28 @@ const I18N_DICTIONARY = {
     headerUpdateTitle: "ពិនិត្យមើលកំណែអាប់ដេតថ្មី (Cloud Auto-Updater)",
     headerThemeTitle: "ប្តូរពណ៌ Theme",
     demoSelectDefault: "✨ ជ្រើសរើសមេរៀនគំរូ (Quick Demos)...",
+    tabMobileForm: "ទម្រង់បញ្ចូល (Form)",
+    tabMobilePreview: "សន្លឹកកិច្ចតែងការ (Preview)",
+    btnMobileBackForm: "ទម្រង់",
+    btnProfileEdit: "កែប្រែ",
+    btnAttachFile: "ភ្ជាប់ឯកសារ",
+    btnSavePlan: "រក្សាទុក",
+    savedProfileBadge: "បានចងចាំ",
+
+    emptyWelcomeTitle: "ស្វាគមន៍មកកាន់ AI Lesson Plan Studio",
+    emptyWelcomeSub: "ប្រព័ន្ធឆ្លាតវៃជំនួយគ្រូបង្រៀនក្នុងការរៀបចំកិច្ចតែងការ និងកម្រងសំណួរវាយតម្លៃស្តង់ដារ MoEYS",
+    emptyStep1Badge: "ជំហានទី ១",
+    emptyStep1Title: '<i class="fa-solid fa-file-circle-plus" style="color: #4f46e5;"></i> រើសទម្រង់/មេរៀន',
+    emptyStep1Desc: "ជ្រើសទម្រង់ MoEYS ឬ Upload Word/PDF/PPTX",
+    emptyStep2Badge: "ជំហានទី ២",
+    emptyStep2Title: '<i class="fa-solid fa-wand-magic-sparkles" style="color: #10b981;"></i> បង្កើតដោយ AI',
+    emptyStep2Desc: "កិច្ចតែងការ ៥ ជំហាន + Pre (60/30/10) + Post (20/60/20)",
+    emptyStep3Badge: "ជំហានទី ៣",
+    emptyStep3Title: '<i class="fa-solid fa-file-word" style="color: #0284c7;"></i> កែសម្រួល & Export',
+    emptyStep3Desc: "ពិនិត្យលើ A4 រួច Export ជា Word (.docx) / PPTX",
+    btnEmptyBannerConnectKey: "ភ្ជាប់ Key ឥឡូវនេះ",
+    btnEmptyConnectKey: "ភ្ជាប់ API Key",
+    btnEmptyOpenLibrary: "បណ្ណាល័យកិច្ចតែងការ",
 
     stepBadge1: "១",
     stepBadge2: "២",
@@ -913,6 +937,8 @@ const I18N_DICTIONARY = {
     headerWheelTitle: "Lucky Wheel & Random Selector",
     headerHistory: "History",
     headerHistoryTitle: "Lesson Plan History Dashboard",
+    headerLibrary: "Library",
+    headerLibraryTitle: "Open Saved Lesson Plans Library",
     headerLicense: "License",
     headerLicenseTitle: "License Information & App Activation",
     headerApiKey: "API Key",
@@ -920,6 +946,28 @@ const I18N_DICTIONARY = {
     headerUpdateTitle: "Check for Updates (Cloud Auto-Updater)",
     headerThemeTitle: "Toggle Light / Dark Theme",
     demoSelectDefault: "✨ Select Demo Lesson (Quick Demos)...",
+    tabMobileForm: "Form Input",
+    tabMobilePreview: "Live Preview",
+    btnMobileBackForm: "Form",
+    btnProfileEdit: "Edit",
+    btnAttachFile: "Attach File",
+    btnSavePlan: "Save",
+    savedProfileBadge: "Remembered",
+
+    emptyWelcomeTitle: "Welcome to AI Lesson Plan Studio",
+    emptyWelcomeSub: "Intelligent assistant for Cambodian educators to generate standard MoEYS lesson plans and assessments",
+    emptyStep1Badge: "Step 1",
+    emptyStep1Title: '<i class="fa-solid fa-file-circle-plus" style="color: #4f46e5;"></i> Select Format / Lesson',
+    emptyStep1Desc: "Choose MoEYS standard or upload Word/PDF/PPTX",
+    emptyStep2Badge: "Step 2",
+    emptyStep2Title: '<i class="fa-solid fa-wand-magic-sparkles" style="color: #10b981;"></i> AI Generation',
+    emptyStep2Desc: "5-Step Lesson Plan + Pre & Post Assessments",
+    emptyStep3Badge: "Step 3",
+    emptyStep3Title: '<i class="fa-solid fa-file-word" style="color: #0284c7;"></i> Customize & Export',
+    emptyStep3Desc: "Review on Live A4 and Export to Word / PPTX / PDF",
+    btnEmptyBannerConnectKey: "Connect Key Now",
+    btnEmptyConnectKey: "Connect API Key",
+    btnEmptyOpenLibrary: "Lesson Plan Library",
 
     stepBadge1: "1",
     stepBadge2: "2",
@@ -979,8 +1027,8 @@ const I18N_DICTIONARY = {
     lessonContentPlaceholder: "Enter or paste lesson text, definitions, formulas, exercises, examples, or textbook excerpts here...",
 
     // Action buttons
-    btnGenerate: "Generate Lesson Plan (AI Studio)",
-    btnReset: "Reset Form",
+    btnGenerate: "Generate Lesson Plan",
+    btnReset: "Reset",
 
     // Preview
     previewBadgeTitle: "Lesson Plan Document",
@@ -993,7 +1041,7 @@ const I18N_DICTIONARY = {
     btnCreateVideo: "🎬 Create Video",
 
     // Footer
-    partnerTag: "Official Partner (ដៃគូសហការផ្លូវការ)",
+    partnerTag: "Official Partner",
     ipCopyright: "© 2026 <strong>AI Lesson Plan Studio™</strong> & <strong>AC Mart</strong> - All Rights Reserved",
     ipSubtext: "Educational technology & pedagogical structure protected by Intellectual Property law of Cambodia",
 
@@ -1339,6 +1387,74 @@ function setLanguage(lang, showNotification = false) {
   if (btnPre) btnPre.title = isEn ? "Generate Diagnostic Pre-Test (QCM)" : "បង្កើតបុរេតេស្ត (Pre-Test QCM)";
   if (btnPost) btnPost.title = isEn ? "Generate Mastery Post-Test (MCQ)" : "បង្កើតបច្ឆាតេស្ត (Post-Test MCQ)";
 
+  // 17. Translate duration chips & active duration label
+  const durationChips = document.querySelectorAll('#durationChipsGrid .duration-chip');
+  if (durationChips && durationChips.length >= 6) {
+    const chipsEn = ["50 mins", "60 mins", "90 mins", "120 mins", "180 mins", "✏️ Custom"];
+    const chipsKm = ["៥០ នាទី", "៦០ នាទី", "៩០ នាទី", "១២០ នាទី", "១៨០ នាទី", "✏️ ផ្ទាល់ខ្លួន"];
+    const targetChips = isEn ? chipsEn : chipsKm;
+    durationChips.forEach((chip, idx) => {
+      if (targetChips[idx]) chip.textContent = targetChips[idx];
+    });
+  }
+  if (typeof syncDurationChipsFromSelect === 'function') {
+    syncDurationChipsFromSelect();
+  }
+
+  // 18. Update profile toggle button text based on drawer open/close state
+  const profFields = document.getElementById('teacherProfileFields');
+  const btnProfEditTxt = document.getElementById('btnToggleProfileEditText');
+  if (btnProfEditTxt) {
+    const isExpanded = profFields && profFields.style.display !== 'none' && profFields.style.display !== '';
+    btnProfEditTxt.textContent = isExpanded ? (isEn ? 'Collapse' : 'បង្រួម') : (isEn ? 'Edit' : 'កែប្រែ');
+  }
+
+  // 19. Translate library button on header
+  const btnSaved = document.getElementById('btnOpenSavedPlans');
+  if (btnSaved) {
+    const btnText = btnSaved.querySelector('.btn-text');
+    if (btnText) btnText.textContent = dict.headerLibrary || (isEn ? 'Library' : 'បណ្ណាល័យ');
+    btnSaved.title = dict.headerLibraryTitle || (isEn ? 'Lesson Plan Library' : 'បណ្ណាល័យកិច្ចតែងការ (Saved Plans)');
+  }
+
+  // 20. Translate admin profile buttons & tooltips
+  const btnSaveAdmin = document.getElementById('btnSaveAdminInfo');
+  if (btnSaveAdmin) {
+    btnSaveAdmin.title = isEn ? "Save administrative info" : "រក្សាទុកព័ត៌មានរដ្ឋបាល";
+    const s = btnSaveAdmin.querySelector('span');
+    if (s) s.textContent = isEn ? "Save" : "រក្សាទុក";
+  }
+  const btnClearAdmin = document.getElementById('btnClearAdminInfo');
+  if (btnClearAdmin) {
+    btnClearAdmin.title = isEn ? "Clear saved administrative info" : "លុបព័ត៌មានដែលបានចងចាំ";
+  }
+
+  // 21. Translate attach file button
+  const btnAttach = document.getElementById('btnAttachLessonFile');
+  if (btnAttach) {
+    btnAttach.title = isEn ? "Attach lesson file (PowerPoint, Word, PDF, or Book photo)" : "ភ្ជាប់ឯកសារមេរៀន (PowerPoint, Word, PDF, ឬ រូបភាពសៀវភៅ)";
+    const s = btnAttach.querySelector('span');
+    if (s) s.textContent = isEn ? "Attach File" : "ភ្ជាប់ឯកសារ";
+  }
+
+  // 22. Translate save generated plan button
+  const btnSaveGen = document.getElementById('btnSaveGeneratedPlan');
+  if (btnSaveGen) {
+    btnSaveGen.title = isEn ? "Save this lesson plan to library" : "រក្សាទុកកិច្ចតែងការនេះទៅក្នុងបណ្ណាល័យ";
+    const s = btnSaveGen.querySelector('span');
+    if (s) s.textContent = isEn ? "Save" : "រក្សាទុក";
+  }
+
+  // 23. Update Empty State API Banner & Status
+  if (typeof updateEmptyStateApiStatus === 'function') {
+    updateEmptyStateApiStatus();
+  }
+
+  // 24. Update Teacher Profile Summary Live
+  if (typeof updateTeacherProfileSummaryLive === 'function') {
+    updateTeacherProfileSummaryLive();
+  }
+
   // If a document is currently active on screen, re-render headers with new language
   const printDoc = document.getElementById('printableDoc');
   if (printDoc && printDoc.style.display !== 'none' && state.generatedPlanData) {
@@ -1659,11 +1775,27 @@ function syncDurationChipsFromSelect() {
   });
 
   if (activeLabel) {
+    const isEn = (state.language === 'en');
     if (curVal === 'custom') {
       const customText = document.getElementById('inputCustomDurationText');
-      activeLabel.textContent = (customText && customText.value.trim()) ? `🕒 ${customText.value.trim()}` : '✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់';
+      activeLabel.textContent = (customText && customText.value.trim()) ? `🕒 ${customText.value.trim()}` : (isEn ? '✏️ Custom' : '✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់');
     } else {
-      activeLabel.textContent = curVal.split('(')[0].trim();
+      if (isEn) {
+        const durMapEn = {
+          '៥០ នាទី (១ ម៉ោងសិក្សា)': '50 mins',
+          '៦០ នាទី (១ ម៉ោងពេញ)': '60 mins',
+          '៩០ នាទី (២ ម៉ោងសិក្សា)': '90 mins',
+          '១០០ នាទី (២ ម៉ោងសិក្សា)': '100 mins',
+          '១២០ នាទី (២ ម៉ោងពេញ)': '120 mins',
+          '១៣៥ នាទី (៣ ម៉ោងសិក្សា)': '135 mins',
+          '១៥០ នាទី (៣ ម៉ោងសិក្សា)': '150 mins',
+          '១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)': '180 mins',
+          '២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)': '240 mins'
+        };
+        activeLabel.textContent = durMapEn[curVal] || curVal.split('(')[0].trim();
+      } else {
+        activeLabel.textContent = curVal.split('(')[0].trim();
+      }
     }
   }
 }
@@ -1674,6 +1806,7 @@ function selectDurationChip(val) {
   const customWrap = document.getElementById('customDurationWrap');
   const customText = document.getElementById('inputCustomDurationText');
   const activeLabel = document.getElementById('activeDurationLabel');
+  const isEn = (state.language === 'en');
 
   if (select) {
     select.value = val;
@@ -1687,11 +1820,26 @@ function selectDurationChip(val) {
   if (val === 'custom') {
     if (customWrap) customWrap.style.display = 'block';
     if (customText) customText.focus();
-    if (activeLabel) activeLabel.textContent = '✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់';
+    if (activeLabel) activeLabel.textContent = isEn ? '✏️ Custom' : '✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់';
   } else {
     if (customWrap) customWrap.style.display = 'none';
     if (activeLabel) {
-      activeLabel.textContent = val.split('(')[0].trim();
+      if (isEn) {
+        const durMapEn = {
+          '៥០ នាទី (១ ម៉ោងសិក្សា)': '50 mins',
+          '៦០ នាទី (១ ម៉ោងពេញ)': '60 mins',
+          '៩០ នាទី (២ ម៉ោងសិក្សា)': '90 mins',
+          '១០០ នាទី (២ ម៉ោងសិក្សា)': '100 mins',
+          '១២០ នាទី (២ ម៉ោងពេញ)': '120 mins',
+          '១៣៥ នាទី (៣ ម៉ោងសិក្សា)': '135 mins',
+          '១៥០ នាទី (៣ ម៉ោងសិក្សា)': '150 mins',
+          '១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)': '180 mins',
+          '២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)': '240 mins'
+        };
+        activeLabel.textContent = durMapEn[val] || val.split('(')[0].trim();
+      } else {
+        activeLabel.textContent = val.split('(')[0].trim();
+      }
     }
   }
 
@@ -1712,7 +1860,8 @@ function toggleTeacherProfileFields() {
   const isHidden = fields.style.display === 'none' || fields.style.display === '';
   fields.style.display = isHidden ? 'flex' : 'none';
   if (btnText) {
-    btnText.textContent = isHidden ? 'បង្រួម' : 'កែប្រែ';
+    const isEn = (state.language === 'en');
+    btnText.textContent = isHidden ? (isEn ? 'Collapse' : 'បង្រួម') : (isEn ? 'Edit' : 'កែប្រែ');
   }
 }
 window.toggleTeacherProfileFields = toggleTeacherProfileFields;
@@ -1872,37 +2021,63 @@ function loadCustomSubjectsFromStorage() {
 window.loadCustomSubjectsFromStorage = loadCustomSubjectsFromStorage;
 
 function updateTeacherProfileSummaryLive() {
+  const isEn = (state.language === 'en');
   const teacherInput = document.getElementById('inputTeacher');
   const schoolInput = document.getElementById('inputSchool');
   const degreeSelect = document.getElementById('inputDegree');
   const gradeSelect = document.getElementById('inputGrade');
   const customGrade = document.getElementById('inputCustomGradeText');
 
-  const teacherName = (teacherInput && teacherInput.value.trim()) ? teacherInput.value.trim() : 'លោកគ្រូ / អ្នកគ្រូ';
-  const schoolName = (schoolInput && schoolInput.value.trim()) ? schoolInput.value.trim() : 'ឈ្មោះសាលារៀន ឬស្ថាប័ន';
+  const defaultTeacher = isEn ? 'Educator / Teacher' : 'លោកគ្រូ / អ្នកគ្រូ';
+  const defaultSchool = isEn ? 'School / Institution' : 'ឈ្មោះសាលារៀន ឬស្ថាប័ន';
 
-  let degreeText = 'អនុវិទ្យាល័យ';
+  const teacherName = (teacherInput && teacherInput.value.trim()) ? teacherInput.value.trim() : defaultTeacher;
+  const schoolName = (schoolInput && schoolInput.value.trim()) ? schoolInput.value.trim() : defaultSchool;
+
+  let degreeText = isEn ? 'Lower Secondary' : 'អនុវិទ្យាល័យ';
   if (degreeSelect && degreeSelect.selectedIndex >= 0) {
     degreeText = degreeSelect.options[degreeSelect.selectedIndex].text.replace(/^[^\w\u1780-\u17FF]+/, '').split('(')[0].trim();
   }
 
-  let gradeText = 'ថ្នាក់ទី ៨';
+  let gradeText = isEn ? 'Grade 8' : 'ថ្នាក់ទី ៨';
   if (gradeSelect) {
     if (gradeSelect.value === 'custom' && customGrade && customGrade.value.trim()) {
       gradeText = customGrade.value.trim();
-    } else if (gradeSelect.value !== 'custom') {
-      gradeText = gradeSelect.value;
+    } else if (gradeSelect.value !== 'custom' && gradeSelect.selectedIndex >= 0) {
+      gradeText = gradeSelect.options[gradeSelect.selectedIndex].text.replace(/^[^\w\u1780-\u17FF]+/, '').trim();
     }
   }
 
-  const subjVal = (typeof getSubjectValue === 'function') ? getSubjectValue() : 'រូបវិទ្យា';
+  let subjVal = isEn ? 'Physics' : 'រូបវិទ្យា';
+  const subjectSelect = document.getElementById('inputSubject');
+  if (subjectSelect && subjectSelect.selectedIndex >= 0 && subjectSelect.value !== 'custom') {
+    subjVal = subjectSelect.options[subjectSelect.selectedIndex].text.trim();
+  } else if (typeof getSubjectValue === 'function') {
+    subjVal = getSubjectValue();
+  }
+
   const summaryName = document.getElementById('summaryTeacherName');
   const summarySchool = document.getElementById('summarySchoolName');
   const summaryMeta = document.getElementById('summaryDegreeGrade');
   const durationSelect = document.getElementById('inputDurationSelect');
-  let durationVal = '៦០ នាទី';
+  let durationVal = isEn ? '60 mins' : '៦០ នាទី';
   if (durationSelect && durationSelect.value) {
-    durationVal = durationSelect.value.split('(')[0].trim();
+    if (isEn) {
+      const durMapEn = {
+        '៥០ នាទី (១ ម៉ោងសិក្សា)': '50 mins',
+        '៦០ នាទី (១ ម៉ោងពេញ)': '60 mins',
+        '៩០ នាទី (២ ម៉ោងសិក្សា)': '90 mins',
+        '១០០ នាទី (២ ម៉ោងសិក្សា)': '100 mins',
+        '១២០ នាទី (២ ម៉ោងពេញ)': '120 mins',
+        '១៣៥ នាទី (៣ ម៉ោងសិក្សា)': '135 mins',
+        '១៥០ នាទី (៣ ម៉ោងសិក្សា)': '150 mins',
+        '១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)': '180 mins',
+        '២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)': '240 mins'
+      };
+      durationVal = durMapEn[durationSelect.value] || durationSelect.value.split('(')[0].trim();
+    } else {
+      durationVal = durationSelect.value.split('(')[0].trim();
+    }
   }
 
   if (summaryName) summaryName.textContent = teacherName;
@@ -4777,6 +4952,7 @@ function updateEmptyStateApiStatus() {
 
   const key = (state.geminiApiKey || getActiveGeminiApiKey() || '').trim();
   const provider = state.aiProvider || PersistentKeyVault.getProviderSync();
+  const isEn = (state.language === 'en');
 
   if (key) {
     banner.style.background = '#f0fdf4';
@@ -4784,7 +4960,9 @@ function updateEmptyStateApiStatus() {
     banner.style.color = '#15803d';
     dot.textContent = '🟢';
     const provName = (provider === 'groq') ? 'Groq LLaMA 3.3 AI' : (provider === 'openrouter' ? 'OpenRouter AI' : 'Google Gemini AI');
-    text.innerHTML = `<strong>បានភ្ជាប់ API រួចរាល់</strong> (${provName} — Online Mode)`;
+    text.innerHTML = isEn
+      ? `<strong>API Connected</strong> (${provName} — Online Mode)`
+      : `<strong>បានភ្ជាប់ API រួចរាល់</strong> (${provName} — Online Mode)`;
     if (btnBanner) btnBanner.style.display = 'none';
     if (btnBottom) btnBottom.style.display = 'none';
   } else {
@@ -4792,9 +4970,18 @@ function updateEmptyStateApiStatus() {
     banner.style.borderColor = '#fef08a';
     banner.style.color = '#854d0e';
     dot.textContent = '🟡';
-    text.textContent = 'មិនទាន់ភ្ជាប់ API Key (កំពុងប្រើ Offline Mode)';
-    if (btnBanner) btnBanner.style.display = 'inline-flex';
-    if (btnBottom) btnBottom.style.display = 'inline-flex';
+    text.textContent = isEn
+      ? 'No API Key Connected (Offline Mode)'
+      : 'មិនទាន់ភ្ជាប់ API Key (កំពុងប្រើ Offline Mode)';
+    if (btnBanner) {
+      btnBanner.style.display = 'inline-flex';
+      btnBanner.innerHTML = `<i class="fa-solid fa-key"></i> ${isEn ? 'Connect Key Now' : 'ភ្ជាប់ Key ឥឡូវនេះ'}`;
+    }
+    if (btnBottom) {
+      btnBottom.style.display = 'inline-flex';
+      const bSpan = btnBottom.querySelector('span');
+      if (bSpan) bSpan.textContent = isEn ? 'Connect API Key' : 'ភ្ជាប់ API Key';
+    }
   }
 }
 window.updateEmptyStateApiStatus = updateEmptyStateApiStatus;

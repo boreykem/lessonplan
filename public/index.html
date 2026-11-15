@@ -224,7 +224,7 @@
           style="border-color: #0284c7; color: #0284c7; display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;"
           onclick="openSavedPlansModal()" title="បើកបណ្ណាល័យកិច្ចតែងការដែលបានរក្សាទុក (Saved Lesson Plans Library)">
           <i class="fa-solid fa-book-bookmark" style="color: #0284c7;"></i>
-          <span class="btn-text">បណ្ណាល័យ</span>
+          <span class="btn-text" data-i18n="headerLibrary">បណ្ណាល័យ</span>
           <span id="savedPlansCountBadge" class="count-badge"
             style="background: #0284c7; color: white; padding: 1px 6px; border-radius: 10px; font-size: 0.72rem; font-weight: 700;">០</span>
         </button>
@@ -265,11 +265,11 @@
   <nav class="mobile-workspace-tabs" id="mobileWorkspaceTabs" aria-label="ផ្ទាំងប្តូរទិដ្ឋភាព">
     <button type="button" class="mobile-tab-btn active" id="tabBtnForm" onclick="setMobileWorkspaceView('form')">
       <i class="fa-solid fa-pen-to-square"></i>
-      <span>ទម្រង់បញ្ចូល (Form)</span>
+      <span data-i18n="tabMobileForm">ទម្រង់បញ្ចូល (Form)</span>
     </button>
     <button type="button" class="mobile-tab-btn" id="tabBtnPreview" onclick="setMobileWorkspaceView('preview')">
       <i class="fa-solid fa-file-circle-check"></i>
-      <span>សន្លឹកកិច្ចតែងការ (Preview)</span>
+      <span data-i18n="tabMobilePreview">សន្លឹកកិច្ចតែងការ (Preview)</span>
       <span id="mobilePreviewDot" class="mobile-tab-dot" style="display: none;"></span>
     </button>
   </nav>
@@ -310,7 +310,7 @@
               </div>
               <button type="button" class="btn-toggle-profile-edit" id="btnToggleProfileEdit"
                 onclick="event.stopPropagation(); toggleTeacherProfileFields();">
-                <i class="fa-solid fa-pen-to-square"></i> <span id="btnToggleProfileEditText">កែប្រែ</span>
+                <i class="fa-solid fa-pen-to-square"></i> <span id="btnToggleProfileEditText" data-i18n="btnProfileEdit">កែប្រែ</span>
               </button>
             </div>
 
@@ -475,18 +475,18 @@
                 style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--border-color); flex-wrap: wrap; gap: 8px;">
                 <label class="remember-checkbox-label" style="font-size: 0.78rem;">
                   <input type="checkbox" id="chkAutoRememberAdmin" checked>
-                  <span>ចងចាំព័ត៌មាននេះទុកប្រើលើកក្រោយ</span>
+                  <span data-i18n="rememberAdminLabel">ចងចាំព័ត៌មាននេះទុកប្រើលើកក្រោយ</span>
                 </label>
                 <div style="display: flex; gap: 6px; align-items: center;">
                   <button type="button" id="btnSaveAdminInfo" class="btn-pill-action" title="រក្សាទុកព័ត៌មានរដ្ឋបាល">
-                    <i class="fa-solid fa-floppy-disk"></i> រក្សាទុក
+                    <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="btnSaveAdminInfo">រក្សាទុក</span>
                   </button>
                   <button type="button" id="btnClearAdminInfo" class="btn-pill-ghost"
                     title="លុបព័ត៌មានដែលបានបំពេញ ដើម្បីបញ្ចូលថ្មី" style="display: inline-flex;">
                     <i class="fa-solid fa-trash-can"></i>
                   </button>
                   <span id="savedProfileBadge" class="saved-profile-pill" style="display: none;">
-                    <i class="fa-solid fa-check"></i> បានចងចាំ
+                    <i class="fa-solid fa-check"></i> <span data-i18n="savedProfileBadge">បានចងចាំ</span>
                   </span>
                 </div>
               </div>
@@ -671,7 +671,7 @@
               <button type="button" id="btnAttachLessonFile" class="btn-attach-pill"
                 onclick="document.getElementById('lessonFileInput').click()"
                 title="ភ្ជាប់ឯកសារមេរៀន (PowerPoint, Word, PDF, ឬ រូបភាពសៀវភៅ)">
-                <i class="fa-solid fa-paperclip"></i> <span>ភ្ជាប់ឯកសារ</span>
+                <i class="fa-solid fa-paperclip"></i> <span data-i18n="btnAttachFile">ភ្ជាប់ឯកសារ</span>
               </button>
 
               <button type="button" class="btn-paste-pill" onclick="pasteToLessonContent()" title="Paste ពី Clipboard">
@@ -903,7 +903,7 @@
           <!-- Mobile Back to Form Button (Only visible on screens < 1024px) -->
           <button type="button" class="btn-tool-action btn-mobile-back-to-form" id="btnMobileBackToForm"
             onclick="setMobileWorkspaceView('form')" title="ត្រឡប់ទៅទម្រង់បញ្ចូល (Back to Form)">
-            <i class="fa-solid fa-chevron-left"></i> <span>ទម្រង់</span>
+            <i class="fa-solid fa-chevron-left"></i> <span data-i18n="btnMobileBackForm">ទម្រង់</span>
           </button>
 
           <span class="preview-badge"><i class="fa-solid fa-file-circle-check"></i> <span class="badge-title"
@@ -924,7 +924,7 @@
           <button id="btnSaveGeneratedPlan" class="btn-tool-action btn-save-plan"
             style="background: #0284c7; color: white; border: none; font-weight: 600;"
             onclick="saveCurrentGeneratedPlan()" title="រក្សាទុកកិច្ចតែងការនេះទៅក្នុងបណ្ណាល័យ">
-            <i class="fa-solid fa-floppy-disk"></i> រក្សាទុក
+            <i class="fa-solid fa-floppy-disk"></i> <span data-i18n="btnSavePlan">រក្សាទុក</span>
           </button>
 
           <!-- Learning Gain Calculator -->
@@ -1011,9 +1011,11 @@
           </div>
 
           <!-- Welcome Header -->
-          <h3 style="font-size: 1.18rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
+          <h3 id="emptyWelcomeTitle" data-i18n="emptyWelcomeTitle"
+            style="font-size: 1.18rem; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">
             ស្វាគមន៍មកកាន់ AI Lesson Plan Studio</h3>
-          <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">
+          <p id="emptyWelcomeSub" data-i18n="emptyWelcomeSub"
+            style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">
             ប្រព័ន្ធឆ្លាតវៃជំនួយគ្រូបង្រៀនក្នុងការរៀបចំកិច្ចតែងការ និងកម្រងសំណួរវាយតម្លៃស្តង់ដារ MoEYS</p>
 
           <!-- API Status Banner -->
@@ -1023,7 +1025,7 @@
             <span id="emptyStateApiText">មិនទាន់ភ្ជាប់ API Key (កំពុងប្រើ Offline Mode)</span>
             <button type="button" id="btnEmptyBannerConnectKey" onclick="openApiKeyModal()"
               style="background: #f59e0b; color: white; border: none; padding: 2px 9px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; margin-left: 4px; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);">
-              <i class="fa-solid fa-key"></i> ភ្ជាប់ Key ឥឡូវនេះ
+              <i class="fa-solid fa-key"></i> <span data-i18n="btnEmptyBannerConnectKey">ភ្ជាប់ Key ឥឡូវនេះ</span>
             </button>
           </div>
 
@@ -1032,43 +1034,40 @@
             <!-- Step 1 -->
             <div class="empty-step-card"
               style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 10px 12px; transition: transform 0.2s, box-shadow 0.2s;">
-              <span
-                style="display: inline-block; background: #e0e7ff; color: #4338ca; font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px;">ជំហានទី
-                ១</span>
-              <div
+              <span id="emptyStep1Badge" data-i18n="emptyStep1Badge"
+                style="display: inline-block; background: #e0e7ff; color: #4338ca; font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px;">ជំហានទី ១</span>
+              <div id="emptyStep1Title" data-i18n="emptyStep1Title"
                 style="font-weight: 700; font-size: 0.84rem; color: var(--text-primary); margin-bottom: 3px; display: flex; align-items: center; gap: 5px; white-space: nowrap;">
                 <i class="fa-solid fa-file-circle-plus" style="color: #4f46e5;"></i> រើសទម្រង់/មេរៀន
               </div>
-              <div style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">ជ្រើសទម្រង់ MoEYS ឬ
-                Upload Word/PDF/PPTX</div>
+              <div id="emptyStep1Desc" data-i18n="emptyStep1Desc"
+                style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">ជ្រើសទម្រង់ MoEYS ឬ Upload Word/PDF/PPTX</div>
             </div>
 
             <!-- Step 2 -->
             <div class="empty-step-card"
               style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 10px 12px; transition: transform 0.2s, box-shadow 0.2s;">
-              <span
-                style="display: inline-block; background: #ecfdf5; color: #047857; font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px;">ជំហានទី
-                ២</span>
-              <div
+              <span id="emptyStep2Badge" data-i18n="emptyStep2Badge"
+                style="display: inline-block; background: #ecfdf5; color: #047857; font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px;">ជំហានទី ២</span>
+              <div id="emptyStep2Title" data-i18n="emptyStep2Title"
                 style="font-weight: 700; font-size: 0.84rem; color: var(--text-primary); margin-bottom: 3px; display: flex; align-items: center; gap: 5px; white-space: nowrap;">
                 <i class="fa-solid fa-wand-magic-sparkles" style="color: #10b981;"></i> បង្កើតដោយ AI
               </div>
-              <div style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">កិច្ចតែងការ ៥ ជំហាន +
-                Pre (60/30/10) + Post (20/60/20)</div>
+              <div id="emptyStep2Desc" data-i18n="emptyStep2Desc"
+                style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">កិច្ចតែងការ ៥ ជំហាន + Pre (60/30/10) + Post (20/60/20)</div>
             </div>
 
             <!-- Step 3 -->
             <div class="empty-step-card"
               style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 10px 12px; transition: transform 0.2s, box-shadow 0.2s;">
-              <span
-                style="display: inline-block; background: #f0f9ff; color: #0369a1; font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px;">ជំហានទី
-                ៣</span>
-              <div
+              <span id="emptyStep3Badge" data-i18n="emptyStep3Badge"
+                style="display: inline-block; background: #f0f9ff; color: #0369a1; font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px;">ជំហានទី ៣</span>
+              <div id="emptyStep3Title" data-i18n="emptyStep3Title"
                 style="font-weight: 700; font-size: 0.84rem; color: var(--text-primary); margin-bottom: 3px; display: flex; align-items: center; gap: 5px; white-space: nowrap;">
                 <i class="fa-solid fa-file-word" style="color: #0284c7;"></i> កែសម្រួល & Export
               </div>
-              <div style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">ពិនិត្យលើ A4 រួច Export
-                ជា Word (.docx) / PPTX</div>
+              <div id="emptyStep3Desc" data-i18n="emptyStep3Desc"
+                style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">ពិនិត្យលើ A4 រួច Export ជា Word (.docx) / PPTX</div>
             </div>
           </div>
 
@@ -1076,11 +1075,11 @@
           <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
             <button id="btnEmptyConnectKey" class="btn-secondary" onclick="openApiKeyModal()"
               style="border: 1.5px solid #f59e0b; color: #b45309; background: #fffbeb; font-weight: 700; padding: 8px 18px; border-radius: 8px; font-size: 0.86rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-              <i class="fa-solid fa-key" style="color: #f59e0b;"></i> <span>ភ្ជាប់ API Key</span>
+              <i class="fa-solid fa-key" style="color: #f59e0b;"></i> <span data-i18n="btnEmptyConnectKey">ភ្ជាប់ API Key</span>
             </button>
             <button id="btnEmptyOpenLibrary" class="btn-secondary" onclick="openSavedPlansModal()"
               style="border: 1.5px solid #0284c7; color: #0284c7; background: #f0f9ff; font-weight: 700; padding: 8px 18px; border-radius: 8px; font-size: 0.86rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-              <i class="fa-solid fa-book-bookmark" style="color: #0284c7;"></i> <span>បណ្ណាល័យកិច្ចតែងការ</span>
+              <i class="fa-solid fa-book-bookmark" style="color: #0284c7;"></i> <span data-i18n="btnEmptyOpenLibrary">បណ្ណាល័យកិច្ចតែងការ</span>
             </button>
           </div>
           <script>
