@@ -796,26 +796,8 @@ const I18N_DICTIONARY = {
     loadingDesc: "កំពុងបង្កើតវត្ថុបំណង ៣ ផ្នែក សម្ភារឧបទេស និងដំណើរការបង្រៀន ៥ ជំហាន",
 
     // Step 1
-    step1Title: "ទម្រង់ & វិធីសាស្ត្របង្រៀន",
+    step1Title: "ព័ត៌មានរដ្ឋបាល និងក្បាលកិច្ចតែងការ",
     step1Desc: "",
-    labelPresetTemplate: "ជ្រើសរើសប្រភេទកិច្ចតែងការ MoEYS៖",
-    optPresetStandard: "កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)",
-    optPresetFlipped: "⚡ កិច្ចតែងការតាមបែបត្រឡប់ (Flipped Learning)",
-    optPresetUbD: "កិច្ចតែងការតាមបែបត្រឡប់ (Backward Design / UbD ៣ ដំណាក់កាល)",
-    optPresetPrimary: "កិច្ចតែងការបឋមសិក្សា (ថ្នាក់ទី ១-៦)",
-    optPresetStem: "កិច្ចតែងការបែប STEM / 5E (វិទ្យាសាស្ត្រ និងពិសោធន៍)",
-
-    // Step 2
-    step2Title: "ឯកសារ និងខ្លឹមសារមេរៀន",
-    step2Desc: "",
-    dropPrimary: 'ទម្លាក់ឯកសារមេរៀន/ស្លាយ/រូបភាព នៅទីនេះ ឬ <span class="browse-link">ចុចដើម្បីរើសឯកសារ</span>',
-    dropHint: "គាំទ្រ PowerPoint (.pptx), Word (.docx), PDF (.pdf), រូបភាពថតសៀវភៅ (.png, .jpg), TXT",
-    lessonContentLabel: "ខ្លឹមសារមេរៀន / ចំណុចសំខាន់ៗ",
-    lessonContentPlaceholder: "បញ្ចូល ឬបិទភ្ជាប់ខ្លឹមសារមេរៀន និយមន័យ រូបមន្ត លំហាត់ ឧទាហរណ៍ ឬអត្ថបទដកស្រង់ពីសៀវភៅពុម្ពនៅទីនេះ...",
-
-    // Step 3
-    step3Title: "ព័ត៌មានរដ្ឋបាល និងក្បាលកិច្ចតែងការ",
-    step3Desc: "",
     btnSaveAdminInfo: "រក្សាទុក",
     schoolLabel: "ឈ្មោះសាលារៀន",
     schoolPlaceholder: "ឧ. វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម / វិទ្យាល័យ...",
@@ -827,7 +809,6 @@ const I18N_DICTIONARY = {
     subjectLabel: "មុខវិជ្ជា",
     durationLabel: "រយៈពេលបង្រៀន (Teaching Duration)",
     durationPlaceholder: "ឧ. ៦០ នាទី / ៣ ម៉ោង / ២ សប្តាហ៍...",
-    methodLabel: "វិធីសាស្ត្របង្រៀនចម្បង",
     rememberAdminLabel: "ចងចាំព័ត៌មានរដ្ឋបាលនេះសម្រាប់លើកក្រោយ (Remember for next time)",
     chapterLabel: "ជំពូក",
     chapterPlaceholder: "ឧ. ជំពូកទី ៣: ការងារ និងថាមពល",
@@ -835,6 +816,25 @@ const I18N_DICTIONARY = {
     lessonTitlePlaceholder: "ឧ. មេរៀនទី ២: ថាមពលមេកានិច",
     customNotesLabel: "ចំណាំ ឬសំណូមពរបន្ថែម (Prompt Customization)",
     customNotesPlaceholder: "ឧ. សុំផ្ដោតលើការពិសោធន៍ជាក់ស្ដែង និងមានល្បែងពង្រឹងពុទ្ធិ...",
+
+    // Step 2
+    step2Title: "ទម្រង់ & វិធីសាស្ត្របង្រៀន",
+    step2Desc: "",
+    labelPresetTemplate: "ជ្រើសរើសប្រភេទកិច្ចតែងការ MoEYS៖",
+    optPresetStandard: "កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)",
+    optPresetFlipped: "⚡ កិច្ចតែងការតាមបែបត្រឡប់ (Flipped Learning)",
+    optPresetUbD: "កិច្ចតែងការតាមបែបត្រឡប់ (Backward Design / UbD ៣ ដំណាក់កាល)",
+    optPresetPrimary: "កិច្ចតែងការបឋមសិក្សា (ថ្នាក់ទី ១-៦)",
+    optPresetStem: "កិច្ចតែងការបែប STEM / 5E (វិទ្យាសាស្ត្រ និងពិសោធន៍)",
+    methodLabel: "វិធីសាស្ត្របង្រៀនចម្បង",
+
+    // Step 3
+    step3Title: "ខ្លឹមសារមេរៀន",
+    step3Desc: "",
+    dropPrimary: 'ទម្លាក់ឯកសារមេរៀន/ស្លាយ/រូបភាព នៅទីនេះ ឬ <span class="browse-link">ចុចដើម្បីរើសឯកសារ</span>',
+    dropHint: "គាំទ្រ PowerPoint (.pptx), Word (.docx), PDF (.pdf), រូបភាពថតសៀវភៅ (.png, .jpg), TXT",
+    lessonContentLabel: "ខ្លឹមសារមេរៀន / ចំណុចសំខាន់ៗ",
+    lessonContentPlaceholder: "បញ្ចូល ឬបិទភ្ជាប់ខ្លឹមសារមេរៀន និយមន័យ រូបមន្ត លំហាត់ ឧទាហរណ៍ ឬអត្ថបទដកស្រង់ពីសៀវភៅពុម្ពនៅទីនេះ...",
 
     // Action buttons
     btnGenerate: "បង្កើតកិច្ចតែងការស្វ័យប្រវត្តិ (Generate)",
@@ -938,26 +938,8 @@ const I18N_DICTIONARY = {
     loadingDesc: "Formulating 3-domain learning objectives, teaching aids, and 5-step active pedagogy",
 
     // Step 1
-    step1Title: "Template & Teaching Method",
+    step1Title: "Administrative Details & Lesson Header",
     step1Desc: "",
-    labelPresetTemplate: "Select Lesson Plan Format:",
-    optPresetStandard: "Standard 5-Step Lesson Plan (General / Secondary)",
-    optPresetFlipped: "⚡ Flipped Learning Lesson Plan",
-    optPresetUbD: "Backward Design / UbD (3-Stage Framework)",
-    optPresetPrimary: "Primary School Lesson Plan (Grades 1-6)",
-    optPresetStem: "STEM / 5E Inquiry Lesson Plan (Science & Experiments)",
-
-    // Step 2
-    step2Title: "Lesson Material",
-    step2Desc: "",
-    dropPrimary: 'Drop lesson files/slides/images here or <span class="browse-link">browse files</span>',
-    dropHint: "Supports PowerPoint (.pptx), Word (.docx), PDF (.pdf), Book photos (.png, .jpg), TXT",
-    lessonContentLabel: "Lesson Content / Key Concepts",
-    lessonContentPlaceholder: "Enter or paste lesson text, definitions, formulas, exercises, examples, or textbook excerpts here...",
-
-    // Step 3
-    step3Title: "Administrative Details",
-    step3Desc: "",
     btnSaveAdminInfo: "Save Profile",
     schoolLabel: "School / Institution Name",
     schoolPlaceholder: "e.g., Preah Sisowath High School / Institute...",
@@ -969,7 +951,6 @@ const I18N_DICTIONARY = {
     subjectLabel: "Subject",
     durationLabel: "Teaching Duration",
     durationPlaceholder: "e.g., 60 mins / 3 periods / 2 weeks...",
-    methodLabel: "Primary Teaching Methodology",
     rememberAdminLabel: "Remember administrative info for next time",
     chapterLabel: "Chapter / Unit",
     chapterPlaceholder: "e.g., Chapter 3: Work and Energy",
@@ -977,6 +958,25 @@ const I18N_DICTIONARY = {
     lessonTitlePlaceholder: "e.g., Lesson 2: Mechanical Energy",
     customNotesLabel: "Notes or Custom Prompt Instructions",
     customNotesPlaceholder: "e.g., Focus on hands-on inquiry, gamified formative assessments...",
+
+    // Step 2
+    step2Title: "Template & Teaching Method",
+    step2Desc: "",
+    labelPresetTemplate: "Select Lesson Plan Format:",
+    optPresetStandard: "Standard 5-Step Lesson Plan (General / Secondary)",
+    optPresetFlipped: "⚡ Flipped Learning Lesson Plan",
+    optPresetUbD: "Backward Design / UbD (3-Stage Framework)",
+    optPresetPrimary: "Primary School Lesson Plan (Grades 1-6)",
+    optPresetStem: "STEM / 5E Inquiry Lesson Plan (Science & Experiments)",
+    methodLabel: "Primary Teaching Methodology",
+
+    // Step 3
+    step3Title: "Lesson Material",
+    step3Desc: "",
+    dropPrimary: 'Drop lesson files/slides/images here or <span class="browse-link">browse files</span>',
+    dropHint: "Supports PowerPoint (.pptx), Word (.docx), PDF (.pdf), Book photos (.png, .jpg), TXT",
+    lessonContentLabel: "Lesson Content / Key Concepts",
+    lessonContentPlaceholder: "Enter or paste lesson text, definitions, formulas, exercises, examples, or textbook excerpts here...",
 
     // Action buttons
     btnGenerate: "Generate Lesson Plan (AI Studio)",

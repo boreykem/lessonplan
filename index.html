@@ -21,7 +21,7 @@
   <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   
-  <link rel="stylesheet" href="style.css?v=20261115_v83">
+  <link rel="stylesheet" href="style.css?v=20261115_v84">
   
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -197,324 +197,13 @@
     <aside class="sidebar-panel">
       <div class="sidebar-content">
         
-        <!-- STEP 1: Upload / Select Template & Methodology -->
-        <section class="config-card">
-          <div class="card-header">
-            <span class="step-badge" data-i18n="stepBadge1"><i class="fa-solid fa-file-lines"></i> ជំហានទី ១</span>
-            <div class="card-title-group">
-              <h3 data-i18n="step1Title">ទម្រង់ & វិធីសាស្ត្របង្រៀន</h3>
-            </div>
-          </div>
-          
-          <div class="template-choice-group">
-            <div class="radio-cards" style="display: none;">
-              <label class="radio-card active" id="radioCardPreset">
-                <input type="radio" name="templateMode" value="preset" checked>
-                <div class="radio-card-body">
-                  <i class="fa-solid fa-award"></i>
-                  <span class="label-title">ទម្រង់ MoEYS</span>
-                  <span class="label-sub">ស្តង់ដារផ្លូវការ</span>
-                </div>
-              </label>
-              <label class="radio-card" id="radioCardSaved">
-                <input type="radio" name="templateMode" value="saved">
-                <div class="radio-card-body">
-                  <i class="fa-solid fa-folder-bookmark"></i>
-                  <span class="label-title">Template បានរក្សាទុក</span>
-                  <span class="label-sub" id="savedTemplatesCountBadge">០ Template</span>
-                </div>
-              </label>
-              <label class="radio-card" id="radioCardCustom">
-                <input type="radio" name="templateMode" value="custom">
-                <div class="radio-card-body">
-                  <i class="fa-solid fa-cloud-arrow-up"></i>
-                  <span class="label-title">Upload ថ្មី</span>
-                  <span class="label-sub">.docx, .pdf, .txt</span>
-                </div>
-              </label>
-            </div>
-
-            <!-- 1. Preset Selector & Main Teaching Method Side-by-Side (User Request 1) -->
-            <div class="form-grid-2">
-              <div id="presetTemplateWrapper" class="control-group">
-                <label for="presetTemplateSelect" data-i18n="labelPresetTemplate">
-                  <i class="fa-solid fa-award text-primary" style="margin-right: 4px;"></i> ប្រភេទកិច្ចតែងការ MoEYS៖
-                </label>
-                <select id="presetTemplateSelect" class="form-control">
-                  <option value="moeys_standard_5step" selected>កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)</option>
-                  <option value="flipped_learning_5step">⚡ កិច្ចតែងការតាមបែបត្រឡប់ (Flipped Learning)</option>
-                </select>
-              </div>
-
-              <div class="control-group">
-                <label for="inputMethod" data-i18n="methodLabel">
-                  <i class="fa-solid fa-lightbulb text-warning" style="margin-right: 4px; color: #f59e0b;"></i> វិធីសាស្ត្របង្រៀនចម្បង៖
-                </label>
-                <select id="inputMethod" class="form-control">
-                  <option value="សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)">សិស្សមជ្ឈមណ្ឌល (Student-Centered)</option>
-                  <option value="វិធីសាស្ត្រសហការកម្រិតខ្ពស់ (Jigsaw, Concept Mapping, Role-Play)">វិធីសាស្ត្រសហការ (Jigsaw / Group)</option>
-                  <option value="ការរិះរក និងពិសោធន៍ តាមបែប 5E (Inquiry-based / STEM)">ការរិះរក និងពិសោធន៍ 5E (STEM)</option>
-                  <option value="ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា (Problem-Based)">ការដោះស្រាយបញ្ហា (Problem-Based)</option>
-                  <option value="ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង (Direct Instruction)">ការពន្យល់បង្ហាញ (Direct Instruction)</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- 2. Saved Templates Library Wrapper -->
-            <div id="savedTemplateWrapper" class="control-group mt-3" style="display: none;">
-              <div class="saved-templates-header flex justify-between items-center mb-2">
-                <label for="savedTemplateSelect" class="font-semibold text-sm">📁 បណ្ណាល័យ Template ផ្ទាល់ខ្លួន៖</label>
-                <button type="button" class="btn-xs btn-outline" id="btnUploadNewTemplateShortcut">
-                  <i class="fa-solid fa-plus"></i> Upload បន្ថែម
-                </button>
-              </div>
-              
-              <div id="savedTemplatesContent">
-                <!-- Dropdown selector for saved templates -->
-                <select id="savedTemplateSelect" class="form-control mb-2">
-                  <!-- Populated dynamically via JS -->
-                </select>
-
-                <!-- Selected Saved Template Info Card -->
-                <div id="savedTemplateDetailsCard" class="saved-template-preview-card" style="display: none;">
-                  <div class="saved-card-header">
-                    <div class="saved-template-info">
-                      <span class="saved-template-name" id="selectedSavedTemplateName"></span>
-                      <span class="saved-template-date" id="selectedSavedTemplateDate"></span>
-                    </div>
-                    <div class="saved-template-actions">
-                      <button type="button" id="btnDeleteSavedTemplate" class="btn-icon-danger" title="លុប Template នេះ">
-                        <i class="fa-solid fa-trash-can"></i>
-                      </button>
-                    </div>
-                  </div>
-                  <div class="saved-template-snippet" id="selectedSavedTemplateSnippet"></div>
-                </div>
-
-                <!-- Empty State when no templates are saved -->
-                <div id="savedTemplatesEmptyState" class="empty-saved-templates" style="display: none;">
-                  <i class="fa-regular fa-folder-open empty-icon"></i>
-                  <p>មិនទាន់មាន Template ផ្ទាល់ខ្លួនដែលបានរក្សាទុកនៅឡើយទេ</p>
-                  <button type="button" class="btn btn-sm btn-primary mt-2" id="btnGoToUploadTemplate">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload & រក្សាទុកឥឡូវនេះ
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- 3. Custom Template Upload Dropzone -->
-            <div id="customTemplateWrapper" class="control-group mt-3" style="display: none;">
-              <div class="dropzone" id="templateDropzone">
-                <input type="file" id="templateFileInput" accept=".docx,.pdf,.txt,.doc,.pptx,.ppt" class="file-input-hidden">
-                <div class="dropzone-content">
-                  <div class="drop-icon"><i class="fa-solid fa-file-word"></i></div>
-                  <p class="drop-primary" id="templateDropPrimaryText" data-i18n="templateDropPrimary">ទម្លាក់ឯកសារ Template នៅទីនេះ ឬ <span class="browse-link">ចុចដើម្បីរើសឯកសារ</span></p>
-                  <p class="drop-hint" id="templateDropHintText" data-i18n="templateDropHint">គាំទ្រឯកសារ Word (.docx), PDF (.pdf), PowerPoint (.pptx), ឬ Text (.txt)</p>
-                </div>
-                <!-- File Status Pill -->
-                <div id="templateFileStatus" class="file-status-pill" style="display: none;">
-                  <i class="fa-solid fa-circle-check"></i>
-                  <span class="file-name">template.docx</span>
-                  <button type="button" class="btn-remove-file" id="btnRemoveTemplateFile"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-              </div>
-
-              <!-- Save Template Action Bar (Triggered when template is loaded or typed) -->
-              <div id="saveCustomTemplateActionWrap" class="save-template-bar mt-2" style="display: none;">
-                <div class="input-icon-wrap" style="flex: 1;">
-                  <i class="fa-solid fa-bookmark"></i>
-                  <input type="text" id="inputCustomTemplateName" class="form-control form-control-sm" placeholder="ដាក់ឈ្មោះ Template សម្រាប់រក្សាទុក (ឧ. ទម្រង់តាមបែបត្រឡប់)...">
-                </div>
-                <button type="button" id="btnSaveCustomTemplate" class="btn btn-sm btn-success" title="រក្សាទុក Template នេះក្នុងបណ្ណាល័យ">
-                  <i class="fa-solid fa-floppy-disk"></i> រក្សាទុក Template
-                </button>
-              </div>
-
-              <div class="textarea-fallback mt-2">
-                <div class="flex justify-between items-center mb-1">
-                  <label for="customTemplateText" class="sub-label">ឬបិទភ្ជាប់រចនាសម្ព័ន្ធ Template ជាអត្ថបទ៖</label>
-                  <button type="button" id="btnSaveTextTemplate" class="btn-link-save" style="display: none;">
-                    <i class="fa-solid fa-floppy-disk"></i> រក្សាទុកអត្ថបទនេះ
-                  </button>
-                </div>
-                <textarea id="customTemplateText" class="form-control" rows="2" placeholder="ឧទាហរណ៍៖ I. វត្ថុបំណង, II. សម្ភារឧបទេស, III. ដំណើរការបង្រៀន..."></textarea>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- STEP 2: Lesson Content & Document Attachment -->
-        <section class="config-card">
-          <div class="card-header">
-            <span class="step-badge" data-i18n="stepBadge2"><i class="fa-solid fa-book-open"></i> ជំហានទី ២</span>
-            <div class="card-title-group">
-              <h3 data-i18n="step2Title">ឯកសារ និងខ្លឹមសារមេរៀន</h3>
-            </div>
-          </div>
-
-          <!-- Hidden Segmented Tabs (Kept for backward compatibility) -->
-          <div class="modern-segmented-tabs" style="display: none;">
-            <button type="button" id="tabBtnUploadMode" class="segmented-tab-btn active" onclick="switchLessonMaterialTab('upload')">
-              <i class="fa-solid fa-cloud-arrow-up"></i> Upload
-            </button>
-            <button type="button" id="tabBtnTextMode" class="segmented-tab-btn" onclick="switchLessonMaterialTab('text')">
-              <i class="fa-solid fa-pen-to-square"></i> ខ្លឹមសារអត្ថបទ
-            </button>
-          </div>
-
-          <!-- Lesson Mode Switcher (Hidden) -->
-          <div class="lesson-choice-group">
-            <div class="radio-cards" style="display: none;">
-              <label class="radio-card active" id="radioCardLessonUpload">
-                <input type="radio" name="lessonSourceMode" value="upload" checked>
-                <div class="radio-card-body">
-                  <i class="fa-solid fa-file-circle-plus"></i>
-                  <span class="label-title">Upload / បញ្ចូលថ្មី</span>
-                  <span class="label-sub">ឯកសារ ឬអត្ថបទ</span>
-                </div>
-              </label>
-              <label class="radio-card" id="radioCardLessonSaved">
-                <input type="radio" name="lessonSourceMode" value="saved">
-                <div class="radio-card-body">
-                  <i class="fa-solid fa-book-bookmark"></i>
-                  <span class="label-title">មេរៀនបានរក្សាទុក</span>
-                  <span class="label-sub" id="savedLessonsCountBadge">០ មេរៀន</span>
-                </div>
-              </label>
-            </div>
-
-            <!-- 1. Saved Lessons Selector & Memory Manager Container -->
-            <div id="savedLessonsWrapper" class="control-group mt-3" style="display: none;">
-              <div class="saved-templates-container" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 14px;">
-                
-                <!-- Library Header & Search Bar -->
-                <div style="display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
-                  <div>
-                    <span style="font-weight: 700; font-size: 0.95rem; color: var(--primary);"><i class="fa-solid fa-layer-group"></i> បណ្ណាល័យមេរៀនដែលបានចងចាំ (Lesson Memory Vault)</span>
-                    <span class="badge-tag" id="savedLessonsMemoryPill" style="margin-left: 6px; background: rgba(99,102,241,0.15); color: var(--primary);">២៤ មេរៀនក្នុងឃ្លាំង</span>
-                  </div>
-                  <div style="display: flex; gap: 6px;">
-                    <button type="button" id="btnExportSavedLessons" class="btn btn-sm btn-outline" style="font-size: 0.78rem; padding: 4px 8px;" title="ទាញយកមេរៀនទាំងអស់ទុកជាឯកសារបម្រុង (.json)">
-                      <i class="fa-solid fa-file-export"></i> Export JSON
-                    </button>
-                    <button type="button" id="btnImportSavedLessonsTrigger" class="btn btn-sm btn-outline" style="font-size: 0.78rem; padding: 4px 8px;" title="បញ្ចូលមេរៀនពីឯកសារ (.json)">
-                      <i class="fa-solid fa-file-import"></i> Import JSON
-                    </button>
-                    <input type="file" id="importSavedLessonsFile" accept=".json" style="display: none;">
-                  </div>
-                </div>
-
-                <!-- Search Input & Quick Filter -->
-                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-                  <div class="input-icon-wrap" style="flex: 1;">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" id="searchSavedLessonsInput" class="form-control form-control-sm" placeholder="ស្វែងរកមេរៀនតាមចំណងជើង ឬមុខវិជ្ជា...">
-                  </div>
-                  <button type="button" id="btnAddNewLessonShortcut" class="btn btn-sm btn-primary" style="white-space: nowrap; font-size: 0.8rem;">
-                    <i class="fa-solid fa-plus"></i> បញ្ចូលមេរៀនថ្មី
-                  </button>
-                </div>
-
-                <!-- Scrollable Saved Lessons List (Holds 20+ lessons easily) -->
-                <div id="savedLessonsCardsList" style="max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
-                  <!-- Dynamically populated via JS -->
-                </div>
-
-                <!-- Empty State for Lessons -->
-                <div id="savedLessonsEmptyState" class="empty-saved-templates" style="display: none; padding: 20px; text-align: center;">
-                  <i class="fa-regular fa-folder-open empty-icon" style="font-size: 2rem; opacity: 0.5;"></i>
-                  <p class="mt-2" style="font-size: 0.88rem;">មិនទាន់មានមេរៀនដែលបានរក្សាទុកនៅឡើយទេ</p>
-                  <button type="button" class="btn btn-sm btn-primary mt-2" id="btnGoToUploadLesson">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> បញ្ចូល & រក្សាទុកមេរៀនដំបូង
-                  </button>
-                </div>
-
-              </div>
-            </div>
-
-            <!-- 2. Unified Lesson Material Studio Container -->
-            <div id="uploadLessonWrapper">
-              
-              <!-- Hidden File Input & Container elements required by setupDropzone in app.js -->
-              <input type="file" id="lessonFileInput" accept=".docx,.pdf,.txt,.doc,.pptx,.ppt,.png,.jpg,.jpeg,.webp" class="file-input-hidden">
-              <div id="dropzoneContainerWrapper" style="display: none;">
-                <div class="dropzone" id="lessonDropzone">
-                  <div class="dropzone-content">
-                    <p class="drop-primary" id="dropPrimaryText" data-i18n="dropPrimary">ទម្លាក់ឯកសារ</p>
-                    <p class="drop-hint" id="dropHintText" data-i18n="dropHint"></p>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Sleek Integrated Action Toolbar (User Request 2) -->
-              <div class="lesson-unified-box">
-                <div class="label-with-action" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
-                  <label for="lessonContentText" data-i18n="lessonContentLabel" style="margin: 0; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
-                    <i class="fa-solid fa-file-lines text-primary"></i> <span>ខ្លឹមសារមេរៀន / ចំណុចសំខាន់ៗ</span> <span class="req">*</span>
-                  </label>
-                  
-                  <div class="lesson-actions-toolbar" style="display: flex; gap: 6px; align-items: center;">
-                    <!-- Attachment button: user's request "រូបទី២ គ្រាន់តែដាក់សញ្ញា ដាក់បញ្ចូលឯកសារ បានហើយ!" -->
-                    <button type="button" id="btnAttachLessonFile" class="btn-attach-pill" onclick="document.getElementById('lessonFileInput').click()" title="ភ្ជាប់ឯកសារមេរៀន (PowerPoint, Word, PDF, ឬ រូបភាពសៀវភៅ)">
-                      <i class="fa-solid fa-paperclip"></i> <span>ភ្ជាប់ឯកសារ</span>
-                    </button>
-                    
-                    <button type="button" class="btn-paste-pill" onclick="pasteToLessonContent()" title="Paste ពី Clipboard">
-                      <i class="fa-solid fa-paste"></i> <span>Paste</span>
-                    </button>
-                    
-                    <span class="badge-tag" id="charCount">0 ពាក្យ</span>
-                  </div>
-                </div>
-
-                <!-- File Status Pill (Visible when file is loaded) -->
-                <div id="lessonFileStatus" class="file-status-pill mb-2" style="display: none; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(99, 102, 241, 0.08); border: 1.5px solid #6366f1; border-radius: 8px; color: #4338ca; font-weight: 600; font-size: 0.8rem;">
-                  <i class="fa-solid fa-file-circle-check" style="font-size: 1rem; color: #4f46e5;"></i>
-                  <span class="file-name" style="font-family: var(--font-khmer);">lesson_chapter.pdf</span>
-                  <button type="button" class="btn-remove-file" id="btnRemoveLessonFile" title="ដកឯកសារនេះចេញ" style="background: none; border: none; cursor: pointer; color: #ef4444; font-size: 0.95rem; margin-left: auto;">
-                    <i class="fa-solid fa-xmark"></i>
-                  </button>
-                </div>
-
-                <!-- Lesson Text Box (Direct, always visible, drag & drop aware) -->
-                <div id="lessonTextareaWrapper" class="control-group">
-                  <textarea id="lessonContentText" class="form-control" rows="5" placeholder="បញ្ចូល ឬបិទភ្ជាប់ខ្លឹមសារមេរៀន និយមន័យ រូបមន្ត លំហាត់ ឧទាហរណ៍ ឬអត្ថបទដកស្រង់ពីសៀវភៅពុម្ពនៅទីនេះ (ឬចុច «ភ្ជាប់ឯកសារ» ខាងលើ)..."></textarea>
-                </div>
-              </div>
-
-              <!-- Remember / Auto-Save Lesson Bar (Hidden as requested) -->
-              <div class="remember-profile-bar mt-2" style="display: none;">
-                <label class="remember-checkbox-label">
-                  <input type="checkbox" id="chkAutoRememberLesson">
-                  <span>ចងចាំ និងរក្សាទុកខ្លឹមសារមេរៀននេះដោយស្វ័យប្រវត្តិ (Auto-remember Lesson)</span>
-                </label>
-                <span id="savedLessonBadge" class="saved-profile-pill" style="display: none;">
-                  <i class="fa-solid fa-check"></i> បានចងចាំ
-                </span>
-              </div>
-
-              <!-- Save Lesson Action Bar (Hidden as requested) -->
-              <div id="saveLessonActionBar" class="save-template-bar mt-3" style="display: none;">
-                <div class="input-icon-wrap" style="flex: 1;">
-                  <i class="fa-solid fa-bookmark"></i>
-                  <input type="text" id="inputSaveLessonName" class="form-control form-control-sm" placeholder="ដាក់ឈ្មោះសម្គាល់មេរៀន (ឧ. រូបវិទ្យា ថ្នាក់ទី៨ - ច្បាប់ញូតុន)...">
-                </div>
-                <button type="button" id="btnSaveLessonMaterial" class="btn btn-sm btn-success" style="white-space: nowrap;" title="រក្សាទុកមេរៀននេះទៅក្នុងបណ្ណាល័យ">
-                  <i class="fa-solid fa-floppy-disk"></i> រក្សាទុកមេរៀនទៅក្នុងបណ្ណាល័យ
-                </button>
-              </div>
-            </div>
-
-          </div>
-        </section>
-
-        <!-- STEP 3: Lesson Metadata & Parameters -->
+        <!-- STEP 1: Lesson Metadata & Parameters (Administrative Info) -->
         <section class="config-card">
           <div class="card-header flex-between">
             <div class="header-step-title" style="display: flex; align-items: center; gap: 8px;">
-              <span class="step-badge" data-i18n="stepBadge3"><i class="fa-solid fa-chalkboard-user"></i> ជំហានទី ៣</span>
+              <span class="step-badge" data-i18n="stepBadge1"><i class="fa-solid fa-chalkboard-user"></i> ជំហានទី ១</span>
               <div class="card-title-group">
-                <h3 data-i18n="step3Title">ព័ត៌មានរដ្ឋបាល និងក្បាលកិច្ចតែងការ</h3>
+                <h3 data-i18n="step1Title">ព័ត៌មានរដ្ឋបាល និងក្បាលកិច្ចតែងការ</h3>
               </div>
             </div>
           </div>
@@ -711,6 +400,317 @@
               <i class="fa-solid fa-lightbulb" style="color: #f59e0b;"></i>
               <input type="text" id="inputCustomNotes" class="form-control" placeholder="ឧ. សុំផ្ដោតលើការពិសោធន៍ជាក់ស្ដែង និងមានល្បែងពង្រឹងពុទ្ធិ...">
             </div>
+          </div>
+        </section>
+
+        <!-- STEP 2: Upload / Select Template & Methodology -->
+        <section class="config-card">
+          <div class="card-header">
+            <span class="step-badge" data-i18n="stepBadge2"><i class="fa-solid fa-file-lines"></i> ជំហានទី ២</span>
+            <div class="card-title-group">
+              <h3 data-i18n="step2Title">ទម្រង់ & វិធីសាស្ត្របង្រៀន</h3>
+            </div>
+          </div>
+          
+          <div class="template-choice-group">
+            <div class="radio-cards" style="display: none;">
+              <label class="radio-card active" id="radioCardPreset">
+                <input type="radio" name="templateMode" value="preset" checked>
+                <div class="radio-card-body">
+                  <i class="fa-solid fa-award"></i>
+                  <span class="label-title">ទម្រង់ MoEYS</span>
+                  <span class="label-sub">ស្តង់ដារផ្លូវការ</span>
+                </div>
+              </label>
+              <label class="radio-card" id="radioCardSaved">
+                <input type="radio" name="templateMode" value="saved">
+                <div class="radio-card-body">
+                  <i class="fa-solid fa-folder-bookmark"></i>
+                  <span class="label-title">Template បានរក្សាទុក</span>
+                  <span class="label-sub" id="savedTemplatesCountBadge">០ Template</span>
+                </div>
+              </label>
+              <label class="radio-card" id="radioCardCustom">
+                <input type="radio" name="templateMode" value="custom">
+                <div class="radio-card-body">
+                  <i class="fa-solid fa-cloud-arrow-up"></i>
+                  <span class="label-title">Upload ថ្មី</span>
+                  <span class="label-sub">.docx, .pdf, .txt</span>
+                </div>
+              </label>
+            </div>
+
+            <!-- 1. Preset Selector & Main Teaching Method Side-by-Side (User Request 1) -->
+            <div class="form-grid-2">
+              <div id="presetTemplateWrapper" class="control-group">
+                <label for="presetTemplateSelect" data-i18n="labelPresetTemplate">
+                  <i class="fa-solid fa-award text-primary" style="margin-right: 4px;"></i> ប្រភេទកិច្ចតែងការ MoEYS៖
+                </label>
+                <select id="presetTemplateSelect" class="form-control">
+                  <option value="moeys_standard_5step" selected>កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)</option>
+                  <option value="flipped_learning_5step">⚡ កិច្ចតែងការតាមបែបត្រឡប់ (Flipped Learning)</option>
+                </select>
+              </div>
+
+              <div class="control-group">
+                <label for="inputMethod" data-i18n="methodLabel">
+                  <i class="fa-solid fa-lightbulb text-warning" style="margin-right: 4px; color: #f59e0b;"></i> វិធីសាស្ត្របង្រៀនចម្បង៖
+                </label>
+                <select id="inputMethod" class="form-control">
+                  <option value="សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)">សិស្សមជ្ឈមណ្ឌល (Student-Centered)</option>
+                  <option value="វិធីសាស្ត្រសហការកម្រិតខ្ពស់ (Jigsaw, Concept Mapping, Role-Play)">វិធីសាស្ត្រសហការ (Jigsaw / Group)</option>
+                  <option value="ការរិះរក និងពិសោធន៍ តាមបែប 5E (Inquiry-based / STEM)">ការរិះរក និងពិសោធន៍ 5E (STEM)</option>
+                  <option value="ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា (Problem-Based)">ការដោះស្រាយបញ្ហា (Problem-Based)</option>
+                  <option value="ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង (Direct Instruction)">ការពន្យល់បង្ហាញ (Direct Instruction)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 2. Saved Templates Library Wrapper -->
+            <div id="savedTemplateWrapper" class="control-group mt-3" style="display: none;">
+              <div class="saved-templates-header flex justify-between items-center mb-2">
+                <label for="savedTemplateSelect" class="font-semibold text-sm">📁 បណ្ណាល័យ Template ផ្ទាល់ខ្លួន៖</label>
+                <button type="button" class="btn-xs btn-outline" id="btnUploadNewTemplateShortcut">
+                  <i class="fa-solid fa-plus"></i> Upload បន្ថែម
+                </button>
+              </div>
+              
+              <div id="savedTemplatesContent">
+                <!-- Dropdown selector for saved templates -->
+                <select id="savedTemplateSelect" class="form-control mb-2">
+                  <!-- Populated dynamically via JS -->
+                </select>
+
+                <!-- Selected Saved Template Info Card -->
+                <div id="savedTemplateDetailsCard" class="saved-template-preview-card" style="display: none;">
+                  <div class="saved-card-header">
+                    <div class="saved-template-info">
+                      <span class="saved-template-name" id="selectedSavedTemplateName"></span>
+                      <span class="saved-template-date" id="selectedSavedTemplateDate"></span>
+                    </div>
+                    <div class="saved-template-actions">
+                      <button type="button" id="btnDeleteSavedTemplate" class="btn-icon-danger" title="លុប Template នេះ">
+                        <i class="fa-solid fa-trash-can"></i>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="saved-template-snippet" id="selectedSavedTemplateSnippet"></div>
+                </div>
+
+                <!-- Empty State when no templates are saved -->
+                <div id="savedTemplatesEmptyState" class="empty-saved-templates" style="display: none;">
+                  <i class="fa-regular fa-folder-open empty-icon"></i>
+                  <p>មិនទាន់មាន Template ផ្ទាល់ខ្លួនដែលបានរក្សាទុកនៅឡើយទេ</p>
+                  <button type="button" class="btn btn-sm btn-primary mt-2" id="btnGoToUploadTemplate">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload & រក្សាទុកឥឡូវនេះ
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Custom Template Upload Dropzone -->
+            <div id="customTemplateWrapper" class="control-group mt-3" style="display: none;">
+              <div class="dropzone" id="templateDropzone">
+                <input type="file" id="templateFileInput" accept=".docx,.pdf,.txt,.doc,.pptx,.ppt" class="file-input-hidden">
+                <div class="dropzone-content">
+                  <div class="drop-icon"><i class="fa-solid fa-file-word"></i></div>
+                  <p class="drop-primary" id="templateDropPrimaryText" data-i18n="templateDropPrimary">ទម្លាក់ឯកសារ Template នៅទីនេះ ឬ <span class="browse-link">ចុចដើម្បីរើសឯកសារ</span></p>
+                  <p class="drop-hint" id="templateDropHintText" data-i18n="templateDropHint">គាំទ្រឯកសារ Word (.docx), PDF (.pdf), PowerPoint (.pptx), ឬ Text (.txt)</p>
+                </div>
+                <!-- File Status Pill -->
+                <div id="templateFileStatus" class="file-status-pill" style="display: none;">
+                  <i class="fa-solid fa-circle-check"></i>
+                  <span class="file-name">template.docx</span>
+                  <button type="button" class="btn-remove-file" id="btnRemoveTemplateFile"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+              </div>
+
+              <!-- Save Template Action Bar (Triggered when template is loaded or typed) -->
+              <div id="saveCustomTemplateActionWrap" class="save-template-bar mt-2" style="display: none;">
+                <div class="input-icon-wrap" style="flex: 1;">
+                  <i class="fa-solid fa-bookmark"></i>
+                  <input type="text" id="inputCustomTemplateName" class="form-control form-control-sm" placeholder="ដាក់ឈ្មោះ Template សម្រាប់រក្សាទុក (ឧ. ទម្រង់តាមបែបត្រឡប់)...">
+                </div>
+                <button type="button" id="btnSaveCustomTemplate" class="btn btn-sm btn-success" title="រក្សាទុក Template នេះក្នុងបណ្ណាល័យ">
+                  <i class="fa-solid fa-floppy-disk"></i> រក្សាទុក Template
+                </button>
+              </div>
+
+              <div class="textarea-fallback mt-2">
+                <div class="flex justify-between items-center mb-1">
+                  <label for="customTemplateText" class="sub-label">ឬបិទភ្ជាប់រចនាសម្ព័ន្ធ Template ជាអត្ថបទ៖</label>
+                  <button type="button" id="btnSaveTextTemplate" class="btn-link-save" style="display: none;">
+                    <i class="fa-solid fa-floppy-disk"></i> រក្សាទុកអត្ថបទនេះ
+                  </button>
+                </div>
+                <textarea id="customTemplateText" class="form-control" rows="2" placeholder="ឧទាហរណ៍៖ I. វត្ថុបំណង, II. សម្ភារឧបទេស, III. ដំណើរការបង្រៀន..."></textarea>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- STEP 3: Lesson Content & Document Attachment -->
+        <section class="config-card">
+          <div class="card-header">
+            <span class="step-badge" data-i18n="stepBadge3"><i class="fa-solid fa-book-open"></i> ជំហានទី ៣</span>
+            <div class="card-title-group">
+              <h3 data-i18n="step3Title">ខ្លឹមសារមេរៀន</h3>
+            </div>
+          </div>
+
+          <!-- Hidden Segmented Tabs (Kept for backward compatibility) -->
+          <div class="modern-segmented-tabs" style="display: none;">
+            <button type="button" id="tabBtnUploadMode" class="segmented-tab-btn active" onclick="switchLessonMaterialTab('upload')">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Upload
+            </button>
+            <button type="button" id="tabBtnTextMode" class="segmented-tab-btn" onclick="switchLessonMaterialTab('text')">
+              <i class="fa-solid fa-pen-to-square"></i> ខ្លឹមសារអត្ថបទ
+            </button>
+          </div>
+
+          <!-- Lesson Mode Switcher (Hidden) -->
+          <div class="lesson-choice-group">
+            <div class="radio-cards" style="display: none;">
+              <label class="radio-card active" id="radioCardLessonUpload">
+                <input type="radio" name="lessonSourceMode" value="upload" checked>
+                <div class="radio-card-body">
+                  <i class="fa-solid fa-file-circle-plus"></i>
+                  <span class="label-title">Upload / បញ្ចូលថ្មី</span>
+                  <span class="label-sub">ឯកសារ ឬអត្ថបទ</span>
+                </div>
+              </label>
+              <label class="radio-card" id="radioCardLessonSaved">
+                <input type="radio" name="lessonSourceMode" value="saved">
+                <div class="radio-card-body">
+                  <i class="fa-solid fa-book-bookmark"></i>
+                  <span class="label-title">មេរៀនបានរក្សាទុក</span>
+                  <span class="label-sub" id="savedLessonsCountBadge">០ មេរៀន</span>
+                </div>
+              </label>
+            </div>
+
+            <!-- 1. Saved Lessons Selector & Memory Manager Container -->
+            <div id="savedLessonsWrapper" class="control-group mt-3" style="display: none;">
+              <div class="saved-templates-container" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color, #e2e8f0); border-radius: 12px; padding: 14px;">
+                
+                <!-- Library Header & Search Bar -->
+                <div style="display: flex; gap: 8px; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap;">
+                  <div>
+                    <span style="font-weight: 700; font-size: 0.95rem; color: var(--primary);"><i class="fa-solid fa-layer-group"></i> បណ្ណាល័យមេរៀនដែលបានចងចាំ (Lesson Memory Vault)</span>
+                    <span class="badge-tag" id="savedLessonsMemoryPill" style="margin-left: 6px; background: rgba(99,102,241,0.15); color: var(--primary);">២៤ មេរៀនក្នុងឃ្លាំង</span>
+                  </div>
+                  <div style="display: flex; gap: 6px;">
+                    <button type="button" id="btnExportSavedLessons" class="btn btn-sm btn-outline" style="font-size: 0.78rem; padding: 4px 8px;" title="ទាញយកមេរៀនទាំងអស់ទុកជាឯកសារបម្រុង (.json)">
+                      <i class="fa-solid fa-file-export"></i> Export JSON
+                    </button>
+                    <button type="button" id="btnImportSavedLessonsTrigger" class="btn btn-sm btn-outline" style="font-size: 0.78rem; padding: 4px 8px;" title="បញ្ចូលមេរៀនពីឯកសារ (.json)">
+                      <i class="fa-solid fa-file-import"></i> Import JSON
+                    </button>
+                    <input type="file" id="importSavedLessonsFile" accept=".json" style="display: none;">
+                  </div>
+                </div>
+
+                <!-- Search Input & Quick Filter -->
+                <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                  <div class="input-icon-wrap" style="flex: 1;">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchSavedLessonsInput" class="form-control form-control-sm" placeholder="ស្វែងរកមេរៀនតាមចំណងជើង ឬមុខវិជ្ជា...">
+                  </div>
+                  <button type="button" id="btnAddNewLessonShortcut" class="btn btn-sm btn-primary" style="white-space: nowrap; font-size: 0.8rem;">
+                    <i class="fa-solid fa-plus"></i> បញ្ចូលមេរៀនថ្មី
+                  </button>
+                </div>
+
+                <!-- Scrollable Saved Lessons List (Holds 20+ lessons easily) -->
+                <div id="savedLessonsCardsList" style="max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding-right: 4px;">
+                  <!-- Dynamically populated via JS -->
+                </div>
+
+                <!-- Empty State for Lessons -->
+                <div id="savedLessonsEmptyState" class="empty-saved-templates" style="display: none; padding: 20px; text-align: center;">
+                  <i class="fa-regular fa-folder-open empty-icon" style="font-size: 2rem; opacity: 0.5;"></i>
+                  <p class="mt-2" style="font-size: 0.88rem;">មិនទាន់មានមេរៀនដែលបានរក្សាទុកនៅឡើយទេ</p>
+                  <button type="button" class="btn btn-sm btn-primary mt-2" id="btnGoToUploadLesson">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> បញ្ចូល & រក្សាទុកមេរៀនដំបូង
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- 2. Unified Lesson Material Studio Container -->
+            <div id="uploadLessonWrapper">
+              
+              <!-- Hidden File Input & Container elements required by setupDropzone in app.js -->
+              <input type="file" id="lessonFileInput" accept=".docx,.pdf,.txt,.doc,.pptx,.ppt,.png,.jpg,.jpeg,.webp" class="file-input-hidden">
+              <div id="dropzoneContainerWrapper" style="display: none;">
+                <div class="dropzone" id="lessonDropzone">
+                  <div class="dropzone-content">
+                    <p class="drop-primary" id="dropPrimaryText" data-i18n="dropPrimary">ទម្លាក់ឯកសារ</p>
+                    <p class="drop-hint" id="dropHintText" data-i18n="dropHint"></p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sleek Integrated Action Toolbar (User Request 2) -->
+              <div class="lesson-unified-box">
+                <div class="label-with-action" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 6px;">
+                  <label for="lessonContentText" data-i18n="lessonContentLabel" style="margin: 0; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 6px;">
+                    <i class="fa-solid fa-file-lines text-primary"></i> <span>ខ្លឹមសារមេរៀន / ចំណុចសំខាន់ៗ</span> <span class="req">*</span>
+                  </label>
+                  
+                  <div class="lesson-actions-toolbar" style="display: flex; gap: 6px; align-items: center;">
+                    <!-- Attachment button: user's request "រូបទី២ គ្រាន់តែដាក់សញ្ញា ដាក់បញ្ចូលឯកសារ បានហើយ!" -->
+                    <button type="button" id="btnAttachLessonFile" class="btn-attach-pill" onclick="document.getElementById('lessonFileInput').click()" title="ភ្ជាប់ឯកសារមេរៀន (PowerPoint, Word, PDF, ឬ រូបភាពសៀវភៅ)">
+                      <i class="fa-solid fa-paperclip"></i> <span>ភ្ជាប់ឯកសារ</span>
+                    </button>
+                    
+                    <button type="button" class="btn-paste-pill" onclick="pasteToLessonContent()" title="Paste ពី Clipboard">
+                      <i class="fa-solid fa-paste"></i> <span>Paste</span>
+                    </button>
+                    
+                    <span class="badge-tag" id="charCount">0 ពាក្យ</span>
+                  </div>
+                </div>
+
+                <!-- File Status Pill (Visible when file is loaded) -->
+                <div id="lessonFileStatus" class="file-status-pill mb-2" style="display: none; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(99, 102, 241, 0.08); border: 1.5px solid #6366f1; border-radius: 8px; color: #4338ca; font-weight: 600; font-size: 0.8rem;">
+                  <i class="fa-solid fa-file-circle-check" style="font-size: 1rem; color: #4f46e5;"></i>
+                  <span class="file-name" style="font-family: var(--font-khmer);">lesson_chapter.pdf</span>
+                  <button type="button" class="btn-remove-file" id="btnRemoveLessonFile" title="ដកឯកសារនេះចេញ" style="background: none; border: none; cursor: pointer; color: #ef4444; font-size: 0.95rem; margin-left: auto;">
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
+
+                <!-- Lesson Text Box (Direct, always visible, drag & drop aware) -->
+                <div id="lessonTextareaWrapper" class="control-group">
+                  <textarea id="lessonContentText" class="form-control" rows="5" placeholder="បញ្ចូល ឬបិទភ្ជាប់ខ្លឹមសារមេរៀន និយមន័យ រូបមន្ត លំហាត់ ឧទាហរណ៍ ឬអត្ថបទដកស្រង់ពីសៀវភៅពុម្ពនៅទីនេះ (ឬចុច «ភ្ជាប់ឯកសារ» ខាងលើ)..."></textarea>
+                </div>
+              </div>
+
+              <!-- Remember / Auto-Save Lesson Bar (Hidden as requested) -->
+              <div class="remember-profile-bar mt-2" style="display: none;">
+                <label class="remember-checkbox-label">
+                  <input type="checkbox" id="chkAutoRememberLesson">
+                  <span>ចងចាំ និងរក្សាទុកខ្លឹមសារមេរៀននេះដោយស្វ័យប្រវត្តិ (Auto-remember Lesson)</span>
+                </label>
+                <span id="savedLessonBadge" class="saved-profile-pill" style="display: none;">
+                  <i class="fa-solid fa-check"></i> បានចងចាំ
+                </span>
+              </div>
+
+              <!-- Save Lesson Action Bar (Hidden as requested) -->
+              <div id="saveLessonActionBar" class="save-template-bar mt-3" style="display: none;">
+                <div class="input-icon-wrap" style="flex: 1;">
+                  <i class="fa-solid fa-bookmark"></i>
+                  <input type="text" id="inputSaveLessonName" class="form-control form-control-sm" placeholder="ដាក់ឈ្មោះសម្គាល់មេរៀន (ឧ. រូបវិទ្យា ថ្នាក់ទី៨ - ច្បាប់ញូតុន)...">
+                </div>
+                <button type="button" id="btnSaveLessonMaterial" class="btn btn-sm btn-success" style="white-space: nowrap;" title="រក្សាទុកមេរៀននេះទៅក្នុងបណ្ណាល័យ">
+                  <i class="fa-solid fa-floppy-disk"></i> រក្សាទុកមេរៀនទៅក្នុងបណ្ណាល័យ
+                </button>
+              </div>
+            </div>
+
           </div>
         </section>
 
@@ -2058,7 +2058,7 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261115_v83"></script>
+  <script src="app.js?v=20261115_v84"></script>
 </body>
 </html>
 
