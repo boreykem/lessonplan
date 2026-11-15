@@ -803,13 +803,13 @@ const I18N_DICTIONARY = {
     schoolPlaceholder: "ឧ. វិទ្យាស្ថានគរុកោសល្យកំពង់ចាម / វិទ្យាល័យ...",
     teacherLabel: "ឈ្មោះគ្រូបង្រៀន",
     teacherPlaceholder: "ឧ. លោកគ្រូ / អ្នកគ្រូ...",
-    degreeLabel: "កម្រិតសិក្សា / ស្ថាប័នអប់រំ (Study Degree / Institute)",
-    gradeLabel: "កម្រិតថ្នាក់ / ឆ្នាំសិក្សា (Grade / Class)",
+    degreeLabel: "កម្រិតសិក្សា / ស្ថាប័នអប់រំ",
+    gradeLabel: "កម្រិតថ្នាក់ / ឆ្នាំសិក្សា",
     gradePlaceholder: "ឧ. ថ្នាក់ទី ៨ ក / ថ្នាក់ទី ១២A1 / ជំនាន់ទី ១៥...",
     subjectLabel: "មុខវិជ្ជា",
-    durationLabel: "រយៈពេលបង្រៀន (Teaching Duration)",
+    durationLabel: "រយៈពេលបង្រៀន",
     durationPlaceholder: "ឧ. ៦០ នាទី / ៣ ម៉ោង / ២ សប្តាហ៍...",
-    rememberAdminLabel: "ចងចាំព័ត៌មានរដ្ឋបាលនេះសម្រាប់លើកក្រោយ (Remember for next time)",
+    rememberAdminLabel: "ចងចាំព័ត៌មានរដ្ឋបាលនេះសម្រាប់លើកក្រោយ",
     chapterLabel: "ជំពូក",
     chapterPlaceholder: "ឧ. ជំពូកទី ៣: ការងារ និងថាមពល",
     lessonTitleLabel: "ចំណងជើងមេរៀន",
@@ -2581,6 +2581,9 @@ function autoDetectAndFillLessonMetadata(text, fileName = '', notify = true) {
           subjectEl.classList.add('input-auto-filled');
           setTimeout(() => subjectEl.classList.remove('input-auto-filled'), 2000);
           detectedAny = true;
+          if (typeof updateTeacherProfileSummaryLive === 'function') {
+            updateTeacherProfileSummaryLive();
+          }
         }
         break;
       }
@@ -2631,7 +2634,7 @@ function autoDetectAndFillLessonMetadata(text, fileName = '', notify = true) {
   }
 
   if (detectedAny && notify && typeof showToast === 'function') {
-    showToast('✨ បានស្វែងរក និងបំពេញមុខវិជ្ជា ជំពូក និងចំណងជើងមេរៀនដោយស្វ័យប្រវត្តិ!', 'success');
+    showToast('✨ បានស្វែងរក និងបំពេញមុខវិជ្ជា និងចំណងជើងមេរៀនដោយស្វ័យប្រវត្តិ!', 'success');
   }
 }
 window.autoDetectAndFillLessonMetadata = autoDetectAndFillLessonMetadata;

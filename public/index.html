@@ -256,7 +256,7 @@
               <!-- Degree & Grade -->
               <div class="form-grid-2">
                 <div class="control-group">
-                  <label for="inputDegree" data-i18n="degreeLabel">កម្រិតសិក្សា <span class="req">*</span></label>
+                  <label for="inputDegree" data-i18n="degreeLabel">កម្រិតសិក្សា / ស្ថាប័នអប់រំ <span class="req">*</span></label>
                   <select id="inputDegree" class="form-control" onchange="updateTeacherProfileSummaryLive()">
                     <option value="lower_sec" selected>🏫 អនុវិទ្យាល័យ (ថ្នាក់ទី ៧-៩)</option>
                     <option value="upper_sec">🎓 វិទ្យាល័យ (ថ្នាក់ទី ១០-១២)</option>
@@ -271,7 +271,7 @@
                 </div>
 
                 <div class="control-group">
-                  <label for="inputGrade" data-i18n="gradeLabel">កម្រិតថ្នាក់ <span class="req">*</span></label>
+                  <label for="inputGrade" data-i18n="gradeLabel">កម្រិតថ្នាក់ / ឆ្នាំសិក្សា <span class="req">*</span></label>
                   <select id="inputGrade" class="form-control" onchange="updateTeacherProfileSummaryLive()">
                     <option value="ថ្នាក់ទី ៧">ថ្នាក់ទី ៧</option>
                     <option value="ថ្នាក់ទី ៨" selected>ថ្នាក់ទី ៨</option>
@@ -287,6 +287,27 @@
                   <i class="fa-solid fa-pen"></i>
                   <input type="text" id="inputCustomGradeText" class="form-control" placeholder="ឧ. ថ្នាក់ទី ៨ ក / ជំនាន់ទី ១៥..." oninput="updateTeacherProfileSummaryLive()">
                 </div>
+              </div>
+
+              <!-- Subject / មុខវិជ្ជា (Moved here below Degree & Grade as requested) -->
+              <div class="control-group mt-2">
+                <label for="inputSubject" data-i18n="subjectLabel">
+                  <i class="fa-solid fa-shapes text-primary" style="margin-right: 4px;"></i> មុខវិជ្ជា <span class="req">*</span>
+                </label>
+                <select id="inputSubject" class="form-control" onchange="updateTeacherProfileSummaryLive()">
+                  <option value="រូបវិទ្យា">រូបវិទ្យា</option>
+                  <option value="គណិតវិទ្យា">គណិតវិទ្យា</option>
+                  <option value="ភាសាខ្មែរ">ភាសាខ្មែរ</option>
+                  <option value="ចិត្តវិទ្យាអប់រំ">ចិត្តវិទ្យាអប់រំ</option>
+                  <option value="ព័ត៌មានវិទ្យា">ព័ត៌មានវិទ្យា (ICT)</option>
+                  <option value="គីមីវិទ្យា">គីមីវិទ្យា</option>
+                  <option value="ជីវវិទ្យា">ជីវវិទ្យា</option>
+                  <option value="ប្រវត្តិវិទ្យា">ប្រវត្តិវិទ្យា</option>
+                  <option value="ភូមិវិទ្យា">ភូមិវិទ្យា</option>
+                  <option value="ពលរដ្ឋវិជ្ជា">ពលរដ្ឋវិជ្ជា</option>
+                  <option value="ភាសាអង់គ្លេស">ភាសាអង់គ្លេស</option>
+                  <option value="ផែនដីវិទ្យា">ផែនដីវិទ្យា</option>
+                </select>
               </div>
 
               <!-- Remember Profile & Action Buttons -->
@@ -647,49 +668,17 @@
                 </div>
               </div>
 
-              <!-- Lesson Details Auto-Extracted Section (Moved from Section 1 as requested) -->
-              <div class="lesson-meta-box mt-3" id="lessonMetaBox">
-                <!-- Subject & Chapter Side-by-Side in Modern Grid -->
-                <div class="form-grid-2">
-                  <div class="control-group">
-                    <label for="inputSubject" data-i18n="subjectLabel">
-                      <i class="fa-solid fa-shapes text-primary" style="margin-right: 4px;"></i> មុខវិជ្ជា <span class="req">*</span>
-                    </label>
-                    <select id="inputSubject" class="form-control">
-                      <option value="រូបវិទ្យា">រូបវិទ្យា</option>
-                      <option value="គណិតវិទ្យា">គណិតវិទ្យា</option>
-                      <option value="ភាសាខ្មែរ">ភាសាខ្មែរ</option>
-                      <option value="ចិត្តវិទ្យាអប់រំ">ចិត្តវិទ្យាអប់រំ</option>
-                      <option value="ព័ត៌មានវិទ្យា">ព័ត៌មានវិទ្យា (ICT)</option>
-                      <option value="គីមីវិទ្យា">គីមីវិទ្យា</option>
-                      <option value="ជីវវិទ្យា">ជីវវិទ្យា</option>
-                      <option value="ប្រវត្តិវិទ្យា">ប្រវត្តិវិទ្យា</option>
-                      <option value="ភូមិវិទ្យា">ភូមិវិទ្យា</option>
-                      <option value="ពលរដ្ឋវិជ្ជា">ពលរដ្ឋវិជ្ជា</option>
-                      <option value="ភាសាអង់គ្លេស">ភាសាអង់គ្លេស</option>
-                      <option value="ផែនដីវិទ្យា">ផែនដីវិទ្យា</option>
-                    </select>
-                  </div>
-
-                  <div class="control-group">
-                    <label for="inputChapter" data-i18n="chapterLabel">
-                      <i class="fa-solid fa-bookmark text-muted" style="margin-right: 4px;"></i> ជំពូក
-                    </label>
-                    <input type="text" id="inputChapter" class="form-control" placeholder="ឧ. ជំពូកទី ៣: ការងារ និងថាមពល">
-                  </div>
-                </div>
-
-                <!-- Lesson Title (Spacious Full Width) -->
-                <div class="control-group mt-2">
-                  <label for="inputLessonTitle" data-i18n="lessonTitleLabel">
-                    <i class="fa-solid fa-book-bookmark text-primary" style="margin-right: 4px;"></i> ចំណងជើងមេរៀន <span class="req">*</span>
-                  </label>
-                  <div class="input-icon-wrap">
-                    <i class="fa-solid fa-pen-nib"></i>
-                    <input type="text" id="inputLessonTitle" class="form-control" placeholder="ឧ. មេរៀនទី ២: ថាមពលមេកានិច">
-                  </div>
+              <!-- Lesson Title (Spacious Full Width) -->
+              <div class="control-group mt-3" id="lessonTitleWrap">
+                <label for="inputLessonTitle" data-i18n="lessonTitleLabel">
+                  <i class="fa-solid fa-book-bookmark text-primary" style="margin-right: 4px;"></i> ចំណងជើងមេរៀន <span class="req">*</span>
+                </label>
+                <div class="input-icon-wrap">
+                  <i class="fa-solid fa-pen-nib"></i>
+                  <input type="text" id="inputLessonTitle" class="form-control" placeholder="ឧ. មេរៀនទី ២: ថាមពលមេកានិច">
                 </div>
               </div>
+              <input type="hidden" id="inputChapter" value="">
 
               <!-- Remember / Auto-Save Lesson Bar (Hidden as requested) -->
               <div class="remember-profile-bar mt-2" style="display: none;">
