@@ -499,6 +499,17 @@ function populateTeachingMethodsSelect(isEn = false, preserveVal = null) {
   setSelectedTeachingMethod(currentVal);
 }
 
+function handlePresetTemplateChange(val) {
+  state.selectedPresetId = val;
+  if (state.currentPlan) {
+    state.currentPlan.presetId = val;
+    state.currentPlan.templateType = (val === 'flipped_learning_5step') ? 'flipped_learning' : '5_steps';
+    state.currentPlan = normalizeLessonPlanData(state.currentPlan, { presetId: val });
+    renderLessonPlanToA4(state.currentPlan);
+  }
+}
+window.handlePresetTemplateChange = handlePresetTemplateChange;
+
 function handleTeachingMethodChange() {
   const methodSelect = document.getElementById('inputMethod');
   const customWrap = document.getElementById('customMethodWrap');
@@ -4123,36 +4134,51 @@ function checkApiKeyStatus() {
 
 // ==========================================================================
 // Helper: Check if request is for Backward Design / UbD or Flipped Learning
+// STRICT RULE: User's selected preset template has the HIGHEST precedence!
 // ==========================================================================
-function isFlippedLearningRequest(params) {
-  const presetId = (params.presetId || '').toLowerCase();
-  if (presetId === 'flipped_learning_5step') return true;
+function isFlippedLearningRequest(params = {}) {
+  const presetSelect = document.getElementById('presetTemplateSelect');
+  const presetId = (params.presetId || (presetSelect ? presetSelect.value : '') || (params.data && params.data.presetId) || state.selectedPresetId || '').toLowerCase();
 
-  const method = (params.method || '').toLowerCase();
-  if (method.includes('flipped') || method.includes('ថ្នាក់រៀនត្រឡប់') || method.includes('ការរៀនបែបត្រឡប់') || method.includes('តាមបែបត្រឡប់')) return true;
+  // 1. HIGHEST PRECEDENCE: If preset is MoEYS Standard 5-Step, it is ALWAYS 5-Step and NEVER Flipped Classroom!
+  if (presetId === 'moeys_standard_5step' || presetId === 'standard' || presetId === '5_steps') {
+    return false;
+  }
+  if (presetId === 'backward_design_ubd') {
+    return false;
+  }
+  if (presetId === 'flipped_learning_5step') {
+    return true;
+  }
+
+  // 2. Only if explicit templateType is already set to flipped_learning:
+  if (params.templateType === 'flipped_learning') return true;
+
+  // 3. Only if templateMode is custom or no preset specified at all:
+  if (params.templateMode === 'custom' || (!params.presetId && !presetSelect)) {
+    const customFileName = (params.customTemplateFileName || state.customTemplateFileName || '').toLowerCase();
+    if (customFileName.includes('flipped') || customFileName.includes('ថ្នាក់រៀនត្រឡប់')) return true;
+  }
+
+  return false;
+}
+
+function isBackwardDesignRequest(params = {}) {
+  const presetSelect = document.getElementById('presetTemplateSelect');
+  const presetId = (params.presetId || (presetSelect ? presetSelect.value : '') || (params.data && params.data.presetId) || state.selectedPresetId || '').toLowerCase();
+
+  if (presetId === 'moeys_standard_5step' || presetId === 'standard' || presetId === '5_steps' || presetId === 'flipped_learning_5step') {
+    return false;
+  }
+  if (presetId === 'backward_design_ubd') return true;
 
   const customText = (params.customTemplate || state.customTemplateText || '').toLowerCase();
   const customFileName = (params.customTemplateFileName || state.customTemplateFileName || '').toLowerCase();
   const customNotes = (params.customNotes || '').toLowerCase();
 
-  if (customFileName.includes('flipped') || customFileName.includes('ថ្នាក់រៀនត្រឡប់') || customFileName.includes('តាមបែបត្រឡប់') || customFileName.includes('កិច្ចតែងការ_តាមបែបត្រឡប់')) return true;
-  if (customText.includes('flipped') || customText.includes('ថ្នាក់រៀនត្រឡប់') || customText.includes('ការរៀនបែបត្រឡប់') || (customText.includes('តាមបែបត្រឡប់') && !customText.includes('backward') && !customText.includes('ubd'))) return true;
-  if (customNotes.includes('flipped') || customNotes.includes('ថ្នាក់រៀនត្រឡប់') || customNotes.includes('pretest') || customNotes.includes('qcm') || customNotes.includes('២-៦-២')) return true;
-
-  return false;
-}
-
-function isBackwardDesignRequest(params) {
-  if (isFlippedLearningRequest(params)) return false;
-
-  const presetId = (params.presetId || '').toLowerCase();
-  if (presetId === 'backward_design_ubd') return true;
-
-  const customText = (params.customTemplate || state.customTemplateText || '').toLowerCase();
-  const customFileName = (params.customTemplateFileName || state.customTemplateFileName || '').toLowerCase();
-
-  if (customFileName.includes('backward') || customFileName.includes('ubd')) return true;
-  if (customText.includes('backward') || customText.includes('ubd') || customText.includes('ដំណាក់កាលទី ១') || customText.includes('stage 1') || customText.includes('desired results')) return true;
+  if (customFileName.includes('backward') || customFileName.includes('ubd') || customFileName.includes('៣ ដំណាក់កាល')) return true;
+  if (customText.includes('backward design') || customText.includes('ubd') || customText.includes('៣ ដំណាក់កាល')) return true;
+  if (customNotes.includes('backward') || customNotes.includes('ubd') || customNotes.includes('៣ ដំណាក់កាល')) return true;
 
   return false;
 }
@@ -4208,6 +4234,7 @@ function getMethodStepTitle(stepIdx, method, isFlipped) {
     if (stepIdx === 1) return "ជំហានទី ១ : រដ្ឋបាលថ្នាក់";
     if (stepIdx === 2) return "ជំហានទី ២ : រំលឹកមេរៀនចាស់ / ទំនាក់ទំនងមេរៀន";
     if (stepIdx === 3) {
+      if (methodType === 'flipped') return "ជំហានទី ៣ : មេរៀនថ្មី (ការពិភាក្សាស៊ីជម្រៅ និងអនុវត្តលំហាត់គន្លឹះ)";
       if (methodType === 'jigsaw' || methodType === 'cooperative') return "ជំហានទី ៣ : មេរៀនថ្មី (ក្រុមអ្នកជំនាញ - Expert Groups)";
       if (methodType === 'pbl') return "ជំហានទី ៣ : មេរៀនថ្មី និងស្ថានភាពបញ្ហា (Problem Scenario)";
       if (methodType === 'pjbl') return "ជំហានទី ៣ : មេរៀនថ្មី និងការណែនាំគម្រោង (Project Kickoff)";
@@ -4219,6 +4246,7 @@ function getMethodStepTitle(stepIdx, method, isFlipped) {
       return "ជំហានទី ៣ : ដំណើរការបង្រៀន និងរៀន (មេរៀនថ្មី & Guided Discovery)";
     }
     if (stepIdx === 4) {
+      if (methodType === 'flipped') return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (ការដោះស្រាយលំហាត់ស្មុគស្មាញ និងឆ្លុះបញ្ចាំងចំណេះដឹង)";
       if (methodType === 'jigsaw' || methodType === 'cooperative') return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (Jigsaw Sharing & Concept Mapping)";
       if (methodType === 'pbl') return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (ដំណើរការដោះស្រាយបញ្ហាជាក្រុមលើ Flipchart)";
       if (methodType === 'pjbl') return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (ការអនុវត្តគម្រោងជាក្រុម និងការពារស្នាដៃ)";
@@ -4484,6 +4512,18 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', t
    - ជំហានទី ៥ (កិច្ចការផ្ទះ - Evaluate):
      • ដំណាក់កាល Evaluate (វាយតម្លៃ): ធ្វើតេស្តរហ័ស ឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 និងដាក់កិច្ចការផ្ទះ។${techPrompt}`;
 
+      case 'flipped':
+        return `
+៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
+   - ជំហានទី ២ (រំលឹកមេរៀន / ពិនិត្យការស្វ័យសិក្សា): ពិនិត្យការយល់ដឹងពីផ្ទះ ស្រាយចម្ងល់ Muddiest Points និងភ្ជាប់ទ្រឹស្តីទៅនឹងការអនុវត្តជាក់ស្ដែង។
+   - ជំហានទី ៣ (មេរៀនថ្មី - In-Depth Application & Synthesis):
+     • គ្រូមិនបង្រៀនទ្រឹស្តីឡើងវិញទាំងស្រុងទេ ព្រោះសិស្សបានស្វ័យសិក្សារួចហើយ តែគ្រូបំភ្លឺចំណុចគន្លឹះ និងចោទសួរសំណួរដាស់ការត្រិះរិះ។
+     • គ្រូនាំសិស្សអនុវត្តលំហាត់គន្លឹះ ឬវិភាគករណីសិក្សាគំរូនៃ «${lessonTitle || 'មេរៀនថ្មី'}»។
+   - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - Collaborative Deep Practice ៧០% STT):
+     • សិស្សធ្វើការជាក្រុមដោះស្រាយលំហាត់ស្មុគស្មាញ ឬស្ថានភាពអនុវត្តជាក់ស្តែងលើ Flipchart ឬក្ដារឆ្នួន [ជំនាញ 4Cs]។
+     • តំណាងក្រុមឡើងការពារដំណោះស្រាយ និងឆ្លុះបញ្ចាំងចំណេះដឹង។
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ): Exit Ticket 3-2-1 និងកិច្ចការស្រាវជ្រាវបន្ត。${techPrompt}`;
+
       case 'direct':
         return `
 ៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
@@ -4556,7 +4596,7 @@ async function handleGenerateLessonPlan() {
     customNotes, lessonContent,
     language: state.language || 'km',
     templateMode: state.templateMode,
-    presetId: state.selectedPresetId,
+    presetId: (document.getElementById('presetTemplateSelect')?.value || state.selectedPresetId || 'moeys_standard_5step'),
     customTemplate: state.customTemplateText,
     customTemplateFileName: state.customTemplateFileName
   };
@@ -4906,7 +4946,7 @@ async function generateWithGroqAPI(params) {
   const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS Standard 5-Step'} Lesson Plan in ${targetLang} for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}).
 Teaching Method: ${cleanMethod}.
 ${methodPrompt}
-Include 3 objectives (Knowledge, Skills, Attitudes using Action-Condition-Standard formula), materials, teaching method, and ${isBd ? "3-stage UbD learning activities" : "5 in-class teaching steps with teacher activity, lesson content, and student activity"}. Do NOT include pre-test/post-test questions in this output (they are generated separately on-demand). Return strictly valid JSON.`;
+Include exactly 3 objectives (EXACTLY 1 bullet each for Knowledge, Skills, and Attitudes using Action-Condition-Standard formula; NEVER exceed 1 point per category), materials, teaching method, and ${isBd ? "3-stage UbD learning activities" : "5 in-class teaching steps (3 columns: teacherActivity, contentSummary, studentActivity) with clear problem-posing, concise, actionable steps"}. Do NOT include pre-test/post-test questions in this output (they are generated separately on-demand). Return strictly valid JSON.`;
 
   const candidateModels = [
     'llama-3.3-70b-versatile',
@@ -4975,7 +5015,7 @@ async function generateWithOpenRouterAPI(params) {
   const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS Standard 5-Step'} Lesson Plan in ${targetLang} for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}).
 Teaching Method: ${cleanMethod}.
 ${methodPrompt}
-Return strictly valid JSON.`;
+Include exactly 3 objectives (EXACTLY 1 bullet each for Knowledge, Skills, and Attitudes using Action-Condition-Standard formula; NEVER exceed 1 point per category), materials, teaching method, and ${isBd ? "3-stage UbD learning activities" : "5 in-class teaching steps (3 columns: teacherActivity, contentSummary, studentActivity) with clear problem-posing, concise, actionable steps"}. Do NOT include pre-test/post-test questions in this output (they are generated separately on-demand). Return strictly valid JSON.`;
 
   const models = [
     'meta-llama/llama-3.3-70b-instruct:free',
@@ -5166,8 +5206,12 @@ ${isLongSession ? `• This is an EXTENDED ${totalMin}-minute block (Multi-hour 
 6. TTT 30% / STT 70% RULE: In Step 4, explicitly design activities so the Teacher Talking Time is max 30%, and Student Talking Time is 70% (Student-Centered).
 7. 21st CENTURY SKILLS (4Cs): At the end of student activities (especially in Step 4), tag the exact 4Cs skill being developed in brackets (e.g., [ជំនាញសហការ និងការគិតស៊ីជម្រៅ]).
 8. EXIT TICKET 3-2-1: In Step 5 (teacherActivity & studentActivity), you MUST include an "Exit Ticket 3-2-1" formative assessment (e.g., សរសេរ ៣ចំណុចដែលបានរៀន, ២ចំណុចដែលចាប់អារម្មណ៍, ១ចំណុចដែលឆ្ងល់).
-9. MANDATORY INSTRUCTIONAL OBJECTIVE FORMULA (ក្បួនតែងវត្ថុបំណងបង្រៀនស្តង់ដារ MoEYS / គរុកោសល្យ A-C-S / ABCD):
-   រាល់ចំណុចវត្ថុបំណងនីមួយៗទាំង ៣ ផ្នែក (វិជ្ជាសម្បទា បំណិនសម្បទា ចរិយាសម្បទា) ត្រូវតែមានសមាសភាគពេញលេញទាំង ៣ យ៉ាងម៉ឺងម៉ាត់៖
+9. MANDATORY INSTRUCTIONAL OBJECTIVE FORMULA (ក្បួនតែងវត្ថុបំណងបង្រៀនស្តង់ដារ MoEYS / គរុកោសល្យ A-C-S - EXACTLY 1 POINT PER DOMAIN):
+   - ⚠️ ការកំណត់ដាច់ខាត (STRICT MANDATE - ហាមដាច់ខាតដាក់លើសពី ១ ចំណុចក្នុងផ្នែកនីមួយៗ):
+     • វិជ្ជាសម្បទា (Knowledge): ត្រូវមានត្រឹមតែ ១ ចំណុចគត់! (EXACTLY 1 bullet item)
+     • បំណិនសម្បទា (Skills): ត្រូវមានត្រឹមតែ ១ ចំណុចគត់! (EXACTLY 1 bullet item)
+     • ចរិយាសម្បទា (Attitudes): ត្រូវមានត្រឹមតែ ១ ចំណុចគត់! (EXACTLY 1 bullet item)
+   - រាល់ចំណុចវត្ថុបំណងនីមួយៗទាំង ៣ ផ្នែក ត្រូវតែមានសមាសភាគពេញលេញទាំង ៣ យ៉ាងម៉ឺងម៉ាត់៖
    - [A - Action / សកម្មភាព ឬ របៀបធ្វើសកម្មភាព]: ប្រើកិរិយាស័ព្ទសកម្មដែលអាចវាស់វែងបាន (ឧ. កំណត់, ពន្យល់, រៀបរាប់, គណនា, វិភាគ, ដោះស្រាយ, រៀបចំ, បង្ហាញ, ប្ដេជ្ញាចិត្ត...)
    - [C - Condition / លក្ខខណ្ឌ]: មធ្យោបាយ ឬវិធីសាស្ត្ររៀន (ឧ. «តាមរយៈការពន្យល់របស់គ្រូ និងការសង្កេតស្លាយ/វីដេអូ», «តាមរយៈការអានឯកសារគោល», «តាមរយៈការអនុវត្តលំហាត់ជាក់ស្តែង និងការពិភាក្សាជាក្រុម», «តាមរយៈការឆ្លុះបញ្ចាំងលើ Exit Ticket»...)
    - [S / D - Standard / ស្ដង់ដារ ឬ កម្រិតកំណត់]: កម្រិតកំណត់នៃការសម្រេចបាន (ឧ. «បានត្រឹមត្រូវ និងក្បោះក្បាយ», «បានយ៉ាងហោចណាស់ ៨០% ត្រឹមត្រូវ», «បានច្បាស់លាស់ឥតខុសឆ្គង», «ប្រកបដោយភាពជឿជាក់ និងស្ទាត់ជំនាញ», «ប្រកបដោយស្មារតីទទួលខុសត្រូវខ្ពស់»)
@@ -5371,53 +5415,28 @@ STEP DURATION ALLOCATION (${totalMin} MINUTES TOTAL):
 - ជំហានទី ៥ (បណ្ដាំ + កិច្ចការ): ${stepTimeHints.step5}
 
 ═══════════════════════════════════════════════════
-🎯 វិធានគរុកោសល្យកម្ពុជា & ស្តង់ដារឧត្តមសិក្សា/TEC (សំណួរ ➔ ចម្លើយ ➔ ចម្លើយរំពឹងទុករបស់សិស្ស):
+🎯 វិធានគរុកោសល្យកម្ពុជា & កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ACS Objectives & 3-Column Steps):
 ═══════════════════════════════════════════════════
-សម្រាប់គ្រប់ជំហានទាំងអស់ (ជាពិសេស ជំហានទី ២, ជំហានទី ៣, ជំហានទី ៤) អ្នកត្រូវតែអនុវត្តតាមក្បួន ៣ ជួរឈរនេះជាដាច់ខាត៖
+១. វិធានកំណត់វត្ថុបំណងបង្រៀន (MANDATORY ACS FORMULA - EXACTLY 1 POINT PER DOMAIN):
+   - ត្រូវកំណត់វត្ថុបំណងឱ្យខ្លី ខ្លឹម ច្បាស់លាស់ និងបន្ស៊ីយ៉ាងល្អឥតខ្ចោះជាមួយខ្លឹមសារទាំង ៥ ជំហាន។
+   - ⚠️ ការកំណត់ដាច់ខាត (STRICT MANDATE - ហាមដាច់ខាតដាក់លើសពី ១ ចំណុចក្នុងផ្នែកនីមួយៗ):
+     • វិជ្ជាសម្បទា (Knowledge): ត្រូវមានត្រឹមតែ ១ ចំណុចគត់! (EXACTLY 1 bullet item)
+     • បំណិនសម្បទា (Skills): ត្រូវមានត្រឹមតែ ១ ចំណុចគត់! (EXACTLY 1 bullet item)
+     • ចរិយាសម្បទា (Attitudes): ត្រូវមានត្រឹមតែ ១ ចំណុចគត់! (EXACTLY 1 bullet item)
+   - រាល់ចំណុចនីមួយៗត្រូវតែមានសមាសភាគ ACS ពេញលេញ៖
+     • [A - Action / សកម្មភាព]: ប្រើកិរិយាស័ព្ទសកម្មដែលអាចវាស់វែងបាន (ឧ. កំណត់, ពន្យល់, គណនា, ដោះស្រាយ, បង្ហាញ, ប្ដេជ្ញាចិត្ត...)
+     • [C - Condition / លក្ខខណ្ឌ]: មធ្យោបាយ ឬវិធីសាស្ត្ររៀន (ឧ. «តាមរយៈការពន្យល់របស់គ្រូ និងការសង្កេតស្លាយ», «តាមរយៈការអនុវត្តលំហាត់ជាក់ស្តែង និងការពិភាក្សាជាក្រុម», «តាមរយៈការចូលរួមសកម្មភាពក្រុម»...)
+     • [S - Standard / ស្ដង់ដារ]: កម្រិតកំណត់នៃការសម្រេចបាន (ឧ. «បានត្រឹមត្រូវ និងច្បាស់លាស់», «បានត្រឹមត្រូវតាមក្បួនខ្នាត», «ប្រកបដោយទំនួលខុសត្រូវខ្ពស់»)
 
-ក. កូតាកំណត់ និងការស្រង់សំណួរពីឯកសារ/ស្លាយ (Question Quotas & Exhaustive Extraction):
-   - ប្រសិនបើក្នុងឯកសារ ឬស្លាយមេរៀនដែលបាន Upload មានសំណួរស្រាប់ អ្នកត្រូវតែស្រង់យកសំណួរទាំងអស់មកប្រើប្រាស់ឱ្យគ្រប់ ១០០% ដោយហាមដាច់ខាតកាត់ចោល ឬសង្ខេបមកត្រឹម ២ សំណួរ!
-   - កូតាកំណត់តាមទម្រង់សកម្មភាពគរុកោសល្យឧត្តមសិក្សា / គរុនិស្សិត៖
-     • [ការពិភាក្សាក្រុម (Group Discussion)]៖ ត្រូវតែមាន ៤ សំណួរពេញលេញ (១. «...?» ២. «...?» ៣. «...?» ៤. «...?») សម្រាប់ចែកក្រុមពិភាក្សា!
-     • [ការស្រាវជ្រាវ (Research / Inquiry Tasks)]៖ ត្រូវមានរហូតដល់ ១០ ប្រធានបទជាក់លាក់ ដើម្បីឱ្យគរុនិស្សិតជ្រើសរើសស្រាវជ្រាវតាមក្រុម!
-     • [ការសួរឆ្លើយផ្ទាល់មាត់ (Oral Q&A / Interactive)]៖ ត្រូវមាន ៦ សំណួរជាក់លាក់សម្រាប់គ្រូសួរ-សិស្សឆ្លើយ!
-     • [ករណីសិក្សា (Case Studies / Problem Scenarios)]៖ ត្រូវកំណត់ត្រឹម ១ ឬ ២ ករណីសិក្សាជាក់ស្តែងសម្រាប់ក្រុមនិស្សិតវិភាគស៊ីជម្រៅ!
-
-ខ. វិធានតម្រឹម ៣ ជួរឈរ (3-Column Alignment):
-១. ក្នុង [សកម្មភាពគ្រូ] (teacherActivity):
-   - រាល់ "សំណួរទាំងអស់" ដែលគ្រូចោទសួរ (៤ សំណួរពិភាក្សាក្រុម, ៦ សំណួរផ្ទាល់មាត់, ឬ ១-២ ករណីសិក្សា) ត្រូវសរសេរនៅក្នុងប្រអប់នេះជាលាយលក្ខណ៍អក្សរច្បាស់ៗក្នុងសញ្ញាសម្រង់ «...» តាមលេខរៀង៖
-     • គ្រូដាក់សំណួរពិភាក្សា ៤ សំណួរ៖
-       ១. «[សំណួរជាក់លាក់ទី១]?»
-       ២. «[សំណួរជាក់លាក់ទី២]?»
-       ៣. «[សំណួរជាក់លាក់ទី៣]?»
-       ៤. «[សំណួរជាក់លាក់ទី៤]?»
-     • គ្រូដើរសម្របសម្រួល ត្រួតពិនិត្យ និងលើកទឹកចិត្ត...
-
-២. ក្នុង [ខ្លឹមសារមេរៀន] (contentSummary):
-   - ត្រូវតែជា "ចម្លើយពេញលេញ ត្រឹមត្រូវតាមក្បួនទ្រឹស្តី" សម្រាប់គ្រប់សំណួរទាំងអស់ខាងលើ តាមលេខរៀង រួមទាំងនិយមន័យ រូបមន្ត និងខ្លឹមសារមេរៀនស្នូល!
-   - មិនត្រូវសរសេរសំណួរក្នុងប្រអប់នេះទេ គឺសរសេរចម្លើយនៃសំណួរ និងខ្លឹមសារបង្រៀន៖
-     • ខ្លឹមសារស្នូល និងចម្លើយនៃសំណួរទាំង ៤៖
-       - ចម្លើយទី១៖ [ចម្លើយពេញលេញ និងត្រឹមត្រូវ តាមកម្រិតសិក្សា]
-       - ចម្លើយទី២៖ [ចម្លើយពេញលេញ និងត្រឹមត្រូវ]
-       - ចម្លើយទី៣៖ [ចម្លើយពេញលេញ និងត្រឹមត្រូវ]
-       - ចម្លើយទី៤៖ [ចម្លើយពេញលេញ និងត្រឹមត្រូវ]
-       - [និយមន័យ រូបមន្ត ឬខ្លឹមសារស្នូលនៃមេរៀន]
-
-៣. ក្នុង [សកម្មភាពសិស្ស] (studentActivity):
-   - ត្រូវតែ "សង្ខេបចម្លើយចេញពី [ខ្លឹមសារមេរៀន] យកមកដាក់ជាចម្លើយរំពឹងទុករបស់សិស្ស" ទៅតាមសំណួរនីមួយៗ ព្រោះវាជាការទស្សទាយការឆ្លើយរបស់សិស្ស!
-   - គំរូទម្រង់សរសេរ៖
-     • សិស្សពិភាក្សាជាក្រុម និងឆ្លើយសំណួររបស់គ្រូ៖
-       - សិស្សឆ្លើយ (ចម្លើយរំពឹងទុក)៖
-         • សំណួរទី១៖ «[សង្ខេបចម្លើយរបស់សិស្សចេញពីខ្លឹមសារមេរៀន]»
-         • សំណួរទី២៖ «[សង្ខេបចម្លើយរបស់សិស្សចេញពីខ្លឹមសារមេរៀន]»
-         • សំណួរទី៣៖ «[សង្ខេបចម្លើយរបស់សិស្សចេញពីខ្លឹមសារមេរៀន]»
-         • សំណួរទី៤៖ «[សង្ខេបចម្លើយរបស់សិស្សចេញពីខ្លឹមសារមេរៀន]»
-     • សិស្សកត់ត្រាខ្លឹមសារសំខាន់ៗលើផ្ទាំង Flipchart និងចូលរួមធ្វើបទបង្ហាញការពារលទ្ធផល។
-
-៤. វិធានគរុកោសល្យកម្រិតខ្ពស់ (Advanced Pedagogical Rules):
-   - ច្បាប់ TTT 30% / STT 70%: នៅក្នុងជំហានទី៤ ត្រូវរៀបចំសកម្មភាពយ៉ាងណាឱ្យគ្រូនិយាយត្រឹមតែ ៣០% និងសិស្សអនុវត្ត/ពិភាក្សា ៧០%។
-   - ជំនាញសតវត្សទី២១ (4Cs): ត្រូវដាក់រង្វង់ក្រចកបញ្ជាក់ពីជំនាញ 4Cs នៅចុងសកម្មភាពសិស្ស (ឧ. [ជំនាញសហការ និងការគិតស៊ីជម្រៅ])។
-   - Exit Ticket 3-2-1: នៅក្នុងជំហានទី៥ ត្រូវដាក់សកម្មភាពវាយតម្លៃចុងម៉ោង (Exit Ticket 3-2-1: ៣ចំណុចដែលបានរៀន ២ចំណុចដែលចាប់អារម្មណ៍ ១ចំណុចដែលឆ្ងល់)។
+២. ដំណើរការ ៥ ជំហានជាក់លាក់ ខ្លីៗ និងងាយយល់បំផុត (Concrete, Concise & Actionable 5-Step Process):
+   - រៀបចំជំហាននីមួយៗឱ្យខ្លី ខ្លឹម ច្បាស់លាស់ ងាយយល់ និងងាយយកទៅបង្រៀនជាក់ស្តែងក្នុងថ្នាក់ («ដំណើរការជាក់លាក់ ខ្លីៗ និងងាយយល់បំផុត»)។
+   - ត្រូវបញ្ជ្រាប «ការដាក់បញ្ហា (Problem-Posing)» និងវិធីសាស្ត្របង្រៀន «${params.method}» ព្រមទាំងយុទ្ធវិធីសកម្ម (Active Techniques: ${params.techniques?.join(', ') || 'Think-Pair-Share, Jigsaw, Gallery Walk'}) ឱ្យដើរតាមការកំណត់យ៉ាងពិតប្រាកដ។
+   - វិធានតម្រឹម ៣ ជួរឈរ (3-Column Alignment):
+     • [សកម្មភាពគ្រូ] (teacherActivity): សកម្មភាពគ្រូជាក់លាក់ ការដាក់បញ្ហា និងសំណួរគន្លឹះក្នុងសញ្ញាសម្រង់ «...» (ឧ. គ្រូដាក់បញ្ហា/សំណួរ៖ «...» គ្រូសម្របសម្រួល...)។
+     • [ខ្លឹមសារមេរៀន] (contentSummary): ខ្លឹមសារមេរៀនស្នូល និយមន័យ រូបមន្ត និងចម្លើយត្រឹមត្រូវនៃសំណួរ/បញ្ហា (មិនត្រូវដាក់សំណួរក្នុងជួរនេះទេ)។
+     • [សកម្មភាពសិស្ស] (studentActivity): សកម្មភាពសិស្ស និងចម្លើយរំពឹងទុករបស់សិស្ស «- សិស្សឆ្លើយ (ចម្លើយរំពឹងទុក)៖ «...»» ដោយស្រង់ខ្លីៗចេញពីខ្លឹមសារ រួមទាំងការកត់ត្រា និងអនុវត្តលើ Flipchart/ក្ដារឆ្នួន [ជំនាញ 4Cs]។
+   - ច្បាប់ TTT 30% / STT 70%: នៅក្នុងជំហានទី៤ ត្រូវរៀបចំសកម្មភាពយ៉ាងណាឱ្យគ្រូសម្របសម្រួល ៣០% និងសិស្សអនុវត្ត/ពិភាក្សា ៧០%។
+   - Exit Ticket 3-2-1: នៅក្នុងជំហានទី៥ ត្រូវដាក់សកម្មភាពវាយតម្លៃចុងម៉ោង (Exit Ticket 3-2-1)។
 ${getMethodPedagogicalPrompt(params.method, false, false, params.lessonTitle, params.techniques)}
 
 ⛔ ABSOLUTE PROHIBITIONS:
@@ -5440,16 +5459,13 @@ Return ONLY valid JSON:
   "dateStr": "ថ្ងៃទី..... ខែ......... ឆ្នាំ២០.....​",
   "objectives": {
     "knowledge": [
-      "ពន្យល់ពី [ខ្លឹមសារចំណេះដឹងជាក់លាក់] តាមរយៈ [លក្ខខណ្ឌ៖ ការសង្កេតស្លាយ/ការពន្យល់របស់គ្រូ/ការពិភាក្សា] បានត្រឹមត្រូវ និងក្បោះក្បាយ។",
-      "កំណត់ និងរៀបរាប់ពី [និយមន័យ/រូបមន្ត/ច្បាប់] តាមរយៈ [លក្ខខណ្ឌ៖ ការអានឯកសារគោល] បានយ៉ាងហោចណាស់ ៨០% ត្រឹមត្រូវ។"
+      "ពន្យល់ពី [ខ្លឹមសារចំណេះដឹងសំខាន់នៃមេរៀន] តាមរយៈ [លក្ខខណ្ឌ៖ ការសង្កេតស្លាយ/ការពន្យល់របស់គ្រូ/ការពិភាក្សា] បានត្រឹមត្រូវ និងច្បាស់លាស់។"
     ],
     "skills": [
-      "អនុវត្ត ដោះស្រាយ ឬគណនា [លំហាត់/បំណិនជាក់លាក់] តាមរយៈ [លក្ខខណ្ឌ៖ ការអនុវត្តជាក្រុម/បុគ្គល] បានត្រឹមត្រូវតាមក្បួនខ្នាត។",
-      "រៀបចំ និងធ្វើបទបង្ហាញពី [លទ្ធផលការងារ] តាមរយៈ [លក្ខខណ្ឌ៖ ការការពារលើផ្ទាំង Flipchart] ប្រកបដោយភាពជឿជាក់ និងស្ទាត់ជំនាញ។"
+      "អនុវត្ត ដោះស្រាយ ឬគណនា [លំហាត់/កិច្ចការជាក់ស្តែង] តាមរយៈ [លក្ខខណ្ឌ៖ ការអនុវត្តជាក្រុម/បុគ្គល] បានត្រឹមត្រូវតាមក្បួនខ្នាត។"
     ],
     "attitudes": [
-      "បង្ហាញនូវស្មារតីសហការ យកចិត្តទុកដាក់ និងការគោរពវិន័យ តាមរយៈការចូលរួមសកម្មភាពក្រុម ប្រកបដោយទំនួលខុសត្រូវខ្ពស់។",
-      "ប្ដេជ្ញាចិត្តយកចំណេះដឹង និងបំណិនទៅអនុវត្តក្នុងការរស់នៅ និងដោះស្រាយបញ្ហាជាក់ស្តែង ដោយភាពស្មោះត្រង់ និងវិជ្ជមាន។"
+      "បង្ហាញនូវស្មារតីសហការ យកចិត្តទុកដាក់ និងការទទួលខុសត្រូវ តាមរយៈការចូលរួមសកម្មភាពរៀនសូត្រ ប្រកបដោយភាពម៉ឺងម៉ាត់។"
     ]
   },
   "materials": {
@@ -5521,11 +5537,14 @@ ${params.lessonContent}
 🚨 CRITICAL INSTRUCTIONS FOR EXTRACTING QUESTIONS & DISCUSSION TASKS FROM REFERENCE MATERIAL:
 1. EXHAUSTIVE QUESTION EXTRACTION (ស្រង់សំណួរទាំងអស់ពីឯកសារ/ស្លាយ):
    - If the uploaded material/slides contain discussion questions, group activities, or reflection prompts, YOU MUST EXTRACT ALL OF THEM into the lesson plan — NEVER drop, compress, or omit any question! If the slides have 4 questions, you MUST generate all 4 questions!
-2. UNIVERSITY / TEACHER EDUCATION COLLEGE (TEC) QUESTIONING QUOTAS FOR ACTIVITIES:
+${isFlipped ? `2. UNIVERSITY / TEACHER EDUCATION COLLEGE (TEC) QUESTIONING QUOTAS FOR ACTIVITIES:
    - ការពិភាក្សាក្រុម (Group Discussion): Must have EXACTLY 4 comprehensive questions (១. «...?» ២. «...?» ៣. «...?» ៤. «...?»). If 4 questions exist in the uploaded slides, use all 4 verbatim!
    - ការស្រាវជ្រាវ (Research / Investigative Topics): Must provide up to 10 specific topics (១ ដល់ ១០) for student groups to choose from.
    - ការសួរឆ្លើយផ្ទាល់មាត់ (Oral Q&A): Must formulate 6 specific questions for teacher-student interaction.
-   - ករណីសិក្សា (Case Studies): Provide 1 to 2 detailed real-life scenario case studies.
+   - ករណីសិក្សា (Case Studies): Provide 1 to 2 detailed real-life scenario case studies.` : `2. ដំណើរការជាក់លាក់ ខ្លីៗ និងងាយយល់បំផុត (CONCISE, ACTIONABLE CLASSROOM ACTIVITIES & PROBLEM-POSING):
+   - ជំហានទី ៣ & ទី ៤: ត្រូវផ្តោតលើ «ការដាក់បញ្ហា (Problem-Posing)» ការពន្យល់ក្បួនខ្នាត និងការចោទសួរសំណួរគន្លឹះខ្លីៗ ២-៣ សំណួរ ដែលងាយយល់ និងទាក់ទងនឹងខ្លឹមសារមេរៀនដោយផ្ទាល់!
+   - ហាមដាច់ខាតសរសេរពាក្យស្មុគស្មាញ ឬរាយបញ្ជីប្រធានបទច្រើនហួសប្រមាណ។ ត្រូវរៀបចំសកម្មភាពជាក់ស្តែង ខ្លី ខ្លឹម ងាយយល់ និងងាយយកទៅបង្រៀន!
+   - វត្ថុបំណង៖ វិជ្ជាសម្បទា ១ ចំណុច, បំណិនសម្បទា ១ ចំណុច, ចរិយាសម្បទា ១ ចំណុច (កុំដាក់លើសពី ១ ចំណុចអោយសោះ) ដោយផ្អែកលើក្បួន ACS (Action-Condition-Standard)!`}
 3. 3-COLUMN 1-TO-1 ALIGNMENT:
    - teacherActivity: List every single question clearly inside quotation marks «...» (e.g. «១. ...?», «២. ...?», «៣. ...?», «៤. ...?»).
    - contentSummary: Provide the COMPLETE theoretical answers corresponding to each of those questions (ចម្លើយទី១៖ ..., ចម្លើយទី២៖ ..., ចម្លើយទី៣៖ ..., ចម្លើយទី៤៖ ...).
@@ -6492,18 +6511,15 @@ function synthesizeLessonPlanOffline(params) {
   const mainPoints = lines.slice(0, 6).map(l => l.replace(/^[-*•\d.)\s]+/, '').trim()).filter(l => l.length > 2);
 
   const knowledge = [
-    `កំណត់និយមន័យ និងពន្យល់ពីខ្លឹមសារចម្បងនៃ «${lessonTitle}» តាមរយៈការសង្កេតស្លាយបង្រៀន និងការពន្យល់របស់គ្រូ បានត្រឹមត្រូវ និងក្បោះក្បាយ។`,
-    `ចងចាំ និងរៀបរាប់រូបមន្ត ច្បាប់ ឬទ្រឹស្តីគន្លឹះនៃ ${subject} តាមរយៈការអានឯកសារ និងការពិភាក្សាជាក្រុម បានយ៉ាងហោចណាស់ ៨០% ត្រឹមត្រូវ។`
+    `កំណត់និយមន័យ និងពន្យល់ពីខ្លឹមសារចម្បងនៃ «${lessonTitle}» តាមរយៈការសង្កេតស្លាយបង្រៀន និងការពន្យល់របស់គ្រូ បានត្រឹមត្រូវ និងក្បោះក្បាយ។`
   ];
 
   const skills = [
-    `វិភាគ គណនា និងដោះស្រាយលំហាត់ជាក់ស្តែងទាក់ទងនឹង «${lessonTitle}» តាមរយៈការអនុវត្តការងារជាក្រុម បានត្រឹមត្រូវតាមក្បួនខ្នាត។`,
-    `រៀបចំ ធ្វើបទបង្ហាញ និងការពារលទ្ធផលការងារជាក្រុម តាមរយៈផ្ទាំង Flipchart ឬក្ដារឆ្នួន ប្រកបដោយភាពជឿជាក់ និងស្ទាត់ជំនាញ។`
+    `វិភាគ គណនា និងដោះស្រាយលំហាត់ជាក់ស្តែងទាក់ទងនឹង «${lessonTitle}» តាមរយៈការអនុវត្តការងារជាក្រុម បានត្រឹមត្រូវតាមក្បួនខ្នាត។`
   ];
 
   const attitudes = [
-    `បង្ហាញនូវស្មារតីសហការ យកចិត្តទុកដាក់ និងការគោរពវិន័យក្នុងការរៀនសូត្រ តាមរយៈការចូលរួមសកម្មភាពក្រុម ប្រកបដោយទំនួលខុសត្រូវខ្ពស់។`,
-    `ប្ដេជ្ញាចិត្តយកចំណេះដឹង និងបំណិនដែលទទួលបានពី «${lessonTitle}» ទៅអនុវត្តក្នុងការរស់នៅ និងដោះស្រាយបញ្ហាជាក់ស្តែង ដោយភាពស្មោះត្រង់ និងវិជ្ជមាន។`
+    `បង្ហាញនូវស្មារតីសហការ យកចិត្តទុកដាក់ និងការគោរពវិន័យក្នុងការរៀនសូត្រ តាមរយៈការចូលរួមសកម្មភាពក្រុម ប្រកបដោយទំនួលខុសត្រូវខ្ពស់។`
   ];
 
   const teacherMaterials = [
@@ -8225,8 +8241,11 @@ function normalizeLessonPlanData(data, params = {}) {
   data.techniques = techniques;
   data.dateStr = dateStr;
 
-  const isFlipped = isFlippedLearningRequest(params) || data.templateType === 'flipped_learning' || (data.method && (data.method.includes('ត្រឡប់') || data.method.toLowerCase().includes('flipped')));
-  const isBd = !isFlipped && (isBackwardDesignRequest(params) || data.templateType === 'backward_design' || Boolean(data.stage1));
+  const presetSelect = document.getElementById('presetTemplateSelect');
+  const presetId = (params.presetId || (presetSelect ? presetSelect.value : '') || data.presetId || state.selectedPresetId || '').toLowerCase();
+
+  const isFlipped = (presetId === 'flipped_learning_5step') || (presetId !== 'moeys_standard_5step' && presetId !== 'backward_design_ubd' && (isFlippedLearningRequest(params) || data.templateType === 'flipped_learning'));
+  const isBd = !isFlipped && ((presetId === 'backward_design_ubd') || (presetId !== 'moeys_standard_5step' && (isBackwardDesignRequest(params) || data.templateType === 'backward_design' || Boolean(data.stage1))));
 
   if (isFlipped) {
     data.templateType = 'flipped_learning';
@@ -8235,8 +8254,8 @@ function normalizeLessonPlanData(data, params = {}) {
     data.templateType = 'backward_design';
     data.templateTitle = isEn ? 'BACKWARD DESIGN (UbD) LESSON PLAN' : 'កិច្ចតែងការបង្រៀន (តាមបែបត្រឡប់ - Backward Design / UbD)';
   } else {
-    data.templateType = data.templateType || '5_steps';
-    data.templateTitle = data.templateTitle || (isEn ? 'LESSON PLAN' : 'កិច្ចតែងការបង្រៀន');
+    data.templateType = '5_steps';
+    data.templateTitle = isEn ? 'STANDARD 5-STEP LESSON PLAN' : 'កិច្ចតែងការបង្រៀន';
   }
 
   // --- NORMALIZE OBJECTIVES ---
@@ -8257,38 +8276,33 @@ function normalizeLessonPlanData(data, params = {}) {
   };
 
   const defaultKnowledge = isEn ? [
-    `Explain the fundamental concepts and principles of "${lessonTitle}" through slide observations and teacher presentations accurately.`,
-    `Identify and articulate key formulas, rules, and definitions of ${subject} with at least 80% accuracy.`
+    `Explain the fundamental concepts and principles of "${lessonTitle}" through slide observations and teacher presentations accurately.`
   ] : [
-    `កំណត់និយមន័យ និងពន្យល់ពីខ្លឹមសារចម្បងនៃ «${lessonTitle}» តាមរយៈការសង្កេតស្លាយបង្រៀន និងការពន្យល់របស់គ្រូ បានត្រឹមត្រូវ និងក្បោះក្បាយ។`,
-    `ចងចាំ និងរៀបរាប់រូបមន្ត ច្បាប់ ឬទ្រឹស្តីគន្លឹះនៃ ${subject} តាមរយៈការអានឯកសារ និងការពិភាក្សាជាក្រុម បានយ៉ាងហោចណាស់ ៨០% ត្រឹមត្រូវ។`
+    `កំណត់និយមន័យ និងពន្យល់ពីខ្លឹមសារចម្បងនៃ «${lessonTitle}» តាមរយៈការសង្កេតស្លាយបង្រៀន និងការពន្យល់របស់គ្រូ បានត្រឹមត្រូវ និងក្បោះក្បាយ។`
   ];
 
   const defaultSkills = isEn ? [
-    `Analyze, compute, and solve practical tasks relating to "${lessonTitle}" through collaborative group activities effectively.`,
-    `Organize, present, and defend group solutions on flipcharts or whiteboards with confidence and fluency.`
+    `Analyze, compute, and solve practical tasks relating to "${lessonTitle}" through collaborative group activities effectively.`
   ] : [
-    `វិភាគ គណនា និងដោះស្រាយលំហាត់ជាក់ស្តែងទាក់ទងនឹង «${lessonTitle}» តាមរយៈការអនុវត្តការងារជាក្រុម បានត្រឹមត្រូវតាមក្បួនខ្នាត។`,
-    `រៀបចំ ធ្វើបទបង្ហាញ និងការពារលទ្ធផលការងារជាក្រុម តាមរយៈផ្ទាំង Flipchart ឬក្ដារឆ្នួន ប្រកបដោយភាពជឿជាក់ និងស្ទាត់ជំនាញ។`
+    `វិភាគ គណនា និងដោះស្រាយលំហាត់ជាក់ស្តែងទាក់ទងនឹង «${lessonTitle}» តាមរយៈការអនុវត្តការងារជាក្រុម បានត្រឹមត្រូវតាមក្បួនខ្នាត។`
   ];
 
   const defaultAttitudes = isEn ? [
-    `Demonstrate active collaboration, mutual respect, and disciplined participation throughout group inquiry tasks responsibly.`,
-    `Commit to applying the knowledge and skills from "${lessonTitle}" in daily life and practical problem-solving positively.`
+    `Demonstrate active collaboration, mutual respect, and disciplined participation throughout learning tasks with high dedication.`
   ] : [
-    `បង្ហាញនូវស្មារតីសហការ យកចិត្តទុកដាក់ និងការគោរពវិន័យក្នុងការរៀនសូត្រ តាមរយៈការចូលរួមសកម្មភាពក្រុម ប្រកបដោយទំនួលខុសត្រូវខ្ពស់។`,
-    `ប្ដេជ្ញាចិត្តយកចំណេះដឹង និងបំណិនដែលទទួលបានពី «${lessonTitle}» ទៅអនុវត្តក្នុងការរស់នៅ និងដោះស្រាយបញ្ហាជាក់ស្តែង ដោយភាពស្មោះត្រង់ និងវិជ្ជមាន។`
+    `បង្ហាញនូវស្មារតីសហការ យកចិត្តទុកដាក់ និងការគោរពវិន័យក្នុងការរៀនសូត្រ តាមរយៈការចូលរួមសកម្មភាពក្រុម ប្រកបដោយទំនួលខុសត្រូវខ្ពស់។`
   ];
 
   const rawK = rawObj.knowledge || rawObj['វិជ្ជាសម្បទា'] || rawObj['ចំណេះដឹង'] || rawObj.cognitive || data.knowledge;
   const rawS = rawObj.skills || rawObj['បំណិនសម្បទា'] || rawObj['បំណិន'] || rawObj.psychomotor || data.skills;
   const rawA = rawObj.attitudes || rawObj['ចរិយាសម្បទា'] || rawObj['ឥរិយាសម្បទា'] || rawObj['ឥរិយាបថ'] || rawObj.affective || data.attitudes;
 
+  // STRICT USER MANDATE: Exactly 1 point per category! NEVER more than 1 point!
   data.objectives = {
-    intro: rawObj.intro || (isEn ? 'After completing this lesson, students will be able to:' : 'បន្ទាប់ពីរៀនមេរៀននេះចប់ គរុនិស្សិត/សិស្សនឹង៖'),
-    knowledge: toCleanArray(rawK, defaultKnowledge),
-    skills: toCleanArray(rawS, defaultSkills),
-    attitudes: toCleanArray(rawA, defaultAttitudes)
+    intro: rawObj.intro || (isEn ? 'Upon completion of this lesson, students will be able to:' : (isFlipped ? 'បន្ទាប់ពីរៀនមេរៀននេះចប់ គរុនិស្សិតនឹង៖' : 'បន្ទាប់ពីរៀនមេរៀននេះចប់ សិស្សនឹង៖')),
+    knowledge: toCleanArray(rawK, defaultKnowledge).slice(0, 1),
+    skills: toCleanArray(rawS, defaultSkills).slice(0, 1),
+    attitudes: toCleanArray(rawA, defaultAttitudes).slice(0, 1)
   };
 
   // --- NORMALIZE MATERIALS ---
@@ -9572,12 +9586,15 @@ function renderLessonPlanToA4(data) {
     setMobileWorkspaceView('preview');
   }
 
-  data = normalizeLessonPlanData(data, data);
+  const presetSelect = document.getElementById('presetTemplateSelect');
+  const presetId = ((presetSelect ? presetSelect.value : '') || data.presetId || state.selectedPresetId || '').toLowerCase();
+
+  data = normalizeLessonPlanData(data, Object.assign({}, data, { presetId }));
   state.currentPlan = data;
   state.generatedPlanData = data;
 
-  const isFlipped = isFlippedLearningRequest(data) || data.templateType === 'flipped_learning';
-  const isBd = !isFlipped && (isBackwardDesignRequest(data) || data.templateType === 'backward_design' || Boolean(data.stage1));
+  const isFlipped = (presetId === 'flipped_learning_5step') || (presetId !== 'moeys_standard_5step' && (data.templateType === 'flipped_learning' || isFlippedLearningRequest(data)));
+  const isBd = !isFlipped && ((presetId === 'backward_design_ubd') || (presetId !== 'moeys_standard_5step' && (data.templateType === 'backward_design' || isBackwardDesignRequest(data) || Boolean(data.stage1))));
 
   const isEn = (state.language === 'en');
 
@@ -10412,8 +10429,10 @@ async function handleExportWord() {
 
   try {
     const data = state.generatedPlanData;
-    const isFlipped = data.templateType === 'flipped_learning' || (data.method && (data.method.includes('ត្រឡប់') || data.method.toLowerCase().includes('flipped'))) || Boolean(data.preTestQCM) || Boolean(data.preClassPhase);
-    const isBd = !isFlipped && (data.templateType === 'backward_design' || Boolean(data.stage1));
+    const presetSelect = document.getElementById('presetTemplateSelect');
+    const presetId = ((presetSelect ? presetSelect.value : '') || data.presetId || state.selectedPresetId || '').toLowerCase();
+    const isFlipped = (presetId === 'flipped_learning_5step') || (presetId !== 'moeys_standard_5step' && presetId !== 'backward_design_ubd' && (data.templateType === 'flipped_learning' || Boolean(data.preTestQCM) || Boolean(data.preClassPhase)));
+    const isBd = !isFlipped && ((presetId === 'backward_design_ubd') || (presetId !== 'moeys_standard_5step' && (data.templateType === 'backward_design' || Boolean(data.stage1))));
     const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, HeadingLevel, BorderStyle } = window.docx;
 
     let docChildren = [];

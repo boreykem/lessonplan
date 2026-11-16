@@ -513,7 +513,7 @@
                 <label for="presetTemplateSelect" data-i18n="labelPresetTemplate">
                   <i class="fa-solid fa-award text-primary" style="margin-right: 4px;"></i> ប្រភេទកិច្ចតែងការ
                 </label>
-                <select id="presetTemplateSelect" class="form-control">
+                <select id="presetTemplateSelect" class="form-control" onchange="handlePresetTemplateChange(this.value)">
                   <option value="moeys_standard_5step" selected>កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)
                   </option>
                   <option value="flipped_learning_5step">⚡ កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់ (Flipped Classroom)</option>
