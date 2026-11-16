@@ -9639,7 +9639,7 @@ function renderLessonPlanToA4(data) {
         </tr>
         <tr>
           <td style="width: 35%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.teacherActivity)}</td>
-          <td style="width: 35%; vertical-align: top; font-weight: 500; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.contentSummary)}</td>
+          <td style="width: 35%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.contentSummary)}</td>
           <td style="width: 30%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.studentActivity)}</td>
         </tr>
       `;
@@ -9794,7 +9794,7 @@ function renderLessonPlanToA4(data) {
         <tr>
           <td style="text-align: center; font-weight: bold; width: 16%;">${escapeHtml(stepTitle)}<br><small style="color: #475569;">(${escapeHtml(stepDur)})</small></td>
           <td style="width: 30%;">${formatLineBreaks(step.teacherActivity)}</td>
-          <td style="width: 25%; font-weight: 500;">${formatLineBreaks(step.contentSummary)}</td>
+          <td style="width: 25%;">${formatLineBreaks(step.contentSummary)}</td>
           <td style="width: 29%;">${formatLineBreaks(step.studentActivity)}</td>
         </tr>
       `;
@@ -9916,7 +9916,7 @@ function renderLessonPlanToA4(data) {
       </tr>
       <tr>
         <td style="width: 35%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.teacherActivity)}</td>
-        <td style="width: 35%; vertical-align: top; font-weight: 500; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.contentSummary)}</td>
+        <td style="width: 35%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.contentSummary)}</td>
         <td style="width: 30%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.studentActivity)}</td>
       </tr>
     `;
@@ -10663,7 +10663,7 @@ async function handleExportWord() {
           new TableRow({
             children: [
               new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: (step.teacherActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 24 })] })) }),
-              new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: (step.contentSummary || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 24, bold: true })] })) }),
+              new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: (step.contentSummary || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 24 })] })) }),
               new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: (step.studentActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 24 })] })) }),
             ]
           })
@@ -10857,7 +10857,7 @@ async function handleExportWord() {
                   })]
                 }),
                 new TableCell({ children: (step.teacherActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
-                new TableCell({ children: (step.contentSummary || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, bold: true, size: 22 })] })) }),
+                new TableCell({ children: (step.contentSummary || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
                 new TableCell({ children: (step.studentActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
               ]
             }))
@@ -10944,7 +10944,7 @@ async function handleExportWord() {
           new TableRow({
             children: [
               new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: (step.teacherActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
-              new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: (step.contentSummary || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, bold: true, size: 22 })] })) }),
+              new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: (step.contentSummary || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
               new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: (step.studentActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) })
             ]
           })

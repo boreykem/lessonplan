@@ -3270,8 +3270,6 @@ def export_docx():
             step_table.cell(content_row, 0).text = step.get("teacherActivity", "")
             c_cnt = step_table.cell(content_row, 1)
             c_cnt.text = step.get("contentSummary", "")
-            if c_cnt.paragraphs[0].runs:
-                c_cnt.paragraphs[0].runs[0].bold = True
             step_table.cell(content_row, 2).text = step.get("studentActivity", "")
 
             current_row += 2
@@ -3369,8 +3367,6 @@ def export_docx():
 
             c2 = step_table.cell(row_idx, 2)
             c2.text = step.get("contentSummary", "")
-            if c2.paragraphs[0].runs:
-                c2.paragraphs[0].runs[0].bold = True
 
             c3 = step_table.cell(row_idx, 3)
             c3.text = step.get("studentActivity", "")
@@ -3481,8 +3477,6 @@ def export_docx():
 
             c2 = step_table.cell(row_idx, 2)
             c2.text = step.get("contentSummary", "")
-            if c2.paragraphs[0].runs:
-                c2.paragraphs[0].runs[0].bold = True
 
             c3 = step_table.cell(row_idx, 3)
             c3.text = step.get("studentActivity", "")
