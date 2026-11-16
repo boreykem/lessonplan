@@ -4979,30 +4979,8 @@ window.clearKeyAndRetry = clearKeyAndRetry;
 
 function proceedOfflineDeliberately() {
   closeAiErrorModal();
-  if (!pendingGenParams) return;
-  const loadingOverlay = document.getElementById('loadingOverlay');
-  if (loadingOverlay) loadingOverlay.style.display = 'flex';
-  setLoadingOverlayStatus(
-    'កំពុងរៀបចំតាម Smart Offline Engine...',
-    'រៀបចំកិច្ចតែងការតាមទម្រង់ក្រសួង MoEYS ស្តង់ដារ (របៀប Offline)...',
-    '⚙️ ដំណើរការ Offline Mode'
-  );
-  setTimeout(() => {
-    try {
-      const fallbackData = synthesizeLessonPlanOffline(pendingGenParams);
-      fallbackData.isOfflineDraft = true;
-      state.generatedPlanData = fallbackData;
-      renderLessonPlanToA4(fallbackData);
-      document.getElementById('emptyState').style.display = 'none';
-      document.getElementById('printableDoc').style.display = 'block';
-      showToast('⚠️ នេះជាគ្រោងគំរូសេចក្ដីព្រាង (Offline Draft) - សូមបញ្ចូល API Key ដើម្បីបង្កើតដោយ AI ពិតប្រាកដ', 'warning');
-    } catch (e) {
-      console.error('Offline generation error:', e);
-      showToast('មានបញ្ហាក្នុងការបង្កើតកិច្ចតែងការ Offline', 'error');
-    } finally {
-      if (loadingOverlay) loadingOverlay.style.display = 'none';
-    }
-  }, 400);
+  showToast('⚠️ ដើម្បីធានាគុណភាពគរុកោសល្យពិតប្រាកដ ប្រព័ន្ធមិនផ្ដល់កិច្ចតែងការគំរូទូទៅ (Template) ឡើយ។ សូមភ្ជាប់ API Key ឬព្យាយាមបង្កើតម្តងទៀតនៅពេលក្រោយ។', 'warning');
+  openApiKeyModal();
 }
 window.proceedOfflineDeliberately = proceedOfflineDeliberately;
 
@@ -5691,19 +5669,15 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
     discovered.sort((a, b) => {
       const score = (m) => {
         const name = (m.name || '').toLowerCase();
-        if (name === 'gemini-3.5-flash-lite') return 300;
+        if (name === 'gemini-2.5-flash') return 300;
+        if (name === 'gemini-2.0-flash') return 290;
+        if (name === 'gemini-1.5-flash') return 280;
         if (name === 'gemini-2.5-pro') return 250;
-        if (name === 'gemini-3.8-flash') return 240;
-        if (name === 'gemini-3.6-flash') return 230;
-        if (name === 'gemini-2.5-flash-lite') return 200;
-        if (name.includes('flash-lite')) return 198;
-        if (name.includes('2.5-pro')) return 195;
-        if (name.includes('3.8-flash')) return 190;
-        if (name.includes('3.6-flash')) return 185;
-        if (name === 'gemini-2.0-flash') return 150;
-        if (name.includes('flash') && !name.includes('tts') && !name.includes('image')) return 140;
-        if (name.includes('pro') && !name.includes('tts') && !name.includes('image')) return 130;
-        return 10;
+        if (name === 'gemini-1.5-pro') return 240;
+        if (name.includes('flash') && !name.includes('lite') && !name.includes('pro')) return 220;
+        if (name.includes('pro')) return 200;
+        if (name.includes('flash-lite')) return 180;
+        return 50;
       };
       return score(b) - score(a);
     });
@@ -5717,12 +5691,11 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
 
   if (candidateModels.length === 0) {
     candidateModels = [
-      { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
-      { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
+      { ver: 'v1beta', name: 'gemini-2.5-flash' },
+      { ver: 'v1beta', name: 'gemini-2.0-flash' },
+      { ver: 'v1beta', name: 'gemini-1.5-flash' },
       { ver: 'v1beta', name: 'gemini-2.5-pro' },
-      { ver: 'v1beta', name: 'gemini-3.8-flash' },
-      { ver: 'v1beta', name: 'gemini-3.6-flash' },
-      { ver: 'v1beta', name: 'gemini-2.0-flash' }
+      { ver: 'v1beta', name: 'gemini-1.5-pro' }
     ];
   }
 
@@ -6467,31 +6440,26 @@ async function testCurrentAiProviderKey() {
       discovered.sort((a, b) => {
         const score = (m) => {
           const name = (m.name || '').toLowerCase();
-          if (name === 'gemini-3.5-flash-lite') return 300;
+          if (name === 'gemini-2.5-flash') return 300;
+          if (name === 'gemini-2.0-flash') return 290;
+          if (name === 'gemini-1.5-flash') return 280;
           if (name === 'gemini-2.5-pro') return 250;
-          if (name === 'gemini-3.8-flash') return 240;
-          if (name === 'gemini-3.6-flash') return 230;
-          if (name === 'gemini-2.5-flash-lite') return 200;
-          if (name.includes('flash-lite')) return 195;
-          if (name.includes('2.5-pro')) return 190;
-          if (name.includes('3.8-flash')) return 185;
-          if (name.includes('3.6-flash')) return 180;
-          if (name === 'gemini-2.0-flash') return 150;
-          if (name.includes('flash') && !name.includes('tts') && !name.includes('image')) return 140;
-          if (name.includes('pro') && !name.includes('tts') && !name.includes('image')) return 130;
-          return 10;
+          if (name === 'gemini-1.5-pro') return 240;
+          if (name.includes('flash') && !name.includes('lite') && !name.includes('pro')) return 220;
+          if (name.includes('pro')) return 200;
+          if (name.includes('flash-lite')) return 180;
+          return 50;
         };
         return score(b) - score(a);
       });
       modelsToTest = discovered.slice(0, 4);
     } else {
       modelsToTest = [
-        { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
-        { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
+        { ver: 'v1beta', name: 'gemini-2.5-flash' },
+        { ver: 'v1beta', name: 'gemini-2.0-flash' },
+        { ver: 'v1beta', name: 'gemini-1.5-flash' },
         { ver: 'v1beta', name: 'gemini-2.5-pro' },
-        { ver: 'v1beta', name: 'gemini-3.8-flash' },
-        { ver: 'v1beta', name: 'gemini-3.6-flash' },
-        { ver: 'v1beta', name: 'gemini-2.0-flash' }
+        { ver: 'v1beta', name: 'gemini-1.5-pro' }
       ];
     }
 

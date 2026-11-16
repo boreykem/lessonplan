@@ -1636,10 +1636,10 @@
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 8px;">
-          <!-- Choice 1: Fast Instant Generation via Offline Engine -->
-          <button type="button" id="btnAiErrorOffline" class="btn-primary" onclick="proceedOfflineDeliberately()"
-            style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; justify-content: center; padding: 11px 16px; font-weight: 700; font-size: 0.95rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25); cursor: pointer; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-solid fa-bolt"></i> 🚀 បង្កើតភ្លាមៗតាម Smart Offline Engine (មិនបាច់រង់ចាំ / ឥតគិតថ្លៃ)
+          <!-- Choice 1: Retry Later -->
+          <button type="button" id="btnAiErrorRetry" class="btn-primary" onclick="retryAiGeneration()"
+            style="background: linear-gradient(135deg, #4f46e5, #4338ca); color: white; border: none; justify-content: center; padding: 11px 16px; font-weight: 700; font-size: 0.95rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); cursor: pointer; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-rotate-right"></i> 🔄 ព្យាយាមបង្កើតម្តងទៀតនៅពេលក្រោយ (Retry AI)
           </button>
 
           <!-- Choice 2: Enter / Switch API Key -->
@@ -1652,12 +1652,6 @@
           <button type="button" id="btnAiErrorClearKey" class="btn-secondary" onclick="clearKeyAndRetry()"
             style="border: 1px dashed #ef4444; color: #b91c1c; justify-content: center; padding: 9px 16px; font-weight: 600; font-size: 0.88rem; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; background: #fff5f5;">
             <i class="fa-solid fa-trash-can"></i> 🗑️ សម្អាត Key ផ្ទាល់ខ្លួនចេញ & បង្កើតតាម AI Server
-          </button>
-
-          <!-- Choice 3: Retry -->
-          <button type="button" id="btnAiErrorRetry" class="btn-secondary" onclick="retryAiGeneration()"
-            style="border: 1px solid #cbd5e1; color: #64748b; justify-content: center; padding: 9px 16px; font-weight: 500; font-size: 0.85rem; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; background: #f8fafc;">
-            <i class="fa-solid fa-rotate-right"></i> 🔄 ព្យាយាម Gemini ម្តងទៀត (Retry)
           </button>
         </div>
 
