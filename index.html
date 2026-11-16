@@ -549,17 +549,86 @@
                   <i class="fa-solid fa-lightbulb text-warning" style="margin-right: 4px; color: #f59e0b;"></i>
                   វិធីសាស្ត្របង្រៀនចម្បង៖
                 </label>
-                <select id="inputMethod" class="form-control">
-                  <option value="សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)">សិស្សមជ្ឈមណ្ឌល (Student-Centered)</option>
-                  <option value="វិធីសាស្ត្រសហការកម្រិតខ្ពស់ (Jigsaw, Concept Mapping, Role-Play)">វិធីសាស្ត្រសហការ
-                    (Jigsaw / Group)</option>
-                  <option value="ការរិះរក និងពិសោធន៍ តាមបែប 5E (Inquiry-based / STEM)">ការរិះរក និងពិសោធន៍ 5E (STEM)
-                  </option>
-                  <option value="ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា (Problem-Based)">ការដោះស្រាយបញ្ហា
-                    (Problem-Based)</option>
-                  <option value="ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង (Direct Instruction)">ការពន្យល់បង្ហាញ (Direct
-                    Instruction)</option>
+                <select id="inputMethod" class="form-control" onchange="handleTeachingMethodChange()">
+                  <option value="5e">វិធីសាស្ត្រ 5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)</option>
+                  <option value="pbl">វិធីសាស្ត្រដោះស្រាយបញ្ហា (Problem-Based Learning - PBL)</option>
+                  <option value="pjbl">វិធីសាស្ត្របង្កើតគម្រោង (Project-Based Learning - PjBL)</option>
+                  <option value="ibl">វិធីសាស្ត្ររិះរក និងស៊ើបអង្កេត (Inquiry-Based Learning - IBL)</option>
+                  <option value="flipped">វិធីសាស្ត្ររៀនបែបត្រឡប់ (Flipped Learning Model)</option>
+                  <option value="socratic">វិធីសាស្ត្រសួរដេញដោលតាមបែបសូក្រាត (Socratic / Inquiry Questioning)</option>
+                  <option value="cooperative">វិធីសាស្ត្រសហការ (Cooperative Learning Method)</option>
+                  <option value="experimental">វិធីសាស្ត្រពិសោធន៍ និងអនុវត្តជាក់ស្តែង (Experimental Method)</option>
+                  <option value="custom">✏️ ផ្សេងៗ / បន្ថែមវិធីសាស្ត្រផ្ទាល់ខ្លួន...</option>
                 </select>
+              </div>
+            </div>
+
+            <!-- Custom Teaching Method Input Wrap (shown when 'custom' is selected) -->
+            <div id="customMethodWrap" class="custom-sub-input-wrap mt-1" style="display: none;">
+              <div style="display: flex; gap: 6px; align-items: center;">
+                <div class="input-icon-wrap" style="flex: 1;">
+                  <i class="fa-solid fa-pen-to-square"></i>
+                  <input type="text" id="inputCustomMethodText" class="form-control form-control-sm"
+                    placeholder="វាយបញ្ចូលឈ្មោះវិធីសាស្ត្រថ្មី (ឧ. វិធីសាស្ត្រ STEM, Case-Study, Field Study...)"
+                    onkeydown="if(event.key==='Enter') confirmAddCustomMethod()">
+                </div>
+                <button type="button" class="btn btn-sm btn-primary" onclick="confirmAddCustomMethod()"
+                  style="white-space: nowrap; padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;"
+                  title="បន្ថែមវិធីសាស្ត្រនេះទៅក្នុងបញ្ជី">
+                  <i class="fa-solid fa-plus"></i> បន្ថែម
+                </button>
+              </div>
+            </div>
+
+            <!-- Teaching Approach & Active Learning Techniques Box -->
+            <div class="teaching-pedagogy-box mt-2"
+              style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 10px 12px;">
+              <!-- 1. Approach Indicator -->
+              <div class="flex items-center justify-between" style="flex-wrap: wrap; gap: 6px; margin-bottom: 8px;">
+                <span style="font-size: 0.8rem; font-weight: 700; color: #334155;">
+                  <i class="fa-solid fa-compass text-primary" style="margin-right: 4px; color: #4f46e5;"></i>
+                  <span data-i18n="teachingApproachLabel">គោលវិធីបង្រៀន</span> ៖
+                </span>
+                <span class="badge"
+                  style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.74rem; font-weight: 700; padding: 3px 10px; border-radius: 14px;">
+                  <i class="fa-solid fa-user-graduate"></i> <span data-i18n="teachingApproachVal">សិស្សមជ្ឈមណ្ឌល (Student-Centered — 70% STT)</span>
+                </span>
+              </div>
+
+              <!-- 2. Active Techniques Multi-Select Chips -->
+              <div>
+                <div class="flex items-center justify-between mb-1" style="flex-wrap: wrap; gap: 4px;">
+                  <label class="font-semibold text-xs" style="color: #475569;">
+                    <i class="fa-solid fa-puzzle-piece" style="margin-right: 4px; color: #6366f1;"></i>
+                    <span data-i18n="techniquesLabel">យុទ្ធវិធីបង្រៀនគន្លឹះ (Active Techniques — អាចរើសច្រើន)</span> ៖
+                  </label>
+                  <span id="selectedTechniquesCount" style="font-size: 0.72rem; color: #6366f1; font-weight: 700;">បានជ្រើសរើស ៣</span>
+                </div>
+
+                <div class="techniques-chips-grid" id="techniquesChipsGrid"
+                  style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
+                  <!-- Populated dynamically via JS -->
+                </div>
+
+                <!-- Custom Technique Quick Adder inline -->
+                <div id="customTechniqueInputWrap" style="display: none; margin-top: 8px;">
+                  <div style="display: flex; gap: 6px; align-items: center;">
+                    <div class="input-icon-wrap" style="flex: 1;">
+                      <i class="fa-solid fa-puzzle-piece"></i>
+                      <input type="text" id="inputCustomTechniqueText" class="form-control form-control-sm"
+                        placeholder="វាយបញ្ចូលឈ្មោះយុទ្ធវិធីថ្មី (ឧ. KWL Chart, Fishbowl, Four Corners...)"
+                        onkeydown="if(event.key==='Enter') confirmAddCustomTechnique()">
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary" onclick="confirmAddCustomTechnique()"
+                      style="white-space: nowrap; padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;">
+                      <i class="fa-solid fa-plus"></i> បន្ថែម
+                    </button>
+                    <button type="button" class="btn btn-sm btn-secondary" onclick="toggleCustomTechniqueInput(false)"
+                      style="white-space: nowrap; padding: 6px 10px; font-size: 0.8rem; border-radius: 8px;">
+                      បោះបង់
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 

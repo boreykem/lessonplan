@@ -286,7 +286,10 @@ const state = {
   language: localStorage.getItem('app_language') || 'km',
   aiProvider: PersistentKeyVault.getProviderSync(),
   geminiApiKey: PersistentKeyVault.getSync(),
-  generatedPlanData: null
+  generatedPlanData: null,
+  selectedTechniques: [],
+  customTeachingMethods: [],
+  customTeachingTechniques: []
 };
 
 // Storage Keys
@@ -295,6 +298,406 @@ const ADMIN_STORAGE_KEY = 'saved_admin_profile';
 const SAVED_LESSONS_STORAGE_KEY = 'saved_lesson_materials';
 const LIBRARY_INIT_FLAG = 'saved_lessons_vault_v2_initialized';
 const SAVED_PLANS_STORAGE_KEY = 'saved_generated_lesson_plans';
+const CUSTOM_TEACHING_METHODS_KEY = 'custom_teaching_methods';
+const CUSTOM_TEACHING_TECHNIQUES_KEY = 'custom_teaching_techniques';
+const SELECTED_TECHNIQUES_KEY = 'selected_teaching_techniques';
+
+// ==============================================================================
+// 🎯 Modern Pedagogical Framework: Hierarchy of Approach, Method & Techniques
+// ==============================================================================
+const BUILTIN_TEACHING_METHODS = [
+  {
+    id: '5e',
+    nameKm: 'វិធីសាស្ត្រ 5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)',
+    nameEn: '5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)',
+    shortKm: 'វិធីសាស្ត្រ 5E (Inquiry & STEM)',
+    shortEn: '5E Model (STEM)'
+  },
+  {
+    id: 'pbl',
+    nameKm: 'វិធីសាស្ត្រដោះស្រាយបញ្ហា (Problem-Based Learning - PBL)',
+    nameEn: 'Problem-Based Learning (PBL)',
+    shortKm: 'ដោះស្រាយបញ្ហា (PBL)',
+    shortEn: 'Problem-Based (PBL)'
+  },
+  {
+    id: 'pjbl',
+    nameKm: 'វិធីសាស្ត្របង្កើតគម្រោង (Project-Based Learning - PjBL)',
+    nameEn: 'Project-Based Learning (PjBL)',
+    shortKm: 'បង្កើតគម្រោង (PjBL)',
+    shortEn: 'Project-Based (PjBL)'
+  },
+  {
+    id: 'ibl',
+    nameKm: 'វិធីសាស្ត្ររិះរក និងស៊ើបអង្កេត (Inquiry-Based Learning - IBL)',
+    nameEn: 'Inquiry-Based Learning (IBL)',
+    shortKm: 'រិះរក & ស៊ើបអង្កេត (IBL)',
+    shortEn: 'Inquiry-Based (IBL)'
+  },
+  {
+    id: 'flipped',
+    nameKm: 'វិធីសាស្ត្ររៀនបែបត្រឡប់ (Flipped Learning Model)',
+    nameEn: 'Flipped Learning Model',
+    shortKm: 'រៀនបែបត្រឡប់ (Flipped)',
+    shortEn: 'Flipped Learning'
+  },
+  {
+    id: 'socratic',
+    nameKm: 'វិធីសាស្ត្រសួរដេញដោលតាមបែបសូក្រាត (Socratic / Inquiry Questioning)',
+    nameEn: 'Socratic Questioning Method',
+    shortKm: 'សួរដេញដោលសូក្រាត (Socratic)',
+    shortEn: 'Socratic Method'
+  },
+  {
+    id: 'cooperative',
+    nameKm: 'វិធីសាស្ត្រសហការ (Cooperative Learning Method)',
+    nameEn: 'Cooperative Learning Method',
+    shortKm: 'សហការ (Cooperative)',
+    shortEn: 'Cooperative Learning'
+  },
+  {
+    id: 'experimental',
+    nameKm: 'វិធីសាស្ត្រពិសោធន៍ និងអនុវត្តជាក់ស្តែង (Experimental Method)',
+    nameEn: 'Experimental & Practical Method',
+    shortKm: 'ពិសោធន៍ជាក់ស្តែង (Experimental)',
+    shortEn: 'Experimental Method'
+  }
+];
+
+const BUILTIN_TEACHING_TECHNIQUES = [
+  { id: 'think_pair_share', name: 'Think-Pair-Share', icon: 'fa-user-group', kmLabel: 'Think-Pair-Share' },
+  { id: 'jigsaw', name: 'Jigsaw', icon: 'fa-puzzle-piece', kmLabel: 'ជីកសរ (Jigsaw)' },
+  { id: 'gallery_walk', name: 'Gallery Walk', icon: 'fa-person-walking', kmLabel: 'Gallery Walk' },
+  { id: 'brainstorming', name: 'Brainstorming', icon: 'fa-bolt', kmLabel: 'Brainstorming' },
+  { id: 'interactive_quizzes', name: 'Interactive Quizzes', icon: 'fa-circle-question', kmLabel: 'Interactive Quizzes' },
+  { id: 'fist_to_five', name: 'Fist to Five', icon: 'fa-hand', kmLabel: 'Fist to Five' },
+  { id: 'exit_ticket', name: 'Exit Ticket 3-2-1', icon: 'fa-ticket', kmLabel: 'Exit Ticket 3-2-1' },
+  { id: 'concept_cartoons', name: 'Concept Cartoons', icon: 'fa-comments', kmLabel: 'Concept Cartoons' },
+  { id: 'mind_concept_map', name: 'Mind / Concept Map', icon: 'fa-diagram-project', kmLabel: 'Mind / Concept Map' },
+  { id: 'role_play', name: 'Role Play', icon: 'fa-masks-theater', kmLabel: 'Role Play' }
+];
+
+function getCustomTeachingMethods() {
+  try {
+    const raw = localStorage.getItem(CUSTOM_TEACHING_METHODS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveCustomTeachingMethods(methods) {
+  try {
+    localStorage.setItem(CUSTOM_TEACHING_METHODS_KEY, JSON.stringify(methods || []));
+  } catch (e) { }
+}
+
+function getCustomTeachingTechniques() {
+  try {
+    const raw = localStorage.getItem(CUSTOM_TEACHING_TECHNIQUES_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveCustomTeachingTechniques(techs) {
+  try {
+    localStorage.setItem(CUSTOM_TEACHING_TECHNIQUES_KEY, JSON.stringify(techs || []));
+  } catch (e) { }
+}
+
+function getSelectedTechniques() {
+  if (Array.isArray(state.selectedTechniques) && state.selectedTechniques.length > 0) {
+    return state.selectedTechniques;
+  }
+  try {
+    const raw = localStorage.getItem(SELECTED_TECHNIQUES_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        state.selectedTechniques = parsed;
+        return parsed;
+      }
+    }
+  } catch (e) { }
+  state.selectedTechniques = ['Think-Pair-Share', 'Jigsaw', 'Gallery Walk'];
+  return state.selectedTechniques;
+}
+
+function saveSelectedTechniques(techs) {
+  state.selectedTechniques = techs || [];
+  try {
+    localStorage.setItem(SELECTED_TECHNIQUES_KEY, JSON.stringify(state.selectedTechniques));
+  } catch (e) { }
+  updateSelectedTechniquesCounter();
+}
+
+function updateSelectedTechniquesCounter() {
+  const countEl = document.getElementById('selectedTechniquesCount');
+  if (!countEl) return;
+  const count = (state.selectedTechniques || []).length;
+  const isEn = (state.language === 'en');
+  countEl.textContent = isEn ? `Selected: ${count}` : `បានជ្រើសរើស ${count}`;
+}
+
+function populateTeachingMethodsSelect(isEn = false, preserveVal = null) {
+  const methodSelect = document.getElementById('inputMethod');
+  if (!methodSelect) return;
+  const currentVal = preserveVal || methodSelect.value || '5e';
+  const customMethods = getCustomTeachingMethods();
+
+  let html = '';
+  BUILTIN_TEACHING_METHODS.forEach(m => {
+    const label = isEn ? m.nameEn : m.nameKm;
+    html += `<option value="${m.id}">${escapeHtml(label)}</option>`;
+  });
+
+  if (customMethods.length > 0) {
+    html += `<optgroup label="${isEn ? 'Custom Teaching Methods' : 'វិធីសាស្ត្រផ្ទាល់ខ្លួន'}">`;
+    customMethods.forEach(cm => {
+      html += `<option value="${escapeHtml(cm)}">✏️ ${escapeHtml(cm)}</option>`;
+    });
+    html += `</optgroup>`;
+  }
+
+  html += `<option value="custom">✏️ ${isEn ? 'Other / Add Custom Method...' : 'ផ្សេងៗ / បន្ថែមវិធីសាស្ត្រផ្ទាល់ខ្លួន...'}</option>`;
+
+  methodSelect.innerHTML = html;
+
+  setSelectedTeachingMethod(currentVal);
+}
+
+function handleTeachingMethodChange() {
+  const methodSelect = document.getElementById('inputMethod');
+  const customWrap = document.getElementById('customMethodWrap');
+  if (!methodSelect || !customWrap) return;
+
+  if (methodSelect.value === 'custom') {
+    customWrap.style.display = 'block';
+    const input = document.getElementById('inputCustomMethodText');
+    if (input) {
+      input.focus();
+      input.select();
+    }
+  } else {
+    customWrap.style.display = 'none';
+  }
+}
+
+function confirmAddCustomMethod() {
+  const input = document.getElementById('inputCustomMethodText');
+  if (!input) return;
+  const val = input.value.trim();
+  if (!val) {
+    showToast(state.language === 'en' ? 'Please enter a method name!' : 'សូមវាយបញ្ចូលឈ្មោះវិធីសាស្ត្រ!', 'warning');
+    input.focus();
+    return;
+  }
+
+  const customs = getCustomTeachingMethods();
+  if (!customs.includes(val)) {
+    customs.push(val);
+    saveCustomTeachingMethods(customs);
+  }
+
+  populateTeachingMethodsSelect(state.language === 'en', val);
+  const customWrap = document.getElementById('customMethodWrap');
+  if (customWrap) customWrap.style.display = 'none';
+  input.value = '';
+
+  showToast(state.language === 'en' ? `Added custom method: ${val}` : `បានបន្ថែមវិធីសាស្ត្រថ្មី៖ ${val}`, 'success');
+}
+
+function getSelectedTeachingMethod() {
+  const methodSelect = document.getElementById('inputMethod');
+  if (!methodSelect) return '5e';
+  const val = methodSelect.value;
+  if (val === 'custom') {
+    const input = document.getElementById('inputCustomMethodText');
+    if (input && input.value.trim()) return input.value.trim();
+    return state.language === 'en' ? 'Student-Centered Active Learning Approach' : 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)';
+  }
+  const matched = BUILTIN_TEACHING_METHODS.find(m => m.id === val);
+  if (matched) {
+    return state.language === 'en' ? matched.nameEn : matched.nameKm;
+  }
+  return val;
+}
+
+function setSelectedTeachingMethod(val) {
+  const methodSelect = document.getElementById('inputMethod');
+  if (!methodSelect) return;
+  if (!val) {
+    methodSelect.selectedIndex = 0;
+    return;
+  }
+
+  // Exact value match
+  for (let i = 0; i < methodSelect.options.length; i++) {
+    if (methodSelect.options[i].value === val) {
+      methodSelect.selectedIndex = i;
+      return;
+    }
+  }
+
+  // Try matching by built-in method ID using detectMethodType
+  const detected = (typeof detectMethodType === 'function') ? detectMethodType(val) : val;
+  for (let i = 0; i < methodSelect.options.length; i++) {
+    if (methodSelect.options[i].value === detected) {
+      methodSelect.selectedIndex = i;
+      return;
+    }
+  }
+
+  // Try matching by option text
+  const valLower = val.toLowerCase();
+  for (let i = 0; i < methodSelect.options.length; i++) {
+    if (methodSelect.options[i].text.toLowerCase().includes(valLower)) {
+      methodSelect.selectedIndex = i;
+      return;
+    }
+  }
+
+  // If it's a custom string not in select, add it dynamically
+  const opt = document.createElement('option');
+  opt.value = val;
+  opt.textContent = `✏️ ${val}`;
+  methodSelect.insertBefore(opt, methodSelect.lastElementChild);
+  methodSelect.value = val;
+}
+
+function renderTechniquesChips() {
+  const grid = document.getElementById('techniquesChipsGrid');
+  if (!grid) return;
+
+  const isEn = (state.language === 'en');
+  const selected = getSelectedTechniques();
+  const customTechs = getCustomTeachingTechniques();
+
+  let html = '';
+
+  // Render Built-in Techniques
+  BUILTIN_TEACHING_TECHNIQUES.forEach(t => {
+    const isAct = selected.includes(t.name) || selected.includes(t.id);
+    const label = isEn ? t.name : (t.kmLabel || t.name);
+    html += `
+      <div class="technique-chip ${isAct ? 'active' : ''}" onclick="toggleTechniqueChip('${t.name}')" title="${escapeHtml(label)}">
+        <i class="fa-solid ${t.icon}"></i>
+        <span>${escapeHtml(label)}</span>
+      </div>
+    `;
+  });
+
+  // Render Custom Techniques
+  customTechs.forEach(ct => {
+    const isAct = selected.includes(ct);
+    html += `
+      <div class="technique-chip ${isAct ? 'active' : ''}" onclick="toggleTechniqueChip('${escapeHtml(ct)}')" title="${escapeHtml(ct)}">
+        <i class="fa-solid fa-puzzle-piece"></i>
+        <span>${escapeHtml(ct)}</span>
+        <span class="remove-custom-tech" onclick="event.stopPropagation(); removeCustomTechnique('${escapeHtml(ct)}')" title="${isEn ? 'Remove' : 'លុប'}">×</span>
+      </div>
+    `;
+  });
+
+  // Append '+ Add Technique' Button Chip
+  html += `
+    <div class="technique-chip btn-add-technique" onclick="toggleCustomTechniqueInput(true)" title="${isEn ? 'Add Custom Technique' : 'បន្ថែមយុទ្ធវិធីផ្ទាល់ខ្លួន'}">
+      <i class="fa-solid fa-plus"></i>
+      <span>${isEn ? '+ Add Technique...' : '+ បន្ថែមយុទ្ធវិធី...'}</span>
+    </div>
+  `;
+
+  grid.innerHTML = html;
+  updateSelectedTechniquesCounter();
+}
+
+function toggleTechniqueChip(name) {
+  const selected = getSelectedTechniques().slice();
+  const idx = selected.indexOf(name);
+  if (idx >= 0) {
+    selected.splice(idx, 1);
+  } else {
+    selected.push(name);
+  }
+  saveSelectedTechniques(selected);
+  renderTechniquesChips();
+}
+
+function toggleCustomTechniqueInput(show) {
+  const wrap = document.getElementById('customTechniqueInputWrap');
+  if (!wrap) return;
+  wrap.style.display = show ? 'block' : 'none';
+  if (show) {
+    const input = document.getElementById('inputCustomTechniqueText');
+    if (input) {
+      input.focus();
+      input.select();
+    }
+  }
+}
+
+function confirmAddCustomTechnique() {
+  const input = document.getElementById('inputCustomTechniqueText');
+  if (!input) return;
+  const val = input.value.trim();
+  if (!val) {
+    showToast(state.language === 'en' ? 'Please enter technique name!' : 'សូមវាយបញ្ចូលឈ្មោះយុទ្ធវិធី!', 'warning');
+    input.focus();
+    return;
+  }
+
+  const customs = getCustomTeachingTechniques();
+  if (!customs.includes(val)) {
+    customs.push(val);
+    saveCustomTeachingTechniques(customs);
+  }
+
+  // Automatically select the new technique
+  const selected = getSelectedTechniques().slice();
+  if (!selected.includes(val)) {
+    selected.push(val);
+    saveSelectedTechniques(selected);
+  }
+
+  input.value = '';
+  toggleCustomTechniqueInput(false);
+  renderTechniquesChips();
+  showToast(state.language === 'en' ? `Added technique: ${val}` : `បានបន្ថែមយុទ្ធវិធី៖ ${val}`, 'success');
+}
+
+function removeCustomTechnique(name) {
+  const customs = getCustomTeachingTechniques().filter(t => t !== name);
+  saveCustomTeachingTechniques(customs);
+
+  const selected = getSelectedTechniques().filter(t => t !== name);
+  saveSelectedTechniques(selected);
+
+  renderTechniquesChips();
+  showToast(state.language === 'en' ? `Removed: ${name}` : `បានលុបយុទ្ធវិធី៖ ${name}`, 'info');
+}
+
+function initPedagogyControls() {
+  const isEn = (state.language === 'en');
+  populateTeachingMethodsSelect(isEn);
+  renderTechniquesChips();
+}
+
+window.handleTeachingMethodChange = handleTeachingMethodChange;
+window.confirmAddCustomMethod = confirmAddCustomMethod;
+window.confirmAddCustomTechnique = confirmAddCustomTechnique;
+window.toggleCustomTechniqueInput = toggleCustomTechniqueInput;
+window.toggleTechniqueChip = toggleTechniqueChip;
+window.removeCustomTechnique = removeCustomTechnique;
+window.getSelectedTeachingMethod = getSelectedTeachingMethod;
+window.setSelectedTeachingMethod = setSelectedTeachingMethod;
+window.getSelectedTechniques = getSelectedTechniques;
+window.initPedagogyControls = initPedagogyControls;
 
 // Preset Official MoEYS Lesson Plan Templates & Sample Lessons
 
@@ -1262,28 +1665,19 @@ function setLanguage(lang, showNotification = false) {
     }
   }
 
-  // 10. Translate Methods
-  const methodSelect = document.getElementById('inputMethod');
-  if (methodSelect && methodSelect.options.length >= 5) {
-    const methodsEn = [
-      "Student-Centered Active Learning Approach",
-      "Advanced Collaborative Methods (Jigsaw, Concept Mapping, Role-Play)",
-      "Inquiry-Based & 5E STEM Model",
-      "Group Discussion & Problem-Based Learning",
-      "Direct Instruction & Practical Demonstration"
-    ];
-    const methodsKm = [
-      "សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)",
-      "វិធីសាស្ត្រសហការកម្រិតខ្ពស់ (Jigsaw, Concept Mapping, Role-Play)",
-      "ការរិះរក និងពិសោធន៍ តាមបែប 5E (Inquiry-based / STEM)",
-      "ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា (Problem-Based)",
-      "ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង (Direct Instruction)"
-    ];
-    const targetMethods = isEn ? methodsEn : methodsKm;
-    for (let i = 0; i < targetMethods.length; i++) {
-      if (methodSelect.options[i]) methodSelect.options[i].text = targetMethods[i];
-    }
+  // 10. Translate Methods & Techniques
+  if (typeof populateTeachingMethodsSelect === 'function') {
+    populateTeachingMethodsSelect(isEn);
   }
+  if (typeof renderTechniquesChips === 'function') {
+    renderTechniquesChips();
+  }
+  const approachLabel = document.querySelector('[data-i18n="teachingApproachLabel"]');
+  if (approachLabel) approachLabel.textContent = isEn ? 'Teaching Approach' : 'គោលវិធីបង្រៀន';
+  const approachVal = document.querySelector('[data-i18n="teachingApproachVal"]');
+  if (approachVal) approachVal.textContent = isEn ? 'Student-Centered (70% STT / 30% TTT)' : 'សិស្សមជ្ឈមណ្ឌល (Student-Centered — 70% STT)';
+  const techLabel = document.querySelector('[data-i18n="techniquesLabel"]');
+  if (techLabel) techLabel.textContent = isEn ? 'Active Teaching Techniques (Multi-select)' : 'យុទ្ធវិធីបង្រៀនគន្លឹះ (Active Techniques — អាចរើសច្រើន)';
 
   // 11. Saved Profile Badge
   const savedProfileBadge = document.getElementById('savedProfileBadge');
@@ -2167,6 +2561,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   try { checkApiKeyStatus(); } catch (e) { console.error('checkApiKeyStatus err:', e); }
   try { updateEmptyStateApiStatus(); } catch (e) { console.error('updateEmptyStateApiStatus err:', e); }
+  try { initPedagogyControls(); } catch (e) { console.error('initPedagogyControls err:', e); }
   try { setLanguage(state.language || 'km', false); } catch (e) { console.error('setLanguage err:', e); }
   try { updateWordCount(); } catch (e) { console.error('updateWordCount err:', e); }
   try { loadCustomSubjectsFromStorage(); } catch (e) { console.error('loadCustomSubjectsFromStorage err:', e); }
@@ -3179,7 +3574,8 @@ function loadSampleLesson(index) {
   setDurationValue(sample.duration);
   document.getElementById('inputChapter').value = sample.chapter;
   document.getElementById('inputLessonTitle').value = sample.lesson;
-  document.getElementById('inputMethod').value = sample.method;
+  if (typeof setSelectedTeachingMethod === 'function') setSelectedTeachingMethod(sample.method);
+  else document.getElementById('inputMethod').value = sample.method;
   document.getElementById('lessonContentText').value = sample.content;
   state.lessonContent = sample.content;
   updateWordCount();
@@ -3287,10 +3683,15 @@ function isBackwardDesignRequest(params) {
 // ==========================================================================
 function detectMethodType(method) {
   const m = (method || '').toLowerCase();
-  if (m.includes('5e') || m.includes('inquiry') || m.includes('stem') || m.includes('រិះរក') || m.includes('ពិសោធ')) return '5e';
-  if (m.includes('jigsaw') || m.includes('concept map') || m.includes('role-play') || m.includes('សហការ') || m.includes('collaborative') || m.includes('cooperative')) return 'jigsaw';
-  if (m.includes('problem') || m.includes('pbl') || m.includes('ដោះស្រាយបញ្ហា')) return 'pbl';
-  if (m.includes('direct') || m.includes('ពន្យល់បង្ហាញ') || m.includes('i do')) return 'direct';
+  if (m === '5e' || m.includes('5e') || m.includes('stem')) return '5e';
+  if (m === 'pbl' || m.includes('problem') || m.includes('ដោះស្រាយបញ្ហា')) return 'pbl';
+  if (m === 'pjbl' || m.includes('project') || m.includes('គម្រោង')) return 'pjbl';
+  if (m === 'ibl' || m.includes('inquiry') || m.includes('ស៊ើបអង្កេត') || m.includes('រិះរក')) return 'ibl';
+  if (m === 'flipped' || m.includes('flipped') || m.includes('ត្រឡប់')) return 'flipped';
+  if (m === 'socratic' || m.includes('socratic') || m.includes('សូក្រាត') || m.includes('ដេញដោល')) return 'socratic';
+  if (m === 'cooperative' || m.includes('cooperative') || m.includes('jigsaw') || m.includes('សហការ') || m.includes('collaborative')) return 'cooperative';
+  if (m === 'experimental' || m.includes('experimental') || m.includes('ពិសោធន៍') || m.includes('hands-on')) return 'experimental';
+  if (m === 'direct' || m.includes('direct') || m.includes('ពន្យល់បង្ហាញ') || m.includes('i do')) return 'direct';
   return 'student_centered';
 }
 
@@ -3300,15 +3701,23 @@ function getMethodStepTitle(stepIdx, method, isFlipped) {
     if (stepIdx === 1) return "ជំហានទី១៖ រដ្ឋបាលថ្នាក់ និងត្រួតពិនិត្យការត្រៀមខ្លួន";
     if (stepIdx === 2) return "ជំហានទី២៖ រំលឹកមេរៀនចាស់ និងត្រួតពិនិត្យការស្វ័យសិក្សា (Pre-Test QCM & Muddiest Points)";
     if (stepIdx === 3) {
-      if (methodType === 'jigsaw') return "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី និងការបែងចែកក្រុមជំនាញ (Expert Groups)";
+      if (methodType === 'jigsaw' || methodType === 'cooperative') return "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី និងការបែងចែកក្រុមជំនាញ (Expert Groups)";
       if (methodType === 'pbl') return "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី និងប្រគល់សន្លឹកបេសកកម្មដោះស្រាយបញ្ហា (Challenge Scenario)";
+      if (methodType === 'pjbl') return "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី និងកំណត់គោលដៅគម្រោងជាក់ស្តែង (Project Launch & Milestones)";
+      if (methodType === 'ibl') return "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី និងចោទសួរស៊ើបអង្កេតគន្លឹះ (Inquiry Framing)";
+      if (methodType === 'socratic') return "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី និងសំណួរដេញដោលសូក្រាត (Socratic Dialogue)";
+      if (methodType === 'experimental') return "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី និងការរៀបចំពិសោធន៍ (Lab Setup & Hypothesis)";
       if (methodType === '5e') return "ជំហានទី៣៖ ដំណាក់កាលរុករក និងពិសោធន៍ (5E Model: Explore Phase)";
       if (methodType === 'direct') return "ជំហានទី៣៖ ការអនុវត្តដោយមានការណែនាំ (Guided Practice / We Do)";
       return "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី និងសំណួរគន្លឹះតម្រង់ទិស (Mini-Lecture & Framing)";
     }
     if (stepIdx === 4) {
-      if (methodType === 'jigsaw') return "ជំហានទី៤៖ ដំណើរការ Jigsaw ៤ ដំណាក់កាល និងចងក្រងផែនទីគំនិត (Jigsaw, Concept Mapping & Role-Play)";
+      if (methodType === 'jigsaw' || methodType === 'cooperative') return "ជំហានទី៤៖ ដំណើរការសហការរៀនសូត្រ និងចងក្រងផែនទីគំនិត (Cooperative Learning & Jigsaw)";
       if (methodType === 'pbl') return "ជំហានទី៤៖ ដំណើរការ PBL ៤ ដំណាក់កាល និងដោះស្រាយបញ្ហាលើ Flipchart (Problem-Based Learning)";
+      if (methodType === 'pjbl') return "ជំហានទី៤៖ សហការអភិវឌ្ឍគម្រោង និងការពារស្នាដៃ (Project Execution & Defense)";
+      if (methodType === 'ibl') return "ជំហានទី៤៖ ដំណើរការស៊ើបអង្កេត វិភាគភស្តុតាង និងសំយោគរបកគំហើញ (Inquiry Investigation)";
+      if (methodType === 'socratic') return "ជំហានទី៤៖ ការដេញដោលស៊ីជម្រៅ និងការពារទស្សនៈ (Deep Socratic Argumentation)";
+      if (methodType === 'experimental') return "ជំហានទី៤៖ ប្រតិបត្តិការពិសោធន៍ វិភាគទិន្នន័យ និងសន្និដ្ឋាន (Hands-on Experimentation)";
       if (methodType === '5e') return "ជំហានទី៤៖ ដំណាក់កាលពន្យល់ និងពង្រីកចំណេះដឹងលើ Flipchart (5E: Explain & Elaborate STEM)";
       if (methodType === 'direct') return "ជំហានទី៤៖ ការអនុវត្តជាក់ស្តែងស៊ីជម្រៅ (Intensive Practice / You Do)";
       return "ជំហានទី៤៖ ការរៀនសកម្មដោយស្វ័យភាព និងការឆ្លុះបញ្ចាំង (Active Learning & Metacognition)";
@@ -3319,15 +3728,23 @@ function getMethodStepTitle(stepIdx, method, isFlipped) {
     if (stepIdx === 1) return "ជំហានទី ១ : រដ្ឋបាលថ្នាក់";
     if (stepIdx === 2) return "ជំហានទី ២ : រំលឹកមេរៀនចាស់ / ទំនាក់ទំនងមេរៀន";
     if (stepIdx === 3) {
-      if (methodType === 'jigsaw') return "ជំហានទី ៣ : មេរៀនថ្មី (ក្រុមអ្នកជំនាញ - Expert Groups)";
+      if (methodType === 'jigsaw' || methodType === 'cooperative') return "ជំហានទី ៣ : មេរៀនថ្មី (ក្រុមអ្នកជំនាញ - Expert Groups)";
       if (methodType === 'pbl') return "ជំហានទី ៣ : មេរៀនថ្មី និងស្ថានភាពបញ្ហា (Problem Scenario)";
+      if (methodType === 'pjbl') return "ជំហានទី ៣ : មេរៀនថ្មី និងការណែនាំគម្រោង (Project Kickoff)";
+      if (methodType === 'ibl') return "ជំហានទី ៣ : មេរៀនថ្មី និងការចោទសួរស៊ើបអង្កេត (Inquiry Questioning)";
+      if (methodType === 'socratic') return "ជំហានទី ៣ : មេរៀនថ្មី និងការសួរដេញដោល (Socratic Dialogue)";
+      if (methodType === 'experimental') return "ជំហានទី ៣ : មេរៀនថ្មី និងការរៀបចំពិសោធន៍ (Lab Setup)";
       if (methodType === '5e') return "ជំហានទី ៣ : មេរៀនថ្មី (រុករក & ពិសោធន៍ - Explore & Explain)";
       if (methodType === 'direct') return "ជំហានទី ៣ : ដំណើរការបង្រៀន និងអនុវត្តគំរូ (I Do & We Do)";
       return "ជំហានទី ៣ : ដំណើរការបង្រៀន និងរៀន (មេរៀនថ្មី & Guided Discovery)";
     }
     if (stepIdx === 4) {
-      if (methodType === 'jigsaw') return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (Jigsaw Sharing & Concept Mapping)";
+      if (methodType === 'jigsaw' || methodType === 'cooperative') return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (Jigsaw Sharing & Concept Mapping)";
       if (methodType === 'pbl') return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (ដំណើរការដោះស្រាយបញ្ហាជាក្រុមលើ Flipchart)";
+      if (methodType === 'pjbl') return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (ការអនុវត្តគម្រោងជាក្រុម និងការពារស្នាដៃ)";
+      if (methodType === 'ibl') return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (ការស៊ើបអង្កេត និងបូកសរុបភស្តុតាង)";
+      if (methodType === 'socratic') return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (ការដេញដោលជាគូ និងការពារទឡ្ហីករណ៍)";
+      if (methodType === 'experimental') return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (ប្រតិបត្តិការពិសោធន៍ និងបូកសរុបទិន្នន័យ)";
       if (methodType === '5e') return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (ពង្រីកចំណេះដឹង - Elaborate STEM)";
       if (methodType === 'direct') return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (សិស្សអនុវត្តដោយឯករាជ្យ - You Do)";
       return "ជំហានទី ៤ : ពង្រឹងពុទ្ធិ (ការអនុវត្តសកម្មជាក្រុម & 4Cs)";
@@ -3358,10 +3775,16 @@ function isGenericStepTitle(title, stepIdx) {
   return false;
 }
 
-function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '') {
+function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', techniques = []) {
   const methodType = detectMethodType(method);
   const methodName = method || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)';
   const titleStr = lessonTitle ? `នៃ «${lessonTitle}»` : '';
+  const selectedTechs = (Array.isArray(techniques) && techniques.length > 0)
+    ? techniques
+    : (typeof getSelectedTechniques === 'function' ? getSelectedTechniques() : []);
+  const techPrompt = selectedTechs.length > 0
+    ? `\n   - យុទ្ធវិធីបង្រៀនគន្លឹះដែលត្រូវបញ្ជ្រាប (Active Techniques): ${selectedTechs.join(', ')}។\n     • ត្រូវបញ្ជ្រាបយុទ្ធវិធីទាំងនេះទៅក្នុងសកម្មភាពគ្រូ និងសកម្មភាពសិស្សក្នុងជំហានទី ២, ទី ៣, ទី ៤ ដោយដាក់ស្លាកកត់សម្គាល់ច្បាស់លាស់ ដូចជា [អនុវត្តយុទ្ធវិធី ${selectedTechs[0] || 'Think-Pair-Share'}]។`
+    : '';
 
   if (isFlipped) {
     switch (methodType) {
@@ -3377,12 +3800,65 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '') {
        + ដំណាក់កាល ២ (បង្កើតសម្មតិកម្ម & ដំណោះស្រាយច្នៃប្រឌិត): សហការរៀបចំយុទ្ធសាស្ត្រដោះស្រាយ និងសរសេរផែនការសកម្មភាពលើផ្ទាំង Flipchart A0 [ការសហការ & ភាពច្នៃប្រឌិត]
        + ដំណាក់កាល ៣ (ការពារដំណោះស្រាយ & ដេញដោល): តំណាងក្រុមឡើងការពារដំណោះស្រាយ ឆ្លើយតបសំណួរជំទាស់ពីក្រុមដទៃ [ការប្រាស្រ័យទាក់ទង]
        + ដំណាក់កាល ៤ (វាយតម្លៃ & សំយោគក្បួន): វាយតម្លៃដំណោះស្រាយតាម Rubric ៤ កម្រិត និងគ្រូជួយសំយោគក្បួនដោះស្រាយរួមថ្នាក់
-     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 ឆ្លុះបញ្ចាំងពីដំណោះស្រាយបញ្ហា និងកិច្ចការស្រាវជ្រាវបន្ត។`;
+     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 ឆ្លុះបញ្ចាំងពីដំណោះស្រាយបញ្ហា និងកិច្ចការស្រាវជ្រាវបន្ត។${techPrompt}`;
 
-      case 'jigsaw':
+      case 'pjbl':
         return `
 10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
-   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្រសហការកម្រិតខ្ពស់ (Jigsaw, Concept Mapping, Role-Play)» ក្នុងទម្រង់ Flipped Classroom៖
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្របង្កើតគម្រោង (Project-Based Learning - PjBL)» ក្នុងទម្រង់ Flipped Classroom៖
+     • ជំហានទី ២ (១០%): ត្រួតពិនិត្យការយល់ដឹងពីផ្ទះ ភ្ជាប់គំនិតមូលដ្ឋានទៅនឹងបញ្ហាជាក់ស្តែងដែលត្រូវផលិតគម្រោង។
+     • ជំហានទី ៣ (១០%): គ្រូប្រគល់ប្រធានបទគម្រោង (Driving Question & Project Challenge) និងកំណត់គោលដៅលទ្ធផលជាក់ស្តែង${titleStr}។
+     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): សហការផលិត និងការពារគម្រោង៖
+       + ដំណាក់កាល ១: បែងចែកតួនាទី និងរៀបចំផែនការសកម្មភាពគម្រោង (Action Plan & Milestones)
+       + ដំណាក់កាល ២: សហការស្រាវជ្រាវ និងផលិតលទ្ធផលគម្រោងជាក់ស្តែង (Artifact / Prototype)
+       + ដំណាក់កាល ៣: បទបង្ហាញការពារស្នាដៃគម្រោង និងឆ្លើយតបសំណួររិះគន់ស្ថាបនា (Critique & Defense)
+       + ដំណាក់កាល ៤: វាយតម្លៃគម្រោងតាម Rubric និងការឆ្លុះបញ្ចាំងពីការរៀនសូត្រ
+     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 និងការបញ្ចប់របាយការណ៍គម្រោង។${techPrompt}`;
+
+      case 'ibl':
+        return `
+10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្ររិះរក និងស៊ើបអង្កេត (Inquiry-Based Learning - IBL)» ក្នុងទម្រង់ Flipped Classroom៖
+     • ជំហានទី ២ (១០%): ពិនិត្យការយល់ដឹងពីផ្ទះ ចោទសួរសំណួរដាស់ការចង់ដឹង និងបង្កើតសំណួរស៊ើបអង្កេតរួម (Inquiry Question)។
+     • ជំហានទី ៣ (១០%): បង្កើតសម្មតិកម្ម និងផ្តល់ធនធាន/ទិន្នន័យសម្រាប់ស៊ើបអង្កេត${titleStr}។
+     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): ដំណើរការស៊ើបអង្កេតស៊ីជម្រៅ៖
+       + ដំណាក់កាល ១: ក្រុមសិស្សប្រមូល និងវិភាគទិន្នន័យ/ភស្តុតាងជាក់ស្តែង [ការគិតស៊ីជម្រៅ]
+       + ដំណាក់កាល ២: ផ្ទៀងផ្ទាត់សម្មតិកម្ម និងទាញសេចក្តីសន្និដ្ឋានដោយផ្អែកលើភស្តុតាង
+       + ដំណាក់កាល ៣: បង្ហាញលទ្ធផលស៊ើបអង្កេត និងដេញដោលតម្លាភាពនៃទិន្នន័យ [ការប្រាស្រ័យទាក់ទង]
+       + ដំណាក់កាល ៤: សំយោគរបកគំហើញរួម និងវាយតម្លៃតាម Rubric
+     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 និងសំណួរស៊ើបអង្កេតពង្រីក។${techPrompt}`;
+
+      case 'socratic':
+        return `
+10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្រសួរដេញដោលតាមបែបសូក្រាត (Socratic / Inquiry Questioning)» ក្នុងទម្រង់ Flipped Classroom៖
+     • ជំហានទី ២ (១០%): ពិនិត្យសំណួរស្ទង់ និងដោះស្រាយ Muddiest Points ពីការមើលវីដេអូ។
+     • ជំហានទី ៣ (១០%): គ្រូចោទសំណួរទស្សនវិជ្ជា/សំណួរគន្លឹះចំហកម្រិតខ្ពស់ (Essential Dilemma Question)${titleStr}។
+     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): សិក្ខាសាលាសូក្រាត (Socratic Seminar)៖
+       + ដំណាក់កាល ១ (Think-Pair-Share): ពិចារណាជាបុគ្គល រួចពិភាក្សាជាដៃគូដើម្បីរៀបចំទឡ្ហីករណ៍
+       + ដំណាក់កាល ២ (Socratic Dialogue): ដេញដោលទស្សនៈរួមថ្នាក់ សួរបក និងការពារគំនិតដោយផ្អែកលើភស្តុតាង [ការគិតស៊ីជម្រៅ]
+       + ដំណាក់កាល ៣: វិភាគរកចំណុចស្រប និងចំណុចខុសគ្នា (Dialectic Synthesis)
+       + ដំណាក់កាល ៤: សំយោគក្របខណ្ឌទ្រឹស្តីរួម និងឆ្លុះបញ្ចាំងពីការផ្លាស់ប្តូរការយល់ឃើញ
+     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 ឆ្លុះបញ្ចាំងពីទស្សនៈផ្ទាល់ខ្លួន។${techPrompt}`;
+
+      case 'experimental':
+        return `
+10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្រពិសោធន៍ និងអនុវត្តជាក់ស្តែង (Experimental Method)» ក្នុងទម្រង់ Flipped Classroom៖
+     • ជំហានទី ២ (១០%): ពិនិត្យទ្រឹស្តី និងគោលការណ៍សុវត្ថិភាពពិសោធន៍ដែលបានរៀនតាមវីដេអូ។
+     • ជំហានទី ៣ (១០%): ណែនាំឧបករណ៍ពិសោធន៍ និងកំណត់សម្មតិកម្ម${titleStr}។
+     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): ប្រតិបត្តិការពិសោធន៍ជាក្រុម៖
+       + ដំណាក់កាល ១: ដំឡើង និងដំណើរការពិសោធន៍ជាក់ស្តែងតាមក្រុម
+       + ដំណាក់កាល ២: កត់ត្រាទិន្នន័យ វាស់វែង និងគូសក្រាហ្វិក/តារាងលទ្ធផល
+       + ដំណាក់កាល ៣: វិភាគកំហុសលម្អៀង (Error Analysis) និងផ្ទៀងផ្ទាត់សម្មតិកម្ម
+       + ដំណាក់កាល ៤: បូកសរុប និងការពារលទ្ធផលពិសោធន៍តាមក្រុម
+     • ជំហានទី ៥ (៥%): សម្អាតឧបករណ៍ និងសរសេររបាយការណ៍សង្ខេប Exit Ticket។${techPrompt}`;
+
+      case 'jigsaw':
+      case 'cooperative':
+        return `
+10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្រសហការ (Cooperative Learning / Jigsaw)» ក្នុងទម្រង់ Flipped Classroom៖
    - រៀបចំដំណើរការក្នុងថ្នាក់ដោយប្រើបច្ចេកទេស Jigsaw និងផែនទីគំនិតឱ្យមានអន្តរកម្មកម្រិតខ្ពស់បំផុត៖
      • ជំហានទី ២ (១០%): ពិនិត្យលទ្ធផល Pre-Test ស្រាយចម្ងល់ Muddiest Points និងផ្ទៀងផ្ទាត់ចំណេះដឹងជាមូលដ្ឋាន។
      • ជំហានទី ៣ (១០%): គ្រូចោទសំណួរគន្លឹះ ៤ សំណួរ បែងចែកសិស្សជា «ក្រុមដើម (Home Groups)» រួចបញ្ជូនតំណាងទៅកាន់ «ក្រុមអ្នកជំនាញ (Expert Groups)» តាមប្រធានបទរងនៃមេរៀន${titleStr}។
@@ -3391,7 +3867,7 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '') {
        + ដំណាក់កាល ២ (ត្រឡប់ទៅក្រុមដើមដើម្បីបង្រៀនគ្នា - Jigsaw Sharing): សមាជិកត្រឡប់ទៅ Home Groups វិញ បង្រៀនគ្នាទៅវិញទៅមកលើគ្រប់ផ្នែកនៃមេរៀន [ការប្រាស្រ័យទាក់ទង & សហការ]
        + ដំណាក់កាល ៣ (សំយោគគំនិតរួមលើ Concept Map / Flipchart): ក្រុមដើមរួមគ្នាចងក្រងជា «ផែនទីគំនិតរួម (Comprehensive Concept Map)» ឬសេណារីយ៉ូ Role-Play [ភាពច្នៃប្រឌិត]
        + ដំណាក់កាល ៤ (Gallery Walk & វាយតម្លៃគ្នាទៅវិញទៅមក): ដើរទស្សនាស្នាដៃក្រុមដទៃ ផ្តល់ Feedback និងវាយតម្លៃតាម Rubric
-     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 សង្ខេបចំណេះដឹងពីក្រុមអ្នកជំនាញ និងកិច្ចការផ្ទះ។`;
+     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 សង្ខេបចំណេះដឹងពីក្រុមអ្នកជំនាញ និងកិច្ចការផ្ទះ។${techPrompt}`;
 
       case '5e':
         return `
@@ -3403,7 +3879,7 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '') {
      • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): ផ្សារភ្ជាប់ដំណាក់កាល Explain & Elaborate៖
        + Explain: ក្រុមនីមួយៗពន្យល់ និងការពារទិន្នន័យ/របកគំហើញដែលបានរកឃើញ គ្រូបូកសរុបគោលការណ៍គន្លឹះ
        + Elaborate: សិស្សយកចំណេះដឹងទៅពង្រីកអនុវត្តដោះស្រាយបញ្ហាប្រឈមថ្មី (Transfer of Learning) លើផ្ទាំង Flipchart A0
-     • ជំហានទី ៥: ផ្សារភ្ជាប់ដំណាក់កាល Evaluate (វាយតម្លៃសមត្ថភាព តាមរយៈ Exit Ticket 3-2-1, Rubric និង Post-Test)។`;
+     • ជំហានទី ៥: ផ្សារភ្ជាប់ដំណាក់កាល Evaluate (វាយតម្លៃសមត្ថភាព តាមរយៈ Exit Ticket 3-2-1, Rubric និង Post-Test)។${techPrompt}`;
 
       case 'direct':
         return `
@@ -3417,7 +3893,7 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '') {
        + ដំណាក់កាល ២ (អនុវត្តកម្រិតខ្ពស់ជាក្រុម): ដោះស្រាយលំហាត់ស្មុគស្មាញ ឬស្ថានភាពអនុវត្តជាក់ស្តែងលើ Flipchart A0 [ការដោះស្រាយបញ្ហា]
        + ដំណាក់កាល ៣ (បង្ហាញលទ្ធផល & ពិនិត្យកែកំហុស): ឡើងបង្ហាញដំណោះស្រាយលើក្តារខៀន គ្រូនិងសិស្សពិនិត្យកំហុសទូទៅ (Error Analysis)
        + ដំណាក់កាល ៤ (ស្វ័យវាយតម្លៃ): សិស្សផ្ទៀងផ្ទាត់ចម្លើយផ្ទាល់ខ្លួន និងកែសម្រួលឱ្យបាន ១០០% ត្រឹមត្រូវ
-     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 វាស់ស្ទង់ភាពស្ទាត់ជំនាញ និងលំហាត់ពង្រឹងសមត្ថភាពនៅផ្ទះ។`;
+     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 វាស់ស្ទង់ភាពស្ទាត់ជំនាញ និងលំហាត់ពង្រឹងសមត្ថភាពនៅផ្ទះ។${techPrompt}`;
 
       default: // student_centered
         return `
@@ -3431,7 +3907,7 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '') {
        + ដំណាក់កាល ២ (សហការផលិតស្នាដៃ): ផលិតលទ្ធផលរួមលើ Flipchart A0 ដោយបែងចែកតួនាទីច្បាស់លាស់ [ការសហការ]
        + ដំណាក់កាល ៣ (បទបង្ហាញដឹកនាំដោយសិស្ស): សិស្សដឹកនាំការធ្វើបទបង្ហាញ និងសួរសំណួរដេញដោលគ្នា [ការប្រាស្រ័យទាក់ទង]
        + ដំណាក់កាល ៤ (ការឆ្លុះបញ្ចាំងរួម): ឆ្លុះបញ្ចាំងលើដំណើរការរៀន (Metacognition) និងវាយតម្លៃតាម Rubric
-     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 ស្ទង់មតិសិស្សលើការយល់ដឹង និងកិច្ចការស្វ័យសិក្សាបន្ត។`;
+     • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 ស្ទង់មតិសិស្សលើការយល់ដឹង និងកិច្ចការស្វ័យសិក្សាបន្ត។${techPrompt}`;
     }
   } else {
     // Standard 5-Step MoEYS Format
@@ -3448,9 +3924,57 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '') {
      • [សកម្មភាព PBL ជាក្រុម]: គ្រូបែងចែកសិស្សជាក្រុម ដាក់សេណារីយ៉ូបញ្ហាជាក់ស្តែងឱ្យក្រុមនីមួយៗរៀបចំយុទ្ធសាស្ត្រដោះស្រាយលើផ្ទាំង Flipchart ឬក្ដារឆ្នួន។
      • សិស្សពិភាក្សា ដោះស្រាយ ធ្វើតេស្តសម្មតិកម្ម និងឡើងការពារដំណោះស្រាយរបស់ក្រុម [ជំនាញដោះស្រាយបញ្ហា និងការគិតស៊ីជម្រៅ]។
      • គ្រូនិងសិស្សវាយតម្លៃដំណោះស្រាយតាមលក្ខណៈវិនិច្ឆ័យរួម។
-   - ជំហានទី ៥ (កិច្ចការផ្ទះ): ដាក់កិច្ចការបញ្ហាជាក់ស្តែងថ្មីមួយសម្រាប់សិស្សដោះស្រាយនៅផ្ទះ។`;
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ): ដាក់កិច្ចការបញ្ហាជាក់ស្តែងថ្មីមួយសម្រាប់សិស្សដោះស្រាយនៅផ្ទះ។${techPrompt}`;
+
+      case 'pjbl':
+        return `
+៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
+   - ជំហានទី ២ (រំលឹកមេរៀន): ផ្សារភ្ជាប់ចំណេះដឹងគ្រឹះទៅកាន់គោលដៅបង្កើតស្នាដៃជាក់ស្តែង។
+   - ជំហានទី ៣ (មេរៀនថ្មី - Project Initiation):
+     • គ្រូណែនាំគោលដៅគម្រោង និងសំណួរគន្លឹះតម្រង់ទិស (Driving Question) នៃ «${lessonTitle || 'មេរៀនថ្មី'}»។
+     • គ្រូពន្យល់ទ្រឹស្តី និងក្បួនខ្នាតបច្ចេកទេសដែលចាំបាច់សម្រាប់អនុវត្តគម្រោង។
+   - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - Collaborative Project Work ៧០% STT):
+     • សិស្សធ្វើការជាក្រុម រៀបចំផែនការ និងអនុវត្តសកម្មភាពបង្កើតស្នាដៃ (Artifact Creation)។
+     • ក្រុមនីមួយៗឡើងការពារស្នាដៃ និងទទួល Feedback ស្ថាបនា។
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ): បន្តអភិវឌ្ឍគម្រោង និងឆ្លុះបញ្ចាំង Exit Ticket 3-2-1។${techPrompt}`;
+
+      case 'ibl':
+        return `
+៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
+   - ជំហានទី ២ (រំលឹកមេរៀន): ចោទសួរដាស់ការចង់ដឹង បង្កើតជាសំណួរស៊ើបអង្កេតរួម។
+   - ជំហានទី ៣ (មេរៀនថ្មី - Inquiry & Hypothesis):
+     • គ្រូជំរុញឱ្យសិស្សបង្កើតសម្មតិកម្ម និងរៀបចំវិធីសាស្ត្រស្វែងរកភស្តុតាងនៃ «${lessonTitle || 'មេរៀនថ្មី'}»។
+     • គ្រូផ្តល់ទិន្នន័យ ឯកសារ ឬតម្រុយសម្រាប់ស៊ើបអង្កេត។
+   - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - Investigation & Evidence ៧០% STT):
+     • ក្រុមសិស្សវិភាគទិន្នន័យ ផ្ទៀងផ្ទាត់សម្មតិកម្ម និងទាញសេចក្តីសន្និដ្ឋានរួម [ការគិតស៊ីជម្រៅ]។
+     • តំណាងក្រុមឡើងបង្ហាញរបកគំហើញ និងទឡ្ហីករណ៍ភស្តុតាង។
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ): ស្វែងរកការអនុវត្តបន្ថែម និង Exit Ticket 3-2-1។${techPrompt}`;
+
+      case 'socratic':
+        return `
+៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
+   - ជំហានទី ២ (រំលឹកមេរៀន): ចោទសួររំលឹកបែបពិចារណា ផ្សារភ្ជាប់ទៅកាន់មេរៀនថ្មី។
+   - ជំហានទី ៣ (មេរៀនថ្មី - Socratic Inquiry Dialogue):
+     • គ្រូមិនបង្រៀនបែបសូត្រទ្រឹស្តីទេ តែចោទជាស៊េរីសំណួរដេញដោលស៊ីជម្រៅនៃ «${lessonTitle || 'មេរៀនថ្មី'}»។
+     • គ្រូនាំសិស្សឱ្យរកឃើញភាពមិនស៊ីសង្វាក់គ្នានៃការគិត និងទាញទៅរកនិយមន័យពិត។
+   - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - Peer Dialogue & Argumentation ៧០% STT):
+     • សិស្សចាប់ដៃគូ ឬក្រុមតូច ធ្វើការដេញដោលទស្សនៈ សួរបក និងការពារគំនិតលើក្ដារឆ្នួន/Flipchart [ការប្រាស្រ័យទាក់ទង & ការគិតស៊ីជម្រៅ]។
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ): សរសេរឆ្លុះបញ្ចាំងពីទស្សនៈផ្ទាល់ខ្លួន Exit Ticket 3-2-1។${techPrompt}`;
+
+      case 'experimental':
+        return `
+៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
+   - ជំហានទី ២ (រំលឹកមេរៀន): ពិនិត្យចំណេះដឹងទ្រឹស្តី និងច្បាប់សុវត្ថិភាព។
+   - ជំហានទី ៣ (មេរៀនថ្មី - Experiment Setup & Hypothesis):
+     • គ្រូណែនាំឧបករណ៍ពិសោធន៍ និងគោលការណ៍នៃ «${lessonTitle || 'មេរៀនថ្មី'}»។
+     • សិស្សបង្កើតសម្មតិកម្មមុនពេលធ្វើតេស្ត។
+   - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - Hands-on Experimentation ៧០% STT):
+     • ក្រុមសិស្សដំណើរការពិសោធន៍ផ្ទាល់ដៃ កត់ត្រាទិន្នន័យ គណនា និងវិភាគលទ្ធផលជាក់ស្តែង [ជំនាញអនុវត្ត & 4Cs]។
+     • បង្ហាញលទ្ធផល និងបូកសរុបក្បួនរួម។
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ): បំពេញរបាយការណ៍ពិសោធន៍ និង Exit Ticket 3-2-1។${techPrompt}`;
 
       case 'jigsaw':
+      case 'cooperative':
         return `
 ៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
    - ជំហានទី ២ (រំលឹកមេរៀន): រំលឹកចំណេះដឹងគ្រឹះដែលជាមូលដ្ឋានសម្រាប់បែងចែកប្រធានបទជំនាញ។
@@ -3462,7 +3986,7 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '') {
      • សិស្សត្រឡប់ទៅ «ក្រុមដើម (Home Groups)» វិញ។
      • អ្នកជំនាញម្នាក់ៗធ្វើបទបង្ហាញបង្រៀនមិត្តរួមក្រុមដើមពីផ្នែកដែលខ្លួនបានរៀន [ជំនាញទំនាក់ទំនង និងការសហការ]។
      • សមាជិកក្រុមដើមទាំងអស់រួមគ្នាចងក្រងខ្លឹមសារទាំងមូលជា «ផែនទីគំនិត (Concept Map)» ឬសង្ខេបលើផ្ទាំង Flipchart រួចធ្វើ Gallery Walk។
-   - ជំហានទី ៥ (កិច្ចការផ្ទះ): Exit Ticket 3-2-1 និងកិច្ចការស្រាវជ្រាវពង្រឹងការយល់ដឹង។`;
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ): Exit Ticket 3-2-1 និងកិច្ចការស្រាវជ្រាវពង្រឹងការយល់ដឹង។${techPrompt}`;
 
       case '5e':
         return `
@@ -3474,7 +3998,7 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '') {
    - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - Elaborate & Evaluate ៧០% STT):
      • ដំណាក់កាល Elaborate (ពង្រីកចំណេះដឹង): សិស្សអនុវត្តចំណេះដឹងថ្មីទៅដោះស្រាយលំហាត់ ឬស្ថានភាពស្មុគស្មាញថ្មីជាក្រុម [ការគិតស៊ីជម្រៅ]។
    - ជំហានទី ៥ (កិច្ចការផ្ទះ - Evaluate):
-     • ដំណាក់កាល Evaluate (វាយតម្លៃ): ធ្វើតេស្តរហ័ស ឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 និងដាក់កិច្ចការផ្ទះ។`;
+     • ដំណាក់កាល Evaluate (វាយតម្លៃ): ធ្វើតេស្តរហ័ស ឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 និងដាក់កិច្ចការផ្ទះ។${techPrompt}`;
 
       case 'direct':
         return `
@@ -3486,7 +4010,7 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '') {
    - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - "You Do" Independent & Pair Practice ៧០% STT):
      • ដំណាក់កាល "You Do" (សិស្សអនុវត្តដោយឯករាជ្យ): គ្រូដាក់កម្រងលំហាត់អនុវត្តពីងាយទៅពិបាក សិស្សធ្វើដោយខ្លួនឯង ឬជាដៃគូ។
      • គ្រូដើរត្រួតពិនិត្យ ផ្តល់ Feedback ភ្លាមៗ (Immediate Scaffolding) និងហៅសិស្សឡើងកែលើក្តារខៀន។
-   - ជំហានទី ៥ (កិច្ចការផ្ទះ): ដាក់លំហាត់អនុវត្តបន្ថែមសម្រាប់ពង្រឹងភាពស្ទាត់ជំនាញ (Fluency) នៅផ្ទះ។`;
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ): ដាក់លំហាត់អនុវត្តបន្ថែមសម្រាប់ពង្រឹងភាពស្ទាត់ជំនាញ (Fluency) នៅផ្ទះ។${techPrompt}`;
 
       default: // student_centered
         return `
@@ -3498,7 +4022,7 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '') {
    - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ - Active Group Application ៧០% STT):
      • អនុវត្តយ៉ាងម៉ឺងម៉ាត់នូវច្បាប់ TTT 30% / STT 70%៖ សិស្សធ្វើការជាក្រុមលើកិច្ចការអនុវត្តជាក់ស្តែង ធ្វើបទបង្ហាញការពារលើ Flipchart ឬក្ដារឆ្នួន [ជំនាញ 4Cs]។
      • គ្រូដើរជួយសម្របសម្រួល មិនជ្រៀតជ្រែកការគិតរបស់សិស្ស។
-   - ជំហានទី ៥ (កិច្ចការផ្ទះ): Exit Ticket 3-2-1 និងការស្រាវជ្រាវបន្តតាមចំណាប់អារម្មណ៍។`;
+   - ជំហានទី ៥ (កិច្ចការផ្ទះ): Exit Ticket 3-2-1 និងការស្រាវជ្រាវបន្តតាមចំណាប់អារម្មណ៍។${techPrompt}`;
     }
   }
 }
@@ -3521,7 +4045,10 @@ async function handleGenerateLessonPlan() {
   const school = document.getElementById('inputSchool').value.trim();
   const teacher = document.getElementById('inputTeacher').value.trim();
   const duration = getDurationValue();
-  const method = document.getElementById('inputMethod').value;
+  const isEn = (state.language === 'en');
+  const approach = isEn ? 'Student-Centered Approach (70% STT / 30% TTT)' : 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach — ៧០% STT / ៣០% TTT)';
+  const method = (typeof getSelectedTeachingMethod === 'function') ? getSelectedTeachingMethod() : document.getElementById('inputMethod').value;
+  const techniques = (typeof getSelectedTechniques === 'function') ? getSelectedTechniques() : [];
   const customNotes = document.getElementById('inputCustomNotes').value.trim();
   const lessonContent = document.getElementById('lessonContentText').value.trim();
 
@@ -3539,7 +4066,9 @@ async function handleGenerateLessonPlan() {
   }
 
   const genParams = {
-    school, teacher, subject, grade, duration, chapter, lessonTitle, method, customNotes, lessonContent,
+    school, teacher, subject, grade, duration, chapter, lessonTitle,
+    approach, method, techniques,
+    customNotes, lessonContent,
     language: state.language || 'km',
     templateMode: state.templateMode,
     presetId: state.selectedPresetId,
@@ -3885,7 +4414,7 @@ async function generateWithGroqAPI(params) {
   const totalMin = parseDurationToMinutes(params.duration);
   const stepTimeHints = calculateStepDurations(params.duration, isFlipped ? 'flipped' : (isBd ? 'backward_design' : 'standard'));
 
-  const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle);
+  const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle, params.techniques);
   const isEn = (params.language === 'en' || state.language === 'en');
   const targetLang = isEn ? 'ENGLISH (all content, objectives, pedagogical steps, materials, and activities MUST be written 100% in English)' : 'Khmer';
   const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS Standard 5-Step'} Lesson Plan in ${targetLang} for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}).
@@ -3953,7 +4482,7 @@ async function generateWithOpenRouterAPI(params) {
   const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
   const isFlipped = isFlippedLearningRequest(params);
   const isBd = !isFlipped && isBackwardDesignRequest(params);
-  const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle);
+  const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle, params.techniques);
   const isEn = (params.language === 'en' || state.language === 'en');
   const targetLang = isEn ? 'ENGLISH (all content, objectives, pedagogical steps, materials, and activities MUST be written 100% in English)' : 'Khmer';
   const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS Standard 5-Step'} Lesson Plan in ${targetLang} for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}).
@@ -4156,7 +4685,7 @@ ${isLongSession ? `• This is an EXTENDED ${totalMin}-minute block (Multi-hour 
    - [C - Condition / លក្ខខណ្ឌ]: មធ្យោបាយ ឬវិធីសាស្ត្ររៀន (ឧ. «តាមរយៈការពន្យល់របស់គ្រូ និងការសង្កេតស្លាយ/វីដេអូ», «តាមរយៈការអានឯកសារគោល», «តាមរយៈការអនុវត្តលំហាត់ជាក់ស្តែង និងការពិភាក្សាជាក្រុម», «តាមរយៈការឆ្លុះបញ្ចាំងលើ Exit Ticket»...)
    - [S / D - Standard / ស្ដង់ដារ ឬ កម្រិតកំណត់]: កម្រិតកំណត់នៃការសម្រេចបាន (ឧ. «បានត្រឹមត្រូវ និងក្បោះក្បាយ», «បានយ៉ាងហោចណាស់ ៨០% ត្រឹមត្រូវ», «បានច្បាស់លាស់ឥតខុសឆ្គង», «ប្រកបដោយភាពជឿជាក់ និងស្ទាត់ជំនាញ», «ប្រកបដោយស្មារតីទទួលខុសត្រូវខ្ពស់»)
    ⚠️ ហាមដាច់ខាតសរសេរតែសកម្មភាពកាត់ៗ (ឧ. «ពន្យល់បានពី...») ដោយគ្មានលក្ខខណ្ឌ (Condition: តាមរយៈ...) និងគ្មានស្ដង់ដារ (Standard: បានត្រឹមត្រូវ...)!
-${getMethodPedagogicalPrompt(params.method, true, false, params.lessonTitle)}
+${getMethodPedagogicalPrompt(params.method, true, false, params.lessonTitle, params.techniques)}
 
 CRITICAL INSTRUCTIONS FOR AI GENERATION:
 1. Deep Content Analysis: Thoroughly examine the provided lesson content. Extract real definitions, terms, rules, formulas, and examples. Use them everywhere in the plan.
@@ -4402,7 +4931,7 @@ STEP DURATION ALLOCATION (${totalMin} MINUTES TOTAL):
    - ច្បាប់ TTT 30% / STT 70%: នៅក្នុងជំហានទី៤ ត្រូវរៀបចំសកម្មភាពយ៉ាងណាឱ្យគ្រូនិយាយត្រឹមតែ ៣០% និងសិស្សអនុវត្ត/ពិភាក្សា ៧០%។
    - ជំនាញសតវត្សទី២១ (4Cs): ត្រូវដាក់រង្វង់ក្រចកបញ្ជាក់ពីជំនាញ 4Cs នៅចុងសកម្មភាពសិស្ស (ឧ. [ជំនាញសហការ និងការគិតស៊ីជម្រៅ])។
    - Exit Ticket 3-2-1: នៅក្នុងជំហានទី៥ ត្រូវដាក់សកម្មភាពវាយតម្លៃចុងម៉ោង (Exit Ticket 3-2-1: ៣ចំណុចដែលបានរៀន ២ចំណុចដែលចាប់អារម្មណ៍ ១ចំណុចដែលឆ្ងល់)។
-${getMethodPedagogicalPrompt(params.method, false, false, params.lessonTitle)}
+${getMethodPedagogicalPrompt(params.method, false, false, params.lessonTitle, params.techniques)}
 
 ⛔ ABSOLUTE PROHIBITIONS:
 - NEVER write "...", "...", or any ellipsis as content
@@ -5457,6 +5986,11 @@ function synthesizeLessonPlanOffline(params) {
   const subject = params.subject;
   const grade = params.grade;
   const method = params.method;
+  const isEn = (state.language === 'en' || params.language === 'en');
+  const approach = params.approach || (isEn ? 'Student-Centered Approach (70% STT / 30% TTT)' : 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach — ៧០% STT / ៣០% TTT)');
+  const techniques = (Array.isArray(params.techniques) && params.techniques.length > 0)
+    ? params.techniques
+    : (typeof getSelectedTechniques === 'function' ? getSelectedTechniques() : ['Think-Pair-Share', 'Jigsaw', 'Gallery Walk']);
   const duration = params.duration || '៥០ នាទី (១ ម៉ោងសិក្សា)';
   const content = params.lessonContent;
   const isFlipped = isFlippedLearningRequest(params);
@@ -5666,7 +6200,9 @@ function synthesizeLessonPlanOffline(params) {
       duration: duration,
       chapter: params.chapter || '',
       lessonTitle: lessonTitle,
+      approach: approach,
       method: method,
+      techniques: techniques,
       dateStr: getKhmerFormattedDate(),
       objectives: { knowledge, skills, attitudes },
       materials: { teacher: teacherMaterials, student: studentMaterials },
@@ -5762,7 +6298,9 @@ function synthesizeLessonPlanOffline(params) {
     duration: duration,
     chapter: params.chapter || '',
     lessonTitle: lessonTitle,
+    approach: approach,
     method: method,
+    techniques: techniques,
     dateStr: getKhmerFormattedDate(),
     objectives: { knowledge, skills, attitudes },
     materials: { teacher: teacherMaterials, student: studentMaterials },
@@ -6740,10 +7278,18 @@ function localizeDuration(duration, isEn) {
 
 // 🎯 Render Comprehensive Teaching Method HTML (Pedagogical Strategy Matrix: Template Mode × Teaching Method)
 // 🎯 Render Comprehensive Teaching Method HTML (Pedagogical Strategy Matrix: Template Mode × Teaching Method)
-function renderTeachingMethodContent(method, templateType = '5_steps', isEn = false) {
-  const m = (method || '').trim() || (isEn ? 'Student-Centered Active Learning Approach' : 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)');
+function renderTeachingMethodContent(method, templateType = '5_steps', isEn = false, data = {}) {
+  const m = (method || (data && data.method) || '').trim() || (isEn ? 'Student-Centered Active Learning Approach' : 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)');
   const methodType = detectMethodType(m);
   const isFlipped = templateType === 'flipped_learning' || m.toLowerCase().includes('ត្រឡប់') || m.toLowerCase().includes('flipped');
+  const approach = (data && data.approach) || (isEn ? 'Student-Centered Approach (70% STT / 30% TTT)' : 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach — ៧០% STT / ៣០% TTT)');
+
+  let techs = (data && Array.isArray(data.techniques) && data.techniques.length > 0)
+    ? data.techniques
+    : (typeof getSelectedTechniques === 'function' ? getSelectedTechniques() : []);
+  const techsBadges = techs.length > 0
+    ? techs.map(t => `<span style="display: inline-block; background: #e0e7ff; color: #4338ca; border: 1px solid #c7d2fe; padding: 2px 8px; border-radius: 12px; font-size: 8.5pt; font-weight: 600; margin-right: 4px; margin-bottom: 3px;"><i class="fa-solid fa-puzzle-piece" style="font-size: 7.5pt; margin-right: 3px;"></i>${escapeHtml(t)}</span>`).join(' ')
+    : (isEn ? 'Think-Pair-Share, Jigsaw, Gallery Walk' : 'Think-Pair-Share, Jigsaw, Gallery Walk');
 
   if (isFlipped) {
     let methodBreakdownHtml = '';
@@ -6758,7 +7304,44 @@ function renderTeachingMethodContent(method, templateType = '5_steps', isEn = fa
               <li><strong>Step 5 (5%):</strong> 3-2-1 Exit Ticket reflection and assignment of follow-up inquiry research.</li>
             </ul>`;
           break;
+        case 'pjbl':
+          methodBreakdownHtml = `
+            <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+              <li><strong>Step 2 (10%):</strong> Verify prerequisite concepts and connect to authentic project goals.</li>
+              <li><strong>Step 3 (10%):</strong> Launch Driving Question and define project challenge milestones.</li>
+              <li><strong>Step 4 (70% - Core Active Learning):</strong> Collaborative Project Execution: (1) Role assignment & action plan, (2) Investigation & artifact prototype creation on Flipcharts, (3) Team defense & constructive critique [4Cs], (4) Rubric assessment.</li>
+              <li><strong>Step 5 (5%):</strong> 3-2-1 Exit Ticket and project progress report.</li>
+            </ul>`;
+          break;
+        case 'ibl':
+          methodBreakdownHtml = `
+            <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+              <li><strong>Step 2 (10%):</strong> Review pre-class insights and frame central inquiry question.</li>
+              <li><strong>Step 3 (10%):</strong> Formulate hypotheses and provide inquiry resources/data.</li>
+              <li><strong>Step 4 (70% - Core Active Learning):</strong> Inquiry Cycle: (1) Evidence gathering & analysis [Critical Thinking], (2) Hypothesis testing, (3) Discovery presentation & debate [Communication], (4) Evidence synthesis.</li>
+              <li><strong>Step 5 (5%):</strong> 3-2-1 Exit Ticket and extension inquiry question.</li>
+            </ul>`;
+          break;
+        case 'socratic':
+          methodBreakdownHtml = `
+            <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+              <li><strong>Step 2 (10%):</strong> Diagnostic check and clarification of Muddiest Points from video study.</li>
+              <li><strong>Step 3 (10%):</strong> Essential Dilemma Question framing high-order inquiry.</li>
+              <li><strong>Step 4 (70% - Core Active Learning):</strong> Socratic Seminar: (1) Think-Pair-Share argument formulation, (2) Class-wide dialectic dialogue & cross-examination [Critical Thinking], (3) Dialectic synthesis, (4) Conceptual unification.</li>
+              <li><strong>Step 5 (5%):</strong> 3-2-1 Exit Ticket self-reflection on perspective evolution.</li>
+            </ul>`;
+          break;
+        case 'experimental':
+          methodBreakdownHtml = `
+            <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+              <li><strong>Step 2 (10%):</strong> Review lab safety protocols and foundational theories from video study.</li>
+              <li><strong>Step 3 (10%):</strong> Lab apparatus setup and hypothesis formulation.</li>
+              <li><strong>Step 4 (70% - Core Active Learning):</strong> Hands-on Team Experimentation: (1) Experimental execution, (2) Data recording & graphing, (3) Error analysis & hypothesis testing, (4) Lab defense & conclusion.</li>
+              <li><strong>Step 5 (5%):</strong> Cleanup and 3-2-1 Exit Ticket lab summary report.</li>
+            </ul>`;
+          break;
         case 'jigsaw':
+        case 'cooperative':
           methodBreakdownHtml = `
             <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
               <li><strong>Step 2 (10%):</strong> Pre-Test diagnostic review, addressing Muddiest Points from video self-study.</li>
@@ -6799,7 +7382,9 @@ function renderTeachingMethodContent(method, templateType = '5_steps', isEn = fa
 
       return `
         <ul class="doc-list" style="margin-top: 4px; line-height: 1.8;">
+          <li><strong>Teaching Approach:</strong> ${escapeHtml(approach)}</li>
           <li><strong>Primary Teaching Methodology:</strong> ${escapeHtml(m)}</li>
+          <li><strong>Active Teaching Techniques:</strong> ${techsBadges}</li>
           <li><strong>Instructional Model & Framework:</strong> 5-Step Flipped Learning Model (5% - 10% - 10% - 70% - 5%) — Integrates pre-class self-study (Pre-Class Phase via NotebookLM micro-lectures and diagnostic Pre-Test QCM) with high-impact in-class active learning (70% STT).</li>
           <li><strong>In-Class Pedagogical Implementation Phases:</strong>
             ${methodBreakdownHtml}
@@ -6818,7 +7403,44 @@ function renderTeachingMethodContent(method, templateType = '5_steps', isEn = fa
             <li><strong>ជំហានទី ៥ (៥%):</strong> ឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 និងដាក់កិច្ចការបញ្ហាស្រាវជ្រាវបន្ត</li>
           </ul>`;
         break;
+      case 'pjbl':
+        methodBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>ជំហានទី ២ (១០%):</strong> ត្រួតពិនិត្យការយល់ដឹងពីផ្ទះ ភ្ជាប់គំនិតមូលដ្ឋានទៅនឹងបញ្ហាជាក់ស្តែងដែលត្រូវផលិតគម្រោង</li>
+            <li><strong>ជំហានទី ៣ (១០%):</strong> គ្រូប្រគល់ប្រធានបទគម្រោង (Driving Question) និងកំណត់គោលដៅលទ្ធផលជាក់ស្តែង</li>
+            <li><strong>ជំហានទី ៤ (៧០% - Core Active Learning):</strong> សហការផលិត និងការពារគម្រោង៖ (១) បែងចែកតួនាទី & ផែនការសកម្មភាព, (២) សហការស្រាវជ្រាវ & ផលិតស្នាដៃគម្រោងលើ Flipchart A0, (៣) បទបង្ហាញការពារស្នាដៃ & ឆ្លើយសំណួររិះគន់ស្ថាបនា, (៤) វាយតម្លៃគម្រោងតាម Rubric</li>
+            <li><strong>ជំហានទី ៥ (៥%):</strong> Exit Ticket 3-2-1 និងការបញ្ចប់របាយការណ៍គម្រោង</li>
+          </ul>`;
+        break;
+      case 'ibl':
+        methodBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>ជំហានទី ២ (១០%):</strong> ពិនិត្យការយល់ដឹងពីផ្ទះ ចោទសួរសំណួរដាស់ការចង់ដឹង និងបង្កើតសំណួរស៊ើបអង្កេតរួម</li>
+            <li><strong>ជំហានទី ៣ (១០%):</strong> បង្កើតសម្មតិកម្ម និងផ្តល់ធនធាន/ទិន្នន័យសម្រាប់ស៊ើបអង្កេត</li>
+            <li><strong>ជំហានទី ៤ (៧០% - Core Active Learning):</strong> ដំណើរការស៊ើបអង្កេត៖ (១) ប្រមូល & វិភាគទិន្នន័យភស្តុតាង, (២) ផ្ទៀងផ្ទាត់សម្មតិកម្ម, (៣) បង្ហាញរបកគំហើញ & ដេញដោលតម្លាភាពទិន្នន័យ, (៤) សំយោគរបកគំហើញរួមតាម Rubric</li>
+            <li><strong>ជំហានទី ៥ (៥%):</strong> Exit Ticket 3-2-1 និងសំណួរស៊ើបអង្កេតពង្រីក</li>
+          </ul>`;
+        break;
+      case 'socratic':
+        methodBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>ជំហានទី ២ (១០%):</strong> ពិនិត្យសំណួរស្ទង់ និងដោះស្រាយ Muddiest Points ពីការមើលវីដេអូ</li>
+            <li><strong>ជំហានទី ៣ (១០%):</strong> គ្រូចោទសំណួរគន្លឹះចំហកម្រិតខ្ពស់ (Essential Dilemma Question)</li>
+            <li><strong>ជំហានទី ៤ (៧០% - Core Active Learning):</strong> សិក្ខាសាលាសូក្រាត៖ (១) គិតជាបុគ្គល & ពិភាក្សាជាដៃគូ (Think-Pair-Share), (២) ដេញដោលទស្សនៈរួមថ្នាក់ & សួរបកដោយផ្អែកលើភស្តុតាង, (៣) វិភាគរកចំណុចស្រប និងខុសគ្នា, (៤) សំយោគក្របខណ្ឌទ្រឹស្តីរួម</li>
+            <li><strong>ជំហានទី ៥ (៥%):</strong> Exit Ticket 3-2-1 ឆ្លុះបញ្ចាំងពីទស្សនៈផ្ទាល់ខ្លួន</li>
+          </ul>`;
+        break;
+      case 'experimental':
+        methodBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>ជំហានទី ២ (១០%):</strong> ពិនិត្យទ្រឹស្តី និងគោលការណ៍សុវត្ថិភាពពិសោធន៍ដែលបានរៀនតាមវីដេអូ</li>
+            <li><strong>ជំហានទី ៣ (១០%):</strong> ណែនាំឧបករណ៍ពិសោធន៍ និងកំណត់សម្មតិកម្ម</li>
+            <li><strong>ជំហានទី ៤ (៧០% - Core Active Learning):</strong> ប្រតិបត្តិការពិសោធន៍ជាក្រុម៖ (១) ដំឡើង & ដំណើរការពិសោធន៍ផ្ទាល់ដៃ, (២) កត់ត្រាទិន្នន័យ & គូសក្រាហ្វិកលទ្ធផល, (៣) វិភាគកំហុសលម្អៀង & ផ្ទៀងផ្ទាត់សម្មតិកម្ម, (៤) បូកសរុប & ការពារលទ្ធផល</li>
+            <li><strong>ជំហានទី ៥ (៥%):</strong> សម្អាតឧបករណ៍ និងសរសេររបាយការណ៍សង្ខេប Exit Ticket</li>
+          </ul>`;
+        break;
       case 'jigsaw':
+      case 'cooperative':
         methodBreakdownHtml = `
           <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
             <li><strong>ជំហានទី ២ (១០%):</strong> ត្រួតពិនិត្យ Pre-Test ស្រាយចម្ងល់ Muddiest Points ពីការស្វ័យសិក្សាតាមវីដេអូ</li>
@@ -6859,7 +7481,9 @@ function renderTeachingMethodContent(method, templateType = '5_steps', isEn = fa
 
     return `
       <ul class="doc-list" style="margin-top: 4px; line-height: 1.8;">
+        <li><strong>គោលវិធីបង្រៀន៖</strong> ${escapeHtml(approach)}</li>
         <li><strong>វិធីសាស្ត្របង្រៀនចម្បង៖</strong> ${escapeHtml(m)}</li>
+        <li><strong>យុទ្ធវិធីបង្រៀនគន្លឹះ៖</strong> ${techsBadges}</li>
         <li><strong>គំរូ និងទម្រង់រៀបចំការរៀន៖</strong> ការរៀនបែបត្រឡប់ (Flipped Learning Model) ៥ ជំហាន (៥% - ១០% - ១០% - ៧០% - ៥%) — ផ្សារភ្ជាប់ការស្វ័យសិក្សាត្រៀមមុនម៉ោង (Pre-Class Phase តាមវីដេអូបង្រៀន Micro-Lecture NotebookLM និងបុរេតេស្ត Pre-Test QCM) ជាមួយការរៀនសកម្មក្នុងថ្នាក់ (In-Class Active Learning ៧០%)។</li>
         <li><strong>ការរៀបចំដំណាក់កាលអនុវត្តវិធីសាស្ត្រក្នុងថ្នាក់៖</strong>
           ${methodBreakdownHtml}
@@ -6881,7 +7505,44 @@ function renderTeachingMethodContent(method, templateType = '5_steps', isEn = fa
             <li><strong>Step 5 (Assessment & Homework):</strong> Assign authentic extension problems for home study and 3-2-1 Exit Ticket.</li>
           </ul>`;
         break;
+      case 'pjbl':
+        standardBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>Step 2 (Review):</strong> Bridge prior knowledge to authentic project challenge goals.</li>
+            <li><strong>Step 3 (New Lesson):</strong> Launch Driving Question, clarify project specifications and milestone requirements.</li>
+            <li><strong>Step 4 (Practice 70% STT):</strong> Collaborative project execution on Flipcharts, artifact creation, team defense [4Cs].</li>
+            <li><strong>Step 5 (Assessment & Homework):</strong> Project development follow-up and 3-2-1 Exit Ticket.</li>
+          </ul>`;
+        break;
+      case 'ibl':
+        standardBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>Step 2 (Review):</strong> Revisit prior knowledge to frame the central inquiry question.</li>
+            <li><strong>Step 3 (New Lesson):</strong> Introduce inquiry prompt, guide students to formulate hypotheses and examine evidence.</li>
+            <li><strong>Step 4 (Practice 70% STT):</strong> Data analysis in teams, verify hypotheses, synthesize findings on Flipcharts [4Cs].</li>
+            <li><strong>Step 5 (Assessment & Homework):</strong> Extension inquiry assignment and 3-2-1 Exit Ticket.</li>
+          </ul>`;
+        break;
+      case 'socratic':
+        standardBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>Step 2 (Review):</strong> Thought-provoking diagnostic questions connecting previous lessons.</li>
+            <li><strong>Step 3 (New Lesson):</strong> Deep Socratic questioning series guiding students to construct definitions independently.</li>
+            <li><strong>Step 4 (Practice 70% STT):</strong> Paired and small-group dialectic debate on whiteboards/Flipcharts [Critical Thinking].</li>
+            <li><strong>Step 5 (Assessment & Homework):</strong> Personal reflection essay and 3-2-1 Exit Ticket.</li>
+          </ul>`;
+        break;
+      case 'experimental':
+        standardBreakdownHtml = `
+          <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+            <li><strong>Step 2 (Review):</strong> Review prerequisite theory and safety regulations.</li>
+            <li><strong>Step 3 (New Lesson):</strong> Apparatus introduction, demonstrate protocol, formulate hypothesis.</li>
+            <li><strong>Step 4 (Practice 70% STT):</strong> Hands-on team experimentation, data collection, error analysis, lab conclusions [4Cs].</li>
+            <li><strong>Step 5 (Assessment & Homework):</strong> Complete lab report and 3-2-1 Exit Ticket.</li>
+          </ul>`;
+        break;
       case 'jigsaw':
+      case 'cooperative':
         standardBreakdownHtml = `
           <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
             <li><strong>Step 2 (Review):</strong> Revisit prerequisite knowledge essential for sub-topic specialization.</li>
@@ -6920,7 +7581,9 @@ function renderTeachingMethodContent(method, templateType = '5_steps', isEn = fa
     }
     return `
       <ul class="doc-list" style="margin-top: 4px; line-height: 1.8;">
+        <li><strong>Teaching Approach:</strong> ${escapeHtml(approach)}</li>
         <li><strong>Primary Teaching Methodology:</strong> ${escapeHtml(m)}</li>
+        <li><strong>Active Teaching Techniques:</strong> ${techsBadges}</li>
         <li><strong>Lesson Framework:</strong> MoEYS Standard 5-Step Teaching & Learning Process</li>
         <li><strong>Pedagogical Phase Breakdown in 5 Steps:</strong>
           ${standardBreakdownHtml}
@@ -6939,7 +7602,44 @@ function renderTeachingMethodContent(method, templateType = '5_steps', isEn = fa
           <li><strong>ជំហានទី ៥ (កិច្ចការផ្ទះ):</strong> ដាក់កិច្ចការបញ្ហាជាក់ស្តែងថ្មីសម្រាប់សិស្សដោះស្រាយនៅផ្ទះ និងឆ្លុះបញ្ចាំង Exit Ticket 3-2-1</li>
         </ul>`;
       break;
+    case 'pjbl':
+      standardBreakdownHtml = `
+        <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+          <li><strong>ជំហានទី ២ (រំលឹកមេរៀន):</strong> ផ្សារភ្ជាប់ចំណេះដឹងគ្រឹះទៅកាន់គោលដៅបង្កើតស្នាដៃគម្រោងជាក់ស្តែង</li>
+          <li><strong>ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី):</strong> ណែនាំគោលដៅគម្រោង និងសំណួរគន្លឹះតម្រង់ទិស (Driving Question), ពន្យល់ទ្រឹស្តី និងក្បួនខ្នាតបច្ចេកទេស</li>
+          <li><strong>ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT):</strong> សិស្សធ្វើការជាក្រុម រៀបចំផែនការ និងអនុវត្តសកម្មភាពបង្កើតស្នាដៃ (Artifact Creation) លើ Flipchart, ឡើងការពារស្នាដៃ [4Cs]</li>
+          <li><strong>ជំហានទី ៥ (កិច្ចការផ្ទះ):</strong> បន្តអភិវឌ្ឍគម្រោង និងឆ្លុះបញ្ចាំង Exit Ticket 3-2-1</li>
+        </ul>`;
+      break;
+    case 'ibl':
+      standardBreakdownHtml = `
+        <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+          <li><strong>ជំហានទី ២ (រំលឹកមេរៀន):</strong> ចោទសួរដាស់ការចង់ដឹង បង្កើតជាសំណួរស៊ើបអង្កេតរួម</li>
+          <li><strong>ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី):</strong> ជំរុញឱ្យសិស្សបង្កើតសម្មតិកម្ម និងរៀបចំវិធីសាស្ត្រស្វែងរកភស្តុតាង, ផ្តល់ទិន្នន័យ/តម្រុយស្រាវជ្រាវ</li>
+          <li><strong>ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT):</strong> ក្រុមសិស្សវិភាគទិន្នន័យ ផ្ទៀងផ្ទាត់សម្មតិកម្ម និងទាញសេចក្តីសន្និដ្ឋានរួមលើ Flipchart [ការគិតស៊ីជម្រៅ]</li>
+          <li><strong>ជំហានទី ៥ (កិច្ចការផ្ទះ):</strong> ស្វែងរកការអនុវត្តបន្ថែម និង Exit Ticket 3-2-1</li>
+        </ul>`;
+      break;
+    case 'socratic':
+      standardBreakdownHtml = `
+        <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+          <li><strong>ជំហានទី ២ (រំលឹកមេរៀន):</strong> ចោទសួររំលឹកបែបពិចារណា ផ្សារភ្ជាប់ទៅកាន់មេរៀនថ្មី</li>
+          <li><strong>ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី):</strong> ស៊េរីសំណួរដេញដោលស៊ីជម្រៅតាមបែបសូក្រាត ជំរុញឱ្យសិស្សរកឃើញភាពមិនស៊ីសង្វាក់គ្នានៃការគិត និងទាញទៅរកនិយមន័យពិត</li>
+          <li><strong>ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT):</strong> សិស្សដេញដោលទស្សនៈជាដៃគូ ឬក្រុមតូច សួរបក និងការពារគំនិតលើក្ដារឆ្នួន/Flipchart [ការប្រាស្រ័យទាក់ទង & ការគិតស៊ីជម្រៅ]</li>
+          <li><strong>ជំហានទី ៥ (កិច្ចការផ្ទះ):</strong> សរសេរឆ្លុះបញ្ចាំងពីទស្សនៈផ្ទាល់ខ្លួន Exit Ticket 3-2-1</li>
+        </ul>`;
+      break;
+    case 'experimental':
+      standardBreakdownHtml = `
+        <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
+          <li><strong>ជំហានទី ២ (រំលឹកមេរៀន):</strong> ពិនិត្យចំណេះដឹងទ្រឹស្តី និងច្បាប់សុវត្ថិភាពពិសោធន៍</li>
+          <li><strong>ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី):</strong> ណែនាំឧបករណ៍ពិសោធន៍ និងគោលការណ៍, សិស្សបង្កើតសម្មតិកម្មមុនពេលធ្វើតេស្ត</li>
+          <li><strong>ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT):</strong> ក្រុមសិស្សដំណើរការពិសោធន៍ផ្ទាល់ដៃ កត់ត្រាទិន្នន័យ គណនា និងវិភាគលទ្ធផលជាក់ស្តែង [ជំនាញអនុវត្ត & 4Cs]</li>
+          <li><strong>ជំហានទី ៥ (កិច្ចការផ្ទះ):</strong> បំពេញរបាយការណ៍ពិសោធន៍ និង Exit Ticket 3-2-1</li>
+        </ul>`;
+      break;
     case 'jigsaw':
+    case 'cooperative':
       standardBreakdownHtml = `
         <ul style="margin: 6px 0 4px 20px; list-style-type: circle; font-size: 9.5pt; line-height: 1.7;">
           <li><strong>ជំហានទី ២ (រំលឹកមេរៀន):</strong> រំលឹកចំណេះដឹងគ្រឹះចាំបាច់សម្រាប់ការសិក្សាផ្នែកជំនាញ</li>
@@ -6979,7 +7679,9 @@ function renderTeachingMethodContent(method, templateType = '5_steps', isEn = fa
 
   return `
     <ul class="doc-list" style="margin-top: 4px; line-height: 1.8;">
+      <li><strong>គោលវិធីបង្រៀន៖</strong> ${escapeHtml(approach)}</li>
       <li><strong>វិធីសាស្ត្របង្រៀនចម្បង៖</strong> ${escapeHtml(m)}</li>
+      <li><strong>យុទ្ធវិធីបង្រៀនគន្លឹះ៖</strong> ${techsBadges}</li>
       <li><strong>ទម្រង់កិច្ចតែងការ៖</strong> កិច្ចតែងការស្តង់ដារ ៥ ជំហាន ក្រសួងអប់រំ យុវជន និងកីឡា (MoEYS Standard 5-Step Process)</li>
       <li><strong>ការរៀបចំដំណាក់កាលគរុកោសល្យក្នុង ៥ ជំហាន៖</strong>
         ${standardBreakdownHtml}
@@ -7006,6 +7708,12 @@ function normalizeLessonPlanData(data, params = {}) {
   const chapter = data.chapter || params.chapter || '';
   const method = data.method || params.method || (isEn ? 'Active Learning' : 'ការរៀនសកម្ម');
   const dateStr = data.dateStr || params.dateStr || (isEn ? 'Date: ..... / ..... / 202...' : 'ថ្ងៃទី..... ខែ......... ឆ្នាំ២០២...');
+  const approach = data.approach || params.approach || (isEn ? 'Student-Centered Approach (70% STT / 30% TTT)' : 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach — ៧០% STT / ៣០% TTT)');
+  const techniques = (Array.isArray(data.techniques) && data.techniques.length > 0)
+    ? data.techniques
+    : ((Array.isArray(params.techniques) && params.techniques.length > 0)
+      ? params.techniques
+      : (typeof getSelectedTechniques === 'function' ? getSelectedTechniques() : ['Think-Pair-Share', 'Jigsaw', 'Gallery Walk']));
 
   data.subject = subject;
   data.grade = grade;
@@ -7014,7 +7722,9 @@ function normalizeLessonPlanData(data, params = {}) {
   data.school = school;
   data.teacher = teacher;
   data.chapter = chapter;
+  data.approach = approach;
   data.method = method;
+  data.techniques = techniques;
   data.dateStr = dateStr;
 
   const isFlipped = isFlippedLearningRequest(params) || data.templateType === 'flipped_learning' || (data.method && (data.method.includes('ត្រឡប់') || data.method.toLowerCase().includes('flipped')));
@@ -8527,7 +9237,7 @@ function renderLessonPlanToA4(data) {
       <!-- Section 3: Method -->
       <div class="doc-section-title">${isEn ? 'III. TEACHING METHODOLOGY' : '៣. វិធីសាស្រ្ដបង្រៀន'}</div>
       <div style="margin-left: 10px; margin-bottom: 12px; font-size: 10pt;">
-        ${renderTeachingMethodContent(data.method, 'flipped_learning', isEn)}
+        ${renderTeachingMethodContent(data.method, 'flipped_learning', isEn, data)}
       </div>
 
       <!-- Section 4: In-Class Process (3 Columns) -->
@@ -8765,7 +9475,7 @@ function renderLessonPlanToA4(data) {
     <!-- Teaching Method -->
     <div class="doc-section-title" style="font-size: 11.5pt;">${isEn ? 'III. TEACHING METHODOLOGY' : '៣. វិធីសាស្រ្ដបង្រៀន'}</div>
     <div style="margin-left: 10px; margin-bottom: 12px; font-size: 10pt;">
-      ${renderTeachingMethodContent(data.method, '5_steps', isEn)}
+      ${renderTeachingMethodContent(data.method, '5_steps', isEn, data)}
     </div>
 
     <!-- Section IV: In-Class Process -->
@@ -9019,7 +9729,10 @@ function loadSavedAdminProfile() {
 
     if (profile.school !== undefined) document.getElementById('inputSchool').value = profile.school;
     if (profile.teacher !== undefined) document.getElementById('inputTeacher').value = profile.teacher;
-    if (profile.method !== undefined) document.getElementById('inputMethod').value = profile.method;
+    if (profile.method !== undefined) {
+      if (typeof setSelectedTeachingMethod === 'function') setSelectedTeachingMethod(profile.method);
+      else document.getElementById('inputMethod').value = profile.method;
+    }
     if (profile.subject !== undefined) {
       if (typeof setSubjectValue === 'function') setSubjectValue(profile.subject);
       else document.getElementById('inputSubject').value = profile.subject;
@@ -9458,9 +10171,13 @@ async function handleExportWord() {
         ];
       }
 
+      const approachText = data.approach || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach — ៧០% STT / ៣០% TTT)';
+      const techniquesText = (Array.isArray(data.techniques) && data.techniques.length > 0) ? data.techniques.join(', ') : 'Think-Pair-Share, Jigsaw, Gallery Walk';
       docChildren.push(
         new Paragraph({ children: [new TextRun({ text: "៣. វិធីសាស្រ្ដបង្រៀន", bold: true, size: 24 })] }),
+        new Paragraph({ children: [new TextRun({ text: `• គោលវិធីបង្រៀន៖ ${approachText}`, bold: true, size: 22 })] }),
         new Paragraph({ children: [new TextRun({ text: `• វិធីសាស្ត្របង្រៀនចម្បង៖ ${methodTitle}`, bold: true, size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: `• យុទ្ធវិធីបង្រៀនគន្លឹះ៖ ${techniquesText}`, bold: true, size: 22 })] }),
         new Paragraph({ children: [new TextRun({ text: "• គំរូ និងទម្រង់រៀបចំការរៀន៖ ការរៀនបែបត្រឡប់ (Flipped Learning Model ៥ ជំហាន: ៥% - ១០% - ១០% - ៧០% - ៥%) — ផ្សារភ្ជាប់ការស្វ័យសិក្សាត្រៀមមុនម៉ោង (Pre-Class តាមវីដេអូបង្រៀន Micro-Lecture NotebookLM និងបុរេតេស្ត Pre-Test QCM) ជាមួយការរៀនសកម្មក្នុងថ្នាក់ (In-Class Active Learning ៧០%)។", size: 22 })] }),
         new Paragraph({ children: [new TextRun({ text: "• ដំណាក់កាលអនុវត្តវិធីសាស្ត្រក្នុងថ្នាក់៖", italics: true, size: 22 })] }),
         ...methodPhases.map(p => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: p, size: 22 })] })),
@@ -9748,9 +10465,13 @@ async function handleExportWord() {
         ];
       }
 
+      const stdApproachText = data.approach || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach — ៧០% STT / ៣០% TTT)';
+      const stdTechniquesText = (Array.isArray(data.techniques) && data.techniques.length > 0) ? data.techniques.join(', ') : 'Think-Pair-Share, Jigsaw, Gallery Walk';
       docChildren.push(
-        new Paragraph({ children: [new TextRun({ text: "III. វិធីសាស្រ្ដបង្រៀន (Teaching Method)", bold: true, size: 24 })] }),
+        new Paragraph({ children: [new TextRun({ text: "III. វិធីសាស្រ្ដបង្រៀន (Teaching Methodology)", bold: true, size: 24 })] }),
+        new Paragraph({ children: [new TextRun({ text: `• គោលវិធីបង្រៀន៖ ${stdApproachText}`, bold: true, size: 22 })] }),
         new Paragraph({ children: [new TextRun({ text: `• វិធីសាស្ត្របង្រៀនចម្បង៖ ${stdMethodTitle}`, bold: true, size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: `• យុទ្ធវិធីបង្រៀនគន្លឹះ៖ ${stdTechniquesText}`, bold: true, size: 22 })] }),
         new Paragraph({ children: [new TextRun({ text: "• ទម្រង់កិច្ចតែងការ៖ កិច្ចតែងការស្តង់ដារ ៥ ជំហាន ក្រសួងអប់រំ យុវជន និងកីឡា (MoEYS Standard 5-Step Process)", size: 22 })] }),
         new Paragraph({ children: [new TextRun({ text: "• ការរៀបចំដំណាក់កាលគរុកោសល្យក្នុង ៥ ជំហាន៖", italics: true, size: 22 })] }),
         ...standardMethodPhases.map(p => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: p, size: 22 })] })),
@@ -10439,7 +11160,14 @@ function openSavedPlanInCanvas(id) {
   if (record.planData.duration) setDurationValue(record.planData.duration);
   if (record.planData.chapter) document.getElementById('inputChapter').value = record.planData.chapter;
   if (record.planData.lessonTitle) document.getElementById('inputLessonTitle').value = record.planData.lessonTitle;
-  if (record.planData.method) document.getElementById('inputMethod').value = record.planData.method;
+  if (record.planData.method) {
+    if (typeof setSelectedTeachingMethod === 'function') setSelectedTeachingMethod(record.planData.method);
+    else document.getElementById('inputMethod').value = record.planData.method;
+  }
+  if (record.planData.techniques && Array.isArray(record.planData.techniques)) {
+    if (typeof saveSelectedTechniques === 'function') saveSelectedTechniques(record.planData.techniques);
+    if (typeof renderTechniquesChips === 'function') renderTechniquesChips();
+  }
 
   if (record.planData.grade) {
     const degreeKey = findDegreeKeyForGrade(record.planData.grade);

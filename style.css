@@ -3377,3 +3377,106 @@ textarea.form-control {
   background-color: rgba(99, 102, 241, 0.05) !important;
 }
 
+/* ==============================================================================
+   🎯 Modern Teaching Pedagogy Box & Techniques Chips
+   ============================================================================== */
+.teaching-pedagogy-box {
+  transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .teaching-pedagogy-box {
+  background: rgba(30, 41, 59, 0.7) !important;
+  border-color: #334155 !important;
+}
+
+.techniques-chips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.technique-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--bg-card, #ffffff);
+  border: 1.5px solid var(--border-color, #e2e8f0);
+  border-radius: 20px;
+  padding: 4px 11px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  line-height: 1.4;
+}
+
+.technique-chip:hover {
+  border-color: #6366f1;
+  color: #4f46e5;
+  background: #f5f3ff;
+  transform: translateY(-1px);
+}
+
+.technique-chip.active {
+  background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
+  border-color: #4338ca !important;
+  color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(99, 102, 241, 0.32);
+}
+
+.technique-chip.active i {
+  color: #ffffff !important;
+}
+
+.technique-chip.btn-add-technique {
+  border: 1.5px dashed #6366f1;
+  color: #4f46e5;
+  background: #faf5ff;
+}
+
+.technique-chip.btn-add-technique:hover {
+  background: #ede9fe;
+  color: #3730a3;
+  border-style: solid;
+}
+
+.technique-chip .remove-custom-tech {
+  margin-left: 4px;
+  font-size: 0.88rem;
+  opacity: 0.75;
+  cursor: pointer;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  transition: opacity 0.15s;
+}
+
+.technique-chip .remove-custom-tech:hover {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="dark"] .technique-chip {
+  background: #1e293b;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+[data-theme="dark"] .technique-chip:hover {
+  background: #334155;
+  border-color: #818cf8;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .technique-chip.btn-add-technique {
+  background: rgba(99, 102, 241, 0.12);
+  border-color: #818cf8;
+  color: #a5b4fc;
+}
+
