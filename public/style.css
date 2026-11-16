@@ -322,8 +322,8 @@ html, body {
 
 /* Sidebar Panel */
 .sidebar-panel {
-  width: 440px;
-  min-width: 360px;
+  width: clamp(340px, 30vw, 480px);
+  min-width: 300px;
   max-width: 500px;
   background-color: var(--bg-sidebar);
   border-right: 1px solid var(--border-color);
@@ -332,16 +332,22 @@ html, body {
   flex-direction: column;
   z-index: 10;
   transition: width 0.2s ease;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
 }
 
 .sidebar-content {
   flex: 1;
-  overflow-y: auto;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
   -webkit-overflow-scrolling: touch;
   padding: 10px 14px 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 /* Custom Scrollbar */
@@ -365,6 +371,10 @@ html, body {
   padding: 10px 12px;
   box-shadow: var(--shadow-sm);
   transition: var(--transition);
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  min-width: 0 !important;
 }
 
 .config-card:hover {
@@ -376,6 +386,9 @@ html, body {
   align-items: center;
   gap: 8px;
   margin-bottom: 6px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .step-badge {
@@ -392,16 +405,30 @@ html, body {
   flex-shrink: 0;
 }
 
+.card-title-group {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
 .card-title-group h3 {
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .card-title-group p {
   font-size: 0.78rem;
   color: var(--text-muted);
   line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 /* Radio Cards (Template Select) */
@@ -663,17 +690,34 @@ html, body {
 }
 
 .file-status-pill {
-  display: inline-flex;
+  display: flex !important;
   align-items: center;
   gap: 8px;
   background-color: var(--success-light);
   border: 1px solid var(--success);
   color: var(--success);
-  padding: 4px 12px;
+  padding: 5px 12px;
   border-radius: var(--radius-full);
   font-size: 0.8rem;
   font-weight: 600;
   margin-top: 8px;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+}
+
+.file-status-pill .file-name {
+  flex: 1 1 auto;
+  min-width: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block;
+}
+
+.file-status-pill .btn-remove-file {
+  flex-shrink: 0 !important;
 }
 
 .btn-remove-file {
@@ -782,8 +826,21 @@ textarea.form-control {
 
 .form-grid-2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.form-grid-2 > * {
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.form-grid-2 .control-group {
+  min-width: 0 !important;
+  max-width: 100% !important;
 }
 
 .form-grid-2 .control-group label {
@@ -791,6 +848,8 @@ textarea.form-control {
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.4;
+  display: block;
+  max-width: 100%;
 }
 
 .form-grid-3 {
@@ -822,8 +881,26 @@ textarea.form-control {
 /* Action Dock */
 .action-dock {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   padding-top: 2px;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.action-dock > * {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.action-dock .btn-primary-glow {
+  flex: 1 1 200px;
+  min-width: 180px;
+}
+
+.action-dock .btn-ghost {
+  flex: 0 0 auto;
 }
 
 .btn-primary-glow {
@@ -2441,17 +2518,22 @@ textarea.form-control {
 /* Large Desktop (> 1400px) */
 @media (min-width: 1401px) {
   .sidebar-panel {
-    width: 440px;
-    min-width: 380px;
+    width: clamp(380px, 28vw, 480px);
+    min-width: 340px;
     max-width: 500px;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
   }
 }
 
 /* Medium Desktop (1024px - 1400px) */
 @media (max-width: 1400px) and (min-width: 1024px) {
   .sidebar-panel {
-    width: 380px;
-    min-width: 340px;
+    width: clamp(340px, 32vw, 420px);
+    min-width: 320px;
+    max-width: 440px;
+    overflow-x: hidden !important;
+    box-sizing: border-box !important;
   }
   .editable-indicator .edit-hint-text {
     display: none;
@@ -2572,6 +2654,11 @@ textarea.form-control {
   .modal-card {
     width: 95% !important;
     margin: 10px auto;
+  }
+
+  .form-grid-2 {
+    grid-template-columns: 1fr !important;
+    gap: 8px;
   }
 }
 
@@ -3515,7 +3602,9 @@ textarea.form-control {
    ========================================================================== */
 .techniques-multiselect-container {
   position: relative;
-  width: 100%;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .techniques-combo-trigger {
@@ -3531,6 +3620,10 @@ textarea.form-control {
   user-select: none;
   transition: all 0.2s ease;
   min-height: 40px;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden;
 }
 
 .techniques-combo-trigger:hover {
@@ -3548,8 +3641,9 @@ textarea.form-control {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-width: 0 !important;
+  overflow: hidden;
 }
 
 .combo-trigger-left .combo-icon {
@@ -3562,9 +3656,11 @@ textarea.form-control {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-primary, #0f172a);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block;
+  max-width: 100%;
 }
 
 .combo-trigger-right {
@@ -3601,6 +3697,9 @@ textarea.form-control {
   flex-wrap: wrap;
   gap: 5px;
   margin-top: 6px;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 .preview-tech-pill {
@@ -3616,6 +3715,16 @@ textarea.form-control {
   font-weight: 600;
   line-height: 1.4;
   transition: all 0.15s ease;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.preview-tech-pill span:not(.pill-remove) {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  max-width: 180px;
+  display: inline-block;
 }
 
 .preview-tech-pill i {

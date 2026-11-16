@@ -3117,6 +3117,17 @@ document.addEventListener('DOMContentLoaded', () => {
   try { checkBackendHealth(); } catch (e) { console.error('checkBackendHealth err:', e); }
   try { checkLicenseStatus(); } catch (e) { console.error('checkLicenseStatus err:', e); }
 
+  // Prevent any horizontal scrolling/shift in sidebar on all screen sizes
+  try {
+    const sb = document.querySelector('.sidebar-content');
+    if (sb) {
+      sb.scrollLeft = 0;
+      sb.addEventListener('scroll', () => {
+        if (sb.scrollLeft !== 0) sb.scrollLeft = 0;
+      }, { passive: true });
+    }
+  } catch (e) { }
+
   // Restore active lesson content if remembered
   try {
     const activeContent = localStorage.getItem('active_lesson_content');
@@ -3938,8 +3949,13 @@ function setupDropzone(dropzoneId, inputId, statusId, removeBtnId, onFileLoaded,
 
 function handleFileSelected(file, statusEl, callback) {
   const fileNameEl = statusEl.querySelector('.file-name');
-  if (fileNameEl) fileNameEl.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-  statusEl.style.display = 'inline-flex';
+  if (fileNameEl) {
+    fileNameEl.textContent = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+    fileNameEl.title = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+  }
+  statusEl.style.display = 'flex';
+  const sbContent = document.querySelector('.sidebar-content');
+  if (sbContent) sbContent.scrollLeft = 0;
   callback(file);
 }
 
