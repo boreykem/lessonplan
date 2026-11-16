@@ -4766,22 +4766,8 @@ async function handleGenerateLessonPlan() {
       showToast('🌐 កំពុងដំណើរការដោយ OpenRouter Universal AI...', 'info');
       planData = await generateWithOpenRouterAPI(genParams);
     } else {
-      showToast('🤖 កំពុងដំណើរការដោយ Google Gemini AI...', 'info');
-      try {
-        planData = await generateWithGeminiAPI(genParams);
-      } catch (geminiErr) {
-        console.warn('[AI Lesson Plan] Direct Gemini call encountered an issue:', geminiErr);
-        // If user key hit quota or rate limit, automatically try backend AI server
-        try {
-          showToast('🔄 Key ផ្ទាល់ខ្លួនជួបបញ្ហា... កំពុងប្តូរស្វ័យប្រវត្តទៅកាន់ AI Server បម្រុង...', 'info');
-          planData = await generateWithBackendAPI(genParams);
-          if (!planData || planData.isOfflineDraft) {
-            throw geminiErr;
-          }
-        } catch (backendErr) {
-          throw geminiErr;
-        }
-      }
+      showToast('⚡ កំពុងដំណើរការដោយ Google Gemini 3.5 Flash (Ultra-Fast)...', 'info');
+      planData = await generateWithGeminiAPI(genParams);
     }
 
     if (planData) {
@@ -5276,33 +5262,18 @@ function getCandidateGeminiModels(tier) {
   const activeTier = tier || getActiveGeminiModelTier();
   if (activeTier === 'pro') {
     return [
-      { ver: 'v1beta', name: 'gemini-pro-latest' },
       { ver: 'v1beta', name: 'gemini-2.5-pro' },
       { ver: 'v1beta', name: 'gemini-1.5-pro' },
-      { ver: 'v1beta', name: 'gemini-pro' },
-      { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
-      { ver: 'v1beta', name: 'gemini-3.5-flash' },
-      { ver: 'v1beta', name: 'gemini-3.8-flash' },
-      { ver: 'v1beta', name: 'gemini-3.6-flash' },
-      { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
-      { ver: 'v1beta', name: 'gemini-2.0-flash' },
-      { ver: 'v1beta', name: 'gemini-1.5-flash' }
+      { ver: 'v1beta', name: 'gemini-pro-latest' }
     ];
   }
   // Default: 'flash' (⚡ Gemini 3.5 Flash - Ultra Fast)
+  // Strictly concise candidate list prioritizing Gemini 3.5 Flash without redundant models
   return [
-    { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
     { ver: 'v1beta', name: 'gemini-3.5-flash' },
-    { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
-    { ver: 'v1beta', name: 'gemini-3.8-flash' },
-    { ver: 'v1beta', name: 'gemini-3.6-flash' },
-    { ver: 'v1beta', name: 'gemini-3.1-flash-lite' },
-    { ver: 'v1beta', name: 'gemini-flash-latest' },
-    { ver: 'v1beta', name: 'gemini-flash-lite-latest' },
     { ver: 'v1beta', name: 'gemini-2.5-flash' },
     { ver: 'v1beta', name: 'gemini-2.0-flash' },
-    { ver: 'v1beta', name: 'gemini-1.5-flash' },
-    { ver: 'v1beta', name: 'gemini-2.5-pro' }
+    { ver: 'v1beta', name: 'gemini-1.5-flash' }
   ];
 }
 
@@ -5892,84 +5863,28 @@ The user has chosen ENGLISH language mode. Generate the ENTIRE lesson plan in pr
     }
 GENERATE THE COMPLETE LESSON PLAN NOW.`;
 
-  // Dynamic Candidate API endpoints for Google AI Studio (Prioritizing Gemini 3.5 Flash & Gemini Pro)
+  // ⚡ Dedicated Gemini Engine: Focused strictly on Gemini 3.5 Flash (Ultra-Fast)
   const tier = getActiveGeminiModelTier();
-  let candidateModels = [];
-  if (state.verifiedGeminiModel) {
-    candidateModels.push(state.verifiedGeminiModel);
-  }
-
-  const discovered = await discoverGeminiModels(apiKey);
-  if (discovered && discovered.length > 0) {
-    discovered.sort((a, b) => {
-      const score = (m) => {
-        const name = (m.name || '').toLowerCase();
-        if (tier === 'pro') {
-          if (name.includes('pro-latest') || name === 'gemini-pro') return 360;
-          if (name === 'gemini-2.5-pro') return 355;
-          if (name === 'gemini-1.5-pro') return 340;
-          if (name.includes('pro')) return 330;
-          if (name === 'gemini-3.5-flash-lite') return 260;
-          if (name === 'gemini-3.5-flash') return 250;
-          if (name === 'gemini-2.5-flash-lite') return 240;
-          if (name === 'gemini-2.5-flash') return 230;
-          if (name === 'gemini-2.0-flash') return 220;
-          if (name === 'gemini-1.5-flash') return 210;
-          return 50;
-        } else {
-          // Flash tier (⚡ Gemini 3.5 Flash - Ultra Fast)
-          if (name === 'gemini-3.5-flash-lite') return 380;
-          if (name === 'gemini-3.5-flash') return 370;
-          if (name === 'gemini-2.5-flash-lite') return 360;
-          if (name === 'gemini-3.8-flash') return 350;
-          if (name === 'gemini-3.6-flash') return 340;
-          if (name === 'gemini-3.1-flash-lite') return 335;
-          if (name.includes('flash-lite-latest')) return 330;
-          if (name.includes('flash-latest')) return 325;
-          if (name === 'gemini-2.5-flash') return 320;
-          if (name === 'gemini-2.0-flash') return 310;
-          if (name === 'gemini-1.5-flash') return 300;
-          if (name.includes('flash-lite')) return 290;
-          if (name.includes('flash')) return 280;
-          if (name.includes('pro')) return 150;
-          return 50;
-        }
-      };
-      return score(b) - score(a);
-    });
-    for (const m of discovered) {
-      if (!candidateModels.some(c => c.name === m.name)) {
-        candidateModels.push(m);
-      }
-    }
-  }
-
-  const fallbacks = getCandidateGeminiModels(tier);
-  for (const fb of fallbacks) {
-    if (!candidateModels.some(c => c.name === fb.name)) {
-      candidateModels.push(fb);
-    }
-  }
-
+  const candidateModels = getCandidateGeminiModels(tier);
   let lastError = null;
 
   for (let i = 0; i < candidateModels.length; i++) {
     const item = candidateModels[i];
     const modelLabel = `${item.name}`;
     const isPro = item.name.includes('pro');
-    const badgeText = isPro ? '🏆 ម៉ូដែល Pro គិតស៊ីជម្រៅ' : '⚡ ម៉ូដែល Gemini Flash ល្បឿនលឿន';
+    const badgeText = isPro ? '👑 Gemini Pro' : '⚡ Gemini 3.5 Flash (Ultra-Fast)';
 
     setLoadingOverlayStatus(
       'AI កំពុងវិភាគឯកសារ និងរៀបចំកិច្ចតែងការ...',
-      `កំពុងបង្កើតកិច្ចតែងការតាម Google Gemini (${item.name})... សូមរង់ចាំបន្តិច (អនុញ្ញាតពេលរហូតដល់ ៦ នាទី ដើម្បីទទួលបានលទ្ធផលស្តង់ដារល្អបំផុត)!`,
-      `🤖 ដំណើរការម៉ូដែល ${i + 1}/${candidateModels.length} (${item.name}) - ${badgeText}`
+      `កំពុងបង្កើតកិច្ចតែងការតាម Google Gemini 3.5 Flash (Ultra-Fast)... សូមរង់ចាំបន្តិច (ប្រព័ន្ធអនុញ្ញាតពេលរហូតដល់ ១០ នាទី ដើម្បីទទួលបានលទ្ធផលស្តង់ដារល្អបំផុត)!`,
+      `⚡ ${badgeText}`
     );
 
     const streamUrl = `https://generativelanguage.googleapis.com/${item.ver}/models/${item.name}:streamGenerateContent?alt=sse&key=${apiKey}`;
     const directUrl = `https://generativelanguage.googleapis.com/${item.ver}/models/${item.name}:generateContent?key=${apiKey}`;
     const controller = new AbortController();
-    // Generous failover timeout: 6 minutes (360,000ms > 5 minutes) so complex reasoning & Khmer token output never get cut off
-    const modelTimeoutMs = 360000;
+    // Generous failover timeout: 10 minutes (600,000ms) so complex reasoning & Khmer token output never get cut off
+    const modelTimeoutMs = 600000;
     const timeoutId = setTimeout(() => controller.abort(), modelTimeoutMs);
     try {
       // Safe universal maxOutputTokens across all Gemini models (prevents 400 Bad Request)
@@ -6063,25 +5978,7 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
           throw new Error(errMsg);
         }
       } catch (streamErr) {
-        console.warn(`[AI Engine] SSE stream failed on ${modelLabel} (${streamErr.message}). Fallback...`);
-        const isTransientOverload = streamErr.message && (
-          streamErr.message.includes('503') ||
-          streamErr.message.includes('high demand') ||
-          streamErr.message.includes('Unavailable') ||
-          streamErr.message.includes('Quota') ||
-          streamErr.message.includes('429') ||
-          streamErr.name === 'AbortError'
-        );
-        if (isTransientOverload) {
-          lastError = streamErr;
-          setLoadingOverlayStatus(
-            'AI កំពុងប្តូរទៅកាន់ម៉ូដែលបម្រុង...',
-            `ម៉ូដែល ${item.name} កំពុងមមាញឹក... ប្រព័ន្ធកំពុងប្តូរទៅម៉ូដែលបន្ទាប់!`,
-            `⚡ កំពុងប្តូរទៅ ${candidateModels[i + 1]?.name || 'ម៉ូដែលបន្ទាប់'}`
-          );
-          await new Promise(r => setTimeout(r, 300));
-          continue;
-        }
+        console.warn(`[AI Engine] SSE stream on ${modelLabel} (${streamErr.message}). Fallback to direct REST...`);
       }
 
       // 🔄 Step 2: Fallback to standard Direct REST API if SSE did not return complete text
@@ -6096,7 +5993,7 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           const errMsg = errorData.error?.message || response.statusText || `HTTP ${response.status}`;
-          console.warn(`[AI Engine] ${modelLabel} error: ${errMsg}. Auto-switching to next model...`);
+          console.warn(`[AI Engine] ${modelLabel} error: ${errMsg}`);
           lastError = new Error(errMsg);
 
           // Fast abort loop if key is strictly invalid or unauthorized
@@ -6106,30 +6003,23 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
             break;
           }
 
-          // If Pro model hit 429 Quota Exceeded or 503 High Demand, intelligently jump directly to high-quota ultra-fast Gemini 3.5 Flash
+          // If high demand (503) or rate limit (429), wait and retry on the same model to give Gemini plenty of time
           const lowerErr = errMsg.toLowerCase();
-          if (isPro && (lowerErr.includes('quota') || lowerErr.includes('resource_exhausted') || lowerErr.includes('429') || lowerErr.includes('try again later') || lowerErr.includes('high demand') || lowerErr.includes('spikes in demand') || lowerErr.includes('503'))) {
-            const flashIdx = candidateModels.findIndex((m, idx) => idx > i && (m.name.includes('3.5-flash') || m.name.includes('flash')));
-            if (flashIdx !== -1) {
-              const targetModel = candidateModels[flashIdx].name;
-              console.info(`[AI Engine] Pro model hit high demand or quota limit. Intelligently auto-switching to ultra-fast Gemini 3.5 Flash (${targetModel})...`);
-              setLoadingOverlayStatus(
-                'កំពុងប្តូរទៅម៉ូដែល Flash ស្វ័យប្រវត្តិ...',
-                `ម៉ូដែល Pro ជួបបញ្ហា High Demand ឬកូតា... ប្រព័ន្ធកំពុងតភ្ជាប់ស្វ័យប្រវត្តទៅកាន់ ⚡ Gemini 3.5 Flash (${targetModel}) ដើម្បីបង្កើតកិច្ចតែងការភ្លាមៗ!`,
-                `⚡ តភ្ជាប់ស្វ័យប្រវត្តិទៅ ${targetModel}`
-              );
-              i = flashIdx - 1; // loop increment will make it flashIdx
-              await new Promise(r => setTimeout(r, 600));
-              continue;
-            }
+          const isBusyOrRateLimit = lowerErr.includes('high demand') || lowerErr.includes('503') || lowerErr.includes('spikes in demand') || lowerErr.includes('overloaded') || lowerErr.includes('quota') || lowerErr.includes('resource_exhausted') || lowerErr.includes('429');
+
+          if (isBusyOrRateLimit && !item._retried) {
+            item._retried = true;
+            const waitSeconds = 6;
+            setLoadingOverlayStatus(
+              'Google Gemini កំពុងមមាញឹក (Busy / High Demand)...',
+              `ម៉ាស៊ីនបម្រើ Gemini 3.5 Flash កំពុងមមាញឹកបន្តិច... កំពុងរង់ចាំ ${waitSeconds} វិនាទី ដើម្បីសាកល្បងម្ដងទៀត (ប្រព័ន្ធអនុញ្ញាតពេលរង់ចាំដើម្បីទទួលបានកិច្ចតែងការគុណភាពខ្ពស់បំផុត)...`,
+              '⏳ កំពុងរង់ចាំសាកល្បងម្ដងទៀត...'
+            );
+            await new Promise(r => setTimeout(r, waitSeconds * 1000));
+            i--; // retry this same model
+            continue;
           }
 
-          setLoadingOverlayStatus(
-            'AI កំពុងប្តូរទៅកាន់ម៉ូដែលបម្រុង...',
-            `ម៉ូដែល ${item.name} ជួបបញ្ហា... ប្រព័ន្ធកំពុងតភ្ជាប់ស្វ័យប្រវត្តិទៅ ${candidateModels[i + 1]?.name || 'ម៉ូដែលបន្ទាប់'}!`,
-            `⚡ កំពុងប្តូរទៅម៉ូដែលបន្ទាប់ (${candidateModels[i + 1]?.name || '...'})`
-          );
-          await new Promise(r => setTimeout(r, 400));
           continue;
         }
 
@@ -6698,54 +6588,7 @@ async function testCurrentAiProviderKey() {
     statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> កំពុងទាញយក និងផ្ទៀងផ្ទាត់ម៉ូដែល Google Gemini (Gemini 3.5 Flash & Pro)...';
 
     const tier = getActiveGeminiModelTier();
-    let modelsToTest = [];
-    const discovered = await discoverGeminiModels(key);
-    if (discovered && discovered.length > 0) {
-      discovered.sort((a, b) => {
-        const score = (m) => {
-          const name = (m.name || '').toLowerCase();
-          if (tier === 'pro') {
-            if (name.includes('pro-latest') || name === 'gemini-pro') return 360;
-            if (name === 'gemini-2.5-pro') return 355;
-            if (name === 'gemini-1.5-pro') return 340;
-            if (name.includes('pro')) return 330;
-            if (name === 'gemini-3.5-flash-lite') return 260;
-            if (name === 'gemini-3.5-flash') return 250;
-            if (name === 'gemini-2.5-flash-lite') return 240;
-            if (name === 'gemini-2.5-flash') return 230;
-            if (name === 'gemini-2.0-flash') return 220;
-            if (name === 'gemini-1.5-flash') return 210;
-            return 50;
-          } else {
-            // Flash tier (⚡ Gemini 3.5 Flash - Ultra Fast)
-            if (name === 'gemini-3.5-flash-lite') return 380;
-            if (name === 'gemini-3.5-flash') return 370;
-            if (name === 'gemini-2.5-flash-lite') return 360;
-            if (name === 'gemini-3.8-flash') return 350;
-            if (name === 'gemini-3.6-flash') return 340;
-            if (name === 'gemini-3.1-flash-lite') return 335;
-            if (name.includes('flash-lite-latest')) return 330;
-            if (name.includes('flash-latest')) return 325;
-            if (name === 'gemini-2.5-flash') return 320;
-            if (name === 'gemini-2.0-flash') return 310;
-            if (name === 'gemini-1.5-flash') return 300;
-            if (name.includes('flash-lite')) return 290;
-            if (name.includes('flash')) return 280;
-            if (name.includes('pro')) return 150;
-            return 50;
-          }
-        };
-        return score(b) - score(a);
-      });
-      modelsToTest = discovered;
-    }
-
-    const fallbacks = getCandidateGeminiModels(tier);
-    for (const fb of fallbacks) {
-      if (!modelsToTest.some(m => m.name === fb.name)) {
-        modelsToTest.push(fb);
-      }
-    }
+    const modelsToTest = getCandidateGeminiModels(tier);
 
     let success = false;
     let lastErr = null;
@@ -9302,56 +9145,13 @@ ${testTypeDescription}
       }
     }
 
-    // 3. Try Google Gemini AI Models with SSE Streaming (Prioritizing gemini-3.5-flash-lite)
-    let candidateModels = [];
-
-    // Always place gemini-3.5-flash-lite as #1 priority (the confirmed high-reliability model)
-    candidateModels.push({ ver: 'v1beta', name: 'gemini-3.5-flash-lite' });
-
-    if (state.verifiedGeminiModel && state.verifiedGeminiModel.name && state.verifiedGeminiModel.name !== 'gemini-3.5-flash-lite') {
-      candidateModels.push(state.verifiedGeminiModel);
-    }
-
-    try {
-      const discovered = await discoverGeminiModels(apiKey);
-      if (discovered && Array.isArray(discovered)) {
-        discovered.sort((a, b) => {
-          const score = (m) => {
-            const name = (m.name || '').toLowerCase();
-            if (name === 'gemini-3.5-flash-lite') return 300;
-            if (name === 'gemini-2.5-flash-lite') return 250;
-            if (name === 'gemini-3.8-flash') return 230;
-            if (name === 'gemini-3.6-flash') return 220;
-            if (name.includes('flash-lite')) return 210;
-            if (name === 'gemini-2.0-flash') return 180;
-            if (name.includes('flash') && !name.includes('tts') && !name.includes('image')) return 160;
-            if (name.includes('pro') && !name.includes('tts') && !name.includes('image')) return 140;
-            return 10;
-          };
-          return score(b) - score(a);
-        });
-        for (const m of discovered) {
-          if (!candidateModels.some(c => c.name === m.name)) {
-            candidateModels.push(m);
-          }
-        }
-      }
-    } catch (discErr) {
-      console.warn('Model discovery failed in test generator:', discErr);
-    }
-
-    const defaultFallbacks = [
-      { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
-      { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
-      { ver: 'v1beta', name: 'gemini-3.8-flash' },
+    // 3. Try Google Gemini AI Models with SSE Streaming (Prioritizing Gemini 3.5 Flash)
+    const candidateModels = [
+      { ver: 'v1beta', name: 'gemini-3.5-flash' },
+      { ver: 'v1beta', name: 'gemini-2.5-flash' },
       { ver: 'v1beta', name: 'gemini-2.0-flash' },
       { ver: 'v1beta', name: 'gemini-1.5-flash' }
     ];
-    for (const fb of defaultFallbacks) {
-      if (!candidateModels.some(c => c.name === fb.name)) {
-        candidateModels.push(fb);
-      }
-    }
 
     let lastAiError = null;
     const cleanKey = apiKey.trim();
@@ -9364,8 +9164,8 @@ ${testTypeDescription}
       if (!skipOverlay) {
         setLoadingOverlayStatus(
           isPre ? 'AI កំពុងបង្កើតកម្រងសំណួរ Pre-Test (Streaming Real-Time)...' : 'AI កំពុងបង្កើតកម្រងសំណួរ Post-Test (Streaming Real-Time)...',
-          `កំពុងទាក់ទង ${modelName} តាម Google Gemini... សូមរង់ចាំបន្តិច!`,
-          `🤖 ម៉ូដែល ${i + 1}/${candidateModels.length} (${modelName}) ⚡`
+          'កំពុងទាក់ទង Google Gemini 3.5 Flash (Ultra-Fast)... សូមរង់ចាំបន្តិច!',
+          '⚡ Gemini 3.5 Flash (Ultra-Fast)'
         );
       }
 
@@ -16837,42 +16637,12 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
 
     // 🧠 Case B: Google Gemini AI (Dynamic discovery, up to 5 minutes timeout, 3 retries with backoff)
     if (!slidesData) {
-      let candidateModels = [];
-      if (typeof discoverGeminiModels === 'function') {
-        try {
-          const disc = await discoverGeminiModels(apiKey);
-          if (disc && disc.length > 0) {
-            disc.sort((a, b) => {
-              const sc = (m) => {
-                const n = (m.name || '').toLowerCase();
-                if (n.includes('3.5-flash-lite')) return 120;
-                if (n.includes('2.5-flash-lite')) return 115;
-                if (n.includes('2.5-pro')) return 110;
-                if (n.includes('3.8-flash')) return 105;
-                if (n.includes('3.6-flash')) return 100;
-                if (n.includes('flash-latest')) return 85;
-                if (n.includes('pro-latest')) return 80;
-                if (n.includes('2.0-flash')) return 75;
-                if (n.includes('flash')) return 70;
-                return 50;
-              };
-              return sc(b) - sc(a);
-            });
-            candidateModels = disc;
-          }
-        } catch (de) { }
-      }
-
-      if (candidateModels.length === 0) {
-        candidateModels = [
-          { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
-          { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
-          { ver: 'v1beta', name: 'gemini-2.5-pro' },
-          { ver: 'v1beta', name: 'gemini-3.8-flash' },
-          { ver: 'v1beta', name: 'gemini-3.6-flash' },
-          { ver: 'v1beta', name: 'gemini-2.0-flash' }
-        ];
-      }
+      const candidateModels = [
+        { ver: 'v1beta', name: 'gemini-3.5-flash' },
+        { ver: 'v1beta', name: 'gemini-2.5-flash' },
+        { ver: 'v1beta', name: 'gemini-2.0-flash' },
+        { ver: 'v1beta', name: 'gemini-1.5-flash' }
+      ];
 
       const MAX_ATTEMPTS = 3;
       for (let attempt = 0; attempt < MAX_ATTEMPTS && !slidesData; attempt++) {

@@ -1877,13 +1877,10 @@ Return ONLY valid JSON matching this schema:
     }
 
     candidate_endpoints = [
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key={api_key}",
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}",
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key={api_key}",
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key={api_key}",
     ]
 
     last_error = None
@@ -1895,7 +1892,7 @@ Return ONLY valid JSON matching this schema:
         )
 
         try:
-            with urllib.request.urlopen(req, timeout=360) as response:
+            with urllib.request.urlopen(req, timeout=600) as response:
                 res_data = json.loads(response.read().decode("utf-8"))
                 text_content = res_data["candidates"][0]["content"]["parts"][0]["text"]
                 parsed = json.loads(text_content)
