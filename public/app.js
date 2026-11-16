@@ -4652,6 +4652,31 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', t
 // ==========================================================================
 // AI Generation Core Engine
 // ==========================================================================
+
+// 🛡️ Strict Validation: Ensure lesson plan is 100% genuine AI-generated, NEVER a dummy placeholder template
+function validateGenuineAiLessonPlan(plan) {
+  if (!plan || typeof plan !== 'object') {
+    throw new Error('ទិន្នន័យកិច្ចតែងការមិនត្រឹមត្រូវ (Invalid Plan Data)។');
+  }
+  if (plan.isOfflineDraft) {
+    throw new Error('ប្រព័ន្ធបដិសេធមិនបង្ហាញ Template ព្រាងក្លែងក្លាយឡើយ។ សូមផ្ទៀងផ្ទាត់ការតភ្ជាប់ Google Gemini AI។');
+  }
+  const steps = plan.steps || plan.learningActivities || [];
+  if (!Array.isArray(steps) || steps.length < 3) {
+    throw new Error('AI Gemini មិនបានបង្កើតជំហានបង្រៀនពេញលេញឡើយ (ចំនួនជំហានមិនគ្រប់គ្រាន់)។ សូមចុច «សាកល្បងម្ដងទៀត»។');
+  }
+  // Check Step 3 (Core new lesson content)
+  const step3 = steps.find(s => s && (s.stepNumber === 3 || s.step_number === 3)) || steps[2];
+  const s3Content = step3 ? (step3.contentSummary || step3.content || '') : '';
+  const isGenericDummy = s3Content.includes('ខ្លឹមសារស្នូល និយមន័យ និងទ្រឹស្តីគន្លឹះដែលសិស្សត្រូវក្តាប់បាន') ||
+                         s3Content.includes('ឧទាហរណ៍ជាក់ស្តែង និងរូបមន្ត/ក្បួនខ្នាតសំខាន់ៗ');
+  if (isGenericDummy || s3Content.trim().length < 15) {
+    throw new Error('ខ្លឹមសារមេរៀនក្នុងជំហានទី ៣ មិនទាន់ឆ្លងកាត់ការវិភាគស៊ីជម្រៅពី AI ពេញលេញនៅឡើយ (បានត្រឹមតែគ្រោងគំរូទូទៅ)។ ដើម្បីធានាគុណភាពគរុកោសល្យខ្ពស់បំផុត ប្រព័ន្ធមិនអនុញ្ញាតឱ្យបង្ហាញឡើយ។ សូមរង់ចាំបន្តិច ហើយចុច «សាកល្បងម្ដងទៀត»។');
+  }
+  return true;
+}
+window.validateGenuineAiLessonPlan = validateGenuineAiLessonPlan;
+
 async function handleGenerateLessonPlan() {
   if (!state.isLicenseActivated && state.trial && state.trial.isExpired) {
     showToast('🔒 សុពលភាពសាកល្បង ១០ ថ្ងៃបានផុតកំណត់ហើយ! សូម Activate License Key ដើម្បីបន្តបង្កើតកិច្ចតែងការ។', 'warning');
@@ -4734,7 +4759,7 @@ async function handleGenerateLessonPlan() {
         try {
           showToast('🔄 Key ផ្ទាល់ខ្លួនជួបបញ្ហា... កំពុងប្តូរស្វ័យប្រវត្តទៅកាន់ AI Server បម្រុង...', 'info');
           planData = await generateWithBackendAPI(genParams);
-          if (planData && planData.isOfflineDraft) {
+          if (!planData || planData.isOfflineDraft) {
             throw geminiErr;
           }
         } catch (backendErr) {
@@ -4745,6 +4770,10 @@ async function handleGenerateLessonPlan() {
 
     if (planData) {
       planData = normalizeLessonPlanData(planData, genParams);
+      // 🛡️ STRICT VALIDATION: Ensure the plan is genuine AI-generated, NEVER an empty/dummy placeholder template
+      validateGenuineAiLessonPlan(planData);
+    } else {
+      throw new Error('មិនទទួលបានទិន្នន័យពី AI ឡើយ (Empty AI response)។');
     }
 
     if (state.savedLearningGain && !planData.selfEvaluation) {
@@ -4830,7 +4859,18 @@ function openAiErrorModal(errOrType, genParams) {
     const lower = rawMsg.toLowerCase();
     if (rawMsg.includes('API_KEY_INVALID') || rawMsg.includes('API key not valid') || rawMsg.includes('401') || rawMsg.includes('403') || rawMsg.includes('PERMISSION_DENIED')) {
       isInvalidKey = true;
-    } else if (lower.includes('quota') || lower.includes('resource_exhausted') || lower.includes('429') || lower.includes('try again later') || lower.includes('overloaded') || lower.includes('503') || lower.includes('too many requests')) {
+    } else if (
+      lower.includes('quota') ||
+      lower.includes('resource_exhausted') ||
+      lower.includes('429') ||
+      lower.includes('try again later') ||
+      lower.includes('overloaded') ||
+      lower.includes('503') ||
+      lower.includes('too many requests') ||
+      lower.includes('high demand') ||
+      lower.includes('spikes in demand') ||
+      lower.includes('temporarily unavailable')
+    ) {
       isQuotaExceeded = true;
     } else if (rawMsg.includes('AbortError') || lower.includes('timed out') || lower.includes('timeout') || lower.includes('failed to fetch') || lower.includes('networkerror')) {
       isNetworkOrTimeout = true;
@@ -4848,7 +4888,7 @@ function openAiErrorModal(errOrType, genParams) {
         </div>
         <div style="margin-bottom: 10px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 10px 14px; font-size: 0.88rem; color: #1e40af; line-height: 1.6;">
           <strong>💡 ហេតុអ្វីត្រូវមាន API Key?</strong><br>
-          ដើម្បីឱ្យបញ្ញាសិប្បនិម្មិត <strong>Google Gemini AI (2.5 Pro / Flash)</strong> អាចវិភាគចំណងជើង និងបង្កើតខ្លឹមសារកិច្ចតែងការ MoEYS ៥ ជំហានពេញលេញ មានគុណភាពខ្ពស់ និងឆ្លើយតបត្រូវតាមមុខវិជ្ជាជាក់ស្ដែង។
+          ដើម្បីឱ្យបញ្ញាសិប្បនិម្មិត <strong>Google Gemini AI (3.5 Flash / Pro)</strong> អាចវិភាគចំណងជើង និងបង្កើតខ្លឹមសារកិច្ចតែងការ MoEYS ៥ ជំហានពេញលេញ មានគុណភាពខ្ពស់ និងឆ្លើយតបត្រូវតាមមុខវិជ្ជាជាក់ស្ដែង។
         </div>
         <div style="margin-bottom: 6px; font-size: 0.88rem; color: #166534; line-height: 1.5;">
           <strong>✨ តើ API Key គិតថ្លៃទេ?</strong><br>
@@ -4870,15 +4910,18 @@ function openAiErrorModal(errOrType, genParams) {
       `;
     }
   } else if (isQuotaExceeded) {
-    if (titleEl) titleEl.textContent = 'ម៉ាស៊ីនបម្រើ Google ជាប់រវល់ ឬលើសកូតា (Overloaded / Quota Limit)';
+    if (titleEl) titleEl.textContent = 'ម៉ាស៊ីនបម្រើ Google Gemini កំពុងមមាញឹកខ្លាំង (High Demand / Spikes)';
     if (reasonEl) {
       reasonEl.innerHTML = `
         <div style="margin-bottom: 8px;">
-          <strong>🔍 មូលហេតុ៖</strong> ម៉ាស៊ីនបម្រើ Google Gemini កំពុងមានអ្នកប្រើប្រាស់កកស្ទះ ឬគណនីបានដល់កម្រិតកំណត់នៃការស្នើសុំ (Rate Limit / Model Overloaded / Try Again Later)។
+          <strong>🔍 មូលហេតុពី Google AI Studio៖</strong> ម៉ាស៊ីនបម្រើ Google Gemini កំពុងមានអ្នកប្រើប្រាស់កកស្ទះខ្លាំងទូទាំងពិភពលោក (Spikes in demand / High Demand) ឬដល់កម្រិតកំណត់កូតាបណ្ដោះអាសន្ន។
+        </div>
+        <div style="margin-bottom: 8px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; padding: 8px 12px; font-size: 0.85rem; color: #92400e; line-height: 1.5;">
+          <strong>🛡️ ការប្តេជ្ញាចិត្តគុណភាព៖</strong> ប្រព័ន្ធបដិសេធដាច់ខាតមិនផ្ដល់នូវ Template ព្រាងក្លែងក្លាយឡើយ ដើម្បីធានាថារាល់កិច្ចតែងការទាំងអស់ត្រូវបានវិភាគគរុកោសល្យពិតប្រាកដដោយ AI។
         </div>
         <div>
           <strong>🛠️ អ្វីដែលលោកគ្រូ អ្នកគ្រូត្រូវធ្វើ៖</strong> 
-          សូមរង់ចាំប្រមាណ <strong>៣០ វិនាទី ទៅ ១ នាទី</strong> រួចចុចប៊ូតុង <strong>«🔄 ព្យាយាមបង្កើតម្តងទៀត»</strong> ឬពិនិត្យប្តូរ API Key ផ្សេងទៀត។
+          សូមរង់ចាំប្រមាណ <strong>៣០ វិនាទី ទៅ ១ នាទី</strong> រួចចុចប៊ូតុង <strong>«🔄 សាកល្បងបង្កើតម្ដងទៀត»</strong> ឬចុចប្តូរទៅកាន់ <strong>«⚡ Gemini 3.5 Flash»</strong> ដែលមានល្បឿនលឿន និងកម្រិតផ្ទុកធំជាង។
         </div>
       `;
     }
@@ -4891,7 +4934,7 @@ function openAiErrorModal(errOrType, genParams) {
         </div>
         <div>
           <strong>🛠️ អ្វីដែលលោកគ្រូ អ្នកគ្រូត្រូវធ្វើ៖</strong> 
-          សូមពិនិត្យមើលខ្សែបណ្តាញ Wi-Fi / អ៊ីនធឺណិតរបស់អ្នក រួចចុចប៊ូតុង <strong>«🔄 ព្យាយាមបង្កើតម្តងទៀត»</strong>។
+          សូមពិនិត្យមើលខ្សែបណ្តាញ Wi-Fi / អ៊ីនធឺណិតរបស់អ្នក រួចចុចប៊ូតុង <strong>«🔄 សាកល្បងបង្កើតម្ដងទៀត»</strong>។
         </div>
       `;
     }
@@ -4900,64 +4943,53 @@ function openAiErrorModal(errOrType, genParams) {
     if (reasonEl) {
       reasonEl.innerHTML = `
         <div style="margin-bottom: 8px;">
-          <strong>🔍 មូលហេតុ៖</strong> ម៉ាស៊ីនបម្រើ Google Gemini បានឆ្លើយតបកំហុស៖ <em>${escapeHtml(rawMsg.substring(0, 150))}</em>
+          <strong>🔍 មូលហេតុ៖</strong> ម៉ាស៊ីនបម្រើ Google Gemini បានឆ្លើយតប៖ <em>${escapeHtml(rawMsg.substring(0, 180))}</em>
+        </div>
+        <div style="margin-bottom: 8px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; padding: 8px 12px; font-size: 0.85rem; color: #92400e;">
+          <strong>🛡️ ការប្តេជ្ញាចិត្តគុណភាព៖</strong> ប្រព័ន្ធបដិសេធដាច់ខាតមិនផ្ដល់ Template ព្រាងក្លែងក្លាយឡើយ។ កិច្ចតែងការនីមួយៗត្រូវតែឆ្លងកាត់ការវិភាគគរុកោសល្យជាក់ស្ដែងដោយ AI។
         </div>
         <div>
           <strong>🛠️ អ្វីដែលលោកគ្រូ អ្នកគ្រូត្រូវធ្វើ៖</strong> 
-          សូមចុចប៊ូតុង <strong>«🔄 ព្យាយាមបង្កើតម្តងទៀត»</strong> ឬពិនិត្យ API Key និងការតភ្ជាប់អ៊ីនធឺណិតរបស់អ្នកឡើងវិញ។
+          សូមចុចប៊ូតុង <strong>«🔄 សាកល្បងបង្កើតម្ដងទៀត»</strong> ឬពិនិត្យ API Key និងការតភ្ជាប់អ៊ីនធឺណិតរបស់អ្នកឡើងវិញ។
         </div>
       `;
     }
   }
 
   // Adjust button styles and visibility based on error type
-  const btnOffline = document.getElementById('btnAiErrorOffline');
-  const btnKey = document.getElementById('btnAiErrorKey');
-  const btnClearKey = document.getElementById('btnAiErrorClearKey');
   const btnRetry = document.getElementById('btnAiErrorRetry');
+  const btnSwitchFlash = document.getElementById('btnAiErrorSwitchFlash');
+  const btnKey = document.getElementById('btnAiErrorKey');
+  const btnOffline = document.getElementById('btnAiErrorOffline');
+  const btnClearKey = document.getElementById('btnAiErrorClearKey');
 
-  if (isNoKey) {
-    if (btnKey) {
-      btnKey.style.display = 'flex';
+  if (btnOffline) btnOffline.style.display = 'none';
+  if (btnClearKey) btnClearKey.style.display = 'none';
+
+  const tier = getActiveGeminiModelTier();
+  if (btnSwitchFlash) {
+    btnSwitchFlash.style.display = (tier === 'pro' && !isNoKey) ? 'flex' : 'none';
+  }
+  if (btnRetry) {
+    btnRetry.style.display = isNoKey ? 'none' : 'flex';
+  }
+  if (btnKey) {
+    btnKey.style.display = 'flex';
+    if (isNoKey) {
       btnKey.style.background = 'linear-gradient(135deg, #2563eb, #4f46e5)';
       btnKey.style.color = '#ffffff';
       btnKey.style.border = 'none';
       btnKey.style.fontWeight = '700';
       btnKey.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.3)';
       btnKey.innerHTML = '<i class="fa-solid fa-key" style="color: #fde047;"></i> 🔑 បញ្ចូល Gemini API Key ឥឡូវនេះ (ឥតគិតថ្លៃ Free)';
-    }
-    if (btnOffline) {
-      btnOffline.style.display = 'flex';
-      btnOffline.style.background = '#f8fafc';
-      btnOffline.style.color = '#475569';
-      btnOffline.style.border = '1px solid #cbd5e1';
-      btnOffline.style.fontWeight = '600';
-      btnOffline.style.boxShadow = 'none';
-      btnOffline.innerHTML = '<i class="fa-solid fa-file-lines"></i> 📋 មើលគ្រោងគំរូសេចក្ដីព្រាង (Offline Draft Template)';
-    }
-    if (btnClearKey) btnClearKey.style.display = 'none';
-    if (btnRetry) btnRetry.style.display = 'none';
-  } else {
-    if (btnKey) {
-      btnKey.style.display = 'flex';
+    } else {
       btnKey.style.background = 'white';
-      btnKey.style.color = '#1d4ed8';
-      btnKey.style.border = '1.5px solid #3b82f6';
+      btnKey.style.color = '#1e293b';
+      btnKey.style.border = '1.5px solid #cbd5e1';
       btnKey.style.fontWeight = '600';
       btnKey.style.boxShadow = 'none';
-      btnKey.innerHTML = '<i class="fa-solid fa-key" style="color: #f59e0b;"></i> 🔑 ពិនិត្យ / បញ្ចូល API Key ថ្មី (Gemini / Groq)';
+      btnKey.innerHTML = '<i class="fa-solid fa-key" style="color: #f59e0b;"></i> 🔑 ពិនិត្យ / បញ្ចូល API Key ថ្មី (Google AI Studio)';
     }
-    if (btnOffline) {
-      btnOffline.style.display = 'flex';
-      btnOffline.style.background = 'linear-gradient(135deg, #059669, #10b981)';
-      btnOffline.style.color = 'white';
-      btnOffline.style.border = 'none';
-      btnOffline.style.fontWeight = '700';
-      btnOffline.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.25)';
-      btnOffline.innerHTML = '<i class="fa-solid fa-bolt"></i> 🚀 បង្កើតភ្លាមៗតាម Smart Offline Engine (មិនបាច់រង់ចាំ / ឥតគិតថ្លៃ)';
-    }
-    if (btnClearKey) btnClearKey.style.display = (state.geminiApiKey || localStorage.getItem('gemini_api_key')) ? 'flex' : 'none';
-    if (btnRetry) btnRetry.style.display = 'flex';
   }
 
   if (modal) {
@@ -4977,6 +5009,14 @@ function retryAiGeneration() {
   handleGenerateLessonPlan();
 }
 window.retryAiGeneration = retryAiGeneration;
+
+function switchTierToFlashAndRetry() {
+  handleGeminiModelTierChange('flash');
+  closeAiErrorModal();
+  showToast('⚡ បានប្តូរទៅកាន់ Gemini 3.5 Flash! កំពុងចាប់ផ្តើមបង្កើត...', 'info');
+  handleGenerateLessonPlan();
+}
+window.switchTierToFlashAndRetry = switchTierToFlashAndRetry;
 
 function openKeyFromAiErrorModal() {
   closeAiErrorModal();
@@ -5163,28 +5203,19 @@ function getCandidateGeminiModels(tier) {
       { ver: 'v1beta', name: 'gemini-2.5-pro' },
       { ver: 'v1beta', name: 'gemini-pro-latest' },
       { ver: 'v1beta', name: 'gemini-1.5-pro' },
-      { ver: 'v1beta', name: 'gemini-pro' },
-      { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
-      { ver: 'v1beta', name: 'gemini-3.5-flash' },
-      { ver: 'v1beta', name: 'gemini-3.8-flash' },
-      { ver: 'v1beta', name: 'gemini-3.6-flash' },
+      { ver: 'v1beta', name: 'gemini-2.5-flash' },
       { ver: 'v1beta', name: 'gemini-2.0-flash' },
       { ver: 'v1beta', name: 'gemini-1.5-flash' }
     ];
   }
   // Default: 'flash' (⚡ Gemini 3.5 Flash - Ultra Fast)
   return [
-    { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
-    { ver: 'v1beta', name: 'gemini-3.5-flash' },
-    { ver: 'v1beta', name: 'gemini-3.1-flash-lite' },
-    { ver: 'v1beta', name: 'gemini-3.6-flash' },
-    { ver: 'v1beta', name: 'gemini-3.8-flash' },
-    { ver: 'v1beta', name: 'gemini-flash-latest' },
-    { ver: 'v1beta', name: 'gemini-flash-lite-latest' },
-    { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
+    { ver: 'v1beta', name: 'gemini-2.5-flash' },
     { ver: 'v1beta', name: 'gemini-2.0-flash' },
     { ver: 'v1beta', name: 'gemini-1.5-flash' },
-    { ver: 'v1beta', name: 'gemini-2.5-flash' }
+    { ver: 'v1beta', name: 'gemini-2.0-flash-lite' },
+    { ver: 'v1beta', name: 'gemini-flash-latest' },
+    { ver: 'v1beta', name: 'gemini-2.5-pro' }
   ];
 }
 
@@ -5791,25 +5822,20 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
           if (name.includes('pro-latest') || name === 'gemini-pro') return 340;
           if (name === 'gemini-1.5-pro') return 330;
           if (name.includes('pro')) return 320;
-          if (name === 'gemini-3.5-flash-lite') return 250;
-          if (name === 'gemini-3.5-flash') return 240;
-          if (name === 'gemini-3.8-flash') return 220;
-          if (name === 'gemini-2.0-flash') return 200;
+          if (name === 'gemini-2.5-flash') return 250;
+          if (name === 'gemini-2.0-flash') return 240;
+          if (name === 'gemini-1.5-flash') return 220;
           return 50;
         } else {
           // Flash tier (Gemini 3.5 Flash - Ultra Fast)
-          if (name === 'gemini-3.5-flash-lite') return 350;
-          if (name === 'gemini-3.5-flash') return 340;
-          if (name === 'gemini-3.1-flash-lite') return 330;
-          if (name === 'gemini-3.6-flash') return 320;
-          if (name === 'gemini-3.8-flash') return 310;
+          if (name === 'gemini-2.5-flash') return 350;
+          if (name === 'gemini-2.0-flash') return 340;
+          if (name === 'gemini-1.5-flash') return 330;
+          if (name === 'gemini-2.0-flash-lite') return 320;
           if (name.includes('flash-latest') || name.includes('flash-lite-latest')) return 300;
-          if (name === 'gemini-2.5-flash-lite') return 280;
-          if (name === 'gemini-2.0-flash') return 260;
-          if (name === 'gemini-1.5-flash') return 240;
-          if (name === 'gemini-2.5-flash') return 220;
-          if (name.includes('flash-lite')) return 200;
-          if (name.includes('flash')) return 180;
+          if (name.includes('flash-lite')) return 280;
+          if (name.includes('flash')) return 260;
+          if (name === 'gemini-2.5-pro') return 200;
           if (name.includes('pro')) return 150;
           return 50;
         }
@@ -6230,8 +6256,8 @@ function updateEmptyStateApiStatus() {
     banner.style.color = '#854d0e';
     dot.textContent = '🟡';
     text.textContent = isEn
-      ? 'No API Key Connected (Offline Mode)'
-      : 'មិនទាន់ភ្ជាប់ API Key (កំពុងប្រើ Offline Mode)';
+      ? 'No API Key Connected — Please connect Google Gemini API Key for real AI lesson plan generation'
+      : 'មិនទាន់ភ្ជាប់ API Key — សូមភ្ជាប់ Google Gemini API Key ដើម្បីដំណើរការបង្កើតកិច្ចតែងការ AI ពិតប្រាកដ';
     if (btnBanner) {
       btnBanner.style.display = 'inline-flex';
       btnBanner.innerHTML = `<i class="fa-solid fa-key"></i> ${isEn ? 'Connect Key Now' : 'ភ្ជាប់ Key ឥឡូវនេះ'}`;
@@ -6587,25 +6613,20 @@ async function testCurrentAiProviderKey() {
             if (name.includes('pro-latest') || name === 'gemini-pro') return 340;
             if (name === 'gemini-1.5-pro') return 330;
             if (name.includes('pro')) return 320;
-            if (name === 'gemini-3.5-flash-lite') return 250;
-            if (name === 'gemini-3.5-flash') return 240;
-            if (name === 'gemini-3.8-flash') return 220;
-            if (name === 'gemini-2.0-flash') return 200;
+            if (name === 'gemini-2.5-flash') return 250;
+            if (name === 'gemini-2.0-flash') return 240;
+            if (name === 'gemini-1.5-flash') return 220;
             return 50;
           } else {
             // Flash tier (Gemini 3.5 Flash - Ultra Fast)
-            if (name === 'gemini-3.5-flash-lite') return 350;
-            if (name === 'gemini-3.5-flash') return 340;
-            if (name === 'gemini-3.1-flash-lite') return 330;
-            if (name === 'gemini-3.6-flash') return 320;
-            if (name === 'gemini-3.8-flash') return 310;
+            if (name === 'gemini-2.5-flash') return 350;
+            if (name === 'gemini-2.0-flash') return 340;
+            if (name === 'gemini-1.5-flash') return 330;
+            if (name === 'gemini-2.0-flash-lite') return 320;
             if (name.includes('flash-latest') || name.includes('flash-lite-latest')) return 300;
-            if (name === 'gemini-2.5-flash-lite') return 280;
-            if (name === 'gemini-2.0-flash') return 260;
-            if (name === 'gemini-1.5-flash') return 240;
-            if (name === 'gemini-2.5-flash') return 220;
-            if (name.includes('flash-lite')) return 200;
-            if (name.includes('flash')) return 180;
+            if (name.includes('flash-lite')) return 280;
+            if (name.includes('flash')) return 260;
+            if (name === 'gemini-2.5-pro') return 200;
             if (name.includes('pro')) return 150;
             return 50;
           }
@@ -6690,7 +6711,7 @@ async function resetToSmartEngineDefault() {
     statusEl.style.display = 'block';
     statusEl.style.background = '#fefce8';
     statusEl.style.color = '#854d0e';
-    statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> បានសម្អាត API Key រួចរាល់! លោកគ្រូអាច Paste Key ថ្មី ឬប្រើ Smart Offline Engine។';
+    statusEl.innerHTML = '<i class="fa-solid fa-circle-check"></i> បានសម្អាត API Key រួចរាល់! លោកគ្រូអាច Paste Key ថ្មីពី aistudio.google.com។';
   }
   checkApiKeyStatus();
   updateApiKeyModalUI();
@@ -8651,7 +8672,7 @@ function normalizeLessonPlanData(data, params = {}) {
             ? `• ការវិភាគលទ្ធផលបុរេតេស្ត (Pre-Test QCM) និងការស្រាយបំភ្លឺចំណុចស្រពេចស្រពិល\n• ចំណុចតភ្ជាប់គន្លឹះចូលសកម្មភាពអនុវត្តនៃ «${lessonTitle}»`
             : `• ចម្លើយនៃសំណួររំលឹកមេរៀនចាស់ និងការតភ្ជាប់ចូលមេរៀនថ្មី «${lessonTitle}»`;
         } else if (stepIdx === 3) {
-          safeContent = `«${lessonTitle}»\n• ខ្លឹមសារស្នូល និយមន័យ និងទ្រឹស្តីគន្លឹះដែលសិស្សត្រូវក្តាប់បាន\n• ឧទាហរណ៍ជាក់ស្តែង និងរូបមន្ត/ក្បួនខ្នាតសំខាន់ៗ`;
+          safeContent = "";
         } else if (stepIdx === 4) {
           if (methodType === 'jigsaw') {
             safeContent = isFlipped
