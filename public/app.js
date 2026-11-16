@@ -4946,7 +4946,7 @@ async function generateWithGroqAPI(params) {
   const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS Standard 5-Step'} Lesson Plan in ${targetLang} for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}).
 Teaching Method: ${cleanMethod}.
 ${methodPrompt}
-Include exactly 3 objectives (EXACTLY 1 bullet each for Knowledge, Skills, and Attitudes using Action-Condition-Standard formula; NEVER exceed 1 point per category), materials, teaching method, and ${isBd ? "3-stage UbD learning activities" : "5 in-class teaching steps (3 columns: teacherActivity, contentSummary, studentActivity) with clear problem-posing, concise, actionable steps"}. Do NOT include pre-test/post-test questions in this output (they are generated separately on-demand). Return strictly valid JSON.`;
+Include exactly 3 objectives (EXACTLY 1 bullet each for Knowledge, Skills, and Attitudes using Action-Condition-Standard formula; NEVER exceed 1 point per category), materials, teaching method, and ${isBd ? "3-stage UbD learning activities" : "5 in-class teaching steps (3 columns: teacherActivity, contentSummary, studentActivity) with clear problem-posing, concise, actionable steps"}. Output must be strictly in Khmer (or English if requested). Absolutely NEVER use Thai, Vietnamese, Chinese, Lao, or any foreign script. Simplify technical pedagogical terms to natural Khmer. Use clean standard Unicode symbols for math and science (x², √x, ±, ≤, ≥, ≠, ×, ÷, cm², H₂O) and NEVER output raw cryptic LaTeX code. Do NOT include pre-test/post-test questions in this output (they are generated separately on-demand). Return strictly valid JSON.`;
 
   const candidateModels = [
     'llama-3.3-70b-versatile',
@@ -5206,6 +5206,11 @@ ${isLongSession ? `• This is an EXTENDED ${totalMin}-minute block (Multi-hour 
 6. TTT 30% / STT 70% RULE: In Step 4, explicitly design activities so the Teacher Talking Time is max 30%, and Student Talking Time is 70% (Student-Centered).
 7. 21st CENTURY SKILLS (4Cs): At the end of student activities (especially in Step 4), tag the exact 4Cs skill being developed in brackets (e.g., [ជំនាញសហការ និងការគិតស៊ីជម្រៅ]).
 8. EXIT TICKET 3-2-1: In Step 5 (teacherActivity & studentActivity), you MUST include an "Exit Ticket 3-2-1" formative assessment (e.g., សរសេរ ៣ចំណុចដែលបានរៀន, ២ចំណុចដែលចាប់អារម្មណ៍, ១ចំណុចដែលឆ្ងល់).
+10. STRICT LANGUAGE & SCIENTIFIC SYMBOL ENFORCEMENT:
+    - SOLELY STANDARD KHMER: The entire lesson plan MUST be written in natural, standard Khmer (or English if in English mode). Under NO circumstances should you include Thai (ภาษาไทย), Vietnamese (Tiếng Việt), Chinese (中文), Lao, or any foreign scripts!
+    - SIMPLIFY TECHNICAL TERMS: Use accessible, familiar pedagogical vocabulary (ពាក្យគរុកោសល្យច្បាស់លាស់ ងាយយល់).
+    - CLEAN MATHEMATICAL & STEM NOTATION: Do NOT output raw cryptic LaTeX code like \\frac{...}{...}, \\sqrt{...}, or \\times. Use standard keyboard & Unicode math symbols (e.g. 2 × 3, 10 ÷ 2, x² + y² = r², cm², m³, √x, ±, ≤, ≥, ≠, °, H₂O, CO₂, (a + b)/2).
+
 9. MANDATORY INSTRUCTIONAL OBJECTIVE FORMULA (ក្បួនតែងវត្ថុបំណងបង្រៀនស្តង់ដារ MoEYS / គរុកោសល្យ A-C-S - EXACTLY 1 POINT PER DOMAIN):
    - ⚠️ ការកំណត់ដាច់ខាត (STRICT MANDATE - ហាមដាច់ខាតដាក់លើសពី ១ ចំណុចក្នុងផ្នែកនីមួយៗ):
      • វិជ្ជាសម្បទា (Knowledge): ត្រូវមានត្រឹមតែ ១ ចំណុចគត់! (EXACTLY 1 bullet item)
@@ -5415,6 +5420,24 @@ STEP DURATION ALLOCATION (${totalMin} MINUTES TOTAL):
 - ជំហានទី ៥ (បណ្ដាំ + កិច្ចការ): ${stepTimeHints.step5}
 
 ═══════════════════════════════════════════════════
+🚨 វិធានភាសាដាច់ខាត & សញ្ញាគណិតវិទ្យា/វិទ្យាសាស្ត្រ (STRICT LANGUAGE & STEM NOTATION):
+═══════════════════════════════════════════════════
+១. ហាមដាច់ខាតភាសាដទៃ (NO FOREIGN SCRIPTS):
+   - មិនត្រូវប្រើប្រាស់ភាសា ឬអក្សរដទៃក្រៅពីភាសាខ្មែរ និងអង់គ្លេសឡើយ!
+   - ហាមដាច់ខាតភាសាថៃ (ภาษาไทย), ភាសាយួន (Tiếng Việt), ភាសាចិន (中文), ឡាវ ឬភាសាដទៃទៀតជាដាច់ខាត!
+   - កិច្ចតែងការទាំងមូលត្រូវតែសរសេរជាភាសាខ្មែរស្ដង់ដារត្រឹមត្រូវ (អាចប្រើពាក្យបច្ចេកទេសអង់គ្លេសក្នុងរង្វង់ក្រចកនៅកន្លែងចាំបាច់)។
+២. សម្រួលពាក្យបច្ចេកទេសឱ្យងាយយល់ (SIMPLIFIED & ACCESSIBLE TERMINOLOGY):
+   - ត្រូវប្រើពាក្យគរុកោសល្យ និងភាសាខ្មែរធម្មជាតិ ងាយស្តាប់ ងាយយល់ មិនប្រើពាក្យបច្ចេកទេសស្មុគស្មាញជ្រុលហួសហេតុ ដែលធ្វើឱ្យគ្រូ និងសិស្សពិបាកយល់នោះឡើយ។
+៣. សញ្ញាគណិតវិទ្យា និងវិទ្យាសាស្ត្រច្បាស់លាស់ (CLEAN MATHEMATICAL & STEM NOTATION):
+   - ហាមដាច់ខាតសរសេរកូដ LaTeX ឆៅដែលមិនអាចយល់បាន (DO NOT output cryptic raw LaTeX code like \\frac{...}{...}, \\sqrt{...}, \\times, \\Delta)!
+   - ត្រូវសរសេរសញ្ញាគណិតវិទ្យា រូបវិទ្យា និងគីមីវិទ្យា ដោយប្រើប្រាស់សញ្ញា Unicode ស្ដង់ដារដែលច្បាស់លាស់ ងាយយល់ និងងាយស្រួលសរសេរលើក្តារខៀនភ្លាមៗ៖
+     • សញ្ញាគុណ និងចែក៖ ប្រើ ×, ÷, · (ឧ. 2 × 3 = 6, 10 ÷ 2 = 5)
+     • ស្វ័យគុណ និងសន្ទស្សន៍៖ ប្រើ ² , ³, ⁴, ⁿ, ₁, ₂, ₃ (ឧ. x² + y² = r², cm², m³, H₂O, CO₂)
+     • ប្រភាគ៖ ប្រើទម្រង់ងាយយល់ (ឧ. 1/2, a/b ឬ (a + b)/2)
+     • រ៉ាឌីកាល់ (ឫស)៖ ប្រើ √ (ឧ. √x, √(b² - 4ac))
+     • សញ្ញាប្រៀបធៀប៖ ប្រើ ±, ≤, ≥, ≠, ≈, °, %, ∞, π, Δ, θ
+
+═══════════════════════════════════════════════════
 🎯 វិធានគរុកោសល្យកម្ពុជា & កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ACS Objectives & 3-Column Steps):
 ═══════════════════════════════════════════════════
 ១. វិធានកំណត់វត្ថុបំណងបង្រៀន (MANDATORY ACS FORMULA - EXACTLY 1 POINT PER DOMAIN):
@@ -5570,8 +5593,10 @@ DO NOT write generic content. Write as if you are a ${params.subject} teacher wh
 ${(params.language === 'en' || state.language === 'en')
       ? `🌐 MANDATORY LANGUAGE INSTRUCTION:
 The user has chosen ENGLISH language mode. Generate the ENTIRE lesson plan in professional, fluent, academic ENGLISH (standard MoEYS-compliant pedagogical 5-step format in English). All headings, objectives, steps, teacher activities, student activities, questions, answers, and reflection must be written in English.`
-      : `🌐 MANDATORY LANGUAGE INSTRUCTION:
-Every field must contain real, specific, classroom-ready Khmer content.`
+      : `🌐 MANDATORY LANGUAGE & SYMBOL INSTRUCTION (វិធានភាសា និងសញ្ញាគណិតវិទ្យា/វិទ្យាសាស្ត្រដាច់ខាត):
+- ហាមដាច់ខាត (STRICTLY PROHIBITED): មិនត្រូវប្រើភាសា ឬអក្សរដទៃក្រៅពីភាសាខ្មែរ និងអង់គ្លេសឡើយ! ហាមដាច់ខាតអក្សរថៃ (ภาษาไทย), យួន (Tiếng Việt), ចិន (中文), ឡាវ ឬភាសាដទៃទៀត!
+- សម្រួលពាក្យបច្ចេកទេស (SIMPLIFIED TERMINOLOGY): ត្រូវប្រើពាក្យគរុកោសល្យ និងភាសាខ្មែរធម្មជាតិ ងាយស្តាប់ ងាយយល់។
+- សញ្ញាគណិតវិទ្យា និងវិទ្យាសាស្ត្រ (CLEAN STEM NOTATION): ហាមដាច់ខាតសរសេរកូដ LaTeX ឆៅ (ដូចជា \\frac{...}{...}, \\sqrt{...}, \\times)! ត្រូវសរសេរសញ្ញាគណិតវិទ្យា និងរូបមន្តដោយប្រើប្រាស់សញ្ញា Unicode ស្ដង់ដារដែលច្បាស់លាស់ ងាយយល់ និងងាយស្រួលសរសេរលើក្តារខៀនភ្លាមៗ (ឧ. 2 × 3 = 6, 10 ÷ 2 = 5, x² + y² = r², cm², m³, √x, ±, ≤, ≥, ≠, ≈, °, H₂O, CO₂, (a + b)/2)!`
     }
 GENERATE THE COMPLETE LESSON PLAN NOW.`;
 
@@ -8202,11 +8227,251 @@ function renderTeachingMethodContent(method, templateType = '5_steps', isEn = fa
 
 
 // ==========================================================================
+// 🛡️ Language Sanitizer & Math/STEM Notation Formatter
+// Strictly removes forbidden foreign scripts (Thai, Lao, Chinese, Japanese, Vietnamese)
+// Converts cryptic LaTeX math code into clean, readable standard Unicode notation
+// Simplifies pedagogical jargon to natural, standard Cambodian terminology
+// ==========================================================================
+function replaceLaTeXFractions(str) {
+  if (!str || typeof str !== 'string' || !str.includes('\\frac')) return str;
+  let idx = str.indexOf('\\frac');
+  let iterations = 0;
+  while (idx !== -1 && iterations < 50) {
+    iterations++;
+    let p = idx + 5;
+    while (p < str.length && /\s/.test(str[p])) p++;
+    if (str[p] === '{') {
+      let openCount = 1;
+      let numStart = p + 1;
+      let numEnd = -1;
+      for (let i = numStart; i < str.length; i++) {
+        if (str[i] === '{') openCount++;
+        else if (str[i] === '}') {
+          openCount--;
+          if (openCount === 0) {
+            numEnd = i;
+            break;
+          }
+        }
+      }
+      if (numEnd !== -1) {
+        let q = numEnd + 1;
+        while (q < str.length && /\s/.test(str[q])) q++;
+        if (str[q] === '{') {
+          openCount = 1;
+          let denStart = q + 1;
+          let denEnd = -1;
+          for (let i = denStart; i < str.length; i++) {
+            if (str[i] === '{') openCount++;
+            else if (str[i] === '}') {
+              openCount--;
+              if (openCount === 0) {
+                denEnd = i;
+                break;
+              }
+            }
+          }
+          if (denEnd !== -1) {
+            const num = str.substring(numStart, numEnd);
+            const den = str.substring(denStart, denEnd);
+            str = str.substring(0, idx) + `(${num})/(${den})` + str.substring(denEnd + 1);
+            idx = str.indexOf('\\frac');
+            continue;
+          }
+        }
+      }
+    }
+    idx = str.indexOf('\\frac', idx + 5);
+  }
+  return str;
+}
+
+function cleanForbiddenScriptsAndFormatMath(input) {
+  if (input == null) return input;
+  if (typeof input !== 'string') {
+    if (Array.isArray(input)) {
+      return input.map(item => cleanForbiddenScriptsAndFormatMath(item));
+    }
+    if (typeof input === 'object') {
+      const res = {};
+      for (const k in input) {
+        if (Object.prototype.hasOwnProperty.call(input, k)) {
+          res[k] = cleanForbiddenScriptsAndFormatMath(input[k]);
+        }
+      }
+      return res;
+    }
+    return input;
+  }
+
+  let s = input;
+
+  // 1. FORBIDDEN SCRIPTS STRIPPING (STRICT RULE: Only Khmer and English allowed!):
+  // Strictly remove Thai characters (\u0E00-\u0E7F)
+  s = s.replace(/[\u0E00-\u0E7F]+/g, '');
+  // Strictly remove Lao characters (\u0E80-\u0EFF)
+  s = s.replace(/[\u0E80-\u0EFF]+/g, '');
+  // Strictly remove Chinese / CJK characters (\u4E00-\u9FFF, \u3400-\u4DBF, \uF900-\uFAFF)
+  s = s.replace(/[\u4E00-\u9FFF\u3400-\u4DBF\uF900-\uFAFF]+/g, '');
+  // Strictly remove Japanese Hiragana/Katakana (\u3040-\u309F, \u30A0-\u30FF)
+  s = s.replace(/[\u3040-\u30FF]+/g, '');
+  // Strictly remove Vietnamese unique diacritics / words
+  s = s.replace(/[\u0102\u0103\u0110\u0111\u0128\u0129\u0168\u0169\u01A0\u01A1\u01AF\u01B0\u1EA0-\u1EF9]+/g, '');
+
+  // 2. MATHEMATICAL & SCIENTIFIC NOTATION CLEANER:
+  // Clean raw LaTeX dollar signs and brackets
+  s = s.replace(/\$\$([^\$]+)\$\$/g, '$1');
+  s = s.replace(/\$([^\$]+)\$/g, '$1');
+  s = s.replace(/\\\(([^\)]+)\\\)/g, '$1');
+  s = s.replace(/\\\[([^\]]+)\\\]/g, '$1');
+
+  // Fractions first (with nested braces support)
+  s = replaceLaTeXFractions(s);
+
+  // Square roots: \sqrt{x} -> √(x), \sqrt[n]{x} -> ⁿ√(x)
+  s = s.replace(/\\sqrt\[(\d+)\]\{([^{}]+)\}/g, '$1√($2)');
+  s = s.replace(/\\sqrt\{([^{}]+)\}/g, '√($1)');
+
+  // Math operators
+  s = s.replace(/\\times\b/g, '×');
+  s = s.replace(/\\div\b/g, '÷');
+  s = s.replace(/\\pm\b/g, '±');
+  s = s.replace(/\\mp\b/g, '∓');
+  s = s.replace(/\\cdot\b/g, '·');
+  s = s.replace(/\\bullet\b/g, '•');
+  s = s.replace(/\\leq\b|\\le\b/g, '≤');
+  s = s.replace(/\\geq\b|\\ge\b/g, '≥');
+  s = s.replace(/\\neq\b|\\ne\b/g, '≠');
+  s = s.replace(/\\approx\b/g, '≈');
+  s = s.replace(/\\sim\b/g, '~');
+  s = s.replace(/\\infty\b/g, '∞');
+  s = s.replace(/\\propto\b/g, '∝');
+  s = s.replace(/\\degree\b|\^\{\\circ\}|\^\\circ/g, '°');
+
+  // Greek letters
+  s = s.replace(/\\Delta\b/g, 'Δ');
+  s = s.replace(/\\pi\b/g, 'π');
+  s = s.replace(/\\theta\b/g, 'θ');
+  s = s.replace(/\\alpha\b/g, 'α');
+  s = s.replace(/\\beta\b/g, 'β');
+  s = s.replace(/\\gamma\b/g, 'γ');
+  s = s.replace(/\\lambda\b/g, 'λ');
+  s = s.replace(/\\mu\b/g, 'μ');
+  s = s.replace(/\\sigma\b/g, 'σ');
+  s = s.replace(/\\omega\b/g, 'ω');
+  s = s.replace(/\\Omega\b/g, 'Ω');
+  s = s.replace(/\\Sigma\b/g, 'Σ');
+
+  // Set & Logic notations
+  s = s.replace(/\\rightarrow\b|\\to\b/g, '→');
+  s = s.replace(/\\leftarrow\b/g, '←');
+  s = s.replace(/\\Rightarrow\b/g, '⇒');
+  s = s.replace(/\\Leftarrow\b/g, '⇐');
+  s = s.replace(/\\Leftrightarrow\b/g, '⇔');
+  s = s.replace(/\\in\b/g, '∈');
+  s = s.replace(/\\notin\b/g, '∉');
+  s = s.replace(/\\subset\b/g, '⊂');
+  s = s.replace(/\\subseteq\b/g, '⊆');
+  s = s.replace(/\\cup\b/g, '∪');
+  s = s.replace(/\\cap\b/g, '∩');
+  s = s.replace(/\\emptyset\b/g, '∅');
+  s = s.replace(/\\forall\b/g, '∀');
+  s = s.replace(/\\exists\b/g, '∃');
+
+  // Geometry
+  s = s.replace(/\\angle\b/g, '∠');
+  s = s.replace(/\\triangle\b/g, '△');
+  s = s.replace(/\\perp\b/g, '⊥');
+  s = s.replace(/\\parallel\b/g, '∥');
+
+  // Clean wrappers: \mathbf{...}, \mathrm{...}, \text{...}, \mathit{...}
+  s = s.replace(/\\(mathbf|mathrm|text|mathit|textbf|textit)\{([^{}]+)\}/g, '$2');
+  s = s.replace(/\\left\(/g, '(').replace(/\\right\)/g, ')');
+  s = s.replace(/\\left\[/g, '[').replace(/\\right\]/g, ']');
+  s = s.replace(/\\left\\\{/g, '{').replace(/\\right\\\}/g, '}');
+
+  // Any remaining \sqrt inside expressions
+  s = s.replace(/\\sqrt\{([^{}]+)\}/g, '√($1)');
+
+  // Convert superscripts: ^2 -> ², ^3 -> ³, ^0 -> ⁰, ^1 -> ¹, etc.
+  s = s.replace(/\^2\b/g, '²');
+  s = s.replace(/\^3\b/g, '³');
+  s = s.replace(/\^0\b/g, '⁰');
+  s = s.replace(/\^1\b/g, '¹');
+  s = s.replace(/\^4\b/g, '⁴');
+  s = s.replace(/\^5\b/g, '⁵');
+  s = s.replace(/\^6\b/g, '⁶');
+  s = s.replace(/\^7\b/g, '⁷');
+  s = s.replace(/\^8\b/g, '⁸');
+  s = s.replace(/\^9\b/g, '⁹');
+  s = s.replace(/\^n\b/g, 'ⁿ');
+  s = s.replace(/\^-1\b/g, '⁻¹');
+
+  // Convert common science units: cm^2, m^2, cm^3, m^3, etc.
+  s = s.replace(/cm\^2\b/gi, 'cm²');
+  s = s.replace(/m\^2\b/gi, 'm²');
+  s = s.replace(/km\^2\b/gi, 'km²');
+  s = s.replace(/cm\^3\b/gi, 'cm³');
+  s = s.replace(/m\^3\b/gi, 'm³');
+  s = s.replace(/dm\^3\b/gi, 'dm³');
+
+  // Convert subscripts for chemistry and physics: H_2O -> H₂O, CO_2 -> CO₂, etc.
+  s = s.replace(/H_2O\b/g, 'H₂O');
+  s = s.replace(/CO_2\b/g, 'CO₂');
+  s = s.replace(/O_2\b/g, 'O₂');
+  s = s.replace(/N_2\b/g, 'N₂');
+  s = s.replace(/H_2SO_4\b/g, 'H₂SO₄');
+  s = s.replace(/CaCO_3\b/g, 'CaCO₃');
+  s = s.replace(/_0\b/g, '₀');
+  s = s.replace(/_1\b/g, '₁');
+  s = s.replace(/_2\b/g, '₂');
+  s = s.replace(/_3\b/g, '₃');
+  s = s.replace(/_4\b/g, '₄');
+  s = s.replace(/_n\b/g, 'ₙ');
+
+  // Clean redundant parentheses in fraction formatting
+  s = s.replace(/\(([a-zA-Z0-9])\)\/\(([a-zA-Z0-9])\)/g, '$1/$2');
+
+  // 3. PEDAGOGICAL JARGON REFINEMENT (សម្រួលពាក្យបច្ចេកទេសឱ្យងាយយល់):
+  s = s.replace(/មេតាកូញីស្យុង\s*\(Metacognition\)/gi, 'ការឆ្លុះបញ្ចាំងលើការរៀន (Metacognition)');
+  s = s.replace(/មេតាកូញីស្យុង/gi, 'ការឆ្លុះបញ្ចាំងលើការរៀន');
+  s = s.replace(/ស្កាហ្វហ្វូលឌីង\s*\(Scaffolding\)/gi, 'ការជួយគាំទ្រជាជំហានៗ (Scaffolding)');
+  s = s.replace(/ស្កាហ្វហ្វូលឌីង/gi, 'ការជួយគាំទ្រជាជំហានៗ');
+  s = s.replace(/ផេដាហ្កូជី/gi, 'គរុកោសល្យ');
+
+  // Clean up any double spaces created by character stripping
+  s = s.replace(/ {2,}/g, ' ');
+
+  return s.trim();
+}
+window.cleanForbiddenScriptsAndFormatMath = cleanForbiddenScriptsAndFormatMath;
+
+function triggerMathRendering(container) {
+  if (!container) return;
+  if (typeof renderMathInElement === 'function') {
+    try {
+      renderMathInElement(container, {
+        delimiters: [
+          { left: '$$', right: '$$', display: true },
+          { left: '$', right: '$', display: false },
+          { left: '\\(', right: '\\)', display: false },
+          { left: '\\[', right: '\\]', display: true }
+        ],
+        throwOnError: false
+      });
+    } catch (e) {
+      console.warn('KaTeX render error:', e);
+    }
+  }
+}
+
+// ==========================================================================
 // 🛡️ Bulletproof Data Normalizer & Quality Assurance Engine
 // Guarantees 100% complete, non-empty objectives, materials, and 5 steps
 // ==========================================================================
 function normalizeLessonPlanData(data, params = {}) {
   if (!data || typeof data !== 'object') data = {};
+  data = cleanForbiddenScriptsAndFormatMath(data);
   const isEn = (state.language === 'en' || params.language === 'en');
 
   const subject = data.subject || params.subject || (isEn ? 'General Subject' : 'មុខវិជ្ជាទូទៅ');
@@ -9581,6 +9846,7 @@ function renderPostTestModule(data, isEn = false) {
 function renderLessonPlanToA4(data) {
   const doc = document.getElementById('printableDoc');
   if (!doc) return;
+  setTimeout(() => triggerMathRendering(doc), 50);
 
   if (typeof setMobileWorkspaceView === 'function' && window.innerWidth < 1024) {
     setMobileWorkspaceView('preview');
