@@ -1167,9 +1167,9 @@ const PRESET_TEMPLATES = {
   },
   flipped_learning_5step: {
     id: "flipped_learning_5step",
-    name: "កិច្ចតែងការតាមបែបត្រឡប់ (Flipped Learning)",
+    name: "កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់ (Flipped Classroom)",
     badge: "ថ្នាក់រៀនត្រឡប់ (៥%-១០%-១០%-៧០%-៥%)",
-    description: "ទម្រង់កិច្ចតែងការបង្រៀនតាមបែបត្រឡប់ ជាមួយ Pre-test QCM ៥ សំណួរ និង Post-test MCQ ៥ សំណួរ",
+    description: "ទម្រង់កិច្ចតែងការបង្រៀនបែបថ្នាក់រៀនត្រឡប់ ជាមួយ Pre-test QCM ៥ សំណួរ និង Post-test MCQ ៥ សំណួរ",
     structure: {
       type: "flipped_learning",
       steps: [
@@ -1185,7 +1185,7 @@ const PRESET_TEMPLATES = {
 
 const SAMPLE_LESSONS = [
   {
-    title: "កិច្ចតែងការបង្រៀនតាមបែបត្រឡប់: ចិត្តវិទ្យាអប់រំ (៣ ក្រេឌីត ១៨០នាទី)",
+    title: "កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់: ចិត្តវិទ្យាអប់រំ (៣ ក្រេឌីត ១៨០នាទី)",
     subject: "ចិត្តវិទ្យាអប់រំ",
     grade: "គរុនិស្សិត ឆ្នាំទី ១ ឆមាសទី ២ (៣ ក្រេឌីត ៣-០-៦)",
     teacher: "កែម បូរី",
@@ -1650,7 +1650,7 @@ const I18N_DICTIONARY = {
     step2Desc: "",
     labelPresetTemplate: "ប្រភេទកិច្ចតែងការ",
     optPresetStandard: "កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)",
-    optPresetFlipped: "⚡ កិច្ចតែងការតាមបែបត្រឡប់ (Flipped Learning)",
+    optPresetFlipped: "⚡ កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់ (Flipped Classroom)",
     optPresetUbD: "កិច្ចតែងការតាមបែបត្រឡប់ (Backward Design / UbD ៣ ដំណាក់កាល)",
     optPresetPrimary: "កិច្ចតែងការបឋមសិក្សា (ថ្នាក់ទី ១-៦)",
     optPresetStem: "កិច្ចតែងការបែប STEM / 5E (វិទ្យាសាស្ត្រ និងពិសោធន៍)",
@@ -1816,7 +1816,7 @@ const I18N_DICTIONARY = {
     step2Desc: "",
     labelPresetTemplate: "Lesson Plan Format",
     optPresetStandard: "Standard 5-Step Lesson Plan (General / Secondary)",
-    optPresetFlipped: "⚡ Flipped Learning Lesson Plan",
+    optPresetFlipped: "⚡ Flipped Classroom Lesson Plan",
     optPresetUbD: "Backward Design / UbD (3-Stage Framework)",
     optPresetPrimary: "Primary School Lesson Plan (Grades 1-6)",
     optPresetStem: "STEM / 5E Inquiry Lesson Plan (Science & Experiments)",
@@ -5063,7 +5063,7 @@ async function generateWithGeminiAPI(params) {
   let systemPrompt;
   if (isFlipped) {
     systemPrompt = `You are Google Gemini AI serving as an expert Cambodian pedagogical educator, 21st-century instructional designer, and Google NotebookLM specialist for the Ministry of Education, Youth and Sport (MoEYS).
-    Your mission is to deeply analyze the uploaded lesson content and generate an authentic, 100% lesson-specific, state-of-the-art Flipped Learning Lesson Plan in ${isEn ? 'ENGLISH (all content, objectives, materials, questions, teacher and student activities MUST be 100% in English)' : 'Khmer (កិច្ចតែងការបង្រៀនតាមបែបថ្នាក់រៀនត្រឡប់)'}.
+    Your mission is to deeply analyze the uploaded lesson content and generate an authentic, 100% lesson-specific, state-of-the-art Flipped Classroom Lesson Plan in ${isEn ? 'ENGLISH (all content, objectives, materials, questions, teacher and student activities MUST be 100% in English)' : 'Khmer (កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់)'}.
 
 CRITICAL DURATION & ACTIVITY SCALING (${totalMin} MINUTES TOTAL):
 1. Total teaching duration is ${params.duration} (${totalMin} minutes). You MUST allocate step durations:
@@ -5119,7 +5119,7 @@ CRITICAL INSTRUCTIONS FOR AI GENERATION:
 Return ONLY valid JSON matching this schema:
 {
   "templateType": "flipped_learning",
-  "templateTitle": "កិច្ចតែងការបង្រៀនតាមបែបត្រឡប់",
+  "templateTitle": "${isEn ? 'FLIPPED CLASSROOM LESSON PLAN' : 'កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់'}",
   "school": "${params.school}",
   "teacher": "${params.teacher}",
   "subject": "${params.subject}",
@@ -6530,7 +6530,7 @@ function synthesizeLessonPlanOffline(params) {
 
     return {
       templateType: 'flipped_learning',
-      templateTitle: 'កិច្ចតែងការបង្រៀនតាមបែបត្រឡប់',
+      templateTitle: isEn ? 'FLIPPED CLASSROOM LESSON PLAN' : 'កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់',
       school: params.school || 'វិទ្យាស្ថានគរុកោសល្យ',
       teacher: params.teacher || 'កែម បូរី',
       subject: subject || 'ចិត្តវិទ្យាអប់រំ',
@@ -8162,7 +8162,7 @@ function normalizeLessonPlanData(data, params = {}) {
 
   if (isFlipped) {
     data.templateType = 'flipped_learning';
-    data.templateTitle = isEn ? 'FLIPPED LEARNING LESSON PLAN' : 'កិច្ចតែងការបង្រៀនតាមបែបថ្នាក់រៀនត្រឡប់';
+    data.templateTitle = isEn ? 'FLIPPED CLASSROOM LESSON PLAN' : 'កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់';
   } else if (isBd) {
     data.templateType = 'backward_design';
     data.templateTitle = isEn ? 'BACKWARD DESIGN (UbD) LESSON PLAN' : 'កិច្ចតែងការបង្រៀន (តាមបែបត្រឡប់ - Backward Design / UbD)';
@@ -9556,7 +9556,7 @@ function renderLessonPlanToA4(data) {
     </div>
 
     <!-- Main Title Banner -->
-    <div class="doc-main-title">${escapeHtml(data.templateTitle || (isFlipped ? (isEn ? 'FLIPPED LEARNING LESSON PLAN' : 'កិច្ចតែងការបង្រៀនតាមបែបថ្នាក់រៀនត្រឡប់') : (isBd ? (isEn ? 'BACKWARD DESIGN (UbD) LESSON PLAN' : 'កិច្ចតែងការបង្រៀន (តាមបែបត្រឡប់ - Backward Design / UbD)') : (isEn ? 'STANDARD LESSON PLAN' : 'កិច្ចតែងការបង្រៀន'))))}</div>
+    <div class="doc-main-title">${escapeHtml(data.templateTitle || (isFlipped ? (isEn ? 'FLIPPED CLASSROOM LESSON PLAN' : 'កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់') : (isBd ? (isEn ? 'BACKWARD DESIGN (UbD) LESSON PLAN' : 'កិច្ចតែងការបង្រៀន (តាមបែបត្រឡប់ - Backward Design / UbD)') : (isEn ? 'STANDARD LESSON PLAN' : 'កិច្ចតែងការបង្រៀន'))))}</div>
     
     <div class="doc-lesson-banner">
       ${data.chapter ? `<div><strong>${escapeHtml(data.chapter)}</strong></div>` : ''}
@@ -9602,7 +9602,7 @@ function renderLessonPlanToA4(data) {
       `;
     });
 
-    const docTitle = isEn ? 'FLIPPED LEARNING LESSON PLAN' : 'កិច្ចតែងការបង្រៀនតាមបែបត្រឡប់';
+    const docTitle = isEn ? 'FLIPPED CLASSROOM LESSON PLAN' : (data.templateTitle || 'កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់');
     const durVal = localizeDuration(data.duration || (isEn ? '180 mins' : '១៨០ នាទី'), isEn);
     const creditsVal = isEn ? (data.credits || '3 Credits (3-0-6)') : (data.credits || '៣ ក្រេឌីត (៣-០-៦)');
 
@@ -10399,7 +10399,7 @@ async function handleExportWord() {
     );
 
     // Main Lesson Plan Title
-    const titleText = data.templateTitle || (isFlipped ? "កិច្ចតែងការបង្រៀន (តាមបែបថ្នាក់រៀនត្រឡប់ - FLIPPED LEARNING)" : (isBd ? "កិច្ចតែងការបង្រៀន (តាមបែបត្រឡប់ - Backward Design / UbD)" : "កិច្ចតែងការបង្រៀន"));
+    const titleText = data.templateTitle || (isFlipped ? (isEn ? "FLIPPED CLASSROOM LESSON PLAN" : "កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់ (FLIPPED CLASSROOM)") : (isBd ? "កិច្ចតែងការបង្រៀន (តាមបែបត្រឡប់ - Backward Design / UbD)" : "កិច្ចតែងការបង្រៀន"));
     docChildren.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
@@ -10510,7 +10510,7 @@ async function handleExportWord() {
       docChildren.push(
         new Paragraph({
           alignment: AlignmentType.CENTER,
-          children: [new TextRun({ text: "កិច្ចតែងការបង្រៀនតាមបែបត្រឡប់", bold: true, underline: {}, size: 28 })]
+          children: [new TextRun({ text: isEn ? "FLIPPED CLASSROOM LESSON PLAN" : (data.templateTitle || "កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់"), bold: true, underline: {}, size: 28 })]
         }),
         new Paragraph({ text: "" })
       );
@@ -10757,7 +10757,7 @@ async function handleExportWord() {
         },
         sections: [{ children: docChildren }]
       }));
-      const filename = `កិច្ចតែងការបង្រៀនតាមបែបត្រឡប់_${(data.subject || 'មេរៀន')}_${(data.teacher || 'កែម_បូរី')}.docx`.replace(/\s+/g, '_');
+      const filename = `${isEn ? 'Flipped_Classroom_Lesson_Plan' : 'កិច្ចតែងការ_បែបថ្នាក់រៀនត្រឡប់'}_${(data.subject || 'មេរៀន')}_${(data.teacher || 'កែម_បូរី')}.docx`.replace(/\s+/g, '_');
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = filename;
