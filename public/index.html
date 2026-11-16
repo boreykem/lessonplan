@@ -595,38 +595,88 @@
                 </span>
               </div>
 
-              <!-- 2. Active Techniques Multi-Select Chips -->
-              <div>
+              <!-- 2. Active Techniques Combo Dropdown Checkbox -->
+              <div class="techniques-multiselect-container" id="techniquesMultiselectContainer">
                 <div class="flex items-center justify-between mb-1" style="flex-wrap: wrap; gap: 4px;">
                   <label class="font-semibold text-xs" style="color: #475569;">
                     <i class="fa-solid fa-puzzle-piece" style="margin-right: 4px; color: #6366f1;"></i>
-                    <span data-i18n="techniquesLabel">យុទ្ធវិធីបង្រៀនគន្លឹះ (Active Techniques — អាចរើសច្រើន)</span> ៖
+                    <span data-i18n="techniquesLabel">យុទ្ធវិធីបង្រៀនគន្លឹះ (Active Techniques)</span> ៖
                   </label>
                   <span id="selectedTechniquesCount" style="font-size: 0.72rem; color: #6366f1; font-weight: 700;">បានជ្រើសរើស ៣</span>
                 </div>
 
-                <div class="techniques-chips-grid" id="techniquesChipsGrid"
-                  style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;">
-                  <!-- Populated dynamically via JS -->
+                <!-- Combo Dropdown Trigger Button -->
+                <div class="techniques-combo-trigger" id="techniquesComboTrigger" onclick="toggleTechniquesDropdown()" tabindex="0" role="button" aria-haspopup="listbox" aria-expanded="false">
+                  <div class="combo-trigger-left">
+                    <i class="fa-solid fa-list-check combo-icon"></i>
+                    <span class="combo-trigger-text" id="comboTriggerText">ជ្រើសរើសយុទ្ធវិធីបង្រៀន...</span>
+                  </div>
+                  <div class="combo-trigger-right">
+                    <span class="combo-count-badge" id="comboCountBadge">3</span>
+                    <i class="fa-solid fa-chevron-down combo-arrow" id="comboArrow"></i>
+                  </div>
                 </div>
 
-                <!-- Custom Technique Quick Adder inline -->
-                <div id="customTechniqueInputWrap" style="display: none; margin-top: 8px;">
-                  <div style="display: flex; gap: 6px; align-items: center;">
-                    <div class="input-icon-wrap" style="flex: 1;">
-                      <i class="fa-solid fa-puzzle-piece"></i>
-                      <input type="text" id="inputCustomTechniqueText" class="form-control form-control-sm"
-                        placeholder="វាយបញ្ចូលឈ្មោះយុទ្ធវិធីថ្មី (ឧ. KWL Chart, Fishbowl, Four Corners...)"
-                        onkeydown="if(event.key==='Enter') confirmAddCustomTechnique()">
+                <!-- Selected Techniques Compact Pills Preview -->
+                <div class="selected-techniques-preview" id="selectedTechniquesPreview">
+                  <!-- Populated dynamically via JS: tags of selected techniques with 'x' to quickly unselect -->
+                </div>
+
+                <!-- Dropdown Panel (Multi-select Checkbox Menu) -->
+                <div class="techniques-dropdown-panel" id="techniquesDropdownPanel" style="display: none;">
+                  <!-- Dropdown Search & Quick Actions -->
+                  <div class="techniques-dropdown-header">
+                    <div class="techniques-search-wrap">
+                      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                      <input type="text" id="techniquesSearchInput" class="techniques-search-input"
+                        placeholder="ស្វែងរកយុទ្ធវិធី..."
+                        oninput="filterTechniquesList(this.value)"
+                        onclick="event.stopPropagation()">
+                      <button type="button" class="btn-clear-search" id="btnClearSearch" onclick="clearTechniquesSearch(event)" style="display: none;">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
                     </div>
-                    <button type="button" class="btn btn-sm btn-primary" onclick="confirmAddCustomTechnique()"
-                      style="white-space: nowrap; padding: 6px 12px; font-size: 0.8rem; border-radius: 8px;">
-                      <i class="fa-solid fa-plus"></i> បន្ថែម
-                    </button>
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="toggleCustomTechniqueInput(false)"
-                      style="white-space: nowrap; padding: 6px 10px; font-size: 0.8rem; border-radius: 8px;">
-                      បោះបង់
-                    </button>
+                    <div class="techniques-quick-actions">
+                      <button type="button" class="btn-quick-action" onclick="resetToDefaultTechniques(event)">
+                        <i class="fa-solid fa-rotate-left"></i> <span data-i18n="btnResetTechDefault">លំនាំដើម (៣)</span>
+                      </button>
+                      <button type="button" class="btn-quick-action" onclick="clearAllTechniques(event)">
+                        <i class="fa-solid fa-trash-can"></i> <span data-i18n="btnClearTechAll">សម្អាតទាំងអស់</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- Techniques Options List with Checkboxes -->
+                  <div class="techniques-options-list" id="techniquesOptionsList">
+                    <!-- Checkbox items rendered via JS -->
+                  </div>
+
+                  <!-- Dropdown Footer -->
+                  <div class="techniques-dropdown-footer">
+                    <div id="dropdownAddCustomWrap" style="display: none; width: 100%; margin-bottom: 6px;">
+                      <div style="display: flex; gap: 6px; align-items: center;">
+                        <input type="text" id="inputCustomTechniqueDropdownText" class="form-control form-control-sm"
+                          placeholder="វាយបញ្ចូលឈ្មោះយុទ្ធវិធីថ្មី..."
+                          onkeydown="if(event.key==='Enter') confirmAddCustomTechniqueFromDropdown(event)"
+                          onclick="event.stopPropagation()">
+                        <button type="button" class="btn btn-sm btn-primary" onclick="confirmAddCustomTechniqueFromDropdown(event)"
+                          style="white-space: nowrap; padding: 4px 10px; font-size: 0.78rem; border-radius: 6px;">
+                          <i class="fa-solid fa-plus"></i> បន្ថែម
+                        </button>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="toggleDropdownAddCustom(false, event)"
+                          style="white-space: nowrap; padding: 4px 8px; font-size: 0.78rem; border-radius: 6px;">
+                          <i class="fa-solid fa-xmark"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                      <button type="button" class="btn-footer-add" id="btnShowAddCustomInDropdown" onclick="toggleDropdownAddCustom(true, event)">
+                        <i class="fa-solid fa-plus"></i> <span data-i18n="btnAddCustomTech">+ បន្ថែមយុទ្ធវិធីផ្ទាល់ខ្លួន...</span>
+                      </button>
+                      <button type="button" class="btn-footer-done" onclick="toggleTechniquesDropdown(false)">
+                        <i class="fa-solid fa-check"></i> <span data-i18n="btnDoneTech">រួចរាល់</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

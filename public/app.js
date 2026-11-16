@@ -615,71 +615,72 @@ function setSelectedTeachingMethod(val) {
   methodSelect.value = valStr;
 }
 
-function renderTechniquesChips() {
-  const grid = document.getElementById('techniquesChipsGrid');
-  if (!grid) return;
+let techniquesSearchQuery = '';
 
-  const isEn = (state.language === 'en');
-  const selected = getSelectedTechniques();
-  const customTechs = getCustomTeachingTechniques();
+function toggleTechniquesDropdown(forceState) {
+  const panel = document.getElementById('techniquesDropdownPanel');
+  const trigger = document.getElementById('techniquesComboTrigger');
+  if (!panel || !trigger) return;
 
-  let html = '';
+  const isCurrentlyOpen = panel.style.display !== 'none' && panel.style.display !== '';
+  const willOpen = (typeof forceState === 'boolean') ? forceState : !isCurrentlyOpen;
 
-  // Render Built-in Techniques
-  BUILTIN_TEACHING_TECHNIQUES.forEach(t => {
-    const isAct = selected.includes(t.name) || selected.includes(t.id);
-    const label = isEn ? t.name : (t.kmLabel || t.name);
-    const tooltip = isEn ? (t.descEn || t.name) : (t.descKm || t.kmLabel || t.name);
-    html += `
-      <div class="technique-chip ${isAct ? 'active' : ''}" onclick="toggleTechniqueChip('${t.name}')" title="${escapeHtml(tooltip)}">
-        <i class="fa-solid ${t.icon}"></i>
-        <span>${escapeHtml(label)}</span>
-      </div>
-    `;
-  });
-
-  // Render Custom Techniques
-  customTechs.forEach(ct => {
-    const isAct = selected.includes(ct);
-    html += `
-      <div class="technique-chip ${isAct ? 'active' : ''}" onclick="toggleTechniqueChip('${escapeHtml(ct)}')" title="${escapeHtml(ct)}">
-        <i class="fa-solid fa-puzzle-piece"></i>
-        <span>${escapeHtml(ct)}</span>
-        <span class="remove-custom-tech" onclick="event.stopPropagation(); removeCustomTechnique('${escapeHtml(ct)}')" title="${isEn ? 'Remove' : 'លុប'}">×</span>
-      </div>
-    `;
-  });
-
-  // Append '+ Add Technique' Button Chip
-  html += `
-    <div class="technique-chip btn-add-technique" onclick="toggleCustomTechniqueInput(true)" title="${isEn ? 'Add Custom Technique' : 'បន្ថែមយុទ្ធវិធីផ្ទាល់ខ្លួន'}">
-      <i class="fa-solid fa-plus"></i>
-      <span>${isEn ? '+ Add Technique...' : '+ បន្ថែមយុទ្ធវិធី...'}</span>
-    </div>
-  `;
-
-  grid.innerHTML = html;
-  updateSelectedTechniquesCounter();
-}
-
-function toggleTechniqueChip(name) {
-  const selected = getSelectedTechniques().slice();
-  const idx = selected.indexOf(name);
-  if (idx >= 0) {
-    selected.splice(idx, 1);
+  if (willOpen) {
+    panel.style.display = 'flex';
+    trigger.classList.add('active');
+    trigger.setAttribute('aria-expanded', 'true');
+    const searchInput = document.getElementById('techniquesSearchInput');
+    if (searchInput) {
+      setTimeout(() => { searchInput.focus(); }, 50);
+    }
   } else {
-    selected.push(name);
+    panel.style.display = 'none';
+    trigger.classList.remove('active');
+    trigger.setAttribute('aria-expanded', 'false');
+    const addWrap = document.getElementById('dropdownAddCustomWrap');
+    if (addWrap) addWrap.style.display = 'none';
   }
-  saveSelectedTechniques(selected);
-  renderTechniquesChips();
 }
 
-function toggleCustomTechniqueInput(show) {
-  const wrap = document.getElementById('customTechniqueInputWrap');
+function filterTechniquesList(query) {
+  techniquesSearchQuery = String(query || '').toLowerCase().trim();
+  const btnClear = document.getElementById('btnClearSearch');
+  if (btnClear) {
+    btnClear.style.display = techniquesSearchQuery ? 'block' : 'none';
+  }
+  populateTechniquesOptionsList();
+}
+
+function clearTechniquesSearch(event) {
+  if (event) event.stopPropagation();
+  const input = document.getElementById('techniquesSearchInput');
+  if (input) input.value = '';
+  filterTechniquesList('');
+  if (input) input.focus();
+}
+
+function resetToDefaultTechniques(event) {
+  if (event) event.stopPropagation();
+  const defaultTechs = ['Think-Pair-Share', 'Jigsaw', 'Gallery Walk'];
+  saveSelectedTechniques(defaultTechs);
+  renderTechniquesChips();
+  showToast(state.language === 'en' ? 'Reset to 3 default techniques' : 'បានកំណត់មកយុទ្ធវិធីលំនាំដើម (៣)', 'info');
+}
+
+function clearAllTechniques(event) {
+  if (event) event.stopPropagation();
+  saveSelectedTechniques([]);
+  renderTechniquesChips();
+  showToast(state.language === 'en' ? 'Cleared all active techniques' : 'បានសម្អាតយុទ្ធវិធីទាំងអស់', 'info');
+}
+
+function toggleDropdownAddCustom(show, event) {
+  if (event) event.stopPropagation();
+  const wrap = document.getElementById('dropdownAddCustomWrap');
   if (!wrap) return;
   wrap.style.display = show ? 'block' : 'none';
   if (show) {
-    const input = document.getElementById('inputCustomTechniqueText');
+    const input = document.getElementById('inputCustomTechniqueDropdownText');
     if (input) {
       input.focus();
       input.select();
@@ -687,8 +688,9 @@ function toggleCustomTechniqueInput(show) {
   }
 }
 
-function confirmAddCustomTechnique() {
-  const input = document.getElementById('inputCustomTechniqueText');
+function confirmAddCustomTechniqueFromDropdown(event) {
+  if (event) event.stopPropagation();
+  const input = document.getElementById('inputCustomTechniqueDropdownText');
   if (!input) return;
   const val = input.value.trim();
   if (!val) {
@@ -703,7 +705,6 @@ function confirmAddCustomTechnique() {
     saveCustomTeachingTechniques(customs);
   }
 
-  // Automatically select the new technique
   const selected = getSelectedTechniques().slice();
   if (!selected.includes(val)) {
     selected.push(val);
@@ -711,9 +712,190 @@ function confirmAddCustomTechnique() {
   }
 
   input.value = '';
-  toggleCustomTechniqueInput(false);
+  toggleDropdownAddCustom(false);
   renderTechniquesChips();
   showToast(state.language === 'en' ? `Added technique: ${val}` : `បានបន្ថែមយុទ្ធវិធី៖ ${val}`, 'success');
+}
+
+function confirmAddCustomTechnique() {
+  confirmAddCustomTechniqueFromDropdown();
+}
+
+function toggleCustomTechniqueInput(show) {
+  toggleDropdownAddCustom(show);
+}
+
+function unselectTechnique(name, event) {
+  if (event) event.stopPropagation();
+  const selected = getSelectedTechniques().filter(t => t !== name && t !== (t.id || ''));
+  saveSelectedTechniques(selected);
+  renderTechniquesChips();
+}
+
+function toggleTechniqueSelection(name) {
+  const selected = getSelectedTechniques().slice();
+  const idx = selected.indexOf(name);
+  if (idx >= 0) {
+    selected.splice(idx, 1);
+  } else {
+    selected.push(name);
+  }
+  saveSelectedTechniques(selected);
+  renderTechniquesChips();
+}
+
+function toggleTechniqueChip(name) {
+  toggleTechniqueSelection(name);
+}
+
+function populateTechniquesOptionsList() {
+  const listEl = document.getElementById('techniquesOptionsList');
+  if (!listEl) return;
+
+  const isEn = (state.language === 'en');
+  const selected = getSelectedTechniques();
+  const customTechs = getCustomTeachingTechniques();
+  const query = techniquesSearchQuery;
+
+  let itemsHtml = '';
+  let matchCount = 0;
+
+  // 1. Built-in techniques
+  BUILTIN_TEACHING_TECHNIQUES.forEach(t => {
+    const nameStr = isEn ? t.name : (t.kmLabel || t.name);
+    const descStr = isEn ? (t.descEn || t.name) : (t.descKm || t.kmLabel || t.name);
+    const searchHaystack = `${t.name} ${t.kmLabel || ''} ${descStr}`.toLowerCase();
+
+    if (query && !searchHaystack.includes(query)) {
+      return;
+    }
+    matchCount++;
+
+    const isAct = selected.includes(t.name) || selected.includes(t.id);
+    itemsHtml += `
+      <div class="technique-option-row ${isAct ? 'selected' : ''}" onclick="toggleTechniqueSelection('${escapeHtml(t.name)}')" title="${escapeHtml(descStr)}">
+        <span class="technique-custom-checkbox">
+          <i class="fa-solid fa-check"></i>
+        </span>
+        <i class="fa-solid ${t.icon} technique-option-icon"></i>
+        <div class="technique-option-content">
+          <div class="technique-option-name">
+            <span>${escapeHtml(nameStr)}</span>
+          </div>
+          <div class="technique-option-desc">${escapeHtml(descStr)}</div>
+        </div>
+      </div>
+    `;
+  });
+
+  // 2. Custom techniques
+  customTechs.forEach(ct => {
+    const searchHaystack = ct.toLowerCase();
+    if (query && !searchHaystack.includes(query)) {
+      return;
+    }
+    matchCount++;
+
+    const isAct = selected.includes(ct);
+    itemsHtml += `
+      <div class="technique-option-row ${isAct ? 'selected' : ''}" onclick="toggleTechniqueSelection('${escapeHtml(ct)}')">
+        <span class="technique-custom-checkbox">
+          <i class="fa-solid fa-check"></i>
+        </span>
+        <i class="fa-solid fa-puzzle-piece technique-option-icon"></i>
+        <div class="technique-option-content">
+          <div class="technique-option-name">
+            <span>✏️ ${escapeHtml(ct)}</span>
+            <button type="button" class="btn-delete-custom-tech" onclick="event.stopPropagation(); removeCustomTechnique('${escapeHtml(ct)}')" title="${isEn ? 'Delete' : 'លុប'}">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+          <div class="technique-option-desc">${isEn ? 'Custom user-defined technique' : 'យុទ្ធវិធីផ្ទាល់ខ្លួនរបស់អ្នកគ្រូ/លោកគ្រូ'}</div>
+        </div>
+      </div>
+    `;
+  });
+
+  if (matchCount === 0) {
+    itemsHtml = `
+      <div style="text-align: center; color: #94a3b8; padding: 20px 10px; font-size: 0.8rem;">
+        <i class="fa-solid fa-magnifying-glass" style="font-size: 1.2rem; margin-bottom: 6px; display: block; opacity: 0.6;"></i>
+        ${isEn ? 'No teaching techniques found matching' : 'រកមិនឃើញយុទ្ធវិធីដែលត្រូវគ្នានឹង'} "<strong>${escapeHtml(query)}</strong>"
+      </div>
+    `;
+  }
+
+  listEl.innerHTML = itemsHtml;
+}
+
+function renderTechniquesChips() {
+  const isEn = (state.language === 'en');
+  const selected = getSelectedTechniques();
+
+  // 1. Update Trigger text & count badge
+  const triggerText = document.getElementById('comboTriggerText');
+  const countBadge = document.getElementById('comboCountBadge');
+  const countEl = document.getElementById('selectedTechniquesCount');
+
+  if (countBadge) countBadge.textContent = String(selected.length);
+  if (countEl) countEl.textContent = isEn ? `Selected: ${selected.length}` : `បានជ្រើសរើស ${selected.length}`;
+
+  if (triggerText) {
+    if (selected.length === 0) {
+      triggerText.textContent = isEn ? 'Select Teaching Techniques (Multi-select)...' : 'ជ្រើសរើសយុទ្ធវិធីបង្រៀន (អាចរើសច្រើន)...';
+      triggerText.style.color = 'var(--text-muted, #94a3b8)';
+    } else if (selected.length === 1) {
+      triggerText.textContent = selected[0];
+      triggerText.style.color = 'var(--text-primary, #0f172a)';
+    } else if (selected.length === 2) {
+      triggerText.textContent = `${selected[0]}, ${selected[1]}`;
+      triggerText.style.color = 'var(--text-primary, #0f172a)';
+    } else {
+      triggerText.textContent = isEn ? `${selected.length} Techniques Selected (${selected.slice(0, 2).join(', ')}...)` : `បានជ្រើសរើស ${selected.length} យុទ្ធវិធី (${selected.slice(0, 2).join(', ')}...)`;
+      triggerText.style.color = 'var(--text-primary, #0f172a)';
+    }
+  }
+
+  // 2. Render Compact Preview Pills
+  const previewEl = document.getElementById('selectedTechniquesPreview');
+  if (previewEl) {
+    if (selected.length === 0) {
+      previewEl.innerHTML = '';
+      previewEl.style.display = 'none';
+    } else {
+      previewEl.style.display = 'flex';
+      let pillsHtml = '';
+      const maxPills = 4;
+      const displayList = selected.slice(0, maxPills);
+
+      displayList.forEach(name => {
+        const foundBuiltin = BUILTIN_TEACHING_TECHNIQUES.find(t => t.name === name || t.id === name);
+        const icon = foundBuiltin ? foundBuiltin.icon : 'fa-puzzle-piece';
+        const label = (isEn || !foundBuiltin) ? name : (foundBuiltin.kmLabel || name);
+        pillsHtml += `
+          <span class="preview-tech-pill" title="${escapeHtml(name)}">
+            <i class="fa-solid ${icon}"></i>
+            <span>${escapeHtml(label)}</span>
+            <span class="pill-remove" onclick="unselectTechnique('${escapeHtml(name)}', event)" title="${isEn ? 'Remove' : 'ដកចេញ'}">×</span>
+          </span>
+        `;
+      });
+
+      if (selected.length > maxPills) {
+        const remaining = selected.length - maxPills;
+        pillsHtml += `
+          <span class="preview-tech-pill-more" onclick="toggleTechniquesDropdown(true)" title="${isEn ? 'Click to see all' : 'ចុចដើម្បីមើលទាំងអស់'}">
+            +${remaining} ${isEn ? 'more' : 'ទៀត'}
+          </span>
+        `;
+      }
+      previewEl.innerHTML = pillsHtml;
+    }
+  }
+
+  // 3. Render Dropdown Options Checkbox list
+  populateTechniquesOptionsList();
+  updateSelectedTechniquesCounter();
 }
 
 function removeCustomTechnique(name) {
@@ -751,6 +933,25 @@ function initPedagogyControls() {
   const isEn = (state.language === 'en');
   populateTeachingMethodsSelect(isEn);
   renderTechniquesChips();
+
+  // Close Combo Dropdown when clicking outside
+  if (!window._techniquesDropdownClickBound) {
+    document.addEventListener('click', (e) => {
+      const container = document.getElementById('techniquesMultiselectContainer');
+      const panel = document.getElementById('techniquesDropdownPanel');
+      if (container && panel && panel.style.display !== 'none') {
+        if (!container.contains(e.target)) {
+          toggleTechniquesDropdown(false);
+        }
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        toggleTechniquesDropdown(false);
+      }
+    });
+    window._techniquesDropdownClickBound = true;
+  }
 }
 
 window.handleTeachingMethodChange = handleTeachingMethodChange;
@@ -758,6 +959,15 @@ window.confirmAddCustomMethod = confirmAddCustomMethod;
 window.confirmAddCustomTechnique = confirmAddCustomTechnique;
 window.toggleCustomTechniqueInput = toggleCustomTechniqueInput;
 window.toggleTechniqueChip = toggleTechniqueChip;
+window.toggleTechniqueSelection = toggleTechniqueSelection;
+window.toggleTechniquesDropdown = toggleTechniquesDropdown;
+window.filterTechniquesList = filterTechniquesList;
+window.clearTechniquesSearch = clearTechniquesSearch;
+window.resetToDefaultTechniques = resetToDefaultTechniques;
+window.clearAllTechniques = clearAllTechniques;
+window.toggleDropdownAddCustom = toggleDropdownAddCustom;
+window.confirmAddCustomTechniqueFromDropdown = confirmAddCustomTechniqueFromDropdown;
+window.unselectTechnique = unselectTechnique;
 window.removeCustomTechnique = removeCustomTechnique;
 window.getSelectedTeachingMethod = getSelectedTeachingMethod;
 window.setSelectedTeachingMethod = setSelectedTeachingMethod;
@@ -1742,7 +1952,17 @@ function setLanguage(lang, showNotification = false) {
   const approachVal = document.querySelector('[data-i18n="teachingApproachVal"]');
   if (approachVal) approachVal.textContent = isEn ? 'Student-Centered (70% STT / 30% TTT)' : 'សិស្សមជ្ឈមណ្ឌល (Student-Centered — 70% STT)';
   const techLabel = document.querySelector('[data-i18n="techniquesLabel"]');
-  if (techLabel) techLabel.textContent = isEn ? 'Active Teaching Techniques (Multi-select)' : 'យុទ្ធវិធីបង្រៀនគន្លឹះ (Active Techniques — អាចរើសច្រើន)';
+  if (techLabel) techLabel.textContent = isEn ? 'Active Teaching Techniques (Multi-select)' : 'យុទ្ធវិធីបង្រៀនគន្លឹះ (Active Techniques) ៖';
+  const resetBtnText = document.querySelector('[data-i18n="btnResetTechDefault"]');
+  if (resetBtnText) resetBtnText.textContent = isEn ? 'Default (3)' : 'លំនាំដើម (៣)';
+  const clearBtnText = document.querySelector('[data-i18n="btnClearTechAll"]');
+  if (clearBtnText) clearBtnText.textContent = isEn ? 'Clear All' : 'សម្អាតទាំងអស់';
+  const addCustomBtnText = document.querySelector('[data-i18n="btnAddCustomTech"]');
+  if (addCustomBtnText) addCustomBtnText.textContent = isEn ? '+ Add Custom Technique...' : '+ បន្ថែមយុទ្ធវិធីផ្ទាល់ខ្លួន...';
+  const doneBtnText = document.querySelector('[data-i18n="btnDoneTech"]');
+  if (doneBtnText) doneBtnText.textContent = isEn ? 'Done' : 'រួចរាល់';
+  const searchInput = document.getElementById('techniquesSearchInput');
+  if (searchInput) searchInput.placeholder = isEn ? 'Search techniques...' : 'ស្វែងរកយុទ្ធវិធី...';
 
   // 11. Saved Profile Badge
   const savedProfileBadge = document.getElementById('savedProfileBadge');
