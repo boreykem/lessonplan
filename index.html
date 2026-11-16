@@ -604,7 +604,7 @@
                 </div>
 
                 <!-- Dropdown Panel (Multi-select Checkbox Menu) -->
-                <div class="techniques-dropdown-panel" id="techniquesDropdownPanel" style="display: none;">
+                <div class="techniques-dropdown-panel" id="techniquesDropdownPanel" style="display: none;" onclick="event.stopPropagation()">
                   <!-- Dropdown Search & Quick Actions -->
                   <div class="techniques-dropdown-header">
                     <div class="techniques-search-wrap">
@@ -654,7 +654,7 @@
                       <button type="button" class="btn-footer-add" id="btnShowAddCustomInDropdown" onclick="toggleDropdownAddCustom(true, event)">
                         <i class="fa-solid fa-plus"></i> <span data-i18n="btnAddCustomTech">+ បន្ថែមយុទ្ធវិធីផ្ទាល់ខ្លួន...</span>
                       </button>
-                      <button type="button" class="btn-footer-done" onclick="toggleTechniquesDropdown(false)">
+                      <button type="button" class="btn-footer-done" onclick="event.stopPropagation(); toggleTechniquesDropdown(false)">
                         <i class="fa-solid fa-check"></i> <span data-i18n="btnDoneTech">រួចរាល់</span>
                       </button>
                     </div>

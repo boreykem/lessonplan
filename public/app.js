@@ -743,7 +743,11 @@ function unselectTechnique(name, event) {
   renderTechniquesChips();
 }
 
-function toggleTechniqueSelection(name) {
+function toggleTechniqueSelection(name, event) {
+  if (event) {
+    if (typeof event.stopPropagation === 'function') event.stopPropagation();
+    if (typeof event.preventDefault === 'function') event.preventDefault();
+  }
   const selected = getSelectedTechniques().slice();
   const idx = selected.indexOf(name);
   if (idx >= 0) {
@@ -755,8 +759,8 @@ function toggleTechniqueSelection(name) {
   renderTechniquesChips();
 }
 
-function toggleTechniqueChip(name) {
-  toggleTechniqueSelection(name);
+function toggleTechniqueChip(name, event) {
+  toggleTechniqueSelection(name, event);
 }
 
 function populateTechniquesOptionsList() {
@@ -784,7 +788,7 @@ function populateTechniquesOptionsList() {
 
     const isAct = selected.includes(t.name) || selected.includes(t.id);
     itemsHtml += `
-      <div class="technique-option-row ${isAct ? 'selected' : ''}" onclick="toggleTechniqueSelection('${escapeHtml(t.name)}')" title="${escapeHtml(descStr)}">
+      <div class="technique-option-row ${isAct ? 'selected' : ''}" onclick="event.stopPropagation(); toggleTechniqueSelection('${escapeHtml(t.name)}', event)" title="${escapeHtml(descStr)}">
         <span class="technique-custom-checkbox">
           <i class="fa-solid fa-check"></i>
         </span>
@@ -809,7 +813,7 @@ function populateTechniquesOptionsList() {
 
     const isAct = selected.includes(ct);
     itemsHtml += `
-      <div class="technique-option-row ${isAct ? 'selected' : ''}" onclick="toggleTechniqueSelection('${escapeHtml(ct)}')">
+      <div class="technique-option-row ${isAct ? 'selected' : ''}" onclick="event.stopPropagation(); toggleTechniqueSelection('${escapeHtml(ct)}', event)">
         <span class="technique-custom-checkbox">
           <i class="fa-solid fa-check"></i>
         </span>
@@ -951,7 +955,10 @@ function initPedagogyControls() {
       const container = document.getElementById('techniquesMultiselectContainer');
       const panel = document.getElementById('techniquesDropdownPanel');
       if (container && panel && panel.style.display !== 'none') {
-        if (!container.contains(e.target)) {
+        const isInside = (e.composedPath && e.composedPath().includes(container)) ||
+                         container.contains(e.target) ||
+                         (e.target && e.target.closest && e.target.closest('#techniquesMultiselectContainer'));
+        if (!isInside) {
           toggleTechniquesDropdown(false);
         }
       }
@@ -8008,6 +8015,15 @@ function cleanForbiddenScriptsAndFormatMath(input) {
   // Strictly remove Vietnamese unique diacritics / words
   s = s.replace(/[\u0102\u0103\u0110\u0111\u0128\u0129\u0168\u0169\u01A0\u01A1\u01AF\u01B0\u1EA0-\u1EF9]+/g, '');
 
+  // 1.1 Enumerated list numeral corrector: Fix misrecognized Thai/Latin digits starting list items before Khmer text
+  // e.g., "9. «..." or "1. «..." -> "១. «...", "2. «..." -> "២. «...", "3. «..." -> "៣. «...", etc.
+  s = s.replace(/(^|\n)\s*9\.\s*(?=[«\u1780-\u17FF])/g, '$1១. ');
+  s = s.replace(/(^|\n)\s*1\.\s*(?=[«\u1780-\u17FF])/g, '$1១. ');
+  s = s.replace(/(^|\n)\s*2\.\s*(?=[«\u1780-\u17FF])/g, '$1២. ');
+  s = s.replace(/(^|\n)\s*3\.\s*(?=[«\u1780-\u17FF])/g, '$1៣. ');
+  s = s.replace(/(^|\n)\s*4\.\s*(?=[«\u1780-\u17FF])/g, '$1៤. ');
+  s = s.replace(/(^|\n)\s*5\.\s*(?=[«\u1780-\u17FF])/g, '$1៥. ');
+
   // 2. MATHEMATICAL & SCIENTIFIC NOTATION CLEANER:
   // Clean raw LaTeX dollar signs and brackets
   s = s.replace(/\$\$([^\$]+)\$\$/g, '$1');
@@ -8570,6 +8586,24 @@ function normalizeLessonPlanData(data, params = {}) {
       let chosenTitle = existing.stepTitle || existing.step_title;
       if (!chosenTitle || isGenericStepTitle(chosenTitle, stepIdx)) {
         chosenTitle = defaultTitles[i];
+      }
+
+      // STRICT PEDAGOGICAL SANITIZATION: Exit Ticket 3-2-1 is STRICTLY for Step 5!
+      if (stepIdx < 5) {
+        safeTeacher = safeTeacher
+          .replace(/\[\s*អនុវត្តយុទ្ធវិធី\s+Exit\s+Ticket[^\]]*\]/gi, '')
+          .replace(/Exit\s+Ticket\s+3-2-1/gi, 'កម្រងសំណួររំលឹកមេរៀន')
+          .replace(/Exit\s+Ticket/gi, 'សំណួររំលឹក');
+        safeContent = safeContent
+          .replace(/Exit\s+Ticket\s+3-2-1/gi, '')
+          .replace(/Exit\s+Ticket/gi, '');
+        safeStudent = safeStudent
+          .replace(/Exit\s+Ticket\s+3-2-1/gi, 'សំណួររំលឹក')
+          .replace(/Exit\s+Ticket/gi, 'សំណួររំលឹក');
+      } else if (stepIdx === 5) {
+        if (!safeTeacher.includes('Exit Ticket') && !safeTeacher.includes('សំបុត្រ')) {
+          safeTeacher += '\n• គ្រូដាក់សកម្មភាពឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 (៣ ចំណុចបានរៀន, ២ ចំណុចចាប់អារម្មណ៍, ១ ចំណុចចម្ងល់) មុនបញ្ចប់ម៉ោង';
+        }
       }
 
       normalizedSteps.push({
@@ -9685,15 +9719,15 @@ function renderLessonPlanToA4(data) {
         <div style="font-style: italic; margin-bottom: 4px; font-weight: 600;">${isEn ? 'Upon completion of this lesson, student teachers will be able to:' : 'បន្ទាប់ពីរៀនមេរៀននេះចប់ គរុនិស្សិតនឹង៖'}</div>
         <div style="font-weight: 600; margin-top: 4px;">• ${isEn ? 'Knowledge (Cognitive Domain):' : 'វិជ្ជាសម្បទា៖'}</div>
         <ul class="doc-list" style="margin-top: 2px;">
-          ${(data.objectives?.knowledge || []).map(k => `<li>${escapeHtml(k)}</li>`).join('')}
+          ${(data.objectives?.knowledge || []).slice(0, 1).map(k => `<li>${escapeHtml(k)}</li>`).join('')}
         </ul>
         <div style="font-weight: 600; margin-top: 4px;">• ${isEn ? 'Skills (Psychomotor Domain):' : 'បំណិនសម្បទា៖'}</div>
         <ul class="doc-list" style="margin-top: 2px;">
-          ${(data.objectives?.skills || []).map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+          ${(data.objectives?.skills || []).slice(0, 1).map(s => `<li>${escapeHtml(s)}</li>`).join('')}
         </ul>
         <div style="font-weight: 600; margin-top: 4px;">• ${isEn ? 'Attitudes & Values (Affective Domain):' : 'ចរិយាសម្បទា៖'}</div>
         <ul class="doc-list" style="margin-top: 2px;">
-          ${(data.objectives?.attitudes || []).map(a => `<li>${escapeHtml(a)}</li>`).join('')}
+          ${(data.objectives?.attitudes || []).slice(0, 1).map(a => `<li>${escapeHtml(a)}</li>`).join('')}
         </ul>
       </div>
 
@@ -9930,17 +9964,17 @@ function renderLessonPlanToA4(data) {
       ${data.objectives?.intro ? `<div style="font-style: italic; margin-bottom: 4px; font-weight: 600;">${escapeHtml(data.objectives.intro)}</div>` : ''}
       <div style="font-weight: 600; margin-top: 4px;">${isEn ? '1. Knowledge (Cognitive Domain):' : '១. វិជ្ជាសម្បទា (ចំណេះដឹង)៖'}</div>
       <ul class="doc-list" style="margin-top: 2px;">
-        ${(data.objectives?.knowledge || []).map(k => `<li>${escapeHtml(k)}</li>`).join('')}
+        ${(data.objectives?.knowledge || []).slice(0, 1).map(k => `<li>${escapeHtml(k)}</li>`).join('')}
       </ul>
 
       <div style="font-weight: 600; margin-top: 4px;">${isEn ? '2. Skills (Psychomotor Domain):' : '២. បំណិនសម្បទា (បំណិន)៖'}</div>
       <ul class="doc-list" style="margin-top: 2px;">
-        ${(data.objectives?.skills || []).map(s => `<li>${escapeHtml(s)}</li>`).join('')}
+        ${(data.objectives?.skills || []).slice(0, 1).map(s => `<li>${escapeHtml(s)}</li>`).join('')}
       </ul>
 
       <div style="font-weight: 600; margin-top: 4px;">${isEn ? '3. Attitudes & Values (Affective Domain):' : '៣. ចរិយាសម្បទា (ឥរិយាបថ)៖'}</div>
       <ul class="doc-list" style="margin-top: 2px;">
-        ${(data.objectives?.attitudes || []).map(a => `<li>${escapeHtml(a)}</li>`).join('')}
+        ${(data.objectives?.attitudes || []).slice(0, 1).map(a => `<li>${escapeHtml(a)}</li>`).join('')}
       </ul>
     </div>
 
@@ -10602,11 +10636,11 @@ async function handleExportWord() {
         new Paragraph({ children: [new TextRun({ text: "១. វត្ថុបំណង", bold: true, size: 24 })] }),
         new Paragraph({ children: [new TextRun({ text: "បន្ទាប់ពីរៀនមេរៀននេះចប់ គរុនិស្សិតនឹង៖", italics: true, size: 22 })] }),
         new Paragraph({ children: [new TextRun({ text: "• វិជ្ជាសម្បទា៖", bold: true, size: 22 })] }),
-        ...(data.objectives?.knowledge || []).map(k => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: k, size: 22 })] })),
+        ...(data.objectives?.knowledge || []).slice(0, 1).map(k => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: k, size: 22 })] })),
         new Paragraph({ children: [new TextRun({ text: "• បំណិនសម្បទា៖", bold: true, size: 22 })] }),
-        ...(data.objectives?.skills || []).map(s => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: s, size: 22 })] })),
+        ...(data.objectives?.skills || []).slice(0, 1).map(s => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: s, size: 22 })] })),
         new Paragraph({ children: [new TextRun({ text: "• ចរិយាសម្បទា៖", bold: true, size: 22 })] }),
-        ...(data.objectives?.attitudes || []).map(a => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: a, size: 22 })] })),
+        ...(data.objectives?.attitudes || []).slice(0, 1).map(a => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: a, size: 22 })] })),
         new Paragraph({ text: "" })
       );
 
@@ -10872,11 +10906,11 @@ async function handleExportWord() {
       docChildren.push(
         new Paragraph({ children: [new TextRun({ text: "I. វត្ថុបំណង (Objectives)", bold: true, size: 24 })] }),
         new Paragraph({ children: [new TextRun({ text: "១. វិជ្ជាសម្បទា (ចំណេះដឹង)៖", bold: true, size: 22 })] }),
-        ...(data.objectives?.knowledge || []).map(k => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: k, size: 22 })] })),
+        ...(data.objectives?.knowledge || []).slice(0, 1).map(k => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: k, size: 22 })] })),
         new Paragraph({ children: [new TextRun({ text: "២. បំណិនសម្បទា (បំណិន)៖", bold: true, size: 22 })] }),
-        ...(data.objectives?.skills || []).map(s => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: s, size: 22 })] })),
+        ...(data.objectives?.skills || []).slice(0, 1).map(s => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: s, size: 22 })] })),
         new Paragraph({ children: [new TextRun({ text: "៣. ចរិយាសម្បទា (ឥរិយាបថ)៖", bold: true, size: 22 })] }),
-        ...(data.objectives?.attitudes || []).map(a => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: a, size: 22 })] })),
+        ...(data.objectives?.attitudes || []).slice(0, 1).map(a => new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: a, size: 22 })] })),
         new Paragraph({ text: "" })
       );
 
