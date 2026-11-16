@@ -1190,7 +1190,7 @@ const SAMPLE_LESSONS = [
     grade: "គរុនិស្សិត ឆ្នាំទី ១ ឆមាសទី ២ (៣ ក្រេឌីត ៣-០-៦)",
     teacher: "កែម បូរី",
     school: "វិទ្យាស្ថានគរុកោសល្យ",
-    duration: "១៨០ នាទី",
+    duration: "០៣ ម៉ោង",
     chapter: "ជំពូកទី ២: ទ្រឹស្តីនៃការលូតលាស់របស់កុមារ",
     lesson: "មេរៀនទី ១: ដំណាក់កាលទាំង ៤ នៃការលូតលាស់ការយល់ដឹង (Piaget's Cognitive Development)",
     method: "ការរៀនបែបត្រឡប់",
@@ -1209,7 +1209,7 @@ const SAMPLE_LESSONS = [
     title: "រូបវិទ្យា ថ្នាក់ទី ៨: ច្បាប់រក្សាថាមពល",
     subject: "រូបវិទ្យា",
     grade: "ថ្នាក់ទី ៨",
-    duration: "៥០ នាទី (១ ម៉ោងសិក្សា)",
+    duration: "០១ ម៉ោង",
     chapter: "ជំពូកទី ៣: ការងារ និងថាមពល",
     lesson: "មេរៀនទី ២: ថាមពលមេកានិច និងច្បាប់រក្សាថាមពល",
     method: "វិធីសាស្ត្រពិសោធន៍ និងអនុវត្តជាក់ស្តែង (Experimental Method)",
@@ -1224,7 +1224,7 @@ const SAMPLE_LESSONS = [
     title: "ភាសាខ្មែរ ថ្នាក់ទី ៧: វេយ្យាករណ៍ សម្ព័ន្ធនាម និងគុណនាម",
     subject: "ភាសាខ្មែរ",
     grade: "ថ្នាក់ទី ៧",
-    duration: "៥០ នាទី (១ ម៉ោងសិក្សា)",
+    duration: "០១ ម៉ោង",
     chapter: "ជំពូកទី ២: ការអភិវឌ្ឍភាសា",
     lesson: "មេរៀនទី ១: កំណត់សម្គាល់សម្ព័ន្ធនាម និងគុណនាមក្នុងប្រយោគ",
     method: "ពិភាក្សាក្រុម និងការអនុវត្តលំហាត់",
@@ -1252,7 +1252,7 @@ const SAMPLE_LESSONS = [
     title: "ចិត្តវិទ្យាអប់រំ: ទ្រឹស្តីការលូតលាស់ការយល់ដឹងរបស់ Jean Piaget",
     subject: "ចិត្តវិទ្យាអប់រំ",
     grade: "គរុកោសល្យ / វិទ្យាល័យ",
-    duration: "៩០ នាទី (២ ម៉ោងសិក្សា)",
+    duration: "០២ ម៉ោង",
     chapter: "ជំពូកទី ២: ទ្រឹស្តីនៃការលូតលាស់របស់កុមារ",
     lesson: "មេរៀនទី ១: ដំណាក់កាលទាំង ៤ នៃការលូតលាស់ការយល់ដឹង (Piaget's Cognitive Development)",
     method: "ការវិភាគករណីសិក្សា និងការពិភាក្សាជាក្រុម",
@@ -2047,19 +2047,11 @@ function setLanguage(lang, showNotification = false) {
     }
   }
 
-  // 9. Translate Duration
+  // 9. Translate Duration Combo Box (01 Hour, 02 Hours, 03 Hours, Custom)
   const durSelect = document.getElementById('inputDurationSelect');
-  if (durSelect && durSelect.options.length >= 6) {
-    const durEn = [
-      "50 mins (1 period)", "60 mins (1 full hour)", "90 mins (2 periods)",
-      "100 mins (2 periods)", "120 mins (2 full hours)", "135 mins (3 periods)", "150 mins (3 periods)",
-      "180 mins (3 periods / workshop)", "240 mins (1 day / short course)", "✏️ Custom"
-    ];
-    const durKm = [
-      "៥០ នាទី (១ ម៉ោងសិក្សា)", "៦០ នាទី (១ ម៉ោងពេញ)", "៩០ នាទី (២ ម៉ោងសិក្សា)",
-      "១០០ នាទី (២ ម៉ោងសិក្សា)", "១២០ នាទី (២ ម៉ោងពេញ)", "១៣៥ នាទី (៣ ម៉ោងសិក្សា)", "១៥០ នាទី (៣ ម៉ោងសិក្សា)",
-      "១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)", "២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)", "✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់ (Custom)"
-    ];
+  if (durSelect && durSelect.options.length >= 4) {
+    const durEn = ["01 Hour", "02 Hours", "03 Hours", "✏️ Custom..."];
+    const durKm = ["០១ ម៉ោង", "០២ ម៉ោង", "០៣ ម៉ោង", "✏️ ផ្ទាល់ខ្លួន..."];
     const targetDur = isEn ? durEn : durKm;
     for (let i = 0; i < targetDur.length; i++) {
       if (durSelect.options[i]) durSelect.options[i].text = targetDur[i];
@@ -2429,10 +2421,10 @@ function getGradeValue() {
 // Get Duration Value helper (Handles Preset + Custom)
 function getDurationValue() {
   const select = document.getElementById('inputDurationSelect');
-  if (!select) return '៥០ នាទី (១ ម៉ោងសិក្សា)';
+  if (!select) return '០១ ម៉ោង';
   if (select.value === 'custom') {
     const customText = document.getElementById('inputCustomDurationText');
-    return (customText && customText.value.trim()) ? customText.value.trim() : '៥០ នាទី (១ ម៉ោងសិក្សា)';
+    return (customText && customText.value.trim()) ? customText.value.trim() : '០១ ម៉ោង';
   }
   return select.value;
 }
@@ -2452,10 +2444,10 @@ function toKhmerNumber(num) {
 
 // Parse any duration text into total integer minutes
 function parseDurationToMinutes(durationStr) {
-  if (!durationStr) return 50;
+  if (!durationStr) return 60;
   const cleanStr = khmerToEnDigits(durationStr).toLowerCase();
 
-  // If contains hours e.g. "2 ម៉ោង" or "2 hours" or "1.5 ម៉ោង"
+  // If contains hours e.g. "2 ម៉ោង" or "01 ម៉ោង" or "2 hours" or "1.5 ម៉ោង"
   const hourMatch = cleanStr.match(/(\d+(?:\.\d+)?)\s*(?:ម៉ោង|hour|h|hr)/);
   if (hourMatch && !cleanStr.includes('នាទី') && !cleanStr.includes('min')) {
     return Math.round(parseFloat(hourMatch[1]) * 60);
@@ -2471,10 +2463,10 @@ function parseDurationToMinutes(durationStr) {
   const numMatch = cleanStr.match(/\d+/);
   if (numMatch) {
     const val = parseInt(numMatch[0], 10);
-    if (val <= 6) return val * 50; // e.g. 2 -> 100
+    if (val <= 6) return val * 60; // 1 -> 60, 2 -> 120, 3 -> 180
     return val;
   }
-  return 50;
+  return 60;
 }
 
 // Calculate proportional minutes for each step based on total duration & pedagogical percentage
@@ -2483,6 +2475,26 @@ function calculateStepDurations(durationStr, mode = 'flipped') {
 
   if (mode === 'flipped') {
     // 5% - 10% - 10% - 70% - 5%
+    if (totalMin === 60) {
+      return {
+        total: 60,
+        step1: `០៥ នាទី`,
+        step2: `០៥ នាទី`,
+        step3: `០៨ នាទី`,
+        step4: `៣៨ នាទី`,
+        step5: `០៤ នាទី`
+      };
+    }
+    if (totalMin === 120) {
+      return {
+        total: 120,
+        step1: `០៥ នាទី`,
+        step2: `១៥ នាទី`,
+        step3: `១៥ នាទី`,
+        step4: `៨០ នាទី`,
+        step5: `០៥ នាទី`
+      };
+    }
     if (totalMin === 150) {
       return {
         total: 150,
@@ -2529,6 +2541,46 @@ function calculateStepDurations(durationStr, mode = 'flipped') {
     };
   } else {
     // Standard 5-Step MoEYS: ~5% - ~10% - ~70% - ~10% - ~5%
+    if (totalMin === 50) {
+      return {
+        total: 50,
+        step1: `០៥ នាទី`,
+        step2: `០៥ នាទី`,
+        step3: `៣០ នាទី`,
+        step4: `០៥ នាទី`,
+        step5: `០៥ នាទី`
+      };
+    }
+    if (totalMin === 60) {
+      return {
+        total: 60,
+        step1: `០៥ នាទី`,
+        step2: `០៥ នាទី`,
+        step3: `៤០ នាទី`,
+        step4: `០៥ នាទី`,
+        step5: `០៥ នាទី`
+      };
+    }
+    if (totalMin === 120) {
+      return {
+        total: 120,
+        step1: `០៥ នាទី`,
+        step2: `១៥ នាទី`,
+        step3: `៨៥ នាទី`,
+        step4: `១០ នាទី`,
+        step5: `០៥ នាទី`
+      };
+    }
+    if (totalMin === 180) {
+      return {
+        total: 180,
+        step1: `០៥ នាទី`,
+        step2: `២០ នាទី`,
+        step3: `១៣០ នាទី`,
+        step4: `១៥ នាទី`,
+        step5: `១០ នាទី`
+      };
+    }
     const s1 = Math.max(1, Math.round(totalMin * 0.05));
     const s2 = Math.max(2, Math.round(totalMin * 0.10));
     const s4 = Math.max(2, Math.round(totalMin * 0.10));
@@ -2545,44 +2597,101 @@ function calculateStepDurations(durationStr, mode = 'flipped') {
   }
 }
 
-// Set Duration Value helper (Handles Preset + Custom)
+// Set Duration Value helper (Handles Combo Box + Custom)
 function setDurationValue(val) {
   const select = document.getElementById('inputDurationSelect');
   const customWrap = document.getElementById('customDurationWrap');
   const customText = document.getElementById('inputCustomDurationText');
+  const activeLabel = document.getElementById('activeDurationLabel');
   if (!select) return;
 
   if (!val) {
-    select.selectedIndex = 0;
+    select.value = '០១ ម៉ោង';
     if (customWrap) customWrap.style.display = 'none';
+    if (activeLabel) activeLabel.textContent = (state.language === 'en') ? '(60 mins)' : '(៦០ នាទី)';
     return;
   }
 
-  let found = false;
+  const clean = String(val).trim();
+  let matched = false;
+
+  // Direct option match
   for (let i = 0; i < select.options.length; i++) {
-    if (select.options[i].value === val) {
+    if (select.options[i].value === clean) {
       select.selectedIndex = i;
-      found = true;
+      matched = true;
       break;
     }
   }
 
-  if (found) {
+  // Fallback heuristic for saved profiles with minutes e.g. "60 mins", "180 mins", "50 នាទី (១ ម៉ោងសិក្សា)"
+  if (!matched && clean !== 'custom') {
+    const totalMin = parseDurationToMinutes(clean);
+    if (totalMin <= 60 && (clean.includes('១') || clean.includes('1') || clean.includes('50') || clean.includes('60'))) {
+      select.value = '០១ ម៉ោង';
+      matched = true;
+    } else if (totalMin > 60 && totalMin <= 120 && (clean.includes('២') || clean.includes('2') || clean.includes('90') || clean.includes('100') || clean.includes('120'))) {
+      select.value = '០២ ម៉ោង';
+      matched = true;
+    } else if (totalMin > 120 && (clean.includes('៣') || clean.includes('3') || clean.includes('135') || clean.includes('150') || clean.includes('180'))) {
+      select.value = '០៣ ម៉ោង';
+      matched = true;
+    }
+  }
+
+  if (matched && select.value !== 'custom') {
     if (customWrap) customWrap.style.display = 'none';
+    if (activeLabel) {
+      const isEn = (state.language === 'en');
+      if (select.value === '០១ ម៉ោង') activeLabel.textContent = isEn ? '(60 mins)' : '(៦០ នាទី)';
+      else if (select.value === '០២ ម៉ោង') activeLabel.textContent = isEn ? '(120 mins)' : '(១២០ នាទី)';
+      else if (select.value === '០៣ ម៉ោង') activeLabel.textContent = isEn ? '(180 mins)' : '(១៨០ នាទី)';
+      else activeLabel.textContent = select.value;
+    }
   } else {
     select.value = 'custom';
     if (customWrap) customWrap.style.display = 'block';
-    if (customText) customText.value = val;
+    if (customText) customText.value = (clean === 'custom' ? '' : clean);
+    if (activeLabel) activeLabel.textContent = (clean === 'custom' ? '✏️ ផ្ទាល់ខ្លួន' : clean);
   }
+
   if (typeof syncDurationChipsFromSelect === 'function') {
     syncDurationChipsFromSelect();
   }
 }
 
-// ==========================================================================
-// Modern SaaS UI Helper Functions (Option B)
-// ==========================================================================
+// Handle Duration Combo Box Change
+function handleDurationChange(val) {
+  const customWrap = document.getElementById('customDurationWrap');
+  const customText = document.getElementById('inputCustomDurationText');
+  const activeLabel = document.getElementById('activeDurationLabel');
+  const isEn = (state.language === 'en');
 
+  if (val === 'custom') {
+    if (customWrap) customWrap.style.display = 'block';
+    if (customText) customText.focus();
+    if (activeLabel) activeLabel.textContent = isEn ? '✏️ Custom' : '✏️ ផ្ទាល់ខ្លួន';
+  } else {
+    if (customWrap) customWrap.style.display = 'none';
+    if (activeLabel) {
+      if (val === '០១ ម៉ោង') activeLabel.textContent = isEn ? '(60 mins)' : '(៦០ នាទី)';
+      else if (val === '០២ ម៉ោង') activeLabel.textContent = isEn ? '(120 mins)' : '(១២០ នាទី)';
+      else if (val === '០៣ ម៉ោង') activeLabel.textContent = isEn ? '(180 mins)' : '(១៨០ នាទី)';
+      else activeLabel.textContent = val;
+    }
+  }
+
+  const chkAuto = document.getElementById('chkAutoRememberAdmin');
+  if (chkAuto && chkAuto.checked && typeof saveAdminProfile === 'function') {
+    saveAdminProfile(true);
+  }
+  if (typeof updateTeacherProfileSummaryLive === 'function') {
+    updateTeacherProfileSummaryLive();
+  }
+}
+window.handleDurationChange = handleDurationChange;
+
+// Modern SaaS UI Helper Functions
 function syncDurationChipsFromSelect() {
   const select = document.getElementById('inputDurationSelect');
   const activeLabel = document.getElementById('activeDurationLabel');
@@ -2598,73 +2707,21 @@ function syncDurationChipsFromSelect() {
     const isEn = (state.language === 'en');
     if (curVal === 'custom') {
       const customText = document.getElementById('inputCustomDurationText');
-      activeLabel.textContent = (customText && customText.value.trim()) ? `🕒 ${customText.value.trim()}` : (isEn ? '✏️ Custom' : '✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់');
+      activeLabel.textContent = (customText && customText.value.trim()) ? `🕒 ${customText.value.trim()}` : (isEn ? '✏️ Custom' : '✏️ ផ្ទាល់ខ្លួន');
     } else {
-      if (isEn) {
-        const durMapEn = {
-          '៥០ នាទី (១ ម៉ោងសិក្សា)': '50 mins',
-          '៦០ នាទី (១ ម៉ោងពេញ)': '60 mins',
-          '៩០ នាទី (២ ម៉ោងសិក្សា)': '90 mins',
-          '១០០ នាទី (២ ម៉ោងសិក្សា)': '100 mins',
-          '១២០ នាទី (២ ម៉ោងពេញ)': '120 mins',
-          '១៣៥ នាទី (៣ ម៉ោងសិក្សា)': '135 mins',
-          '១៥០ នាទី (៣ ម៉ោងសិក្សា)': '150 mins',
-          '១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)': '180 mins',
-          '២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)': '240 mins'
-        };
-        activeLabel.textContent = durMapEn[curVal] || curVal.split('(')[0].trim();
-      } else {
-        activeLabel.textContent = curVal.split('(')[0].trim();
-      }
+      if (curVal === '០១ ម៉ោង') activeLabel.textContent = isEn ? '(60 mins)' : '(៦០ នាទី)';
+      else if (curVal === '០២ ម៉ោង') activeLabel.textContent = isEn ? '(120 mins)' : '(១២០ នាទី)';
+      else if (curVal === '០៣ ម៉ោង') activeLabel.textContent = isEn ? '(180 mins)' : '(១៨០ នាទី)';
+      else activeLabel.textContent = curVal;
     }
   }
 }
 window.syncDurationChipsFromSelect = syncDurationChipsFromSelect;
 
 function selectDurationChip(val) {
-  const select = document.getElementById('inputDurationSelect');
-  const customWrap = document.getElementById('customDurationWrap');
-  const customText = document.getElementById('inputCustomDurationText');
-  const activeLabel = document.getElementById('activeDurationLabel');
-  const isEn = (state.language === 'en');
-
-  if (select) {
-    select.value = val;
-    select.dispatchEvent(new Event('change'));
-  }
-
-  document.querySelectorAll('.duration-chip').forEach(chip => {
-    chip.classList.toggle('active', chip.getAttribute('data-duration') === val);
-  });
-
-  if (val === 'custom') {
-    if (customWrap) customWrap.style.display = 'block';
-    if (customText) customText.focus();
-    if (activeLabel) activeLabel.textContent = isEn ? '✏️ Custom' : '✏️ ផ្សេងៗ / បញ្ចូលផ្ទាល់';
-  } else {
-    if (customWrap) customWrap.style.display = 'none';
-    if (activeLabel) {
-      if (isEn) {
-        const durMapEn = {
-          '៥០ នាទី (១ ម៉ោងសិក្សា)': '50 mins',
-          '៦០ នាទី (១ ម៉ោងពេញ)': '60 mins',
-          '៩០ នាទី (២ ម៉ោងសិក្សា)': '90 mins',
-          '១០០ នាទី (២ ម៉ោងសិក្សា)': '100 mins',
-          '១២០ នាទី (២ ម៉ោងពេញ)': '120 mins',
-          '១៣៥ នាទី (៣ ម៉ោងសិក្សា)': '135 mins',
-          '១៥០ នាទី (៣ ម៉ោងសិក្សា)': '150 mins',
-          '១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)': '180 mins',
-          '២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)': '240 mins'
-        };
-        activeLabel.textContent = durMapEn[val] || val.split('(')[0].trim();
-      } else {
-        activeLabel.textContent = val.split('(')[0].trim();
-      }
-    }
-  }
-
+  setDurationValue(val);
   const chkAuto = document.getElementById('chkAutoRememberAdmin');
-  if (chkAuto && chkAuto.checked) {
+  if (chkAuto && chkAuto.checked && typeof saveAdminProfile === 'function') {
     saveAdminProfile(true);
   }
   if (typeof updateTeacherProfileSummaryLive === 'function') {
@@ -2880,23 +2937,31 @@ function updateTeacherProfileSummaryLive() {
   const summarySchool = document.getElementById('summarySchoolName');
   const summaryMeta = document.getElementById('summaryDegreeGrade');
   const durationSelect = document.getElementById('inputDurationSelect');
-  let durationVal = isEn ? '60 mins' : '៦០ នាទី';
+  let durationVal = isEn ? '01 Hour' : '០១ ម៉ោង';
   if (durationSelect && durationSelect.value) {
-    if (isEn) {
-      const durMapEn = {
-        '៥០ នាទី (១ ម៉ោងសិក្សា)': '50 mins',
-        '៦០ នាទី (១ ម៉ោងពេញ)': '60 mins',
-        '៩០ នាទី (២ ម៉ោងសិក្សា)': '90 mins',
-        '១០០ នាទី (២ ម៉ោងសិក្សា)': '100 mins',
-        '១២០ នាទី (២ ម៉ោងពេញ)': '120 mins',
-        '១៣៥ នាទី (៣ ម៉ោងសិក្សា)': '135 mins',
-        '១៥០ នាទី (៣ ម៉ោងសិក្សា)': '150 mins',
-        '១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)': '180 mins',
-        '២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)': '240 mins'
-      };
-      durationVal = durMapEn[durationSelect.value] || durationSelect.value.split('(')[0].trim();
+    if (durationSelect.value === 'custom') {
+      const customText = document.getElementById('inputCustomDurationText');
+      durationVal = (customText && customText.value.trim()) ? customText.value.trim() : (isEn ? 'Custom' : 'ផ្ទាល់ខ្លួន');
     } else {
-      durationVal = durationSelect.value.split('(')[0].trim();
+      if (isEn) {
+        const durMapEn = {
+          '០១ ម៉ោង': '01 Hour',
+          '០២ ម៉ោង': '02 Hours',
+          '០៣ ម៉ោង': '03 Hours',
+          '៥០ នាទី (១ ម៉ោងសិក្សា)': '50 mins',
+          '៦០ នាទី (១ ម៉ោងពេញ)': '60 mins',
+          '៩០ នាទី (២ ម៉ោងសិក្សា)': '90 mins',
+          '១០០ នាទី (២ ម៉ោងសិក្សា)': '100 mins',
+          '១២០ នាទី (២ ម៉ោងពេញ)': '120 mins',
+          '១៣៥ នាទី (៣ ម៉ោងសិក្សា)': '135 mins',
+          '១៥០ នាទី (៣ ម៉ោងសិក្សា)': '150 mins',
+          '១៨០ នាទី (៣ ម៉ោងពេញ / សិក្ខាសាលា)': '180 mins',
+          '២៤០ នាទី (១ ថ្ងៃ / វគ្គខ្លី)': '240 mins'
+        };
+        durationVal = durMapEn[durationSelect.value] || durationSelect.value;
+      } else {
+        durationVal = durationSelect.value;
+      }
     }
   }
 
@@ -3281,22 +3346,21 @@ function initEventListeners() {
 
   if (durationSelect) {
     durationSelect.addEventListener('change', (e) => {
-      if (e.target.value === 'custom') {
-        if (customDurationWrap) customDurationWrap.style.display = 'block';
-        if (customDurationText) customDurationText.focus();
-      } else {
-        if (customDurationWrap) customDurationWrap.style.display = 'none';
-      }
-      if (chkAutoRemember && chkAutoRemember.checked) {
-        saveAdminProfile(true);
-      }
+      handleDurationChange(e.target.value);
     });
   }
 
   if (customDurationText) {
     customDurationText.addEventListener('input', () => {
-      if (chkAutoRemember && chkAutoRemember.checked) {
+      const activeLabel = document.getElementById('activeDurationLabel');
+      if (activeLabel) {
+        activeLabel.textContent = customDurationText.value.trim() ? customDurationText.value.trim() : (state.language === 'en' ? '✏️ Custom' : '✏️ ផ្ទាល់ខ្លួន');
+      }
+      if (chkAutoRemember && chkAutoRemember.checked && typeof saveAdminProfile === 'function') {
         saveAdminProfile(true);
+      }
+      if (typeof updateTeacherProfileSummaryLive === 'function') {
+        updateTeacherProfileSummaryLive();
       }
     });
   }
@@ -7689,8 +7753,12 @@ function localizeStepTitle(title, isEn) {
 }
 
 function localizeDuration(duration, isEn) {
-  if (!duration || !isEn) return duration || '';
+  if (!duration) return isEn ? '01 Hour' : '០១ ម៉ោង';
+  if (!isEn) return duration;
   return duration
+    .replace(/០១\s*ម៉ោង/gi, '01 Hour')
+    .replace(/០២\s*ម៉ោង/gi, '02 Hours')
+    .replace(/០៣\s*ម៉ោង/gi, '03 Hours')
     .replace(/(\d+)\s*នាទី/gi, '$1 mins')
     .replace(/(\d+)\s*ម៉ោង/gi, '$1 hrs')
     .replace(/(\d+)\s*ម៉ោងសិក្សា/gi, '$1 periods')
@@ -10233,10 +10301,10 @@ function clearSavedAdminProfile() {
   const customSubjInput = document.getElementById('inputCustomSubjectText');
   if (customSubjInput) customSubjInput.value = '';
 
-  if (typeof selectDurationChip === 'function') {
-    selectDurationChip('៦០ នាទី (១ ម៉ោងពេញ)');
-  } else if (typeof setDurationValue === 'function') {
-    setDurationValue('៦០ នាទី (១ ម៉ោងពេញ)');
+  if (typeof setDurationValue === 'function') {
+    setDurationValue('០១ ម៉ោង');
+  } else if (typeof selectDurationChip === 'function') {
+    selectDurationChip('០១ ម៉ោង');
   }
 
   const chkAutoRemember = document.getElementById('chkAutoRememberAdmin');
