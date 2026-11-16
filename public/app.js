@@ -4294,9 +4294,52 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', t
   const selectedTechs = (Array.isArray(techniques) && techniques.length > 0)
     ? techniques
     : (typeof getSelectedTechniques === 'function' ? getSelectedTechniques() : []);
-  const techPrompt = selectedTechs.length > 0
-    ? `\n   - យុទ្ធវិធីបង្រៀនគន្លឹះដែលត្រូវបញ្ជ្រាប (Active Techniques): ${selectedTechs.join(', ')}។\n     • ត្រូវបញ្ជ្រាបយុទ្ធវិធីទាំងនេះទៅក្នុងសកម្មភាពគ្រូ និងសកម្មភាពសិស្សក្នុងជំហានទី ២, ទី ៣, ទី ៤ ដោយដាក់ស្លាកកត់សម្គាល់ច្បាស់លាស់ ដូចជា [អនុវត្តយុទ្ធវិធី ${selectedTechs[0] || 'Think-Pair-Share'}]។`
-    : '';
+  // 🎯 Intelligent Pedagogical Technique Mapper (Correct Alignment per 5 Steps)
+  let step2Techs = [];
+  let step3Techs = [];
+  let step4Techs = [];
+  let step5Techs = [];
+
+  selectedTechs.forEach(t => {
+    const tl = String(t || '').toLowerCase();
+    if (tl.includes('exit ticket') || tl.includes('reflection') || tl.includes('fist to five')) {
+      step5Techs.push(t);
+    } else if (tl.includes('spaced retrieval') || tl.includes('retrieval') || tl.includes('brainstorming')) {
+      step2Techs.push(t);
+    } else if (tl.includes('concept attainment') || tl.includes('socratic') || tl.includes('concept cartoons')) {
+      step3Techs.push(t);
+    } else {
+      // General active collaborative techniques belong primarily in Step 4 (Active Learning Core 70% STT)
+      step4Techs.push(t);
+    }
+  });
+
+  let techPrompt = '';
+  if (selectedTechs.length > 0) {
+    let mappingRules = [];
+    if (step2Techs.length > 0) {
+      mappingRules.push(`• ជំហានទី ២ (រំលឹកមេរៀន): ត្រូវបញ្ជ្រាប [អនុវត្តយុទ្ធវិធី ${step2Techs.join(', ')}] ដើម្បីរំលឹកចំណេះដឹងចាស់រហ័ស។ (⚠️ ហាមដាច់ខាតដាក់ Exit Ticket នៅជំហានទី ២ ព្រោះ Exit Ticket ប្រើសម្រាប់តែចុងម៉ោងប៉ុណ្ណោះ!)`);
+    } else {
+      mappingRules.push(`• ជំហានទី ២ (រំលឹកមេរៀន): គ្រូចោទសួរសំណួររំលឹកមេរៀនចាស់ ឬ Think-Pair-Share ខ្លីៗ។ (⚠️ ហាមដាច់ខាតដាក់ Exit Ticket 3-2-1 នៅជំហានទី ២!)`);
+    }
+    if (step3Techs.length > 0) {
+      mappingRules.push(`• ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី): ត្រូវបញ្ជ្រាប [អនុវត្តយុទ្ធវិធី ${step3Techs.join(', ')}] ក្នុងការដាស់សំណួរគន្លឹះ ឬទាញរកនិយមន័យ។`);
+    }
+    if (step4Techs.length > 0) {
+      mappingRules.push(`• ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT): ត្រូវបញ្ជ្រាប [អនុវត្តយុទ្ធវិធី ${step4Techs.join(', ')}] ដោយឱ្យសិស្សធ្វើការជាក្រុម សរសេរលើ Flipchart/ក្ដារឆ្នួន និងឡើងការពារដំណោះស្រាយ [ជំនាញ 4Cs]។`);
+    } else {
+      mappingRules.push(`• ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ៧០% STT): ត្រូវមានសកម្មភាពសកម្មជាក្រុម (ដូចជា Think-Pair-Share, Jigsaw ឬ Gallery Walk) លើ Flipchart/ក្ដារឆ្នួន។`);
+    }
+    if (step5Techs.length > 0) {
+      mappingRules.push(`• ជំហានទី ៥ (វាយតម្លៃ & កិច្ចការផ្ទះ): ត្រូវបញ្ជ្រាប [អនុវត្តយុទ្ធវិធី ${step5Techs.join(', ')}] សម្រាប់ឆ្លុះបញ្ចាំងវាយតម្លៃការយល់ដឹងចុងម៉ោងមុនចេញពីថ្នាក់។`);
+    } else {
+      mappingRules.push(`• ជំហានទី ៥ (វាយតម្លៃ & កិច្ចការផ្ទះ): ត្រូវប្រើ Exit Ticket 3-2-1 សម្រាប់ឆ្លុះបញ្ចាំងវាយតម្លៃចុងម៉ោង។`);
+    }
+
+    techPrompt = `\n   - វិធានតម្រឹមយុទ្ធវិធីបង្រៀនគន្លឹះតាមជំហានគរុកោសល្យត្រឹមត្រូវ (Pedagogical Techniques Alignment):\n     ${mappingRules.join('\n     ')}`;
+  } else {
+    techPrompt = `\n   - វិធានគរុកោសល្យនៃយុទ្ធវិធី៖\n     • ជំហានទី ២: ប្រើសំណួររំលឹកចំណេះចាស់ ឬ Think-Pair-Share រហ័ស។ (⚠️ ហាមដាច់ខាតដាក់ Exit Ticket នៅជំហានទី ២!)\n     • ជំហានទី ៤: អនុវត្តយុទ្ធវិធីរៀនសកម្មជាក្រុម (Think-Pair-Share, Jigsaw, Gallery Walk) ៧០% STT។\n     • ជំហានទី ៥: ដាក់ Exit Ticket 3-2-1 សម្រាប់ឆ្លុះបញ្ចាំងវាយតម្លៃចុងម៉ោង។`;
+  }
 
   if (isFlipped) {
     switch (methodType) {
@@ -5205,7 +5248,7 @@ ${isLongSession ? `• This is an EXTENDED ${totalMin}-minute block (Multi-hour 
 5. REAL QUESTIONS: Pre-test and Post-test questions MUST be actual, answerable multiple-choice questions about this specific lesson — not examples or placeholders.
 6. TTT 30% / STT 70% RULE: In Step 4, explicitly design activities so the Teacher Talking Time is max 30%, and Student Talking Time is 70% (Student-Centered).
 7. 21st CENTURY SKILLS (4Cs): At the end of student activities (especially in Step 4), tag the exact 4Cs skill being developed in brackets (e.g., [ជំនាញសហការ និងការគិតស៊ីជម្រៅ]).
-8. EXIT TICKET 3-2-1: In Step 5 (teacherActivity & studentActivity), you MUST include an "Exit Ticket 3-2-1" formative assessment (e.g., សរសេរ ៣ចំណុចដែលបានរៀន, ២ចំណុចដែលចាប់អារម្មណ៍, ១ចំណុចដែលឆ្ងល់).
+8. EXIT TICKET 3-2-1: In Step 5 (teacherActivity & studentActivity), you MUST include an "Exit Ticket 3-2-1" formative assessment (e.g., សរសេរ ៣ចំណុចដែលបានរៀន, ២ចំណុចដែលចាប់អារម្មណ៍, ១ចំណុចដែលឆ្ងល់). ⚠️ ABSOLUTE MANDATE: NEVER put Exit Ticket in Step 2, 3, or 4! Exit Ticket is STRICTLY for Step 5!
 10. STRICT LANGUAGE & SCIENTIFIC SYMBOL ENFORCEMENT:
     - SOLELY STANDARD KHMER: The entire lesson plan MUST be written in natural, standard Khmer (or English if in English mode). Under NO circumstances should you include Thai (ภาษาไทย), Vietnamese (Tiếng Việt), Chinese (中文), Lao, or any foreign scripts!
     - SIMPLIFY TECHNICAL TERMS: Use accessible, familiar pedagogical vocabulary (ពាក្យគរុកោសល្យច្បាស់លាស់ ងាយយល់).
@@ -5459,7 +5502,7 @@ STEP DURATION ALLOCATION (${totalMin} MINUTES TOTAL):
      • [ខ្លឹមសារមេរៀន] (contentSummary): ខ្លឹមសារមេរៀនស្នូល និយមន័យ រូបមន្ត និងចម្លើយត្រឹមត្រូវនៃសំណួរ/បញ្ហា (មិនត្រូវដាក់សំណួរក្នុងជួរនេះទេ)។
      • [សកម្មភាពសិស្ស] (studentActivity): សកម្មភាពសិស្ស និងចម្លើយរំពឹងទុករបស់សិស្ស «- សិស្សឆ្លើយ (ចម្លើយរំពឹងទុក)៖ «...»» ដោយស្រង់ខ្លីៗចេញពីខ្លឹមសារ រួមទាំងការកត់ត្រា និងអនុវត្តលើ Flipchart/ក្ដារឆ្នួន [ជំនាញ 4Cs]។
    - ច្បាប់ TTT 30% / STT 70%: នៅក្នុងជំហានទី៤ ត្រូវរៀបចំសកម្មភាពយ៉ាងណាឱ្យគ្រូសម្របសម្រួល ៣០% និងសិស្សអនុវត្ត/ពិភាក្សា ៧០%។
-   - Exit Ticket 3-2-1: នៅក្នុងជំហានទី៥ ត្រូវដាក់សកម្មភាពវាយតម្លៃចុងម៉ោង (Exit Ticket 3-2-1)។
+   - Exit Ticket 3-2-1: នៅក្នុងជំហានទី៥ ត្រូវដាក់សកម្មភាពវាយតម្លៃចុងម៉ោង (Exit Ticket 3-2-1)។ ⚠️ ហាមដាច់ខាតដាក់ Exit Ticket នៅជំហានទី ២, ទី ៣ ឬទី ៤ ជាដាច់ខាត ព្រោះ Exit Ticket ប្រើសម្រាប់តែចុងម៉ោង (ជំហានទី ៥) ប៉ុណ្ណោះ!
 ${getMethodPedagogicalPrompt(params.method, false, false, params.lessonTitle, params.techniques)}
 
 ⛔ ABSOLUTE PROHIBITIONS:
