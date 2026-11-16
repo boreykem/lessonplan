@@ -4848,7 +4848,8 @@ function openAiErrorModal(errOrType, genParams) {
   let rawMsg = '';
   let isNoKey = false;
   let isInvalidKey = false;
-  let isQuotaExceeded = false;
+  let isQuotaReached = false;
+  let isHighDemand = false;
   let isNetworkOrTimeout = false;
 
   if (errOrType === 'NO_KEY' || (typeof errOrType === 'object' && errOrType?.type === 'NO_KEY')) {
@@ -4863,15 +4864,21 @@ function openAiErrorModal(errOrType, genParams) {
       lower.includes('quota') ||
       lower.includes('resource_exhausted') ||
       lower.includes('429') ||
-      lower.includes('try again later') ||
-      lower.includes('overloaded') ||
-      lower.includes('503') ||
       lower.includes('too many requests') ||
+      lower.includes('rate limit') ||
+      lower.includes('reach quota') ||
+      lower.includes('exceeded your current quota')
+    ) {
+      isQuotaReached = true;
+    } else if (
       lower.includes('high demand') ||
       lower.includes('spikes in demand') ||
+      lower.includes('overloaded') ||
+      lower.includes('503') ||
+      lower.includes('try again later') ||
       lower.includes('temporarily unavailable')
     ) {
-      isQuotaExceeded = true;
+      isHighDemand = true;
     } else if (rawMsg.includes('AbortError') || lower.includes('timed out') || lower.includes('timeout') || lower.includes('failed to fetch') || lower.includes('networkerror')) {
       isNetworkOrTimeout = true;
     }
@@ -4903,25 +4910,66 @@ function openAiErrorModal(errOrType, genParams) {
         <div style="margin-bottom: 8px;">
           <strong>🔍 មូលហេតុ៖</strong> Google បានបដិសេធ API Key (HTTP 400/401/403: API_KEY_INVALID)។ API Key អាចមានការចម្លងខ្វះតួអក្សរ ផុតសុពលភាព ឬត្រូវបាន Revoke។
         </div>
+        <div style="margin-bottom: 8px; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; color: #991b1b; line-height: 1.5;">
+          <strong>🛡️ ការកំណត់ដាច់ខាត (Strict Mandate)៖</strong><br>
+          ប្រព័ន្ធបដិសេធដាច់ខាត <strong>មិនដាក់បង្ហាញកិច្ចតែងការគំរូទូទៅ (Dummy Template) ជាដាច់ខាត</strong> ក្នុងករណី AI មិនបានផ្ដល់ទិន្នន័យ។
+        </div>
         <div>
           <strong>🛠️ អ្វីដែលលោកគ្រូ អ្នកគ្រូត្រូវធ្វើ៖</strong> 
           សូមចូលទៅកាន់ <strong><a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #2563eb; text-decoration: underline;">aistudio.google.com/app/apikey</a></strong> បង្កើត ឬចម្លង Key ថ្មី រួចចុចប៊ូតុង <strong>«🔑 ពិនិត្យ / បញ្ចូល Gemini API Key ថ្មី»</strong> ខាងក្រោម។
         </div>
       `;
     }
-  } else if (isQuotaExceeded) {
-    if (titleEl) titleEl.textContent = 'ម៉ាស៊ីនបម្រើ Google Gemini កំពុងមមាញឹកខ្លាំង (High Demand / Spikes)';
+  } else if (isQuotaReached) {
+    if (titleEl) titleEl.textContent = '🚫 Google Gemini ជាប់កម្រិតកំណត់កូតា (Quota Reached / 429)';
     if (reasonEl) {
       reasonEl.innerHTML = `
-        <div style="margin-bottom: 8px;">
-          <strong>🔍 មូលហេតុពី Google AI Studio៖</strong> ម៉ាស៊ីនបម្រើ Google Gemini កំពុងមានអ្នកប្រើប្រាស់កកស្ទះខ្លាំងទូទាំងពិភពលោក (Spikes in demand / High Demand) ឬដល់កម្រិតកំណត់កូតាបណ្ដោះអាសន្ន។
+        <div style="margin-bottom: 10px; font-size: 0.92rem; line-height: 1.6;">
+          <strong>🔍 មូលហេតុពិតប្រាកដ (True Cause)៖</strong><br>
+          គណនី Google Gemini API Key របស់លោកគ្រូ/អ្នកគ្រូបានប្រើប្រាស់ដល់កម្រិតកំណត់កូតា (<strong>Reach Quota / Rate Limit</strong>) ពី Google AI Studio។
         </div>
-        <div style="margin-bottom: 8px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; padding: 8px 12px; font-size: 0.85rem; color: #92400e; line-height: 1.5;">
-          <strong>🛡️ ការប្តេជ្ញាចិត្តគុណភាព៖</strong> ប្រព័ន្ធបដិសេធដាច់ខាតមិនផ្ដល់នូវ Template ព្រាងក្លែងក្លាយឡើយ ដើម្បីធានាថារាល់កិច្ចតែងការទាំងអស់ត្រូវបានវិភាគគរុកោសល្យពិតប្រាកដដោយ AI។
+        <div style="margin-bottom: 10px; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; color: #991b1b; line-height: 1.5;">
+          <strong>🛡️ ការកំណត់ដាច់ខាត (Strict Mandate)៖</strong><br>
+          ដើម្បីធានាគុណភាពគរុកោសល្យខ្ពស់បំផុត ប្រព័ន្ធបដិសេធដាច់ខាត <strong>មិនដាក់បង្ហាញកិច្ចតែងការគំរូទូទៅ (Dummy Template) ជាដាច់ខាត</strong> ក្នុងករណី AI មិនបានផ្ដល់កិច្ចតែងការ។ រាល់កិច្ចតែងការទាំងអស់ត្រូវតែបង្កើតចេញពីបញ្ញាសិប្បនិម្មិត Gemini AI ពិតប្រាកដ ១០០%។
         </div>
-        <div>
-          <strong>🛠️ អ្វីដែលលោកគ្រូ អ្នកគ្រូត្រូវធ្វើ៖</strong> 
-          សូមរង់ចាំប្រមាណ <strong>៣០ វិនាទី ទៅ ១ នាទី</strong> រួចចុចប៊ូតុង <strong>«🔄 សាកល្បងបង្កើតម្ដងទៀត»</strong> ឬចុចប្តូរទៅកាន់ <strong>«⚡ Gemini 3.5 Flash»</strong> ដែលមានល្បឿនលឿន និងកម្រិតផ្ទុកធំជាង។
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; line-height: 1.6;">
+          <strong>🛠️ ដំណោះស្រាយដែលលោកគ្រូ អ្នកគ្រូត្រូវធ្វើ (Action Required)៖</strong>
+          <ul style="margin: 6px 0 0 16px; padding: 0; color: #334155;">
+            <li style="margin-bottom: 6px;">
+              <strong>ជម្រើសទី ១ (ណែនាំ):</strong> <strong>Please change Gemini account API key</strong> — សូមផ្លាស់ប្តូរ ឬបញ្ចូល Gemini API Key ថ្មីពីគណនី Google ផ្សេងទៀត (<a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #2563eb; text-decoration: underline;">aistudio.google.com</a>) ដើម្បីបន្តបង្កើតភ្លាមៗដោយមិនបាច់រង់ចាំ។
+            </li>
+            <li style="margin-bottom: 6px;">
+              <strong>ជម្រើសទី ២:</strong> <strong>Wait until the next quota of usable</strong> — សូមរង់ចាំរហូតដល់ Google Reset កូតាប្រើប្រាស់ឡើងវិញនៅវដ្តបន្ទាប់ (ជាទូទៅប្រមាណពីរបីនាទី ឬថ្ងៃបន្ទាប់)។
+            </li>
+            <li>
+              <strong>ជម្រើសទី ៣:</strong> ចុចប្តូរទៅកាន់ <strong>«⚡ Gemini 3.5 Flash»</strong> ដែលមានកូតាធំទូលាយ និងកម្រិតកំណត់ខ្ពស់ជាងម៉ូដែល Pro។
+            </li>
+          </ul>
+        </div>
+      `;
+    }
+  } else if (isHighDemand) {
+    if (titleEl) titleEl.textContent = '⚠️ ម៉ាស៊ីនបម្រើ Google Gemini កំពុងមមាញឹកខ្លាំង (High Demand / Spikes)';
+    if (reasonEl) {
+      reasonEl.innerHTML = `
+        <div style="margin-bottom: 10px; font-size: 0.92rem; line-height: 1.6;">
+          <strong>🔍 មូលហេតុពិតប្រាកដពី Google AI Studio៖</strong><br>
+          ម៉ាស៊ីនបម្រើ Google Gemini កំពុងមានអ្នកប្រើប្រាស់កកស្ទះខ្លាំងទូទាំងពិភពលោក (<strong>This model is currently experiencing high demand. Spikes in demand are usually temporary.</strong>)។
+        </div>
+        <div style="margin-bottom: 10px; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; color: #991b1b; line-height: 1.5;">
+          <strong>🛡️ ការកំណត់ដាច់ខាត (Strict Mandate)៖</strong><br>
+          ប្រព័ន្ធបដិសេធដាច់ខាត <strong>មិនដាក់បង្ហាញកិច្ចតែងការគំរូទូទៅ (Dummy Template) ជាដាច់ខាត</strong> ក្នុងករណី AI មិនបានផ្ដល់កិច្ចតែងការ។
+        </div>
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; line-height: 1.6;">
+          <strong>🛠️ អ្វីដែលលោកគ្រូ អ្នកគ្រូត្រូវធ្វើ៖</strong>
+          <ul style="margin: 6px 0 0 16px; padding: 0; color: #334155;">
+            <li style="margin-bottom: 6px;">
+              សូមរង់ចាំប្រមាណ <strong>៣០ វិនាទី ទៅ ១ នាទី</strong> រួចចុចប៊ូតុង <strong>«🔄 សាកល្បងបង្កើតម្ដងទៀត»</strong> ខាងក្រោម។
+            </li>
+            <li>
+              ឬចុចប្តូរទៅកាន់ <strong>«⚡ Gemini 3.5 Flash»</strong> (Ultra Fast) ដែលមានល្បឿនលឿន និងកម្រិតផ្ទុកធំជាង។
+            </li>
+          </ul>
         </div>
       `;
     }
@@ -4931,6 +4979,10 @@ function openAiErrorModal(errOrType, genParams) {
       reasonEl.innerHTML = `
         <div style="margin-bottom: 8px;">
           <strong>🔍 មូលហេតុ៖</strong> ការតភ្ជាប់បណ្តាញអ៊ីនធឺណិតមានការរអាក់រអួល ឬម៉ាស៊ីនបម្រើ Google Gemini មិនបានឆ្លើយតបក្នុងរយៈពេលកំណត់។
+        </div>
+        <div style="margin-bottom: 8px; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; color: #991b1b; line-height: 1.5;">
+          <strong>🛡️ ការកំណត់ដាច់ខាត (Strict Mandate)៖</strong><br>
+          ប្រព័ន្ធបដិសេធដាច់ខាត <strong>មិនដាក់បង្ហាញកិច្ចតែងការគំរូទូទៅ (Dummy Template) ជាដាច់ខាត</strong>។
         </div>
         <div>
           <strong>🛠️ អ្វីដែលលោកគ្រូ អ្នកគ្រូត្រូវធ្វើ៖</strong> 
@@ -4943,10 +4995,11 @@ function openAiErrorModal(errOrType, genParams) {
     if (reasonEl) {
       reasonEl.innerHTML = `
         <div style="margin-bottom: 8px;">
-          <strong>🔍 មូលហេតុ៖</strong> ម៉ាស៊ីនបម្រើ Google Gemini បានឆ្លើយតប៖ <em>${escapeHtml(rawMsg.substring(0, 180))}</em>
+          <strong>🔍 មូលហេតុពិតប្រាកដ៖</strong> ម៉ាស៊ីនបម្រើ Google Gemini បានឆ្លើយតប៖ <em>${escapeHtml(rawMsg.substring(0, 180))}</em>
         </div>
-        <div style="margin-bottom: 8px; background: #fffbeb; border: 1px solid #fef3c7; border-radius: 6px; padding: 8px 12px; font-size: 0.85rem; color: #92400e;">
-          <strong>🛡️ ការប្តេជ្ញាចិត្តគុណភាព៖</strong> ប្រព័ន្ធបដិសេធដាច់ខាតមិនផ្ដល់ Template ព្រាងក្លែងក្លាយឡើយ។ កិច្ចតែងការនីមួយៗត្រូវតែឆ្លងកាត់ការវិភាគគរុកោសល្យជាក់ស្ដែងដោយ AI។
+        <div style="margin-bottom: 8px; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; color: #991b1b; line-height: 1.5;">
+          <strong>🛡️ ការកំណត់ដាច់ខាត (Strict Mandate)៖</strong><br>
+          ប្រព័ន្ធបដិសេធដាច់ខាត <strong>មិនដាក់បង្ហាញកិច្ចតែងការគំរូទូទៅ (Dummy Template) ជាដាច់ខាត</strong> ក្នុងករណី AI មិនបានផ្ដល់កិច្ចតែងការ។
         </div>
         <div>
           <strong>🛠️ អ្វីដែលលោកគ្រូ អ្នកគ្រូត្រូវធ្វើ៖</strong> 
@@ -4982,6 +5035,13 @@ function openAiErrorModal(errOrType, genParams) {
       btnKey.style.fontWeight = '700';
       btnKey.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.3)';
       btnKey.innerHTML = '<i class="fa-solid fa-key" style="color: #fde047;"></i> 🔑 បញ្ចូល Gemini API Key ឥឡូវនេះ (ឥតគិតថ្លៃ Free)';
+    } else if (isQuotaReached) {
+      btnKey.style.background = 'linear-gradient(135deg, #2563eb, #4f46e5)';
+      btnKey.style.color = '#ffffff';
+      btnKey.style.border = 'none';
+      btnKey.style.fontWeight = '700';
+      btnKey.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.25)';
+      btnKey.innerHTML = '<i class="fa-solid fa-key" style="color: #fde047;"></i> 🔑 ប្តូរគណនី Gemini API Key ថ្មី (Change Account / Key)';
     } else {
       btnKey.style.background = 'white';
       btnKey.style.color = '#1e293b';

@@ -2231,28 +2231,32 @@ def generate_lesson_plan():
     data = request.json or {}
     api_key = data.get("apiKey") or os.environ.get("GEMINI_API_KEY") or DEFAULT_SYSTEM_GEMINI_KEY
 
+    if not api_key:
+        return jsonify({
+            "success": False,
+            "error": "មិនទាន់មាន API Key សម្រាប់ដំណើរការ Google Gemini AI ឡើយ។ សូមបញ្ចូល API Key ផ្ទាល់ខ្លួនរបស់អ្នក (aistudio.google.com)។"
+        }), 400
+
     try:
-        is_offline_draft = False
-        if api_key:
-            plan = generate_with_gemini_python(api_key, data)
-        else:
-            plan = synthesize_lesson_plan_python(data)
-            is_offline_draft = True
-        
+        plan = generate_with_gemini_python(api_key, data)
         if isinstance(plan, dict):
-            if is_offline_draft:
-                plan["isOfflineDraft"] = True
             for k in ["notebooklmGuide", "preClassPhase", "differentiatedPlan", "activeRubric", "exitTicket321", "postClassPhase", "selfEvaluation"]:
                 plan.pop(k, None)
 
-        return jsonify({"success": True, "data": plan, "isOfflineDraft": is_offline_draft})
+        return jsonify({"success": True, "data": plan})
     except Exception as e:
         print("Generation error:", e)
-        # Fallback to local python synthesizer
-        fallback = synthesize_lesson_plan_python(data)
-        if isinstance(fallback, dict):
-            fallback["isOfflineDraft"] = True
-        return jsonify({"success": True, "data": fallback, "isOfflineDraft": True, "warning": str(e)})
+        err_str = str(e)
+        if "quota" in err_str.lower() or "429" in err_str or "resource_exhausted" in err_str.lower() or "too many requests" in err_str.lower():
+            err_msg = "Google Gemini AI បានជាប់កម្រិតកំណត់កូតា (Quota Reached / 429 Rate Limit)។ សូមប្តូរគណនី Gemini API Key ថ្មី ឬរង់ចាំរហូតដល់កូតាត្រូវបាន Reset នៅវដ្តបន្ទាប់ (Please change your Gemini account API key or wait until the next quota of usable)។"
+        elif "high demand" in err_str.lower() or "503" in err_str or "overloaded" in err_str.lower() or "spikes in demand" in err_str.lower():
+            err_msg = "ម៉ាស៊ីនបម្រើ Google Gemini កំពុងមមាញឹកខ្លាំង (High Demand / Spikes)។ សូមរង់ចាំប្រមាណ ៣០ វិនាទី រួចចុចសាកល្បងម្ដងទៀត។"
+        else:
+            err_msg = f"Google Gemini AI មិនអាចផ្ដល់កិច្ចតែងការបាននៅពេលនេះឡើយ: {err_str}។"
+        return jsonify({
+            "success": False,
+            "error": err_msg
+        }), 500
 
 
 @app.route("/api/generate/test", methods=["POST"])
