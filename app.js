@@ -5528,6 +5528,11 @@ STEP DURATION ALLOCATION (${totalMin} MINUTES TOTAL - MoEYS STANDARD PERCENTAGES
      • [សកម្មភាពសិស្ស] (studentActivity): សកម្មភាពសិស្ស និងចម្លើយរំពឹងទុករបស់សិស្ស «- សិស្សឆ្លើយ (ចម្លើយរំពឹងទុក)៖ «...»» ដោយស្រង់ខ្លីៗចេញពីខ្លឹមសារ រួមទាំងការកត់ត្រា និងអនុវត្តលើ Flipchart/ក្ដារឆ្នួន [ជំនាញ 4Cs]។
    - ច្បាប់ TTT 30% / STT 70%: នៅក្នុងជំហានទី៤ ត្រូវរៀបចំសកម្មភាពយ៉ាងណាឱ្យគ្រូសម្របសម្រួល ៣០% និងសិស្សអនុវត្ត/ពិភាក្សា ៧០%។
    - Exit Ticket 3-2-1: នៅក្នុងជំហានទី៥ ត្រូវដាក់សកម្មភាពវាយតម្លៃចុងម៉ោង (Exit Ticket 3-2-1)។ ⚠️ ហាមដាច់ខាតដាក់ Exit Ticket នៅជំហានទី ២, ទី ៣ ឬទី ៤ ជាដាច់ខាត ព្រោះ Exit Ticket ប្រើសម្រាប់តែចុងម៉ោង (ជំហានទី ៥) ប៉ុណ្ណោះ!
+   - គុណភាពសំណួរគន្លឹះក្នុងជំហានទី ៣ (HIGH-ORDER PEDAGOGICAL QUESTIONING):
+     • សំណួរគ្រូក្នុងជំហានទី ៣ ត្រូវតែជាសំណួរដាស់ការត្រិះរិះកម្រិតខ្ពស់ (Higher-Order Questions) ឬ Driving Question ស្របតាមវិធីសាស្ត្របង្រៀន។
+     • ហាមដាច់ខាតសួរសំណួរបិទទន្ទេញចាំចម្លើយខ្លីៗ (Closed recall questions ដូចជា «តើមានប៉ុន្មានប្រភេទ?» រួចសិស្សឆ្លើយតែ «៣ ប្រភេទ»)។ ត្រូវសួរដាស់ការគិត ហេតុផល និងការវិភាគ (ឧ. «តើមុំ និងជ្រុងនីមួយៗមានលក្ខណៈខុសគ្នាយ៉ាងដូចម្តេច ហើយហេតុអ្វីបានជាចាំបាច់ត្រូវបែងចែកបែបនេះ?», «តើយើងអាចអនុវត្តចំណេះដឹងនេះក្នុងការដោះស្រាយបញ្ហាជាក់ស្តែងយ៉ាងដូចម្តេច?»)។
+   - គំនូសតាង និងរូបភាពធរណីមាត្រ/វិទ្យាសាស្ត្រ (STEM DIAGRAMS):
+     • សម្រាប់មុខវិជ្ជាគណិតវិទ្យា រូបវិទ្យា គីមីវិទ្យា ក្នុងប្រអប់ [ខ្លឹមសារ] ត្រូវសរសេររៀបរាប់រូបរាងធរណីមាត្រ គំនូសតាង ឬដ្យាក្រាមដែលត្រូវគូរបង្ហាញលើក្តារខៀនឱ្យបានច្បាស់លាស់ (ឧ. រូបត្រីកោណកែង សមបាត សម័ង្ស ប្លង់កូអរដោនេ បំពង់ពិសោធន៍...)។
 ${getMethodPedagogicalPrompt(params.method, false, false, params.lessonTitle, params.techniques)}
 
 ⛔ ABSOLUTE PROHIBITIONS:
@@ -10663,8 +10668,17 @@ async function handleExportWord() {
         );
       });
 
+      // Section 4: Pre-Class Phase (Word Export)
+      const preVideo = (data.preClass && data.preClass.video) || 'វីដេអូបង្រៀនខ្លី (Micro-Lecture Video) ប្រវែង ៥-១០ នាទី ស្វ័យសិក្សាទ្រឹស្តីគ្រឹះពីផ្ទះ តាមរយៈ NotebookLM Audio / LMS / Telegram។';
+      const preMats = (data.preClass && data.preClass.materials) || 'សៀវភៅពុម្ពគោល, ស្លាយមេរៀន PDF, និងសន្លឹកកិច្ចការស្វ័យសិក្សាត្រៀមមុនម៉ោង។';
       docChildren.push(
-        new Paragraph({ children: [new TextRun({ text: `៤. ដំណើរការបង្រៀន (${data.duration || '១៨០ នាទី'})`, bold: true, size: 24 })] }),
+        new Paragraph({ children: [new TextRun({ text: "៤. ដំណាក់កាលស្វ័យសិក្សាត្រៀមក្រៅថ្នាក់ (Pre-Class Phase — At Home)", bold: true, size: 24, color: "1E40AF" })] }),
+        new Paragraph({ children: [new TextRun({ text: `• វីដេអូបង្រៀនខ្លី (Micro-Lecture Video)៖ ${preVideo}`, size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: `• ឯកសារអាន និងស្លាយមេរៀន៖ ${preMats}`, size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: "• បុរេតេស្តស្ទង់សមត្ថភាព (Pre-Test QCM)៖ សិស្សឆ្លើយសំណួរបុរេតេស្ត QCM ៥ សំណួរមុនម៉ោង ដើម្បីស្ទង់ការយល់ដឹងជាមុន (មានភ្ជាប់ក្នុងឯកសារឧបសម្ព័ន្ធ)។", size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: "• ការស្រង់ចម្ងល់ពិបាកយល់ (Muddiest Points)៖ សិស្សកត់ត្រាចំណុចដែលនៅស្រពិចស្រពិលបំផុត ១-២ ចំណុច ផ្ញើមកគ្រូតាម Telegram/LMS ដើម្បីគ្រូយកមកស្រាយបំភ្លឺក្នុងជំហានទី ២ ក្នុងថ្នាក់។", size: 22 })] }),
+        new Paragraph({ text: "" }),
+        new Paragraph({ children: [new TextRun({ text: `៥. ដំណើរការបង្រៀន និងរៀនសកម្មក្នុងថ្នាក់ (${data.duration || '១៨០ នាទី'})`, bold: true, size: 24 })] }),
         new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
           rows: flippedDocxRows
@@ -10672,7 +10686,17 @@ async function handleExportWord() {
         new Paragraph({ text: "" })
       );
 
-      // Signatures
+      // Adaptive Signatures (Word Export)
+      const isHigherEdFlippedWord = (() => {
+        const gradeStr = String((data && data.grade) || '').toLowerCase();
+        const schoolStr = String((data && data.school) || '').toLowerCase();
+        return gradeStr.includes('ឆ្នាំទី') || gradeStr.includes('year') || gradeStr.includes('និស្សិត') || gradeStr.includes('ក្រេឌីត') || gradeStr.includes('credit') || gradeStr.includes('tec') || gradeStr.includes('វិទ្យាស្ថាន') || schoolStr.includes('វិទ្យាស្ថាន') || schoolStr.includes('សាកលវិទ្យាល័យ') || schoolStr.includes('university') || schoolStr.includes('college');
+      })();
+
+      const leaderRoleWord = isHigherEdFlippedWord ? "ប្រធានដេប៉ាតឺម៉ង់ / គណៈគ្រប់គ្រង" : "នាយក/នាយិកាសាលា";
+      const teacherRoleWord = isHigherEdFlippedWord ? "ហត្ថលេខាគ្រូឧទ្ទេស" : "ហត្ថលេខាគ្រូបង្រៀន";
+      const teacherNameWord = data.teacher || (isHigherEdFlippedWord ? "គ្រូឧទ្ទេស" : "គ្រូបង្រៀន");
+
       docChildren.push(
         new Paragraph({ text: "" }),
         new Table({
@@ -10685,7 +10709,7 @@ async function handleExportWord() {
                   borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } },
                   children: [
                     new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "បានឃើញ និងឯកភាព", size: 22 })] }),
-                    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "ប្រធានដេប៉ាតឺម៉ង់ / គណៈគ្រប់គ្រង", bold: true, size: 22 })] }),
+                    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: leaderRoleWord, bold: true, size: 22 })] }),
                     new Paragraph({ text: "\n\n\n" })
                   ]
                 }),
@@ -10694,21 +10718,16 @@ async function handleExportWord() {
                   borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } },
                   children: [
                     new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${data.dateStr || ''}`, size: 22 })] }),
-                    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "ហត្ថលេខាគ្រូឧទ្ទេស", bold: true, size: 22 })] }),
+                    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: teacherRoleWord, bold: true, size: 22 })] }),
                     new Paragraph({ text: "\n\n\n" }),
-                    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${data.teacher || 'កែម បូរី'}`, bold: true, size: 22 })] })
+                    new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${teacherNameWord}`, bold: true, size: 22 })] })
                   ]
                 })
               ]
             })
           ]
         }),
-        new Paragraph({ text: "" }),
-        new Paragraph({
-          children: [
-            new TextRun({ text: "* អាជ្ញាបណ្ណ និងកម្មសិទ្ធិ (License)： ខ្ញុំឈ្មោះកែម បូរី ជាគ្រូឧទ្ទេសមុខវិជ្ជាចិត្តវិទ្យាអប់រំ នៅវិទ្យាស្ថានគរុកោសល្យកំពង់ចាម", italics: true, size: 22, color: "64748B" })
-          ]
-        })
+        new Paragraph({ text: "" })
       );
 
       // Appendix: Pre-Test & Post-Test on the page after signatures
