@@ -5200,21 +5200,32 @@ function getCandidateGeminiModels(tier) {
   const activeTier = tier || getActiveGeminiModelTier();
   if (activeTier === 'pro') {
     return [
-      { ver: 'v1beta', name: 'gemini-2.5-pro' },
       { ver: 'v1beta', name: 'gemini-pro-latest' },
+      { ver: 'v1beta', name: 'gemini-2.5-pro' },
       { ver: 'v1beta', name: 'gemini-1.5-pro' },
-      { ver: 'v1beta', name: 'gemini-2.5-flash' },
+      { ver: 'v1beta', name: 'gemini-pro' },
+      { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
+      { ver: 'v1beta', name: 'gemini-3.5-flash' },
+      { ver: 'v1beta', name: 'gemini-3.8-flash' },
+      { ver: 'v1beta', name: 'gemini-3.6-flash' },
+      { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
       { ver: 'v1beta', name: 'gemini-2.0-flash' },
       { ver: 'v1beta', name: 'gemini-1.5-flash' }
     ];
   }
   // Default: 'flash' (⚡ Gemini 3.5 Flash - Ultra Fast)
   return [
+    { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
+    { ver: 'v1beta', name: 'gemini-3.5-flash' },
+    { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
+    { ver: 'v1beta', name: 'gemini-3.8-flash' },
+    { ver: 'v1beta', name: 'gemini-3.6-flash' },
+    { ver: 'v1beta', name: 'gemini-3.1-flash-lite' },
+    { ver: 'v1beta', name: 'gemini-flash-latest' },
+    { ver: 'v1beta', name: 'gemini-flash-lite-latest' },
     { ver: 'v1beta', name: 'gemini-2.5-flash' },
     { ver: 'v1beta', name: 'gemini-2.0-flash' },
     { ver: 'v1beta', name: 'gemini-1.5-flash' },
-    { ver: 'v1beta', name: 'gemini-2.0-flash-lite' },
-    { ver: 'v1beta', name: 'gemini-flash-latest' },
     { ver: 'v1beta', name: 'gemini-2.5-pro' }
   ];
 }
@@ -5818,24 +5829,32 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
       const score = (m) => {
         const name = (m.name || '').toLowerCase();
         if (tier === 'pro') {
-          if (name === 'gemini-2.5-pro') return 350;
-          if (name.includes('pro-latest') || name === 'gemini-pro') return 340;
-          if (name === 'gemini-1.5-pro') return 330;
-          if (name.includes('pro')) return 320;
-          if (name === 'gemini-2.5-flash') return 250;
-          if (name === 'gemini-2.0-flash') return 240;
-          if (name === 'gemini-1.5-flash') return 220;
+          if (name.includes('pro-latest') || name === 'gemini-pro') return 360;
+          if (name === 'gemini-2.5-pro') return 355;
+          if (name === 'gemini-1.5-pro') return 340;
+          if (name.includes('pro')) return 330;
+          if (name === 'gemini-3.5-flash-lite') return 260;
+          if (name === 'gemini-3.5-flash') return 250;
+          if (name === 'gemini-2.5-flash-lite') return 240;
+          if (name === 'gemini-2.5-flash') return 230;
+          if (name === 'gemini-2.0-flash') return 220;
+          if (name === 'gemini-1.5-flash') return 210;
           return 50;
         } else {
-          // Flash tier (Gemini 3.5 Flash - Ultra Fast)
-          if (name === 'gemini-2.5-flash') return 350;
-          if (name === 'gemini-2.0-flash') return 340;
-          if (name === 'gemini-1.5-flash') return 330;
-          if (name === 'gemini-2.0-flash-lite') return 320;
-          if (name.includes('flash-latest') || name.includes('flash-lite-latest')) return 300;
-          if (name.includes('flash-lite')) return 280;
-          if (name.includes('flash')) return 260;
-          if (name === 'gemini-2.5-pro') return 200;
+          // Flash tier (⚡ Gemini 3.5 Flash - Ultra Fast)
+          if (name === 'gemini-3.5-flash-lite') return 380;
+          if (name === 'gemini-3.5-flash') return 370;
+          if (name === 'gemini-2.5-flash-lite') return 360;
+          if (name === 'gemini-3.8-flash') return 350;
+          if (name === 'gemini-3.6-flash') return 340;
+          if (name === 'gemini-3.1-flash-lite') return 335;
+          if (name.includes('flash-lite-latest')) return 330;
+          if (name.includes('flash-latest')) return 325;
+          if (name === 'gemini-2.5-flash') return 320;
+          if (name === 'gemini-2.0-flash') return 310;
+          if (name === 'gemini-1.5-flash') return 300;
+          if (name.includes('flash-lite')) return 290;
+          if (name.includes('flash')) return 280;
           if (name.includes('pro')) return 150;
           return 50;
         }
@@ -6011,16 +6030,17 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
             break;
           }
 
-          // If Pro model hit 429 Quota Exceeded on Free Key, intelligently jump directly to high-quota gemini-2.0-flash
+          // If Pro model hit 429 Quota Exceeded or 503 High Demand, intelligently jump directly to high-quota ultra-fast Gemini 3.5 Flash
           const lowerErr = errMsg.toLowerCase();
-          if (isPro && (lowerErr.includes('quota') || lowerErr.includes('resource_exhausted') || lowerErr.includes('429') || lowerErr.includes('try again later'))) {
-            const flashIdx = candidateModels.findIndex((m, idx) => idx > i && m.name === 'gemini-2.0-flash');
+          if (isPro && (lowerErr.includes('quota') || lowerErr.includes('resource_exhausted') || lowerErr.includes('429') || lowerErr.includes('try again later') || lowerErr.includes('high demand') || lowerErr.includes('spikes in demand') || lowerErr.includes('503'))) {
+            const flashIdx = candidateModels.findIndex((m, idx) => idx > i && (m.name.includes('3.5-flash') || m.name.includes('flash')));
             if (flashIdx !== -1) {
-              console.info(`[AI Engine] Pro model hit quota limit. Intelligently auto-switching to high-quota gemini-2.0-flash...`);
+              const targetModel = candidateModels[flashIdx].name;
+              console.info(`[AI Engine] Pro model hit high demand or quota limit. Intelligently auto-switching to ultra-fast Gemini 3.5 Flash (${targetModel})...`);
               setLoadingOverlayStatus(
                 'កំពុងប្តូរទៅម៉ូដែល Flash ស្វ័យប្រវត្តិ...',
-                `ម៉ូដែល Pro ជាប់កូតា (Quota)... ប្រព័ន្ធកំពុងតភ្ជាប់ស្វ័យប្រវត្តទៅកាន់ Google Gemini 2.0 Flash ដើម្បីបង្កើតកិច្ចតែងការភ្លាមៗ!`,
-                `⚡ តភ្ជាប់ស្វ័យប្រវត្តិទៅ Gemini 2.0 Flash`
+                `ម៉ូដែល Pro ជួបបញ្ហា High Demand ឬកូតា... ប្រព័ន្ធកំពុងតភ្ជាប់ស្វ័យប្រវត្តទៅកាន់ ⚡ Gemini 3.5 Flash (${targetModel}) ដើម្បីបង្កើតកិច្ចតែងការភ្លាមៗ!`,
+                `⚡ តភ្ជាប់ស្វ័យប្រវត្តិទៅ ${targetModel}`
               );
               i = flashIdx - 1; // loop increment will make it flashIdx
               await new Promise(r => setTimeout(r, 600));
@@ -6609,24 +6629,32 @@ async function testCurrentAiProviderKey() {
         const score = (m) => {
           const name = (m.name || '').toLowerCase();
           if (tier === 'pro') {
-            if (name === 'gemini-2.5-pro') return 350;
-            if (name.includes('pro-latest') || name === 'gemini-pro') return 340;
-            if (name === 'gemini-1.5-pro') return 330;
-            if (name.includes('pro')) return 320;
-            if (name === 'gemini-2.5-flash') return 250;
-            if (name === 'gemini-2.0-flash') return 240;
-            if (name === 'gemini-1.5-flash') return 220;
+            if (name.includes('pro-latest') || name === 'gemini-pro') return 360;
+            if (name === 'gemini-2.5-pro') return 355;
+            if (name === 'gemini-1.5-pro') return 340;
+            if (name.includes('pro')) return 330;
+            if (name === 'gemini-3.5-flash-lite') return 260;
+            if (name === 'gemini-3.5-flash') return 250;
+            if (name === 'gemini-2.5-flash-lite') return 240;
+            if (name === 'gemini-2.5-flash') return 230;
+            if (name === 'gemini-2.0-flash') return 220;
+            if (name === 'gemini-1.5-flash') return 210;
             return 50;
           } else {
-            // Flash tier (Gemini 3.5 Flash - Ultra Fast)
-            if (name === 'gemini-2.5-flash') return 350;
-            if (name === 'gemini-2.0-flash') return 340;
-            if (name === 'gemini-1.5-flash') return 330;
-            if (name === 'gemini-2.0-flash-lite') return 320;
-            if (name.includes('flash-latest') || name.includes('flash-lite-latest')) return 300;
-            if (name.includes('flash-lite')) return 280;
-            if (name.includes('flash')) return 260;
-            if (name === 'gemini-2.5-pro') return 200;
+            // Flash tier (⚡ Gemini 3.5 Flash - Ultra Fast)
+            if (name === 'gemini-3.5-flash-lite') return 380;
+            if (name === 'gemini-3.5-flash') return 370;
+            if (name === 'gemini-2.5-flash-lite') return 360;
+            if (name === 'gemini-3.8-flash') return 350;
+            if (name === 'gemini-3.6-flash') return 340;
+            if (name === 'gemini-3.1-flash-lite') return 335;
+            if (name.includes('flash-lite-latest')) return 330;
+            if (name.includes('flash-latest')) return 325;
+            if (name === 'gemini-2.5-flash') return 320;
+            if (name === 'gemini-2.0-flash') return 310;
+            if (name === 'gemini-1.5-flash') return 300;
+            if (name.includes('flash-lite')) return 290;
+            if (name.includes('flash')) return 280;
             if (name.includes('pro')) return 150;
             return 50;
           }

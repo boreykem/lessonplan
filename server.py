@@ -1877,10 +1877,13 @@ Return ONLY valid JSON matching this schema:
     }
 
     candidate_endpoints = [
-        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}",
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}",
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}",
         f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key={api_key}",
+        f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key={api_key}",
     ]
 
     last_error = None
@@ -1910,8 +1913,7 @@ Return ONLY valid JSON matching this schema:
         except urllib.error.HTTPError as he:
             err_body = he.read().decode("utf-8", errors="ignore")
             last_error = f"HTTP {he.code}: {err_body}"
-            # If model not found (404), temporarily overloaded / high demand (503), or quota rate limited (429), try next model
-            if he.code in [404, 429, 503] or "not found" in err_body.lower() or "high demand" in err_body.lower() or "quota" in err_body.lower():
+            if he.code in [404, 429, 503] or "not found" in err_body.lower() or "not supported" in err_body.lower() or "high demand" in err_body.lower() or "quota" in err_body.lower():
                 continue
             raise Exception(last_error)
         except Exception as e:
@@ -2229,25 +2231,28 @@ def generate_lesson_plan():
     data = request.json or {}
     api_key = data.get("apiKey") or os.environ.get("GEMINI_API_KEY") or DEFAULT_SYSTEM_GEMINI_KEY
 
-    if not api_key:
-        return jsonify({
-            "success": False,
-            "error": "មិនទាន់មាន API Key សម្រាប់ដំណើរការ Google Gemini AI ឡើយ។ សូមបញ្ចូល API Key ផ្ទាល់ខ្លួនរបស់អ្នក។"
-        }), 400
-
     try:
-        plan = generate_with_gemini_python(api_key, data)
+        is_offline_draft = False
+        if api_key:
+            plan = generate_with_gemini_python(api_key, data)
+        else:
+            plan = synthesize_lesson_plan_python(data)
+            is_offline_draft = True
+        
         if isinstance(plan, dict):
+            if is_offline_draft:
+                plan["isOfflineDraft"] = True
             for k in ["notebooklmGuide", "preClassPhase", "differentiatedPlan", "activeRubric", "exitTicket321", "postClassPhase", "selfEvaluation"]:
                 plan.pop(k, None)
 
-        return jsonify({"success": True, "data": plan})
+        return jsonify({"success": True, "data": plan, "isOfflineDraft": is_offline_draft})
     except Exception as e:
         print("Generation error:", e)
-        return jsonify({
-            "success": False,
-            "error": f"Google Gemini AI មិនអាចបង្កើតបាននៅពេលនេះ: {str(e)}។ ម៉ាស៊ីនបម្រើអាចនឹងកំពុងមមាញឹកខ្លាំង (High Demand)។ សូមរង់ចាំបន្តិច ហើយសាកល្បងម្ដងទៀត។"
-        }), 500
+        # Fallback to local python synthesizer
+        fallback = synthesize_lesson_plan_python(data)
+        if isinstance(fallback, dict):
+            fallback["isOfflineDraft"] = True
+        return jsonify({"success": True, "data": fallback, "isOfflineDraft": True, "warning": str(e)})
 
 
 @app.route("/api/generate/test", methods=["POST"])
