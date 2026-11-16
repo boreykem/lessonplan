@@ -3393,6 +3393,26 @@ textarea.form-control {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 3px 2px;
+}
+
+.techniques-chips-grid::-webkit-scrollbar {
+  width: 5px;
+}
+
+.techniques-chips-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.techniques-chips-grid::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+[data-theme="dark"] .techniques-chips-grid::-webkit-scrollbar-thumb {
+  background: #475569;
 }
 
 .technique-chip {

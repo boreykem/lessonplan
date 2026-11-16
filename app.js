@@ -365,16 +365,29 @@ const BUILTIN_TEACHING_METHODS = [
 ];
 
 const BUILTIN_TEACHING_TECHNIQUES = [
-  { id: 'think_pair_share', name: 'Think-Pair-Share', icon: 'fa-user-group', kmLabel: 'Think-Pair-Share' },
-  { id: 'jigsaw', name: 'Jigsaw', icon: 'fa-puzzle-piece', kmLabel: 'ជីកសរ (Jigsaw)' },
-  { id: 'gallery_walk', name: 'Gallery Walk', icon: 'fa-person-walking', kmLabel: 'Gallery Walk' },
-  { id: 'brainstorming', name: 'Brainstorming', icon: 'fa-bolt', kmLabel: 'Brainstorming' },
-  { id: 'interactive_quizzes', name: 'Interactive Quizzes', icon: 'fa-circle-question', kmLabel: 'Interactive Quizzes' },
-  { id: 'fist_to_five', name: 'Fist to Five', icon: 'fa-hand', kmLabel: 'Fist to Five' },
-  { id: 'exit_ticket', name: 'Exit Ticket 3-2-1', icon: 'fa-ticket', kmLabel: 'Exit Ticket 3-2-1' },
-  { id: 'concept_cartoons', name: 'Concept Cartoons', icon: 'fa-comments', kmLabel: 'Concept Cartoons' },
-  { id: 'mind_concept_map', name: 'Mind / Concept Map', icon: 'fa-diagram-project', kmLabel: 'Mind / Concept Map' },
-  { id: 'role_play', name: 'Role Play', icon: 'fa-masks-theater', kmLabel: 'Role Play' }
+  { id: 'think_pair_share', name: 'Think-Pair-Share', icon: 'fa-user-group', kmLabel: 'Think-Pair-Share', descKm: 'គិតម្នាក់ឯង ពិភាក្សាជាដៃគូ និងចែករំលែករួមថ្នាក់ (Think-Pair-Share)', descEn: 'Think independently, discuss in pairs, share with class' },
+  { id: 'jigsaw', name: 'Jigsaw', icon: 'fa-puzzle-piece', kmLabel: 'ជីកសរ (Jigsaw)', descKm: 'បែងចែកក្រុមអ្នកជំនាញស្រាវជ្រាវ និងត្រឡប់ទៅបង្រៀនក្រុមដើម (Jigsaw Sharing)', descEn: 'Expert groups investigate sub-topics and return to teach Home Groups' },
+  { id: 'gallery_walk', name: 'Gallery Walk', icon: 'fa-person-walking', kmLabel: 'Gallery Walk', descKm: 'ដើរទស្សនាស្នាដៃលើ Flipchart ផ្តល់ Feedback និងវាយតម្លៃគ្នា', descEn: 'Walk to view group posters, provide feedback and assess peers' },
+  { id: 'brainstorming', name: 'Brainstorming', icon: 'fa-bolt', kmLabel: 'Brainstorming', descKm: 'បំផុសគំនិត និងស្រង់យោបល់សេរីពីសិស្សយ៉ាងលឿន', descEn: 'Generate rapid creative ideas without immediate judgment' },
+  { id: 'interactive_quizzes', name: 'Interactive Quizzes', icon: 'fa-circle-question', kmLabel: 'Interactive Quizzes', descKm: 'កម្រងសំណួរអន្តរកម្មរហ័ស QCM / ក្តារឆ្នួន', descEn: 'Quick formative quizzes, diagnostic polls, or mini-whiteboards' },
+  { id: 'fist_to_five', name: 'Fist to Five', icon: 'fa-hand', kmLabel: 'Fist to Five', descKm: 'ស្ទង់កម្រិតយល់ដឹងពីលេខ ១ ដល់ ៥ ដោយប្រើម្រាមដៃ', descEn: 'Check understanding instantly by raising 1 to 5 fingers' },
+  { id: 'exit_ticket', name: 'Exit Ticket 3-2-1', icon: 'fa-ticket', kmLabel: 'Exit Ticket 3-2-1', descKm: 'សំបុត្រឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 មុនបញ្ចប់ម៉ោង', descEn: 'End-of-class reflective ticket (3 things learned, 2 interesting, 1 question)' },
+  { id: 'concept_cartoons', name: 'Concept Cartoons', icon: 'fa-comments', kmLabel: 'Concept Cartoons', descKm: 'ផ្ទាំងគំនូរតុក្កតាចោទជាជម្រើសគំនិតបំផុសការដេញដោល', descEn: 'Visual cartoon dialogue presenting alternative conceptions for debate' },
+  { id: 'mind_concept_map', name: 'Mind / Concept Map', icon: 'fa-diagram-project', kmLabel: 'Mind / Concept Map', descKm: 'ចងក្រងខ្លឹមសារជាផែនទីគំនិត ឬដ្យាក្រាមផ្សារភ្ជាប់', descEn: 'Synthesize concepts into visual hierarchical mind/concept maps' },
+  { id: 'role_play', name: 'Role Play', icon: 'fa-masks-theater', kmLabel: 'Role Play', descKm: 'ការដើរតួ ឬការសម្តែងសេណារីយ៉ូជាក់ស្តែង', descEn: 'Simulate authentic scenarios and perspectives through drama/acting' },
+  { id: 'fishbowl', name: 'Fishbowl Discussion', icon: 'fa-users-between-lines', kmLabel: 'Fishbowl Discussion', descKm: 'ក្រុមខាងក្នុងពិភាក្សាដេញដោលស៊ីជម្រៅ ក្រុមខាងក្រៅកត់ត្រា និងសួរបំពេញ (Fishbowl)', descEn: 'Inner circle discusses deeply while outer circle observes, notes and questions' },
+  { id: 'snowballing', name: 'Snowballing', icon: 'fa-snowflake', kmLabel: 'Snowballing', descKm: 'គិតម្នាក់ឯង ➔ ពិភាក្សាជាគូ ➔ បញ្ចូលជាក្រុម៤នាក់ ➔ បូកសរុបថ្នាក់ (Snowballing)', descEn: 'Progressive pairing from individual to pairs, fours, and whole class' },
+  { id: 'learning_stations', name: 'Learning Stations', icon: 'fa-signs-post', kmLabel: 'Learning Stations', descKm: 'បែងចែកស្ថានីយសិក្សា សិស្សវិលជុំអនុវត្តកិច្ចការតាមស្ថានីយ (Learning Stations)', descEn: 'Rotational student stations with differentiated learning activities' },
+  { id: 'two_stars_wish', name: 'Two Stars and a Wish', icon: 'fa-star', kmLabel: 'Two Stars and a Wish', descKm: 'វាយតម្លៃមិត្តភក្តិ៖ សរសើរចំណុចល្អ ២ និងផ្តល់អនុសាសន៍កែលម្អ ១ (Two Stars & a Wish)', descEn: 'Peer feedback protocol: highlight 2 strengths and 1 area for growth' },
+  { id: 'gamification', name: 'Gamification', icon: 'fa-gamepad', kmLabel: 'Gamification', descKm: 'រៀបចំសកម្មភាពរៀនជាល្បែងប្រកួតប្រជែងដណ្តើមពិន្ទុ/ផ្លាកសញ្ញា (Gamification)', descEn: 'Game elements, points, challenges, and leaderboards to drive engagement' },
+  { id: 'numbered_heads', name: 'Numbered Heads Together', icon: 'fa-arrow-down-1-9', kmLabel: 'Numbered Heads Together', descKm: 'សមាជិកក្រុមមានលេខរៀង គ្រូចាប់ឆ្នោតហៅលេខឱ្យឆ្លើយតំណាងក្រុម (Numbered Heads)', descEn: 'Team members numbered; teacher calls a number randomly to answer for the team' },
+  { id: 'reciprocal_teaching', name: 'Reciprocal Teaching', icon: 'fa-chalkboard-user', kmLabel: 'Reciprocal Teaching', descKm: 'សិស្សប្តូរវេនគ្នាដើរតួជាគ្រូបង្រៀន សួរសំណួរ សង្ខេប និងបំភ្លឺ (Reciprocal Teaching)', descEn: 'Students take turns leading discussions: questioning, clarifying, summarizing, predicting' },
+  { id: 'muddiest_point', name: 'Muddiest Point', icon: 'fa-question', kmLabel: 'Muddiest Point', descKm: 'សិស្សកត់ត្រាចំណុចដែលនៅស្រពិចស្រពិលបំផុត ដើម្បីស្រាយបំភ្លឺរួមគ្នា (Muddiest Point)', descEn: 'Quickly identify the most confusing or unclear concept from the lesson' },
+  { id: 'spaced_retrieval', name: 'Spaced Retrieval Practice / Interleaving', icon: 'fa-brain', kmLabel: 'Spaced Retrieval / Interleaving', descKm: 'ចោទសួររំលឹកក្បួនពីមេរៀនមុនៗឆ្លាស់គ្នា ដើម្បីពង្រឹងការចងចាំយូរអង្វែង (Spaced Retrieval / Interleaving)', descEn: 'Deliberate spaced and mixed recall practice to reinforce long-term memory' },
+  { id: 'four_corners', name: 'Four Corners', icon: 'fa-shapes', kmLabel: 'Four Corners', descKm: 'សិស្សជ្រើសរើសទៅឈរតាមជ្រុងទាំង៤នៃបន្ទប់តាមទស្សនៈរបស់ខ្លួនរួចការពារគំនិត (Four Corners)', descEn: 'Students move to 4 corners based on viewpoints, then debate and justify' },
+  { id: 'six_thinking_hats', name: 'Six Thinking Hats', icon: 'fa-graduation-cap', kmLabel: 'Six Thinking Hats', descKm: 'ពិចារណាបញ្ហាតាមពណ៌មួកទាំង៦ (ព័ត៌មាន អារម្មណ៍ វិជ្ជមាន ហានិភ័យ ច្នៃប្រឌិត និងការគ្រប់គ្រង)', descEn: 'Analyze problems from 6 distinct thinking perspectives (Six Thinking Hats)' },
+  { id: 'concept_attainment', name: 'Concept Attainment', icon: 'fa-magnifying-glass-chart', kmLabel: 'Concept Attainment', descKm: 'បង្ហាញឧទាហរណ៍មែន (Yes) និងមិនមែន (No) ដើម្បីឱ្យសិស្សទាញរកនិយមន័យ (Concept Attainment)', descEn: 'Inductive strategy comparing Yes/No examples to discover defining attributes' },
+  { id: 'reflection_321', name: '3-2-1 Reflection', icon: 'fa-list-check', kmLabel: '3-2-1 Reflection', descKm: 'ឆ្លុះបញ្ចាំង ៣ ចំណុចរៀនបាន ២ ចំណុចចាប់អារម្មណ៍ ១ ចំណុចនៅឆ្ងល់ (3-2-1 Reflection)', descEn: 'Structured reflection: 3 insights gained, 2 interesting facts, 1 remaining question' }
 ];
 
 function getCustomTeachingMethods() {
@@ -585,8 +598,9 @@ function renderTechniquesChips() {
   BUILTIN_TEACHING_TECHNIQUES.forEach(t => {
     const isAct = selected.includes(t.name) || selected.includes(t.id);
     const label = isEn ? t.name : (t.kmLabel || t.name);
+    const tooltip = isEn ? (t.descEn || t.name) : (t.descKm || t.kmLabel || t.name);
     html += `
-      <div class="technique-chip ${isAct ? 'active' : ''}" onclick="toggleTechniqueChip('${t.name}')" title="${escapeHtml(label)}">
+      <div class="technique-chip ${isAct ? 'active' : ''}" onclick="toggleTechniqueChip('${t.name}')" title="${escapeHtml(tooltip)}">
         <i class="fa-solid ${t.icon}"></i>
         <span>${escapeHtml(label)}</span>
       </div>
