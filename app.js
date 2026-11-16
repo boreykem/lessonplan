@@ -949,6 +949,27 @@ function initPedagogyControls() {
   populateTeachingMethodsSelect(isEn);
   renderTechniquesChips();
 
+  // Initialize Gemini Model Tier (Gemini 3.5 Flash vs Gemini Pro)
+  try {
+    const currentTier = getActiveGeminiModelTier();
+    const selModal = document.getElementById('selectGeminiModelTier');
+    if (selModal) selModal.value = currentTier;
+    const selMain = document.getElementById('selectMainModelTier');
+    if (selMain) selMain.value = currentTier;
+    const badgeTier = document.getElementById('badgeGeminiModelTier');
+    if (badgeTier) {
+      if (currentTier === 'pro') {
+        badgeTier.textContent = 'PRO';
+        badgeTier.style.background = '#fef3c7';
+        badgeTier.style.color = '#b45309';
+      } else {
+        badgeTier.textContent = 'FLASH';
+        badgeTier.style.background = '#e0e7ff';
+        badgeTier.style.color = '#4338ca';
+      }
+    }
+  } catch (e) { }
+
   // Close Combo Dropdown when clicking outside
   if (!window._techniquesDropdownClickBound) {
     document.addEventListener('click', (e) => {
@@ -5118,6 +5139,93 @@ Include exactly 3 objectives (EXACTLY 1 bullet each for Knowledge, Skills, and A
   throw lastErr || new Error('OpenRouter API failed');
 }
 
+// ==============================================================================
+// 🧠 Dual-Tier Gemini AI Engine: Gemini 3.5 Flash & Gemini Pro (Always prioritized)
+// ==============================================================================
+state.geminiModelTier = (function () {
+  try {
+    return localStorage.getItem('gemini_model_tier') || 'flash';
+  } catch (e) {
+    return 'flash';
+  }
+})();
+
+function getActiveGeminiModelTier() {
+  return state.geminiModelTier || (function () {
+    try { return localStorage.getItem('gemini_model_tier') || 'flash'; } catch (e) { return 'flash'; }
+  })();
+}
+
+function getCandidateGeminiModels(tier) {
+  const activeTier = tier || getActiveGeminiModelTier();
+  if (activeTier === 'pro') {
+    return [
+      { ver: 'v1beta', name: 'gemini-2.5-pro' },
+      { ver: 'v1beta', name: 'gemini-pro-latest' },
+      { ver: 'v1beta', name: 'gemini-1.5-pro' },
+      { ver: 'v1beta', name: 'gemini-pro' },
+      { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
+      { ver: 'v1beta', name: 'gemini-3.5-flash' },
+      { ver: 'v1beta', name: 'gemini-3.8-flash' },
+      { ver: 'v1beta', name: 'gemini-3.6-flash' },
+      { ver: 'v1beta', name: 'gemini-2.0-flash' },
+      { ver: 'v1beta', name: 'gemini-1.5-flash' }
+    ];
+  }
+  // Default: 'flash' (⚡ Gemini 3.5 Flash - Ultra Fast)
+  return [
+    { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
+    { ver: 'v1beta', name: 'gemini-3.5-flash' },
+    { ver: 'v1beta', name: 'gemini-3.1-flash-lite' },
+    { ver: 'v1beta', name: 'gemini-3.6-flash' },
+    { ver: 'v1beta', name: 'gemini-3.8-flash' },
+    { ver: 'v1beta', name: 'gemini-flash-latest' },
+    { ver: 'v1beta', name: 'gemini-flash-lite-latest' },
+    { ver: 'v1beta', name: 'gemini-2.5-flash-lite' },
+    { ver: 'v1beta', name: 'gemini-2.0-flash' },
+    { ver: 'v1beta', name: 'gemini-1.5-flash' },
+    { ver: 'v1beta', name: 'gemini-2.5-flash' }
+  ];
+}
+
+function handleGeminiModelTierChange(tier) {
+  state.geminiModelTier = tier;
+  try {
+    localStorage.setItem('gemini_model_tier', tier);
+  } catch (e) { }
+
+  const selModal = document.getElementById('selectGeminiModelTier');
+  if (selModal && selModal.value !== tier) selModal.value = tier;
+
+  const selMain = document.getElementById('selectMainModelTier');
+  if (selMain && selMain.value !== tier) selMain.value = tier;
+
+  const badge = document.getElementById('badgeGeminiModelTier');
+  if (badge) {
+    if (tier === 'pro') {
+      badge.textContent = 'PRO';
+      badge.style.background = '#fef3c7';
+      badge.style.color = '#b45309';
+    } else {
+      badge.textContent = 'FLASH';
+      badge.style.background = '#e0e7ff';
+      badge.style.color = '#4338ca';
+    }
+  }
+
+  // Clear verified model cache so the next test/generate uses the new tier
+  state.verifiedGeminiModel = null;
+
+  const isEn = (state.language === 'en');
+  const msg = tier === 'pro'
+    ? (isEn ? 'Activated: 👑 Gemini Pro (Deep Pedagogical Reasoning)' : 'បានកំណត់៖ 👑 Gemini Pro (Deep Pedagogical Reasoning)')
+    : (isEn ? 'Activated: ⚡ Gemini 3.5 Flash (Ultra Fast)' : 'បានកំណត់៖ ⚡ Gemini 3.5 Flash (Ultra Fast - លឿនបំផុត)');
+  showToast(msg, 'info');
+}
+window.handleGeminiModelTierChange = handleGeminiModelTierChange;
+window.getActiveGeminiModelTier = getActiveGeminiModelTier;
+window.getCandidateGeminiModels = getCandidateGeminiModels;
+
 // 🔍 Dynamic Google Gemini Model Discovery (Queries ModelService.ListModels from Google AI Studio)
 async function discoverGeminiModels(apiKey) {
   if (!apiKey) return null;
@@ -5315,6 +5423,14 @@ Return ONLY valid JSON matching this schema:
   "materials": {
     "teacher": ["កិច្ចតែងការបង្រៀន", "វីដេអូបង្រៀន", "ស្លាយបង្រៀន", "សន្លឹកកិច្ចការករណីសិក្សា"],
     "student": ["សៀវភៅគោល", "សៀវភៅកត់ត្រា", "ផ្ទាំងក្រដាសធំ Flipchart", "ប៊ិចហ្វឺតពណ៌"]
+  },
+  "preClassPhase": {
+    "title": "ដំណាក់កាលមុនថ្នាក់រៀន (Pre-Class Phase — សកម្មភាពស្វ័យសិក្សាតាមផ្ទះ)",
+    "video": "វីដេអូបង្រៀនខ្លី (Micro-lecture ៥-១០ នាទី) ស្តីពីខ្លឹមសារទ្រឹស្តីគ្រឹះនៃ «${params.lessonTitle}» តាមរយៈ LMS / Telegram / NotebookLM Audio",
+    "materials": "ស្លាយមេរៀន PDF, សៀវភៅសិក្សាគោល, និងកម្រងសំណួរបុរេតេស្ត (Pre-Test QCM ៥ សំណួរ)",
+    "teacherActivity": "• គ្រូផលិត/ផ្ញើវីដេអូបង្រៀនខ្លី និងស្លាយមេរៀន PDF ចូល Telegram / LMS\\n• គ្រូប្រគល់កម្រងសំណួរបុរេតេស្ត (Pre-Test QCM ៥ សំណួរ) តាម Google Forms\\n• គ្រូតាមដានការឆ្លើយរបស់និស្សិត និងកត់ត្រាចំណុចចម្ងល់ Muddiest Points មុនចូលរៀន",
+    "contentSummary": "• ខ្លឹមសារទ្រឹស្តីគ្រឹះ និយមន័យ និងគោលការណ៍ស្នូលនៃ «${params.lessonTitle}»\\n• កម្រងសំណួរបុរេតេស្ត (Pre-Test QCM ៥ សំណួរ)\\n• ប្រអប់ស្រង់ចំណុចចម្ងល់ពិបាកយល់ (Muddiest Points)",
+    "studentActivity": "• គរុនិស្សិតទស្សនាវីដេអូបង្រៀនខ្លីពីផ្ទះ និងអានឯកសារស្លាយមេរៀន\\n• កត់ត្រាគំនិតគន្លឹះ និយមន័យ និងក្បួនខ្នាតសំខាន់ៗចូលសៀវភៅ\\n• ធ្វើកម្រងសំណួរបុរេតេស្ត (Pre-Test QCM ៥ សំណួរ) មុនចូលរៀន\\n• កត់ត្រាចំណុចចម្ងល់ Muddiest Points ១-២ ចំណុច ផ្ញើជូនគ្រូមុនម៉ោង"
   },
   "steps": [
     {
@@ -5658,7 +5774,8 @@ The user has chosen ENGLISH language mode. Generate the ENTIRE lesson plan in pr
     }
 GENERATE THE COMPLETE LESSON PLAN NOW.`;
 
-  // Dynamic Candidate API endpoints for Google AI Studio
+  // Dynamic Candidate API endpoints for Google AI Studio (Prioritizing Gemini 3.5 Flash & Gemini Pro)
+  const tier = getActiveGeminiModelTier();
   let candidateModels = [];
   if (state.verifiedGeminiModel) {
     candidateModels.push(state.verifiedGeminiModel);
@@ -5669,34 +5786,48 @@ GENERATE THE COMPLETE LESSON PLAN NOW.`;
     discovered.sort((a, b) => {
       const score = (m) => {
         const name = (m.name || '').toLowerCase();
-        if (name === 'gemini-2.5-flash') return 300;
-        if (name === 'gemini-2.0-flash') return 290;
-        if (name === 'gemini-1.5-flash') return 280;
-        if (name === 'gemini-2.5-pro') return 250;
-        if (name === 'gemini-1.5-pro') return 240;
-        if (name.includes('flash') && !name.includes('lite') && !name.includes('pro')) return 220;
-        if (name.includes('pro')) return 200;
-        if (name.includes('flash-lite')) return 180;
-        return 50;
+        if (tier === 'pro') {
+          if (name === 'gemini-2.5-pro') return 350;
+          if (name.includes('pro-latest') || name === 'gemini-pro') return 340;
+          if (name === 'gemini-1.5-pro') return 330;
+          if (name.includes('pro')) return 320;
+          if (name === 'gemini-3.5-flash-lite') return 250;
+          if (name === 'gemini-3.5-flash') return 240;
+          if (name === 'gemini-3.8-flash') return 220;
+          if (name === 'gemini-2.0-flash') return 200;
+          return 50;
+        } else {
+          // Flash tier (Gemini 3.5 Flash - Ultra Fast)
+          if (name === 'gemini-3.5-flash-lite') return 350;
+          if (name === 'gemini-3.5-flash') return 340;
+          if (name === 'gemini-3.1-flash-lite') return 330;
+          if (name === 'gemini-3.6-flash') return 320;
+          if (name === 'gemini-3.8-flash') return 310;
+          if (name.includes('flash-latest') || name.includes('flash-lite-latest')) return 300;
+          if (name === 'gemini-2.5-flash-lite') return 280;
+          if (name === 'gemini-2.0-flash') return 260;
+          if (name === 'gemini-1.5-flash') return 240;
+          if (name === 'gemini-2.5-flash') return 220;
+          if (name.includes('flash-lite')) return 200;
+          if (name.includes('flash')) return 180;
+          if (name.includes('pro')) return 150;
+          return 50;
+        }
       };
       return score(b) - score(a);
     });
     for (const m of discovered) {
-      if (candidateModels.length >= 4) break; // Limit to top 4 models
       if (!candidateModels.some(c => c.name === m.name)) {
         candidateModels.push(m);
       }
     }
   }
 
-  if (candidateModels.length === 0) {
-    candidateModels = [
-      { ver: 'v1beta', name: 'gemini-2.5-flash' },
-      { ver: 'v1beta', name: 'gemini-2.0-flash' },
-      { ver: 'v1beta', name: 'gemini-1.5-flash' },
-      { ver: 'v1beta', name: 'gemini-2.5-pro' },
-      { ver: 'v1beta', name: 'gemini-1.5-pro' }
-    ];
+  const fallbacks = getCandidateGeminiModels(tier);
+  for (const fb of fallbacks) {
+    if (!candidateModels.some(c => c.name === fb.name)) {
+      candidateModels.push(fb);
+    }
   }
 
   let lastError = null;
@@ -6299,6 +6430,16 @@ function handleAiProviderChange() {
       `;
     }
   }
+
+  const groupModelTier = document.getElementById('groupGeminiModelTier');
+  const mainModelTierRow = document.getElementById('mainModelTierRow');
+  if (provider === 'gemini') {
+    if (groupModelTier) groupModelTier.style.display = 'block';
+    if (mainModelTierRow) mainModelTierRow.style.display = 'flex';
+  } else {
+    if (groupModelTier) groupModelTier.style.display = 'none';
+    if (mainModelTierRow) mainModelTierRow.style.display = 'none';
+  }
 }
 window.handleAiProviderChange = handleAiProviderChange;
 
@@ -6431,36 +6572,54 @@ async function testCurrentAiProviderKey() {
       statusEl.innerHTML = `<i class="fa-solid fa-wifi"></i> មិនអាចតភ្ជាប់ OpenRouter: ${e.message}`;
     }
   } else {
-    // Google Gemini (Dynamic Model Discovery & Auto-Matching)
-    statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> កំពុងទាញយកបញ្ជីម៉ូដែលផ្លូវការពី Google AI Studio...';
+    // Google Gemini (Dynamic Model Discovery & Auto-Matching prioritizing Gemini 3.5 Flash & Pro)
+    statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> កំពុងទាញយក និងផ្ទៀងផ្ទាត់ម៉ូដែល Google Gemini (Gemini 3.5 Flash & Pro)...';
 
+    const tier = getActiveGeminiModelTier();
     let modelsToTest = [];
     const discovered = await discoverGeminiModels(key);
     if (discovered && discovered.length > 0) {
       discovered.sort((a, b) => {
         const score = (m) => {
           const name = (m.name || '').toLowerCase();
-          if (name === 'gemini-2.5-flash') return 300;
-          if (name === 'gemini-2.0-flash') return 290;
-          if (name === 'gemini-1.5-flash') return 280;
-          if (name === 'gemini-2.5-pro') return 250;
-          if (name === 'gemini-1.5-pro') return 240;
-          if (name.includes('flash') && !name.includes('lite') && !name.includes('pro')) return 220;
-          if (name.includes('pro')) return 200;
-          if (name.includes('flash-lite')) return 180;
-          return 50;
+          if (tier === 'pro') {
+            if (name === 'gemini-2.5-pro') return 350;
+            if (name.includes('pro-latest') || name === 'gemini-pro') return 340;
+            if (name === 'gemini-1.5-pro') return 330;
+            if (name.includes('pro')) return 320;
+            if (name === 'gemini-3.5-flash-lite') return 250;
+            if (name === 'gemini-3.5-flash') return 240;
+            if (name === 'gemini-3.8-flash') return 220;
+            if (name === 'gemini-2.0-flash') return 200;
+            return 50;
+          } else {
+            // Flash tier (Gemini 3.5 Flash - Ultra Fast)
+            if (name === 'gemini-3.5-flash-lite') return 350;
+            if (name === 'gemini-3.5-flash') return 340;
+            if (name === 'gemini-3.1-flash-lite') return 330;
+            if (name === 'gemini-3.6-flash') return 320;
+            if (name === 'gemini-3.8-flash') return 310;
+            if (name.includes('flash-latest') || name.includes('flash-lite-latest')) return 300;
+            if (name === 'gemini-2.5-flash-lite') return 280;
+            if (name === 'gemini-2.0-flash') return 260;
+            if (name === 'gemini-1.5-flash') return 240;
+            if (name === 'gemini-2.5-flash') return 220;
+            if (name.includes('flash-lite')) return 200;
+            if (name.includes('flash')) return 180;
+            if (name.includes('pro')) return 150;
+            return 50;
+          }
         };
         return score(b) - score(a);
       });
-      modelsToTest = discovered.slice(0, 4);
-    } else {
-      modelsToTest = [
-        { ver: 'v1beta', name: 'gemini-2.5-flash' },
-        { ver: 'v1beta', name: 'gemini-2.0-flash' },
-        { ver: 'v1beta', name: 'gemini-1.5-flash' },
-        { ver: 'v1beta', name: 'gemini-2.5-pro' },
-        { ver: 'v1beta', name: 'gemini-1.5-pro' }
-      ];
+      modelsToTest = discovered;
+    }
+
+    const fallbacks = getCandidateGeminiModels(tier);
+    for (const fb of fallbacks) {
+      if (!modelsToTest.some(m => m.name === fb.name)) {
+        modelsToTest.push(fb);
+      }
     }
 
     let success = false;
@@ -6489,7 +6648,7 @@ async function testCurrentAiProviderKey() {
           statusEl.style.background = '#f0fdf4';
           statusEl.style.color = '#16a34a';
           const isPro = item.name.includes('pro');
-          const badge = isPro ? ' 🏆 <strong>(Pro Model Activated!)</strong>' : ' ⚡ <strong>(Gemini Flash Activated!)</strong>';
+          const badge = isPro ? ' 👑 <strong>(Gemini Pro Activated!)</strong>' : ' ⚡ <strong>(Gemini 3.5 Flash Activated!)</strong>';
           statusEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> ការតភ្ជាប់ជោគជ័យ និងបានរក្សាទុក! Google Gemini <strong>${item.name}</strong> ដំណើរការ ១០០%!${badge}`;
           break;
         } else {
@@ -6498,6 +6657,7 @@ async function testCurrentAiProviderKey() {
           if (lastErr.includes('API_KEY_INVALID') || lastErr.includes('API key not valid')) {
             break;
           }
+          console.warn(`[API Test] Model ${item.name} error: ${lastErr}. Trying next candidate model...`);
         }
       } catch (e) {
         lastErr = e.message;
@@ -8273,6 +8433,36 @@ function normalizeLessonPlanData(data, params = {}) {
     student: toCleanArray(rawSM, defaultStudentMaterials)
   };
 
+  // --- NORMALIZE PRE-CLASS PHASE FOR FLIPPED LEARNING ---
+  if (isFlipped) {
+    const rawPre = data.preClassPhase || data.preClass || {};
+    const defaultVideo = isEn
+      ? `Micro-lecture video (5-10 mins) covering foundational concepts of "${lessonTitle}" via LMS / Telegram / NotebookLM.`
+      : `វីដេអូបង្រៀនខ្លី (Micro-lecture ៥-១០ នាទី) ស្តីពីខ្លឹមសារទ្រឹស្តីគ្រឹះ និងនិយមន័យនៃ «${lessonTitle}» តាមរយៈប្រព័ន្ធ LMS / Telegram / NotebookLM Audio។`;
+    const defaultMats = isEn
+      ? `Lecture Slides PDF, Reference Textbook, Diagnostic Pre-Test QCM (5 questions), and Self-study Worksheet.`
+      : `ស្លាយមេរៀន PDF, សៀវភៅសិក្សាគោល, កម្រងសំណួរបុរេតេស្ត (Pre-Test QCM ៥ សំណួរ) និងសន្លឹកកិច្ចការស្វ័យសិក្សា។`;
+    const defaultTeacherAct = isEn
+      ? `• Instructor uploads micro-lecture video and lecture slides to Telegram / LMS\n• Assigns diagnostic Pre-Test QCM (5 questions)\n• Tracks completion and collects students' "Muddiest Points" before class`
+      : `• គ្រូផលិត/ផ្ញើវីដេអូបង្រៀនខ្លី (Micro-lecture ៥-១០ នាទី) និងស្លាយមេរៀន PDF ចូល Telegram / LMS\n• គ្រូប្រគល់កម្រងសំណួរបុរេតេស្ត (Pre-Test QCM ៥ សំណួរ) តាម Google Forms\n• គ្រូតាមដានការឆ្លើយរបស់និស្សិត និងកត់ត្រាចំណុចចម្ងល់ពិបាកយល់ (Muddiest Points) មុនចូលរៀន`;
+    const defaultContent = isEn
+      ? `• Foundational theory and core concepts of "${lessonTitle}"\n• Diagnostic Pre-Test QCM (5 questions)\n• Muddiest Points submission box`
+      : `• ខ្លឹមសារទ្រឹស្តីគ្រឹះ និងគោលការណ៍ស្នូលនៃ «${lessonTitle}»\n• កម្រងសំណួរបុរេតេស្ត (Pre-Test QCM ៥ សំណួរ)\n• ប្រអប់ស្រង់ចំណុចចម្ងល់ពិបាកយល់ (Muddiest Points)`;
+    const defaultStudentAct = isEn
+      ? `• Students watch micro-lecture video at home and read lecture slides\n• Take notes on essential formulas, definitions, and concepts\n• Complete Pre-Test QCM (5 questions) before class\n• Submit 1-2 "Muddiest Points" (unclear concepts) to instructor`
+      : `• គរុនិស្សិតទស្សនាវីដេអូបង្រៀនខ្លីពីផ្ទះ និងអានឯកសារស្លាយមេរៀន\n• កត់ត្រាគំនិតគន្លឹះ និយមន័យ និងក្បួនខ្នាតសំខាន់ៗចូលសៀវភៅ\n• ធ្វើកម្រងសំណួរបុរេតេស្ត (Pre-Test QCM ៥ សំណួរ) មុនចូលរៀន\n• កត់ត្រាចំណុចចម្ងល់ពិបាកយល់ (Muddiest Points) ១-២ ចំណុច ផ្ញើជូនគ្រូមុនម៉ោង`;
+
+    data.preClassPhase = {
+      title: rawPre.title || (isEn ? "Pre-Class Phase (At-Home Self-Study)" : "ដំណាក់កាលមុនថ្នាក់រៀន (Pre-Class Phase — សកម្មភាពស្វ័យសិក្សាតាមផ្ទះ)"),
+      video: (rawPre.video && rawPre.video.trim().length > 5) ? rawPre.video : defaultVideo,
+      materials: (rawPre.materials && rawPre.materials.trim().length > 5) ? rawPre.materials : defaultMats,
+      teacherActivity: (rawPre.teacherActivity && rawPre.teacherActivity.trim().length > 5) ? rawPre.teacherActivity : defaultTeacherAct,
+      contentSummary: (rawPre.contentSummary && rawPre.contentSummary.trim().length > 5) ? rawPre.contentSummary : defaultContent,
+      studentActivity: (rawPre.studentActivity && rawPre.studentActivity.trim().length > 5) ? rawPre.studentActivity : defaultStudentAct
+    };
+    data.preClass = data.preClassPhase;
+  }
+
   // --- NORMALIZE STEPS & DURATIONS ---
   const stepTimeHints = calculateStepDurations(duration, isFlipped ? 'flipped' : (isBd ? 'backward_design' : 'standard'));
 
@@ -9713,8 +9903,39 @@ function renderLessonPlanToA4(data) {
         ${renderTeachingMethodContent(data.method, 'flipped_learning', isEn, data)}
       </div>
 
-      <!-- Section 4: In-Class Process (3 Columns) -->
-      <div class="doc-section-title">${isEn ? 'IV. IN-CLASS TEACHING & LEARNING ACTIVITIES' : '៤. ដំណើរការបង្រៀនក្នុងថ្នាក់'} (${escapeHtml(durVal)})</div>
+      <!-- Section 4: Pre-Class Phase (ដំណាក់កាលមុនថ្នាក់រៀន) -->
+      <div class="doc-section-title" style="color: #1e40af; border-left-color: #2563eb;">
+        ${isEn ? 'IV. PRE-CLASS PHASE — AT-HOME SELF-STUDY' : '៤. ដំណាក់កាលមុនថ្នាក់រៀន (Pre-Class Phase — សកម្មភាពស្វ័យសិក្សាតាមផ្ទះ)'}
+      </div>
+      <table class="doc-table" style="margin-bottom: 18px;">
+        <thead>
+          <tr style="background: #eff6ff;">
+            <th style="width: 35%; color: #1e3a8a;">${isEn ? 'Teacher Guidance & Tasks' : 'សកម្មភាពគ្រូ'}</th>
+            <th style="width: 35%; color: #1e3a8a;">${isEn ? 'Content & Self-Study Materials' : 'ខ្លឹមសារ និងសម្ភារស្វ័យសិក្សា'}</th>
+            <th style="width: 30%; color: #1e3a8a;">${isEn ? 'Student Self-Study Activities' : 'សកម្មភាពនិស្សិត (ស្វ័យសិក្សា)'}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="width: 35%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">
+              ${formatLineBreaks(data.preClassPhase?.teacherActivity || '')}
+            </td>
+            <td style="width: 35%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">
+              <div style="margin-bottom: 4px;"><strong>• ${isEn ? 'Video:' : 'វីដេអូបង្រៀនខ្លី៖'}</strong> ${escapeHtml(data.preClassPhase?.video || '')}</div>
+              <div style="margin-bottom: 4px;"><strong>• ${isEn ? 'Materials:' : 'ឯកសារអាន/ស្លាយ៖'}</strong> ${escapeHtml(data.preClassPhase?.materials || '')}</div>
+              ${data.preClassPhase?.contentSummary ? `<div>${formatLineBreaks(data.preClassPhase.contentSummary)}</div>` : ''}
+            </td>
+            <td style="width: 30%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">
+              ${formatLineBreaks(data.preClassPhase?.studentActivity || '')}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Section 5: In-Class Process (3 Columns) -->
+      <div class="doc-section-title">
+        ${isEn ? 'V. IN-CLASS TEACHING & LEARNING ACTIVITIES' : '៥. ដំណើរការបង្រៀនក្នុងថ្នាក់ (In-Class Active Learning ៧០%)'} (${escapeHtml(durVal)})
+      </div>
       <table class="doc-table">
         <thead>
           <tr>
@@ -10670,17 +10891,44 @@ async function handleExportWord() {
         );
       });
 
-      // Section 4: Pre-Class Phase (Word Export)
-      const preVideo = (data.preClass && data.preClass.video) || 'វីដេអូបង្រៀនខ្លី (Micro-Lecture Video) ប្រវែង ៥-១០ នាទី ស្វ័យសិក្សាទ្រឹស្តីគ្រឹះពីផ្ទះ តាមរយៈ NotebookLM Audio / LMS / Telegram។';
-      const preMats = (data.preClass && data.preClass.materials) || 'សៀវភៅពុម្ពគោល, ស្លាយមេរៀន PDF, និងសន្លឹកកិច្ចការស្វ័យសិក្សាត្រៀមមុនម៉ោង។';
-      docChildren.push(
-        new Paragraph({ children: [new TextRun({ text: "៤. ដំណាក់កាលស្វ័យសិក្សាត្រៀមក្រៅថ្នាក់ (Pre-Class Phase — At Home)", bold: true, size: 24, color: "1E40AF" })] }),
-        new Paragraph({ children: [new TextRun({ text: `• វីដេអូបង្រៀនខ្លី (Micro-Lecture Video)៖ ${preVideo}`, size: 22 })] }),
-        new Paragraph({ children: [new TextRun({ text: `• ឯកសារអាន និងស្លាយមេរៀន៖ ${preMats}`, size: 22 })] }),
+      // Section 4: Pre-Class Phase (Word Export Table)
+      const prePhase = data.preClassPhase || data.preClass || {};
+      const preVideo = prePhase.video || 'វីដេអូបង្រៀនខ្លី (Micro-Lecture Video) ប្រវែង ៥-១០ នាទី ស្វ័យសិក្សាទ្រឹស្តីគ្រឹះពីផ្ទះ តាមរយៈ NotebookLM Audio / LMS / Telegram។';
+      const preMats = prePhase.materials || 'សៀវភៅពុម្ពគោល, ស្លាយមេរៀន PDF, និងសន្លឹកកិច្ចការស្វ័យសិក្សាត្រៀមមុនម៉ោង។';
+      const preTeacher = prePhase.teacherActivity || '• គ្រូផលិត/ផ្ញើវីដេអូបង្រៀនខ្លី (Micro-lecture ៥-១០ នាទី) និងស្លាយមេរៀន PDF ចូល Telegram / LMS\n• គ្រូប្រគល់កម្រងសំណួរបុរេតេស្ត (Pre-Test QCM ៥ សំណួរ) តាម Google Forms\n• គ្រូតាមដានការឆ្លើយរបស់និស្សិត និងកត់ត្រាចំណុចចម្ងល់ Muddiest Points មុនចូលរៀន';
+      const preStudent = prePhase.studentActivity || '• គរុនិស្សិតទស្សនាវីដេអូបង្រៀនខ្លីពីផ្ទះ និងអានឯកសារស្លាយមេរៀន\n• កត់ត្រាគំនិតគន្លឹះ និយមន័យ និងក្បួនខ្នាតសំខាន់ៗចូលសៀវភៅ\n• ធ្វើកម្រងសំណួរបុរេតេស្ត (Pre-Test QCM ៥ សំណួរ) មុនចូលរៀន\n• កត់ត្រាចំណុចចម្ងល់ Muddiest Points ១-២ ចំណុច ផ្ញើជូនគ្រូមុនម៉ោង';
+
+      const preContentParas = [
+        new Paragraph({ children: [new TextRun({ text: `• វីដេអូបង្រៀនខ្លី៖ ${preVideo}`, size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: `• ឯកសារអាន និងស្លាយ៖ ${preMats}`, size: 22 })] }),
         new Paragraph({ children: [new TextRun({ text: "• បុរេតេស្តស្ទង់សមត្ថភាព (Pre-Test QCM)៖ សិស្សឆ្លើយសំណួរបុរេតេស្ត QCM ៥ សំណួរមុនម៉ោង ដើម្បីស្ទង់ការយល់ដឹងជាមុន (មានភ្ជាប់ក្នុងឯកសារឧបសម្ព័ន្ធ)។", size: 22 })] }),
-        new Paragraph({ children: [new TextRun({ text: "• ការស្រង់ចម្ងល់ពិបាកយល់ (Muddiest Points)៖ សិស្សកត់ត្រាចំណុចដែលនៅស្រពិចស្រពិលបំផុត ១-២ ចំណុច ផ្ញើមកគ្រូតាម Telegram/LMS ដើម្បីគ្រូយកមកស្រាយបំភ្លឺក្នុងជំហានទី ២ ក្នុងថ្នាក់។", size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: "• ការស្រង់ចម្ងល់ពិបាកយល់ (Muddiest Points)៖ សិស្សកត់ត្រាចំណុចដែលនៅស្រពិចស្រពិលបំផុត ១-២ ចំណុច ផ្ញើមកគ្រូតាម Telegram/LMS។", size: 22 })] })
+      ];
+
+      docChildren.push(
+        new Paragraph({ children: [new TextRun({ text: "៤. ដំណាក់កាលមុនថ្នាក់រៀន (Pre-Class Phase — សកម្មភាពស្វ័យសិក្សាតាមផ្ទះ)", bold: true, size: 24, color: "1E40AF" })] }),
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            new TableRow({
+              tableHeader: true,
+              children: [
+                new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, shading: { fill: "EFF6FF" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពគ្រូ", bold: true, size: 22, color: "1E3A8A" })] })] }),
+                new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, shading: { fill: "EFF6FF" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "ខ្លឹមសារ និងសម្ភារស្វ័យសិក្សា", bold: true, size: 22, color: "1E3A8A" })] })] }),
+                new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, shading: { fill: "EFF6FF" }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពនិស្សិត (ស្វ័យសិក្សា)", bold: true, size: 22, color: "1E3A8A" })] })] }),
+              ]
+            }),
+            new TableRow({
+              children: [
+                new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: preTeacher.split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
+                new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: preContentParas }),
+                new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: preStudent.split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
+              ]
+            })
+          ]
+        }),
         new Paragraph({ text: "" }),
-        new Paragraph({ children: [new TextRun({ text: `៥. ដំណើរការបង្រៀន និងរៀនសកម្មក្នុងថ្នាក់ (${data.duration || '១៨០ នាទី'})`, bold: true, size: 24 })] }),
+        new Paragraph({ children: [new TextRun({ text: `៥. ដំណើរការបង្រៀនក្នុងថ្នាក់ (In-Class Active Learning ៧០%) (${data.duration || '១៨០ នាទី'})`, bold: true, size: 24 })] }),
         new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
           rows: flippedDocxRows
