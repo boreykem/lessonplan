@@ -395,7 +395,18 @@ function getCustomTeachingMethods() {
     const raw = localStorage.getItem(CUSTOM_TEACHING_METHODS_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (Array.isArray(parsed)) {
+      // ⚠️ Remove any accidental "សិស្សមជ្ឈមណ្ឌល / Student-Centered" because it is an Approach, not a Method!
+      const cleaned = parsed.filter(m => {
+        const ml = String(m || '').toLowerCase();
+        return !ml.includes('សិស្សមជ្ឈមណ្ឌល') && !ml.includes('student-centered') && ml !== 'student_centered';
+      });
+      if (cleaned.length !== parsed.length) {
+        saveCustomTeachingMethods(cleaned);
+      }
+      return cleaned;
+    }
+    return [];
   } catch (e) {
     return [];
   }
@@ -461,7 +472,10 @@ function updateSelectedTechniquesCounter() {
 function populateTeachingMethodsSelect(isEn = false, preserveVal = null) {
   const methodSelect = document.getElementById('inputMethod');
   if (!methodSelect) return;
-  const currentVal = preserveVal || methodSelect.value || '5e';
+  let currentVal = preserveVal || methodSelect.value || '5e';
+  if (String(currentVal).toLowerCase().includes('សិស្សមជ្ឈមណ្ឌល') || String(currentVal).toLowerCase().includes('student-centered')) {
+    currentVal = '5e';
+  }
   const customMethods = getCustomTeachingMethods();
 
   let html = '';
@@ -512,6 +526,13 @@ function confirmAddCustomMethod() {
     return;
   }
 
+  const valLower = val.toLowerCase();
+  if (valLower.includes('សិស្សមជ្ឈមណ្ឌល') || valLower.includes('student-centered')) {
+    showToast(state.language === 'en' ? '"Student-Centered" is an Approach, not a Method!' : '«សិស្សមជ្ឈមណ្ឌល» គឺជាគោលវិធីបង្រៀន (Approach) មិនមែនជាវិធីសាស្ត្រទេ!', 'warning');
+    input.focus();
+    return;
+  }
+
   const customs = getCustomTeachingMethods();
   if (!customs.includes(val)) {
     customs.push(val);
@@ -533,42 +554,52 @@ function getSelectedTeachingMethod() {
   if (val === 'custom') {
     const input = document.getElementById('inputCustomMethodText');
     if (input && input.value.trim()) return input.value.trim();
-    return state.language === 'en' ? 'Student-Centered Active Learning Approach' : 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)';
+    return state.language === 'en' ? '5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)' : 'វិធីសាស្ត្រ 5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)';
   }
   const matched = BUILTIN_TEACHING_METHODS.find(m => m.id === val);
   if (matched) {
     return state.language === 'en' ? matched.nameEn : matched.nameKm;
   }
-  return val;
+  if (val && !val.toLowerCase().includes('សិស្សមជ្ឈមណ្ឌល') && !val.toLowerCase().includes('student-centered')) {
+    return val;
+  }
+  return state.language === 'en' ? '5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)' : 'វិធីសាស្ត្រ 5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)';
 }
 
 function setSelectedTeachingMethod(val) {
   const methodSelect = document.getElementById('inputMethod');
   if (!methodSelect) return;
-  if (!val) {
+
+  const valStr = String(val || '').trim();
+  const valLower = valStr.toLowerCase();
+
+  // ⚠️ "សិស្សមជ្ឈមណ្ឌល / Student-Centered" គឺជា «គោលវិធីបង្រៀន (Approach)» មិនមែនជា «វិធីសាស្ត្របង្រៀន (Method)» ទេ!
+  // បើទិន្នន័យចាស់មានពាក្យនេះ ត្រូវកំណត់ទៅវិធីសាស្ត្រ 5E ជាស្វ័យប្រវត្តិ និងហាមដាច់ខាតបន្ថែមជា Option ក្នុង Select!
+  if (!valStr || valLower.includes('សិស្សមជ្ឈមណ្ឌល') || valLower.includes('student-centered') || valLower === 'student_centered') {
     methodSelect.selectedIndex = 0;
     return;
   }
 
   // Exact value match
   for (let i = 0; i < methodSelect.options.length; i++) {
-    if (methodSelect.options[i].value === val) {
+    if (methodSelect.options[i].value === valStr) {
       methodSelect.selectedIndex = i;
       return;
     }
   }
 
   // Try matching by built-in method ID using detectMethodType
-  const detected = (typeof detectMethodType === 'function') ? detectMethodType(val) : val;
-  for (let i = 0; i < methodSelect.options.length; i++) {
-    if (methodSelect.options[i].value === detected) {
-      methodSelect.selectedIndex = i;
-      return;
+  const detected = (typeof detectMethodType === 'function') ? detectMethodType(valStr) : valStr;
+  if (detected && detected !== 'student_centered') {
+    for (let i = 0; i < methodSelect.options.length; i++) {
+      if (methodSelect.options[i].value === detected) {
+        methodSelect.selectedIndex = i;
+        return;
+      }
     }
   }
 
   // Try matching by option text
-  const valLower = val.toLowerCase();
   for (let i = 0; i < methodSelect.options.length; i++) {
     if (methodSelect.options[i].text.toLowerCase().includes(valLower)) {
       methodSelect.selectedIndex = i;
@@ -576,12 +607,12 @@ function setSelectedTeachingMethod(val) {
     }
   }
 
-  // If it's a custom string not in select, add it dynamically
+  // If it's a valid custom string (not student-centered), add it dynamically
   const opt = document.createElement('option');
-  opt.value = val;
-  opt.textContent = `✏️ ${val}`;
+  opt.value = valStr;
+  opt.textContent = `✏️ ${valStr}`;
   methodSelect.insertBefore(opt, methodSelect.lastElementChild);
-  methodSelect.value = val;
+  methodSelect.value = valStr;
 }
 
 function renderTechniquesChips() {
@@ -697,6 +728,26 @@ function removeCustomTechnique(name) {
 }
 
 function initPedagogyControls() {
+  try {
+    // 🧹 Purge any legacy "សិស្សមជ្ឈមណ្ឌល" from custom_teaching_methods & admin profile
+    const rawMethods = localStorage.getItem(CUSTOM_TEACHING_METHODS_KEY);
+    if (rawMethods) {
+      const parsed = JSON.parse(rawMethods);
+      if (Array.isArray(parsed)) {
+        const cleaned = parsed.filter(m => !String(m || '').toLowerCase().includes('សិស្សមជ្ឈមណ្ឌល') && !String(m || '').toLowerCase().includes('student-centered'));
+        localStorage.setItem(CUSTOM_TEACHING_METHODS_KEY, JSON.stringify(cleaned));
+      }
+    }
+    const rawAdmin = localStorage.getItem(ADMIN_STORAGE_KEY);
+    if (rawAdmin) {
+      const parsedAdmin = JSON.parse(rawAdmin);
+      if (parsedAdmin && parsedAdmin.method && (parsedAdmin.method.includes('សិស្សមជ្ឈមណ្ឌល') || parsedAdmin.method.toLowerCase().includes('student-centered'))) {
+        parsedAdmin.method = '5e';
+        localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(parsedAdmin));
+      }
+    }
+  } catch (e) { }
+
   const isEn = (state.language === 'en');
   populateTeachingMethodsSelect(isEn);
   renderTechniquesChips();
@@ -825,7 +876,7 @@ const SAMPLE_LESSONS = [
     duration: "៥០ នាទី (១ ម៉ោងសិក្សា)",
     chapter: "ជំពូកទី ៣: ការងារ និងថាមពល",
     lesson: "មេរៀនទី ២: ថាមពលមេកានិច និងច្បាប់រក្សាថាមពល",
-    method: "សិស្សមជ្ឈមណ្ឌល និងការពិសោធន៍ជាក់ស្តែង",
+    method: "វិធីសាស្ត្រពិសោធន៍ និងអនុវត្តជាក់ស្តែង (Experimental Method)",
     content: `ខ្លឹមសារមេរៀនដកស្រង់ចេញពីសៀវភៅសិក្សាគោល៖
 - និយមន័យថាមពលស៊ីនេទិច (Kinetic Energy): $Ec = 1/2 * m * v^2$ ជាថាមពលដែលកើតមានដោយសារចលនារបស់អង្គធាតុ។
 - និយមន័យថាមពលប៉ូតង់ស្យែលទំនាញ (Potential Energy): $Ep = m * g * h$ ជាថាមពលដែលអង្គធាតុមានដោយសារទីតាំងកម្ពស់របស់វាធៀបនឹងផ្ទៃយោង។
@@ -3706,7 +3757,7 @@ function detectMethodType(method) {
   if (m === 'cooperative' || m.includes('cooperative') || m.includes('jigsaw') || m.includes('សហការ') || m.includes('collaborative')) return 'cooperative';
   if (m === 'experimental' || m.includes('experimental') || m.includes('ពិសោធន៍') || m.includes('hands-on')) return 'experimental';
   if (m === 'direct' || m.includes('direct') || m.includes('ពន្យល់បង្ហាញ') || m.includes('i do')) return 'direct';
-  return 'student_centered';
+  return '5e';
 }
 
 function getMethodStepTitle(stepIdx, method, isFlipped) {
@@ -3790,8 +3841,12 @@ function isGenericStepTitle(title, stepIdx) {
 }
 
 function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', techniques = []) {
-  const methodType = detectMethodType(method);
-  const methodName = method || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)';
+  let cleanMethod = (method || '').trim();
+  if (!cleanMethod || cleanMethod.toLowerCase().includes('សិស្សមជ្ឈមណ្ឌល') || cleanMethod.toLowerCase().includes('student-centered') || cleanMethod === 'student_centered') {
+    cleanMethod = 'វិធីសាស្ត្រ 5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)';
+  }
+  const methodType = detectMethodType(cleanMethod);
+  const methodName = cleanMethod;
   const titleStr = lessonTitle ? `នៃ «${lessonTitle}»` : '';
   const selectedTechs = (Array.isArray(techniques) && techniques.length > 0)
     ? techniques
@@ -3909,10 +3964,10 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', t
        + ដំណាក់កាល ៤ (ស្វ័យវាយតម្លៃ): សិស្សផ្ទៀងផ្ទាត់ចម្លើយផ្ទាល់ខ្លួន និងកែសម្រួលឱ្យបាន ១០០% ត្រឹមត្រូវ
      • ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 វាស់ស្ទង់ភាពស្ទាត់ជំនាញ និងលំហាត់ពង្រឹងសមត្ថភាពនៅផ្ទះ។${techPrompt}`;
 
-      default: // student_centered
+      default:
         return `
 10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
-   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)» ក្នុងទម្រង់ Flipped Classroom៖
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «${methodName}» តាមគោលវិធីសិស្សមជ្ឈមណ្ឌល (Student-Centered Approach) ក្នុងទម្រង់ Flipped Classroom៖
    - អនុវត្តយ៉ាងម៉ឺងម៉ាត់នូវគោលការណ៍ TTT 30% / STT 70% និងជំនាញសតវត្សទី២១ (4Cs)៖
      • ជំហានទី ២ (១០%): សិស្សជាអ្នកលើកឡើង Muddiest Points ពីផ្ទះ គ្រូដើរតួជាអ្នកសម្របសម្រួល (Facilitator) បំផុសឱ្យសិស្សឆ្លើយបំភ្លឺគ្នាទៅវិញទៅមក។
      • ជំហានទី ៣ (១០%): គ្រូចោទសួរ ៤ សំណួរដាស់ការត្រិះរិះ និងប្រគល់កិច្ចការស្វ័យសិក្សាជាក្រុម${titleStr}។
@@ -4026,9 +4081,10 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', t
      • គ្រូដើរត្រួតពិនិត្យ ផ្តល់ Feedback ភ្លាមៗ (Immediate Scaffolding) និងហៅសិស្សឡើងកែលើក្តារខៀន។
    - ជំហានទី ៥ (កិច្ចការផ្ទះ): ដាក់លំហាត់អនុវត្តបន្ថែមសម្រាប់ពង្រឹងភាពស្ទាត់ជំនាញ (Fluency) នៅផ្ទះ។${techPrompt}`;
 
-      default: // student_centered
+      default:
         return `
 ៤. ការបញ្ជ្រាបវិធីសាស្ត្របង្រៀនចម្បង «${methodName}» ក្នុងកិច្ចតែងការ ៥ ជំហាន៖
+   - អនុវត្តតាមគោលវិធីសិស្សមជ្ឈមណ្ឌល (Student-Centered Approach) យ៉ាងម៉ឺងម៉ាត់៖
    - ជំហានទី ២ (រំលឹកមេរៀន): សិស្សជាអ្នករំលឹក និងសង្ខេបមេរៀនចាស់ដោយសេរី គ្រូគ្រាន់តែជាអ្នកសម្របសម្រួល។
    - ជំហានទី ៣ (មេរៀនថ្មី - Guided Discovery & Inquiry):
      • គ្រូមិនបង្រៀនដោយការសូត្រទ្រឹស្តីទេ តែប្រើសំណួរគន្លឹះចំហ (Open-ended Questions) ដើម្បីជំរុញឱ្យសិស្សពិភាក្សា រុករក និងបង្កើតនិយមន័យដោយខ្លួនឯង។
@@ -4431,8 +4487,9 @@ async function generateWithGroqAPI(params) {
   const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle, params.techniques);
   const isEn = (params.language === 'en' || state.language === 'en');
   const targetLang = isEn ? 'ENGLISH (all content, objectives, pedagogical steps, materials, and activities MUST be written 100% in English)' : 'Khmer';
+  const cleanMethod = (params.method && !params.method.includes('សិស្សមជ្ឈមណ្ឌល') && !params.method.toLowerCase().includes('student-centered')) ? params.method : (isEn ? '5E Instructional Model' : 'វិធីសាស្ត្រ 5E Instructional Model');
   const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS Standard 5-Step'} Lesson Plan in ${targetLang} for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}).
-Teaching Method: ${params.method || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)'}.
+Teaching Method: ${cleanMethod}.
 ${methodPrompt}
 Include 3 objectives (Knowledge, Skills, Attitudes using Action-Condition-Standard formula), materials, teaching method, and ${isBd ? "3-stage UbD learning activities" : "5 in-class teaching steps with teacher activity, lesson content, and student activity"}. Do NOT include pre-test/post-test questions in this output (they are generated separately on-demand). Return strictly valid JSON.`;
 
@@ -4499,8 +4556,9 @@ async function generateWithOpenRouterAPI(params) {
   const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle, params.techniques);
   const isEn = (params.language === 'en' || state.language === 'en');
   const targetLang = isEn ? 'ENGLISH (all content, objectives, pedagogical steps, materials, and activities MUST be written 100% in English)' : 'Khmer';
+  const cleanMethod = (params.method && !params.method.includes('សិស្សមជ្ឈមណ្ឌល') && !params.method.toLowerCase().includes('student-centered')) ? params.method : (isEn ? '5E Instructional Model' : 'វិធីសាស្ត្រ 5E Instructional Model');
   const prompt = `Generate a complete ${isFlipped ? 'Flipped Learning' : 'MoEYS Standard 5-Step'} Lesson Plan in ${targetLang} for ${params.lessonTitle} (${params.subject} ${params.grade}, ${params.duration}).
-Teaching Method: ${params.method || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)'}.
+Teaching Method: ${cleanMethod}.
 ${methodPrompt}
 Return strictly valid JSON.`;
 
@@ -4705,7 +4763,7 @@ CRITICAL INSTRUCTIONS FOR AI GENERATION:
 1. Deep Content Analysis: Thoroughly examine the provided lesson content. Extract real definitions, terms, rules, formulas, and examples. Use them everywhere in the plan.
 2. Objectives: Strictly format every single objective statement using the 3 components: [Action] + [Content] + [Condition: តាមរយៈ...] + [Standard: បានត្រឹមត្រូវ/ច្បាស់លាស់...]!
 3. Core Focus: Focus 100% of your pedagogical output on Objectives, Materials, and the 5-Step Teaching Process (5%-10%-10%-70%-5%). Do NOT generate pre-test or post-test question arrays in this JSON (they are generated separately on-demand).
-4. Step 4 (Active Learning Core 70%): You MUST strictly apply the chosen primary teaching method («${params.method || 'សិស្សមជ្ឈមណ្ឌល'}») in Step 4 with rich, concrete classroom tasks, collaborative phases, and direct alignment with the lesson content.
+4. Step 4 (Active Learning Core 70%): You MUST strictly apply the chosen primary teaching method («${(params.method && !params.method.includes('សិស្សមជ្ឈមណ្ឌល') && !params.method.toLowerCase().includes('student-centered')) ? params.method : 'វិធីសាស្ត្រ 5E Instructional Model'}») in Step 4 with rich, concrete classroom tasks, collaborative phases, and direct alignment with the lesson content.
 
 Return ONLY valid JSON matching this schema:
 {
@@ -7293,7 +7351,10 @@ function localizeDuration(duration, isEn) {
 // 🎯 Render Comprehensive Teaching Method HTML (Pedagogical Strategy Matrix: Template Mode × Teaching Method)
 // 🎯 Render Comprehensive Teaching Method HTML (Pedagogical Strategy Matrix: Template Mode × Teaching Method)
 function renderTeachingMethodContent(method, templateType = '5_steps', isEn = false, data = {}) {
-  const m = (method || (data && data.method) || '').trim() || (isEn ? 'Student-Centered Active Learning Approach' : 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)');
+  let m = (method || (data && data.method) || '').trim();
+  if (!m || m.toLowerCase().includes('សិស្សមជ្ឈមណ្ឌល') || m.toLowerCase().includes('student-centered') || m === 'student_centered') {
+    m = isEn ? '5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)' : 'វិធីសាស្ត្រ 5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)';
+  }
   const methodType = detectMethodType(m);
   const isFlipped = templateType === 'flipped_learning' || m.toLowerCase().includes('ត្រឡប់') || m.toLowerCase().includes('flipped');
   const approach = (data && data.approach) || (isEn ? 'Student-Centered Approach (70% STT / 30% TTT)' : 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach — ៧០% STT / ៣០% TTT)');
@@ -7720,7 +7781,11 @@ function normalizeLessonPlanData(data, params = {}) {
   const school = data.school || params.school || (isEn ? 'Educational Institution' : 'សាលារៀនជំនាន់ថ្មី / គ្រឹះស្ថានសិក្សា');
   const teacher = data.teacher || params.teacher || (isEn ? 'Instructor' : 'លោកគ្រូ/អ្នកគ្រូ');
   const chapter = data.chapter || params.chapter || '';
-  const method = data.method || params.method || (isEn ? 'Active Learning' : 'ការរៀនសកម្ម');
+  let cleanMethod = data.method || params.method || '';
+  if (!cleanMethod || cleanMethod.toLowerCase().includes('សិស្សមជ្ឈមណ្ឌល') || cleanMethod.toLowerCase().includes('student-centered') || cleanMethod === 'student_centered') {
+    cleanMethod = isEn ? '5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)' : 'វិធីសាស្ត្រ 5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)';
+  }
+  const method = cleanMethod;
   const dateStr = data.dateStr || params.dateStr || (isEn ? 'Date: ..... / ..... / 202...' : 'ថ្ងៃទី..... ខែ......... ឆ្នាំ២០២...');
   const approach = data.approach || params.approach || (isEn ? 'Student-Centered Approach (70% STT / 30% TTT)' : 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach — ៧០% STT / ៣០% TTT)');
   const techniques = (Array.isArray(data.techniques) && data.techniques.length > 0)
@@ -9695,7 +9760,10 @@ function saveAdminProfile(silent = false) {
   const customGrade = document.getElementById('inputCustomGradeText').value.trim();
   const subject = (typeof getSubjectValue === 'function') ? getSubjectValue() : document.getElementById('inputSubject').value;
   const duration = getDurationValue();
-  const method = document.getElementById('inputMethod').value;
+  let method = document.getElementById('inputMethod').value;
+  if (!method || method.includes('សិស្សមជ្ឈមណ្ឌល') || method.toLowerCase().includes('student-centered') || method === 'student_centered') {
+    method = '5e';
+  }
 
   const profile = {
     school,
@@ -9744,8 +9812,14 @@ function loadSavedAdminProfile() {
     if (profile.school !== undefined) document.getElementById('inputSchool').value = profile.school;
     if (profile.teacher !== undefined) document.getElementById('inputTeacher').value = profile.teacher;
     if (profile.method !== undefined) {
-      if (typeof setSelectedTeachingMethod === 'function') setSelectedTeachingMethod(profile.method);
-      else document.getElementById('inputMethod').value = profile.method;
+      let m = profile.method;
+      if (typeof m === 'string' && (m.includes('សិស្សមជ្ឈមណ្ឌល') || m.toLowerCase().includes('student-centered') || m === 'student_centered')) {
+        m = '5e';
+        profile.method = '5e';
+        try { localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(profile)); } catch (e) { }
+      }
+      if (typeof setSelectedTeachingMethod === 'function') setSelectedTeachingMethod(m);
+      else document.getElementById('inputMethod').value = m;
     }
     if (profile.subject !== undefined) {
       if (typeof setSubjectValue === 'function') setSubjectValue(profile.subject);
@@ -10145,7 +10219,10 @@ async function handleExportWord() {
       );
 
       // Section 3: Method
-      const methodTitle = data.method || 'ការរៀនបែបត្រឡប់';
+      let methodTitle = data.method || '';
+      if (!methodTitle || methodTitle.includes('សិស្សមជ្ឈមណ្ឌល') || methodTitle.toLowerCase().includes('student-centered')) {
+        methodTitle = 'ការរៀនបែបត្រឡប់ (Flipped Learning Model)';
+      }
       const methodType = detectMethodType(methodTitle);
       let methodPhases = [];
       if (methodType === 'pbl') {
@@ -10439,7 +10516,10 @@ async function handleExportWord() {
       );
 
       // Section III: Method
-      const stdMethodTitle = data.method || 'សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)';
+      let stdMethodTitle = data.method || '';
+      if (!stdMethodTitle || stdMethodTitle.includes('សិស្សមជ្ឈមណ្ឌល') || stdMethodTitle.toLowerCase().includes('student-centered')) {
+        stdMethodTitle = 'វិធីសាស្ត្រ 5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)';
+      }
       const stdMethodType = detectMethodType(stdMethodTitle);
       let standardMethodPhases = [];
       if (stdMethodType === 'pbl') {
