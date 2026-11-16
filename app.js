@@ -952,6 +952,129 @@ function initPedagogyControls() {
     });
     window._techniquesDropdownClickBound = true;
   }
+
+  // Direct Paste Image Handler on printableDoc (Ctrl+V)
+  const printableDoc = document.getElementById('printableDoc');
+  if (printableDoc && !printableDoc._imagePasteBound) {
+    printableDoc.addEventListener('paste', (e) => {
+      const items = (e.clipboardData || window.clipboardData)?.items;
+      if (!items) return;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type && items[i].type.startsWith('image/')) {
+          const blob = items[i].getAsFile();
+          if (blob) {
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+              insertImageIntoDoc(evt.target.result, 'Clipboard_Diagram');
+            };
+            reader.readAsDataURL(blob);
+            e.preventDefault();
+            return;
+          }
+        }
+      }
+    });
+    printableDoc._imagePasteBound = true;
+  }
+}
+
+// ==============================================================================
+// 🖼️ Science Diagrams, Charts & Images Inserter for Lesson Plan
+// ==============================================================================
+function triggerInsertDocImage() {
+  const input = document.getElementById('docImageInput');
+  if (input) {
+    input.value = '';
+    input.click();
+  }
+}
+
+function handleDocImageSelected(files) {
+  if (!files || files.length === 0) return;
+  const file = files[0];
+  if (!file.type || !file.type.startsWith('image/')) {
+    showToast(state.language === 'en' ? 'Please select a valid image file (PNG, JPG, SVG, WebP)!' : 'សូមជ្រើសរើសឯកសារជារូបភាព (PNG, JPG, SVG, WebP)!', 'warning');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    insertImageIntoDoc(e.target.result, file.name);
+  };
+  reader.readAsDataURL(file);
+}
+
+function insertImageIntoDoc(dataUrl, fileName = 'diagram') {
+  const doc = document.getElementById('printableDoc');
+  if (!doc || doc.style.display === 'none') {
+    showToast(state.language === 'en' ? 'Please generate a lesson plan first before inserting images!' : 'សូមបង្កើតកិច្ចតែងការជាមុនសិន ទើបអាចបញ្ចូលរូបភាព/គំនូសតាងបាន!', 'warning');
+    return;
+  }
+
+  const isEn = (state.language === 'en');
+  const cleanName = fileName ? fileName.replace(/\.[^/.]+$/, '') : (isEn ? 'Scientific Diagram' : 'គំនូសតាងវិទ្យាសាស្ត្រ');
+
+  // Create responsive image wrapper with caption and delete handle
+  const wrapper = document.createElement('div');
+  wrapper.className = 'doc-inserted-image-wrap';
+  wrapper.contentEditable = 'false';
+  wrapper.style.cssText = 'text-align: center; margin: 12px auto; padding: 6px; border: 1.5px dashed #cbd5e1; border-radius: 8px; background: #fafafa; max-width: 90%; position: relative; user-select: none;';
+
+  const img = document.createElement('img');
+  img.src = dataUrl;
+  img.alt = cleanName;
+  img.style.cssText = 'max-width: 100%; max-height: 320px; object-fit: contain; border-radius: 6px; display: block; margin: 0 auto; box-shadow: 0 2px 8px rgba(0,0,0,0.08);';
+
+  const caption = document.createElement('div');
+  caption.contentEditable = 'true';
+  caption.style.cssText = 'font-size: 9pt; color: #475569; font-weight: 600; margin-top: 6px; font-style: italic; user-select: text;';
+  caption.textContent = `${isEn ? 'Figure / Diagram: ' : 'គំនូសតាង / រូបភាព៖ '}${cleanName}`;
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.type = 'button';
+  deleteBtn.innerHTML = '×';
+  deleteBtn.title = isEn ? 'Remove this image' : 'លុបរូបភាពនេះចេញ';
+  deleteBtn.style.cssText = 'position: absolute; top: -8px; right: -8px; width: 22px; height: 22px; border-radius: 50%; background: #ef4444; color: white; border: none; font-weight: bold; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);';
+  deleteBtn.onclick = function() {
+    wrapper.remove();
+  };
+
+  wrapper.appendChild(deleteBtn);
+  wrapper.appendChild(img);
+  wrapper.appendChild(caption);
+
+  // Try inserting at current selection within document
+  const sel = window.getSelection();
+  let inserted = false;
+  if (sel && sel.rangeCount > 0) {
+    const range = sel.getRangeAt(0);
+    if (doc.contains(range.commonAncestorContainer)) {
+      range.collapse(false);
+      range.insertNode(wrapper);
+      inserted = true;
+    }
+  }
+
+  // If no active cursor, insert into Step 3 or Step 4 Lesson Content cell
+  if (!inserted) {
+    const table = doc.querySelector('.doc-table');
+    if (table) {
+      const rows = table.querySelectorAll('tr');
+      if (rows.length >= 4) {
+        const targetRow = rows[rows.length - 2] || rows[3];
+        const contentCell = targetRow.children[1] || targetRow.children[0];
+        if (contentCell) {
+          contentCell.appendChild(wrapper);
+          inserted = true;
+        }
+      }
+    }
+  }
+
+  if (!inserted) {
+    doc.appendChild(wrapper);
+  }
+
+  showToast(isEn ? 'Inserted diagram/image into lesson plan successfully!' : '🖼️ បានបញ្ចូលគំនូសតាង/រូបភាពទៅក្នុងកិច្ចតែងការជោគជ័យ! លោកគ្រូអាចកែប្រែចំណងជើង ឬចុច × ដើម្បីដកចេញ។', 'success');
 }
 
 window.handleTeachingMethodChange = handleTeachingMethodChange;
@@ -969,6 +1092,9 @@ window.toggleDropdownAddCustom = toggleDropdownAddCustom;
 window.confirmAddCustomTechniqueFromDropdown = confirmAddCustomTechniqueFromDropdown;
 window.unselectTechnique = unselectTechnique;
 window.removeCustomTechnique = removeCustomTechnique;
+window.triggerInsertDocImage = triggerInsertDocImage;
+window.handleDocImageSelected = handleDocImageSelected;
+window.insertImageIntoDoc = insertImageIntoDoc;
 window.getSelectedTeachingMethod = getSelectedTeachingMethod;
 window.setSelectedTeachingMethod = setSelectedTeachingMethod;
 window.getSelectedTechniques = getSelectedTechniques;
@@ -2075,6 +2201,11 @@ function setLanguage(lang, showNotification = false) {
   if (btnPptx) btnPptx.title = isEn ? "Generate & Download PowerPoint (.pptx)" : "បង្កើត និងទាញយកស្លាយ PowerPoint (.pptx)";
   if (btnPre) btnPre.title = isEn ? "Generate Diagnostic Pre-Test (QCM)" : "បង្កើតបុរេតេស្ត (Pre-Test QCM)";
   if (btnPost) btnPost.title = isEn ? "Generate Mastery Post-Test (MCQ)" : "បង្កើតបច្ឆាតេស្ត (Post-Test MCQ)";
+
+  const btnDiagram = document.getElementById('btnInsertDocImage');
+  const btnDiagramText = document.querySelector('[data-i18n="btnInsertDiagram"]');
+  if (btnDiagram) btnDiagram.title = isEn ? "Insert Science Diagram, Chart or Image" : "បញ្ចូលរូបភាព គំនូសតាងពិសោធន៍ ឬក្រាហ្វិក (Insert Diagram / Image)";
+  if (btnDiagramText) btnDiagramText.textContent = isEn ? "Diagram/Image" : "គំនូសតាង/រូបភាព";
 
   // 17. Translate duration chips & active duration label
   const durationChips = document.querySelectorAll('#durationChipsGrid .duration-chip');
@@ -9725,17 +9856,25 @@ function renderLessonPlanToA4(data) {
     return;
   }
 
-  // 5-Step Process Rendering (MoEYS Standard, Flipped Learning, Primary School, STEM/5E)
+  // 5-Step Process Rendering (MoEYS Standard 3-Column Layout: សកម្មភាពគ្រូ | ខ្លឹមសារ | សកម្មភាពសិស្ស)
   let stepsHtml = '';
   (data.steps || []).forEach(step => {
     const stepTitle = localizeStepTitle(step.stepTitle, isEn);
     const stepDur = localizeDuration(step.duration, isEn);
     stepsHtml += `
+      <tr style="background: #ffffff;">
+        <td style="width: 35%; border: 1px solid #cbd5e1;"></td>
+        <td style="width: 35%; text-align: center; font-weight: bold; font-size: 10pt; color: #0f172a; padding: 6px 8px; border: 1px solid #cbd5e1;">
+          <span style="background-color: #fef08a; padding: 2px 10px; border-radius: 3px; display: inline-block;">
+            ${escapeHtml(stepTitle)} (${escapeHtml(stepDur)})
+          </span>
+        </td>
+        <td style="width: 30%; border: 1px solid #cbd5e1;"></td>
+      </tr>
       <tr>
-        <td style="text-align: center; font-weight: bold; width: 16%;">${escapeHtml(stepTitle)}<br><span style="color: #0369a1; font-weight: 700; font-size: 9pt;">(${escapeHtml(stepDur)})</span></td>
-        <td style="width: 30%;">${formatLineBreaks(step.teacherActivity)}</td>
-        <td style="width: 25%; font-weight: 500;">${formatLineBreaks(step.contentSummary)}</td>
-        <td style="width: 29%;">${formatLineBreaks(step.studentActivity)}</td>
+        <td style="width: 35%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.teacherActivity)}</td>
+        <td style="width: 35%; vertical-align: top; font-weight: 500; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.contentSummary)}</td>
+        <td style="width: 30%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.studentActivity)}</td>
       </tr>
     `;
   });
@@ -9782,10 +9921,9 @@ function renderLessonPlanToA4(data) {
     <table class="doc-table">
       <thead>
         <tr>
-          <th style="width: 16%;">${isEn ? 'Step & Timing' : 'ជំហាន និងពេលវេលា'}</th>
-          <th style="width: 30%;">${isEn ? "Teacher's Activity" : 'សកម្មភាពគ្រូ'}</th>
-          <th style="width: 25%;">${isEn ? 'Lesson Content' : 'ខ្លឹមសារមេរៀន'}</th>
-          <th style="width: 29%;">${isEn ? "Students' Activity" : 'សកម្មភាពសិស្ស'}</th>
+          <th style="width: 35%; text-align: center;">${isEn ? "Teacher's Activity" : 'សកម្មភាពគ្រូ'}</th>
+          <th style="width: 35%; text-align: center;">${isEn ? 'Lesson Content' : 'ខ្លឹមសារ'}</th>
+          <th style="width: 30%; text-align: center;">${isEn ? "Students' Activity" : 'សកម្មភាពសិស្ស'}</th>
         </tr>
       </thead>
       <tbody>
@@ -10792,30 +10930,57 @@ async function handleExportWord() {
         new Paragraph({ text: "" })
       );
 
-      // Section IV: 5-Step Process Table
+      // Section IV: 5-Step Process Table (Exact 3-Column Layout matching MoEYS Standard)
+      let standardDocxRows = [
+        new TableRow({
+          tableHeader: true,
+          children: [
+            new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពគ្រូ", bold: true, size: 24 })] })] }),
+            new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "ខ្លឹមសារ", bold: true, size: 24 })] })] }),
+            new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពសិស្ស", bold: true, size: 24 })] })] }),
+          ]
+        })
+      ];
+
+      steps.forEach(step => {
+        standardDocxRows.push(
+          new TableRow({
+            children: [
+              new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: "" })] }),
+              new TableCell({
+                width: { size: 35, type: WidthType.PERCENTAGE },
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [
+                      new TextRun({
+                        text: `${step.stepTitle} (${step.duration})`,
+                        bold: true,
+                        size: 22,
+                        highlight: "yellow"
+                      })
+                    ]
+                  })
+                ]
+              }),
+              new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: [new Paragraph({ text: "" })] })
+            ]
+          }),
+          new TableRow({
+            children: [
+              new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: (step.teacherActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
+              new TableCell({ width: { size: 35, type: WidthType.PERCENTAGE }, children: (step.contentSummary || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, bold: true, size: 22 })] })) }),
+              new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: (step.studentActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) })
+            ]
+          })
+        );
+      });
+
       docChildren.push(
         new Paragraph({ children: [new TextRun({ text: "IV. ដំណើរការបង្រៀន និងរៀនក្នុងថ្នាក់ (Teaching Process)", bold: true, size: 24 })] }),
         new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
-          rows: [
-            new TableRow({
-              tableHeader: true,
-              children: [
-                new TableCell({ width: { size: 24, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "ជំហាន/ពេល", bold: true, size: 24 })] })] }),
-                new TableCell({ width: { size: 30, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពគ្រូ", bold: true, size: 24 })] })] }),
-                new TableCell({ width: { size: 25, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "ខ្លឹមសារមេរៀន", bold: true, size: 24 })] })] }),
-                new TableCell({ width: { size: 25, type: WidthType.PERCENTAGE }, children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "សកម្មភាពសិស្ស", bold: true, size: 24 })] })] }),
-              ]
-            }),
-            ...steps.map(step => new TableRow({
-              children: [
-                new TableCell({ children: [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `${step.stepTitle}\n(${step.duration})`, bold: true, size: 22 })] })] }),
-                new TableCell({ children: (step.teacherActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
-                new TableCell({ children: (step.contentSummary || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, bold: true, size: 22 })] })) }),
-                new TableCell({ children: (step.studentActivity || '').split('\n').map(l => new Paragraph({ children: [new TextRun({ text: l, size: 22 })] })) }),
-              ]
-            }))
-          ]
+          rows: standardDocxRows
         }),
         new Paragraph({ text: "" })
       );

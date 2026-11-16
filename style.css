@@ -2712,6 +2712,16 @@ textarea.form-control {
   .offline-warning-banner {
     display: none !important;
   }
+
+  .doc-inserted-image-wrap {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .doc-inserted-image-wrap button {
+    display: none !important;
+  }
 }
 
 /* ==========================================================================

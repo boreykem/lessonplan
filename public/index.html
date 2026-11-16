@@ -1082,6 +1082,14 @@
             <i class="fa-solid fa-file-signature"></i> <span>Worksheet</span>
           </button>
 
+          <!-- Insert Diagram / Image Button -->
+          <button id="btnInsertDocImage" class="btn-tool-action"
+            style="background: #fdf4ff; color: #a21caf; border: 1.5px solid #f0abfc; font-weight: 700;"
+            onclick="triggerInsertDocImage()" title="បញ្ចូលរូបភាព គំនូសតាងពិសោធន៍ ឬក្រាហ្វិក (Insert Diagram / Image)">
+            <i class="fa-solid fa-image"></i> <span data-i18n="btnInsertDiagram">គំនូសតាង/រូបភាព</span>
+          </button>
+          <input type="file" id="docImageInput" accept="image/*" style="display: none;" onchange="handleDocImageSelected(this.files)">
+
           <button id="btnCopyText" class="btn-tool-action btn-copy" title="ចម្លងអត្ថបទទាំងអស់">
             <i class="fa-regular fa-copy"></i> <span data-i18n="btnCopy">ចម្លង</span>
           </button>
