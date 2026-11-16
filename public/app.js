@@ -2551,52 +2551,77 @@ function calculateStepDurations(durationStr, mode = 'flipped') {
       step3: `១៥% (~${toKhmerNumber(s3)} នាទី)`
     };
   } else {
-    // Standard 5-Step MoEYS: ~5% - ~10% - ~70% - ~10% - ~5%
+    // 🎯 Standard 5-Step MoEYS Official Curriculum Standard:
+    // ជំហានទី ១ (រដ្ឋបាលថ្នាក់): ៥%
+    // ជំហានទី ២ (រំលឹកមេរៀនចាស់ ឬ ពិនិត្យកិច្ចការ): ១០-១៥%
+    // ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី): ៥០-៦០% (បង្រៀនខ្លឹមសារស្នូល)
+    // ជំហានទី ៤ (ពង្រឹងពុទ្ធិ): ១៥-២០%
+    // ជំហានទី ៥ (បណ្ដាំផ្ញើ និងកិច្ចការផ្ទះ): ៥-១០%
     if (totalMin === 50) {
       return {
         total: 50,
-        step1: `០៥ នាទី`,
-        step2: `០៥ នាទី`,
-        step3: `៣០ នាទី`,
-        step4: `០៥ នាទី`,
-        step5: `០៥ នាទី`
+        step1: `០២ នាទី`, // 4% (~5%)
+        step2: `០៥ នាទី`, // 10%
+        step3: `៣០ នាទី`, // 60%
+        step4: `០៨ នាទី`, // 16%
+        step5: `០៥ នាទី`  // 10%
       };
     }
     if (totalMin === 60) {
       return {
         total: 60,
-        step1: `០៥ នាទី`,
-        step2: `០៥ នាទី`,
-        step3: `៤០ នាទី`,
-        step4: `០៥ នាទី`,
-        step5: `០៥ នាទី`
+        step1: `០៣ នាទី`, // 5%
+        step2: `០៧ នាទី`, // 11.7% (10-15%)
+        step3: `៣៥ នាទី`, // 58.3% (50-60%)
+        step4: `១០ នាទី`, // 16.7% (15-20%)
+        step5: `០៥ នាទី`  // 8.3% (5-10%)
+      };
+    }
+    if (totalMin === 90) {
+      return {
+        total: 90,
+        step1: `០៥ នាទី`, // 5.5%
+        step2: `១០ នាទី`, // 11.1%
+        step3: `៥០ នាទី`, // 55.5%
+        step4: `១៨ នាទី`, // 20%
+        step5: `០៧ នាទី`  // 7.8%
+      };
+    }
+    if (totalMin === 100) {
+      return {
+        total: 100,
+        step1: `០៥ នាទី`, // 5%
+        step2: `១២ នាទី`, // 12%
+        step3: `៥៥ នាទី`, // 55%
+        step4: `២០ នាទី`, // 20%
+        step5: `០៨ នាទី`  // 8%
       };
     }
     if (totalMin === 120) {
       return {
         total: 120,
-        step1: `០៥ នាទី`,
-        step2: `១៥ នាទី`,
-        step3: `៨៥ នាទី`,
-        step4: `១០ នាទី`,
-        step5: `០៥ នាទី`
+        step1: `០៦ នាទី`, // 5%
+        step2: `១៤ នាទី`, // 11.7%
+        step3: `៦៨ នាទី`, // 56.7%
+        step4: `២២ នាទី`, // 18.3%
+        step5: `១០ នាទី`  // 8.3%
       };
     }
     if (totalMin === 180) {
       return {
         total: 180,
-        step1: `០៥ នាទី`,
-        step2: `២០ នាទី`,
-        step3: `១៣០ នាទី`,
-        step4: `១៥ នាទី`,
-        step5: `១០ នាទី`
+        step1: `០៩ នាទី`, // 5%
+        step2: `២១ នាទី`, // 11.7%
+        step3: `១០២ នាទី`, // 56.7%
+        step4: `៣៣ នាទី`, // 18.3%
+        step5: `១៥ នាទី`  // 8.3%
       };
     }
-    const s1 = Math.max(1, Math.round(totalMin * 0.05));
-    const s2 = Math.max(2, Math.round(totalMin * 0.10));
-    const s4 = Math.max(2, Math.round(totalMin * 0.10));
-    const s5 = Math.max(1, Math.round(totalMin * 0.05));
-    const s3 = Math.max(5, totalMin - (s1 + s2 + s4 + s5)); // Main core teaching
+    const s1 = Math.max(1, Math.round(totalMin * 0.05)); // 5%
+    const s2 = Math.max(2, Math.round(totalMin * 0.12)); // 10-15% (មធ្យម 12%)
+    const s4 = Math.max(2, Math.round(totalMin * 0.18)); // 15-20% (មធ្យម 18%)
+    const s5 = Math.max(1, Math.round(totalMin * 0.08)); // 5-10% (មធ្យម 8%)
+    const s3 = Math.max(5, totalMin - (s1 + s2 + s4 + s5)); // 50-60% (ខ្លឹមសារស្នូល)
     return {
       total: totalMin,
       step1: `${toKhmerNumber(s1)} នាទី`,
@@ -5454,13 +5479,13 @@ Return ONLY valid JSON matching this schema:
 YOUR MISSION: Generate a COMPLETE, PROFESSIONAL, CLASSROOM-READY official Lesson Plan in ${isEn ? 'ENGLISH (all content, objectives, teaching aids, teacher and student activities MUST be 100% in English)' : 'Khmer (កិច្ចតែងការបង្រៀន)'} that a teacher can print and use TOMORROW MORNING without changing a single word.
 
 ═══════════════════════════════════════════════════
-STEP DURATION ALLOCATION (${totalMin} MINUTES TOTAL):
+STEP DURATION ALLOCATION (${totalMin} MINUTES TOTAL - MoEYS STANDARD PERCENTAGES):
 ═══════════════════════════════════════════════════
-- ជំហានទី ១ (រដ្ឋបាលថ្នាក់): ${stepTimeHints.step1}
-- ជំហានទី ២ (រំលឹកមេរៀនចាស់): ${stepTimeHints.step2}
-- ជំហានទី ៣ (មេរៀនថ្មី): ${stepTimeHints.step3}
-- ជំហានទី ៤ (ពង្រឹងពុទ្ធិ): ${stepTimeHints.step4}
-- ជំហានទី ៥ (បណ្ដាំ + កិច្ចការ): ${stepTimeHints.step5}
+- ជំហានទី ១ (រដ្ឋបាលថ្នាក់ ៥%): ${stepTimeHints.step1}
+- ជំហានទី ២ (រំលឹកមេរៀនចាស់ ឬ ពិនិត្យកិច្ចការ ១០-១៥%): ${stepTimeHints.step2}
+- ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី ៥០-៦០% - ខ្លឹមសារស្នូលនៃមេរៀន): ${stepTimeHints.step3}
+- ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ១៥-២០%): ${stepTimeHints.step4}
+- ជំហានទី ៥ (បណ្ដាំផ្ញើ និងកិច្ចការផ្ទះ ៥-១០%): ${stepTimeHints.step5}
 
 ═══════════════════════════════════════════════════
 🚨 វិធានភាសាដាច់ខាត & សញ្ញាគណិតវិទ្យា/វិទ្យាសាស្ត្រ (STRICT LANGUAGE & STEM NOTATION):
