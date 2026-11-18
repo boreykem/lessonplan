@@ -2037,8 +2037,8 @@ const I18N_DICTIONARY = {
     modalHistoryRecentList: "បញ្ជីកិច្ចតែងការចុងក្រោយ (រក្សាទុកក្នុងកុំព្យូទ័រនេះ)",
     modalHistoryClearAll: "លុបប្រវត្តិទាំងអស់",
 
-    modalPptxTitle: "បង្កើតស្លាយ PowerPoint (.pptx) - AI Presentation Studio",
-    modalPptxDesc: "ប្រព័ន្ធ AI នឹងអានកិច្ចតែងការ ឬឯកសារយោង រួចបង្កើត និងទាញយកជាឯកសារ PowerPoint (.pptx) ស្វ័យប្រវត្តិតាមស្តង់ដារ MoEYS ជាមួយរូបភាព និង Speaker Notes។",
+    modalPptxTitle: "បង្កើតស្លាយ Google Slides (docs.google.com/presentation)",
+    modalPptxDesc: "ប្រព័ន្ធ AI នឹងអានកិច្ចតែងការ ឬឯកសារយោង រួចបង្កើតស្លាយផ្ទាល់ចូល Google Slides (docs.google.com/presentation) របស់លោកគ្រូ ជាមួយរូបភាព និង Speaker Notes។",
     modalPptxSourceLabel: "ជ្រើសរើសឯកសារយោង (Source / Attachment):",
     modalPptxBtnUpload: "បង្ហោះឯកសារថ្មី",
     modalPptxNumSlidesLabel: "ចំនួនស្លាយ (Number of Slides):",
@@ -2046,7 +2046,7 @@ const I18N_DICTIONARY = {
     modalPptxImagesHint: 'ជម្រើស "បង្កើតរូបភាពដោយ AI" នឹងបង្កើតរូបគំនូរអប់រំ និងដ្យាក្រាមស្របតាមខ្លឹមសារស្លាយនីមួយៗដោយស្វ័យប្រវត្តិ។',
     modalPptxThemeLabel: "រចនាបទពណ៌ (Theme Color):",
     modalPptxBtnCancel: "បោះបង់",
-    modalPptxBtnGenerate: "បង្កើត និងទាញយកស្លាយ PPTX (.pptx)",
+    modalPptxBtnGenerate: "បង្កើតក្នុង Google Slides",
 
     modalUpdateTitle: "ប្រព័ន្ធអាប់ដេតស្វ័យប្រវត្ត (Cloud Auto-Updater)",
     modalUpdateInstalledVersion: "កំណែកម្មវិធីបច្ចុប្បន្ន (Installed Version):",
@@ -2203,8 +2203,8 @@ const I18N_DICTIONARY = {
     modalHistoryRecentList: "Recent Lesson Plans (Saved on this device)",
     modalHistoryClearAll: "Clear All History",
 
-    modalPptxTitle: "PowerPoint Presentation Studio (.pptx)",
-    modalPptxDesc: "AI analyzes your lesson plan or attached document to generate and download a professional PowerPoint (.pptx) presentation with visuals and speaker notes.",
+    modalPptxTitle: "Google Slides AI Studio (docs.google.com/presentation)",
+    modalPptxDesc: "AI analyzes your lesson plan or attached document to create a Google Slides presentation directly in docs.google.com/presentation with visuals and speaker notes.",
     modalPptxSourceLabel: "Select Reference Source / Attachment:",
     modalPptxBtnUpload: "Upload New File",
     modalPptxNumSlidesLabel: "Number of Slides:",
@@ -2212,7 +2212,7 @@ const I18N_DICTIONARY = {
     modalPptxImagesHint: 'The "AI Generated Images" option will automatically generate educational diagrams and illustrations aligned with each slide topic.',
     modalPptxThemeLabel: "Theme Color:",
     modalPptxBtnCancel: "Cancel",
-    modalPptxBtnGenerate: "Generate & Download PPTX (.pptx)",
+    modalPptxBtnGenerate: "Create in Google Slides",
 
     modalUpdateTitle: "Cloud Auto-Updater System",
     modalUpdateInstalledVersion: "Installed App Version:",
@@ -2556,8 +2556,8 @@ function setLanguage(lang, showNotification = false) {
     isEn ? '🧮 Learning Gain Calculator' : '🧮 គណនា Learning Gain',
     isEn ? "Measure student learning growth (Pre-Test vs Post-Test)" : 'វាស់ស្ទង់អត្រាកំណើនការរៀនសូត្រ (Pre-Test ធៀប Post-Test)');
   setSmartTip(btnPptx,
-    isEn ? '📊 Generate PowerPoint (.pptx)' : '📊 បង្កើតស្លាយ PowerPoint (.pptx)',
-    isEn ? 'Create AI-designed presentation slides for classroom teaching' : 'បង្កើតស្លាយបង្រៀនស្វ័យប្រវត្តិដោយ AI សម្រាប់បញ្ចាំងក្នុងថ្នាក់');
+    isEn ? '📊 Create Google Slides' : '📊 បង្កើតស្លាយ Google Slides',
+    isEn ? 'Create AI-designed presentation slides directly in docs.google.com/presentation' : 'បង្កើតស្លាយបង្រៀនដោយ AI ផ្ទាល់ចូល Google Slides (docs.google.com/presentation)');
   setSmartTip(btnWorksheet,
     isEn ? '📝 Student Worksheet' : '📝 សន្លឹកកិច្ចការសិស្ស (Worksheet)',
     isEn ? 'Generate printable student exercises & activity handouts' : 'បង្កើតសន្លឹកកិច្ចការ និងលំហាត់សម្រាប់ចែកជូនសិស្សអនុវត្ត');
