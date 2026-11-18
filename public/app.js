@@ -3941,6 +3941,11 @@ function setupDropzone(dropzoneId, inputId, statusId, removeBtnId, onFileLoaded,
   removeBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     statusEl.style.display = 'none';
+    const fileNameEl = statusEl.querySelector('.file-name');
+    if (fileNameEl) {
+      fileNameEl.textContent = '';
+      fileNameEl.title = '';
+    }
     input.value = '';
     if (onFileRemoved) onFileRemoved();
     showToast('បានដកឯកសារចេញ', 'info');

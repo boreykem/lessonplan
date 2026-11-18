@@ -690,7 +690,7 @@ html, body {
 }
 
 .file-status-pill {
-  display: flex !important;
+  display: flex;
   align-items: center;
   gap: 8px;
   background-color: var(--success-light);
@@ -705,6 +705,10 @@ html, body {
   max-width: 100% !important;
   box-sizing: border-box !important;
   overflow: hidden !important;
+}
+
+.file-status-pill[style*="display: none"] {
+  display: none !important;
 }
 
 .file-status-pill .file-name {
