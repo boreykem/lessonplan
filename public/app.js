@@ -2037,8 +2037,8 @@ const I18N_DICTIONARY = {
     modalHistoryRecentList: "បញ្ជីកិច្ចតែងការចុងក្រោយ (រក្សាទុកក្នុងកុំព្យូទ័រនេះ)",
     modalHistoryClearAll: "លុបប្រវត្តិទាំងអស់",
 
-    modalPptxTitle: "បង្កើតស្លាយ Google Slides (docs.google.com/presentation)",
-    modalPptxDesc: "ប្រព័ន្ធ AI នឹងអានកិច្ចតែងការ ឬឯកសារយោង រួចបង្កើតស្លាយផ្ទាល់ចូល Google Slides (docs.google.com/presentation) របស់លោកគ្រូ ជាមួយរូបភាព និង Speaker Notes។",
+    modalPptxTitle: "បង្កើតស្លាយបង្រៀន AI (Slide Studio ក្នុងកម្មវិធី)",
+    modalPptxDesc: "ប្រព័ន្ធ AI នឹងបង្កើតស្លាយបង្រៀនដោយស្វ័យប្រវត្តិ រួចបើកបង្ហាញភ្លាមៗក្នុងកម្មវិធីនេះ (មិនបាច់ចូលគណនី Google ឡើយ!) — លោកគ្រូអាចកែអក្សរ ប្ដូររូបភាព បញ្ចាំងពេញអេក្រង់ ឬទាញយក .pptx / PDF បានភ្លាមៗ!",
     modalPptxSourceLabel: "ជ្រើសរើសឯកសារយោង (Source / Attachment):",
     modalPptxBtnUpload: "បង្ហោះឯកសារថ្មី",
     modalPptxNumSlidesLabel: "ចំនួនស្លាយ (Number of Slides):",
@@ -2046,7 +2046,7 @@ const I18N_DICTIONARY = {
     modalPptxImagesHint: 'ជម្រើស "បង្កើតរូបភាពដោយ AI" នឹងបង្កើតរូបគំនូរអប់រំ និងដ្យាក្រាមស្របតាមខ្លឹមសារស្លាយនីមួយៗដោយស្វ័យប្រវត្តិ។',
     modalPptxThemeLabel: "រចនាបទពណ៌ (Theme Color):",
     modalPptxBtnCancel: "បោះបង់",
-    modalPptxBtnGenerate: "បង្កើតក្នុង Google Slides",
+    modalPptxBtnGenerate: "បង្កើតស្លាយក្នុងកម្មវិធី",
 
     modalUpdateTitle: "ប្រព័ន្ធអាប់ដេតស្វ័យប្រវត្ត (Cloud Auto-Updater)",
     modalUpdateInstalledVersion: "កំណែកម្មវិធីបច្ចុប្បន្ន (Installed Version):",
@@ -2203,8 +2203,8 @@ const I18N_DICTIONARY = {
     modalHistoryRecentList: "Recent Lesson Plans (Saved on this device)",
     modalHistoryClearAll: "Clear All History",
 
-    modalPptxTitle: "Google Slides AI Studio (docs.google.com/presentation)",
-    modalPptxDesc: "AI analyzes your lesson plan or attached document to create a Google Slides presentation directly in docs.google.com/presentation with visuals and speaker notes.",
+    modalPptxTitle: "AI Slide Studio (In-App Presentation)",
+    modalPptxDesc: "AI generates your teaching slides and opens them right inside this web app (no Google sign-in needed!) — edit text, swap photos, present fullscreen, or download .pptx / PDF anytime.",
     modalPptxSourceLabel: "Select Reference Source / Attachment:",
     modalPptxBtnUpload: "Upload New File",
     modalPptxNumSlidesLabel: "Number of Slides:",
@@ -2212,7 +2212,7 @@ const I18N_DICTIONARY = {
     modalPptxImagesHint: 'The "AI Generated Images" option will automatically generate educational diagrams and illustrations aligned with each slide topic.',
     modalPptxThemeLabel: "Theme Color:",
     modalPptxBtnCancel: "Cancel",
-    modalPptxBtnGenerate: "Create in Google Slides",
+    modalPptxBtnGenerate: "Create Slides in App",
 
     modalUpdateTitle: "Cloud Auto-Updater System",
     modalUpdateInstalledVersion: "Installed App Version:",
@@ -19500,38 +19500,85 @@ async function searchRelevantWikimediaSlideImage(keyword, usedUrls, isHistory = 
   return null;
 }
 
+// 🔍 Multi-result Wikimedia Commons Photo Gallery Search for In-App Slide Photo Picker
+async function searchWikimediaSlideGallery(query, limit = 8) {
+  const q = String(query || '').trim();
+  if (!q) return [];
+  const badTitleRe = /(stamp|logo|icon|flag|signature|coat_of_arms|newspaper|gravestone|burial|funeral|census|scan|page_\d|pdf|djvu|wikisource|book_cover|biden|trump|obama|clinton|bush|putin|coast_guard|navy|army|air_force|usaf|dpla|nara|marine|pentagon|senator|president|governor|congress|politician|election)/i;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 7000);
+  try {
+    const apiUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(q)}&gsrlimit=20&prop=imageinfo&iiprop=url|mime|size|extmetadata&iiurlwidth=960&format=json&origin=*`;
+    const resp = await fetch(apiUrl, { signal: controller.signal });
+    clearTimeout(timer);
+    if (!resp.ok) return [];
+    const json = await resp.json();
+    const pages = Object.values(json.query?.pages || []);
+    const results = [];
+    for (const p of pages) {
+      const info = p.imageinfo?.[0];
+      if (!info) continue;
+      if (!/^image\/(jpeg|png|webp)$/i.test(info.mime || '')) continue;
+      const w = info.width || 0;
+      const h = info.height || 0;
+      if (w < 420 || h < 280) continue;
+      const ratio = w / h;
+      if (ratio < 0.6 || ratio > 2.2) continue;
+      const title = String(p.title || '');
+      if (badTitleRe.test(title)) continue;
+      const url = (info.thumburl || '').split('?')[0] || ((info.size || 0) < 4000000 ? (info.url || '').split('?')[0] : '');
+      if (!url) continue;
+      results.push({
+        url,
+        title: title.replace(/^File:/i, '').replace(/\.[^.]+$/, '').replace(/_/g, ' ')
+      });
+      if (results.length >= limit) break;
+    }
+    return results;
+  } catch (_) {
+    clearTimeout(timer);
+    return [];
+  }
+}
+
 async function getSlideImage(slideDef, data, imageMode, theme, slideIndex, usedUrls = null) {
-  if (imageMode === 'no') return null;
+  if (imageMode === 'no' || (slideDef && slideDef.hideImage)) return null;
+
+  // 0. If user already picked/uploaded/resolved an exact image in Slide Studio, reuse it!
+  if (slideDef && slideDef.imageDataUrl && slideDef.imageDataUrl.startsWith('data:image')) {
+    return { data: slideDef.imageDataUrl, source: 'studio_upload' };
+  }
+  if (slideDef && slideDef.imageUrl && /^https?:\/\//i.test(slideDef.imageUrl)) {
+    try {
+      const base64 = await fetchImageAsBase64(slideDef.imageUrl, 6500);
+      if (base64 && base64.startsWith('data:image')) {
+        return { data: base64, source: 'studio_resolved', url: slideDef.imageUrl };
+      }
+    } catch (_) { }
+  }
 
   // 1. Authentically determine slide-specific activity/topic context
   const detected = detectSlideTopic(slideDef, data, slideIndex);
   const targetCategory = detected.category;
+  const used = usedUrls instanceof Set ? usedUrls : new Set();
 
-  // 2. Try Pollinations AI first if in AI mode (using context-accurate prompt + unique per-slide seed!)
-  if (imageMode === 'ai') {
-    let cleanPrompt = sanitizeEnglishPrompt(slideDef.imagePrompt || '');
-    // If the slide's raw imagePrompt is missing, too short, or mismatched generic brain for an activity slide, use our context-accurate detected.aiPrompt!
-    const isActivitySlide = ['classroom_admin', 'qa_muddiest_point', 'pbl_case_study', 'flipchart_presentation', 'assessment_quiz'].includes(targetCategory);
-    if (!cleanPrompt || cleanPrompt.length < 12 || (isActivitySlide && /brain|neuron|cell|microscope/i.test(cleanPrompt))) {
-      cleanPrompt = detected.aiPrompt;
-    }
-
-    const fullPrompt = `${cleanPrompt.substring(0, 180)}, clear educational visual, bright modern clean style, high resolution, no text, no watermark`;
-    const seed = Math.floor(Math.random() * 800000) + 100000 + (slideIndex * 7919);
-    const aiUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=1024&height=768&nologo=true&seed=${seed}`;
-
+  // 2. Live Topic-Exact Wikimedia Commons Photo Search (Fast, Real Photos Matching Slide Keywords!)
+  const kwRaw = String(slideDef?.imageSearchKeyword || '').trim();
+  const isHistory = /history|angkor|cambodia|king|ancient|temple|empire|war/i.test(`${data?.subject || ''} ${data?.lessonTitle || ''} ${kwRaw}`);
+  if (kwRaw) {
     try {
-      const base64 = await fetchImageAsBase64(aiUrl, 9500);
-      if (base64 && base64.startsWith('data:image')) {
-        return { data: base64, source: 'ai', category: targetCategory };
+      const wikiHit = await searchRelevantWikimediaSlideImage(kwRaw, used, isHistory);
+      if (wikiHit && wikiHit.url) {
+        used.add(wikiHit.url);
+        const base64 = await fetchImageAsBase64(wikiHit.url, 6000);
+        if (base64 && base64.startsWith('data:image')) {
+          return { data: base64, source: 'wikimedia', category: targetCategory, url: wikiHit.url };
+        }
       }
-    } catch (e) {
-      console.warn(`[PPTX Image ${slideIndex}] AI image fetch error:`, e);
-    }
+    } catch (_) { }
   }
 
   // 3. Strict Zero-Duplicate Curated Visual Bank (tries up to 3 unused URLs so no two slides EVER repeat!)
-  const used = usedUrls instanceof Set ? usedUrls : new Set();
   for (let attempt = 0; attempt < 3; attempt++) {
     const chosenUrl = pickUniqueCuratedImageUrl(targetCategory, slideIndex + attempt, used);
     if (!chosenUrl) break;
@@ -20361,7 +20408,7 @@ window.openPptxModal = function () {
     m.classList.add('active');
     updatePptxAttachmentOptions();
     if (typeof switchPptxTab === 'function') switchPptxTab('direct');
-    if (typeof refreshGoogleSlidesAuthUI === 'function') refreshGoogleSlidesAuthUI();
+    if (typeof refreshLastInAppDeckBanner === 'function') refreshLastInAppDeckBanner();
   }
 };
 
@@ -21467,14 +21514,13 @@ window.buildGoogleSlidesPresentation = async function (slidesData, meta, options
   return slideUrl;
 };
 
-window.generatePptxSlides = async function (targetFormat = 'google_slides') {
+window.generatePptxSlides = async function (targetFormat = 'studio') {
   if (state.isPptxGenerating) {
     showToast('⚠️ កំពុងមានដំណើរការបង្កើតស្លាយមួយរួចហើយ សូមរង់ចាំបន្តិច...', 'warning');
     return;
   }
 
-  // If Google OAuth Client ID is configured (e.g. via Vercel env var), authenticate directly in 1 click;
-  // otherwise seamlessly use Zero-Setup mode (generates .pptx + opens docs.google.com/presentation/create)!
+  // Only request Google OAuth if caller explicitly asked for external Google Slides export
   let googleAccessToken = null;
   const useDirectGoogleApi = (targetFormat === 'google_slides' && Boolean(getGoogleSlidesClientId()));
   if (useDirectGoogleApi) {
@@ -21591,7 +21637,7 @@ window.generatePptxSlides = async function (targetFormat = 'google_slides') {
   // 🚀 Start Floating Background Task (Does NOT lock teacher's screen!)
   showPptxWidget(targetFormat === 'google_slides'
     ? `📊 កំពុងបង្កើត ${numSlides} ស្លាយ Google Slides...`
-    : `🎬 កំពុងបង្កើត ${numSlides} ស្លាយ PowerPoint...`);
+    : `🎬 កំពុងបង្កើត ${numSlides} ស្លាយបង្រៀន AI (ក្នុងកម្មវិធី)...`);
   updatePptxWidgetStatus('🧠 Gemini AI កំពុងវិភាគឯកសារ និងរៀបចំខ្លឹមសារស្លាយកម្រិតខ្ពស់... (រហូតដល់ ៥ នាទី)', 12);
   showToast('🚀 កំពុងដំណើរការបង្កើតស្លាយនៅផ្ទៃខាងក្រោយ... លោកគ្រូអាចបន្តធ្វើការងារផ្សេងៗបានដោយសេរី!', 'info', 7000);
 
@@ -21794,7 +21840,9 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
       return; // Exit cleanly without creating fake/repetitive dummy presentation!
     }
 
-    if (useDirectGoogleApi) {
+    if (targetFormat === 'studio') {
+      await prepareInAppSlideDeck(slidesData, data, { theme, imageMode });
+    } else if (useDirectGoogleApi) {
       await buildGoogleSlidesPresentation(slidesData, data, { theme, imageMode, accessToken: googleAccessToken });
     } else {
       await buildPptxPresentation(slidesData, data, { theme, imageMode, openGoogleSlidesAfter: (targetFormat === 'google_slides') });
@@ -22171,6 +22219,699 @@ window.buildPptxPresentation = async function (slidesData, meta, options) {
     showToast(`✅ បានទាញយកស្លាយ ${fileName} ជោគជ័យ!`, 'success', 10000);
   }
   return fileName;
+};
+
+// ==========================================================================
+// 🎬 IN-APP INTERACTIVE SLIDE DECK STUDIO (Zero Login, Stays Inside Web App!)
+// Allows teachers to view, edit text inline, search/swap/upload slide photos,
+// switch themes, present fullscreen in class, print PDF, or download .pptx
+// without ever leaving the web app or signing into Google!
+// ==========================================================================
+const IN_APP_SLIDE_DECK_STORAGE_KEY = 'alps_last_slide_deck_v1';
+let _slideStudioIndex = 0;
+let _slideStudioPresentIndex = 0;
+
+function saveLastInAppDeckToStorage(deck) {
+  if (!deck || !Array.isArray(deck.slides)) return;
+  try {
+    // Strip large uploaded base64 data URLs before persisting to localStorage to stay under quota
+    const lightweight = {
+      meta: deck.meta || {},
+      theme: deck.theme || 'modern_blue',
+      imageMode: deck.imageMode || 'ai',
+      createdAt: deck.createdAt || Date.now(),
+      slides: deck.slides.map(s => ({
+        type: s.type || 'content',
+        title: s.title || '',
+        subtitle: s.subtitle || '',
+        bullets: Array.isArray(s.bullets) ? s.bullets : [],
+        speakerNotes: s.speakerNotes || '',
+        imageSearchKeyword: s.imageSearchKeyword || '',
+        imagePrompt: s.imagePrompt || '',
+        imageUrl: s.imageUrl || '',
+        hideImage: Boolean(s.hideImage)
+      }))
+    };
+    localStorage.setItem(IN_APP_SLIDE_DECK_STORAGE_KEY, JSON.stringify(lightweight));
+  } catch (_) { }
+}
+
+function loadLastInAppDeckFromStorage() {
+  if (state.currentSlideDeck && Array.isArray(state.currentSlideDeck.slides) && state.currentSlideDeck.slides.length > 0) {
+    return state.currentSlideDeck;
+  }
+  try {
+    const raw = localStorage.getItem(IN_APP_SLIDE_DECK_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && Array.isArray(parsed.slides) && parsed.slides.length > 0) {
+      state.currentSlideDeck = parsed;
+      return parsed;
+    }
+  } catch (_) { }
+  return null;
+}
+
+function refreshLastInAppDeckBanner() {
+  const banner = document.getElementById('lastInAppDeckBanner');
+  const txt = document.getElementById('lastInAppDeckBannerText');
+  if (!banner) return;
+  const deck = loadLastInAppDeckFromStorage();
+  if (deck && deck.slides && deck.slides.length > 0) {
+    const title = deck.meta?.lessonTitle || deck.slides[0]?.title || 'ស្លាយបង្រៀន AI';
+    if (txt) txt.textContent = `មានស្លាយរួចហើយ (${deck.slides.length} ស្លាយ)៖ ${title}`;
+    banner.style.display = 'flex';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+window.refreshLastInAppDeckBanner = refreshLastInAppDeckBanner;
+
+function finishPptxWidgetInAppStudio(slideCount, deckTitle) {
+  if (pptxWidgetTimerInterval) {
+    clearInterval(pptxWidgetTimerInterval);
+    pptxWidgetTimerInterval = null;
+  }
+  const titleEl = document.getElementById('pptxWidgetTitle');
+  const statusEl = document.getElementById('pptxWidgetStatus');
+  const barEl = document.getElementById('pptxWidgetProgressBar');
+  const actionArea = document.getElementById('pptxWidgetActionBtnArea');
+
+  if (titleEl) titleEl.innerHTML = '✅ ស្លាយបង្រៀនរួចរាល់!';
+  if (statusEl) {
+    statusEl.innerHTML = `<span style="color: #059669; font-weight: 700;">🎬 បានបង្កើត ${slideCount} ស្លាយក្នុងកម្មវិធីរួចរាល់៖ <b>${escapeHtml(String(deckTitle || '').substring(0, 42))}</b></span>`;
+  }
+  if (barEl) {
+    barEl.style.width = '100%';
+    barEl.classList.remove('indeterminate');
+    barEl.style.background = 'linear-gradient(90deg, #10b981, #059669)';
+  }
+  if (actionArea) {
+    actionArea.innerHTML = `<button type="button" onclick="openInAppSlideStudio()" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; border: none; border-radius: 7px; padding: 5px 12px; font-size: 8.4pt; font-weight: 700; cursor: pointer; font-family: inherit;"><i class="fa-solid fa-display"></i> បើក Slide Studio</button>`;
+  }
+  playSuccessChime();
+}
+
+async function prepareInAppSlideDeck(slidesData, meta, options = {}) {
+  meta = meta || {};
+  const theme = options.theme || 'modern_blue';
+  const imageMode = options.imageMode || 'ai';
+  const total = slidesData.length;
+
+  const preparedSlides = slidesData.map((s, idx) => ({
+    type: s.type || (idx === 0 ? 'title' : 'content'),
+    title: String(s.title || (idx === 0 ? (meta.lessonTitle || 'មេរៀនបង្រៀន') : `ខ្លឹមសារស្លាយទី ${idx + 1}`)).trim(),
+    subtitle: String(s.subtitle || (idx === 0 ? `${meta.subject || ''}${meta.grade ? ' — ' + meta.grade : ''}` : '')).trim(),
+    bullets: Array.isArray(s.bullets) ? s.bullets.map(b => String(b || '').trim()).filter(Boolean) : (s.bullets ? [String(s.bullets)] : []),
+    speakerNotes: String(s.speakerNotes || '').trim(),
+    imageSearchKeyword: String(s.imageSearchKeyword || '').trim(),
+    imagePrompt: String(s.imagePrompt || '').trim(),
+    imageUrl: '',
+    imageDataUrl: '',
+    hideImage: imageMode === 'no'
+  }));
+
+  if (imageMode !== 'no') {
+    updatePptxWidgetStatus(`🖼️ កំពុងស្វែងរករូបភាពស្របតាមខ្លឹមសារស្លាយទាំង ${total}...`, 68);
+    const usedUrls = new Set();
+    const isHistory = /history|angkor|cambodia|king|ancient|temple|empire|war/i.test(`${meta.subject || ''} ${meta.lessonTitle || ''}`);
+
+    // Fast parallel Wikimedia Commons search for all slides simultaneously
+    await Promise.all(preparedSlides.map(async (slide, idx) => {
+      const detected = detectSlideTopic(slide, meta, idx + 1);
+      const kw = slide.imageSearchKeyword || '';
+      if (kw) {
+        const wikiHit = await searchRelevantWikimediaSlideImage(kw, usedUrls, isHistory);
+        if (wikiHit && wikiHit.url) {
+          usedUrls.add(wikiHit.url);
+          slide.imageUrl = wikiHit.url;
+          return;
+        }
+      }
+      const fallbackUrl = pickUniqueCuratedImageUrl(detected.category, idx + 1, usedUrls);
+      if (fallbackUrl) {
+        usedUrls.add(fallbackUrl);
+        slide.imageUrl = fallbackUrl;
+      }
+    }));
+  }
+
+  const deck = {
+    meta: {
+      lessonTitle: meta.lessonTitle || preparedSlides[0]?.title || 'ស្លាយបង្រៀន',
+      subject: meta.subject || '',
+      grade: meta.grade || ''
+    },
+    theme,
+    imageMode,
+    createdAt: Date.now(),
+    slides: preparedSlides
+  };
+
+  state.currentSlideDeck = deck;
+  saveLastInAppDeckToStorage(deck);
+  finishPptxWidgetInAppStudio(preparedSlides.length, deck.meta.lessonTitle);
+  showToast(`🎉 បានបង្កើត ${preparedSlides.length} ស្លាយជោគជ័យ! កំពុងបើកក្នុងកម្មវិធី...`, 'success', 5500);
+  openInAppSlideStudio(0);
+  return deck;
+}
+
+function parseStudioBulletParts(bulletStr, idx) {
+  const icons = ['✦', '◆', '●', '★', '►', '❖'];
+  let str = String(bulletStr || '').trim();
+  let heading = '';
+  let desc = '';
+  const boldMatch = str.match(/^\*\*(.*?)\*\*(.*)/);
+  if (boldMatch) {
+    heading = boldMatch[1].trim().replace(/[:：\s]+$/, '');
+    desc = boldMatch[2].trim().replace(/^[:：\-–\s]+/, '');
+  } else {
+    const colonIdx = str.search(/[:：]/);
+    if (colonIdx > 0 && colonIdx < 60) {
+      heading = str.slice(0, colonIdx).trim();
+      desc = str.slice(colonIdx + 1).trim();
+    } else {
+      desc = str;
+    }
+  }
+  return {
+    badge: icons[idx % icons.length],
+    heading,
+    desc
+  };
+}
+
+function buildStudioSlideHtml(slide, idx, total, deck, editable = true) {
+  const imgSrc = (!slide.hideImage) ? (slide.imageDataUrl || slide.imageUrl || '') : '';
+  const ce = editable ? 'contenteditable="true" spellcheck="false"' : '';
+
+  if (slide.type === 'title') {
+    const sub = slide.subtitle || (deck.meta?.subject ? `${deck.meta.subject}${deck.meta.grade ? ' — ' + deck.meta.grade : ''}` : '');
+    return `
+      <div class="studio-top-accent"></div>
+      <div class="studio-title-slide ${imgSrc ? 'has-bg' : ''}">
+        ${imgSrc ? `<img class="studio-title-bg-img" src="${escapeHtml(imgSrc)}" alt="Slide Cover" onerror="this.style.display='none'; this.parentElement.classList.remove('has-bg');">` : ''}
+        ${imgSrc ? `<div class="studio-title-scrim"></div>` : ''}
+        <div class="studio-title-content">
+          <h1 class="studio-title-h1" ${ce} ${editable ? 'onblur="updateCurrentStudioTitle(this.innerText)"' : ''}>${escapeHtml(slide.title || 'ចំណងជើងមេរៀន')}</h1>
+          <div class="studio-title-sub" ${ce} ${editable ? 'onblur="updateCurrentStudioSubtitle(this.innerText)"' : ''}>${escapeHtml(sub || 'កិច្ចតែងការបង្រៀន AI')}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  const bullets = Array.isArray(slide.bullets) && slide.bullets.length > 0 ? slide.bullets : ['ចំណុចសំខាន់នៃមេរៀន'];
+  const cardsHtml = bullets.map((b, bIdx) => {
+    const parts = parseStudioBulletParts(b, bIdx);
+    const displayHtml = parts.heading
+      ? `<span class="studio-card-heading">${escapeHtml(parts.heading)}៖ </span>${escapeHtml(parts.desc)}`
+      : escapeHtml(parts.desc);
+    return `
+      <div class="studio-concept-card">
+        <span class="studio-card-badge">${parts.badge}</span>
+        <div class="studio-card-text" ${ce} ${editable ? `onblur="updateCurrentStudioBullet(${bIdx}, this.innerText)"` : ''}>${displayHtml}</div>
+        ${editable && bullets.length > 1 ? `<button type="button" class="studio-card-del" onclick="deleteStudioBullet(${bIdx})" title="លុបចំណុចនេះ"><i class="fa-solid fa-xmark"></i></button>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="studio-top-accent"></div>
+    <div class="studio-content-slide">
+      <h2 class="studio-slide-heading" ${ce} ${editable ? 'onblur="updateCurrentStudioTitle(this.innerText)"' : ''}>${escapeHtml(slide.title || `ស្លាយទី ${idx + 1}`)}</h2>
+      <div class="studio-content-grid ${imgSrc ? '' : 'no-image'}">
+        <div class="studio-cards-col">
+          ${cardsHtml}
+          ${editable && bullets.length < 5 ? `<button type="button" class="studio-add-bullet-btn" onclick="addStudioBullet()"><i class="fa-solid fa-plus"></i> បន្ថែមចំណុច</button>` : ''}
+        </div>
+        ${imgSrc ? `
+          <div class="studio-image-col">
+            <div class="studio-image-box">
+              <img src="${escapeHtml(imgSrc)}" alt="Slide Visual" onerror="this.parentElement.innerHTML='<div style=\\'padding:24px;text-align:center;color:#64748b;font-size:0.85rem;\\'>មិនអាចផ្ទុករូបភាពបានទេ — ចុច ប្ដូររូបភាព ខាងលើ</div>';">
+              ${editable ? `
+                <div class="studio-image-hover-bar">
+                  <button type="button" onclick="openSlidePhotoPicker()"><i class="fa-solid fa-magnifying-glass"></i> ប្ដូររូប</button>
+                  <button type="button" onclick="triggerStudioSlideImageUpload()"><i class="fa-solid fa-upload"></i> ផ្ទុក</button>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+      <div class="studio-slide-footer">
+        <span>${escapeHtml(deck.meta?.lessonTitle || 'AI Lesson Plan Studio')}</span>
+        <span>ទំព័រទី ${idx + 1} / ${total}</span>
+      </div>
+    </div>
+  `;
+}
+
+function renderInAppSlideStudio() {
+  const deck = loadLastInAppDeckFromStorage();
+  if (!deck || !deck.slides || deck.slides.length === 0) return;
+
+  if (_slideStudioIndex < 0) _slideStudioIndex = 0;
+  if (_slideStudioIndex >= deck.slides.length) _slideStudioIndex = deck.slides.length - 1;
+
+  const slide = deck.slides[_slideStudioIndex];
+  const total = deck.slides.length;
+  const theme = deck.theme || 'modern_blue';
+
+  const titleEl = document.getElementById('slideStudioDeckTitle');
+  const counterEl = document.getElementById('slideStudioCounter');
+  const navLabelEl = document.getElementById('slideStudioNavLabel');
+  const canvasEl = document.getElementById('slideStudioCanvas');
+  const thumbsEl = document.getElementById('slideStudioThumbs');
+  const notesEl = document.getElementById('slideStudioNotesInput');
+  const toggleImgBtn = document.getElementById('btnStudioToggleImage');
+
+  if (titleEl) titleEl.textContent = deck.meta?.lessonTitle || deck.slides[0]?.title || 'ស្លាយបង្រៀន AI';
+  if (counterEl) counterEl.textContent = `ស្លាយទី ${_slideStudioIndex + 1} / ${total}`;
+  if (navLabelEl) navLabelEl.textContent = `${_slideStudioIndex + 1} / ${total}`;
+
+  // Active theme pill state
+  document.querySelectorAll('.studio-theme-pill').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-theme') === theme);
+  });
+
+  // Render active 16:9 editable slide
+  if (canvasEl) {
+    canvasEl.className = `slide-studio-canvas theme-${theme}`;
+    canvasEl.innerHTML = buildStudioSlideHtml(slide, _slideStudioIndex, total, deck, true);
+  }
+
+  // Speaker Notes
+  if (notesEl) {
+    notesEl.value = slide.speakerNotes || '';
+  }
+
+  // Toggle image button label
+  if (toggleImgBtn) {
+    const hasImg = !slide.hideImage && Boolean(slide.imageDataUrl || slide.imageUrl);
+    toggleImgBtn.innerHTML = hasImg
+      ? '<i class="fa-solid fa-eye-slash"></i> ដករូបចេញ'
+      : '<i class="fa-solid fa-image"></i> បង្ហាញរូបភាព';
+  }
+
+  // Render left filmstrip thumbnails
+  if (thumbsEl) {
+    thumbsEl.innerHTML = deck.slides.map((s, i) => {
+      const thumbImg = (!s.hideImage) ? (s.imageDataUrl || s.imageUrl || '') : '';
+      return `
+        <div class="slide-studio-thumb ${i === _slideStudioIndex ? 'active' : ''}" onclick="selectStudioSlide(${i})">
+          <div class="slide-thumb-header">
+            <span class="slide-thumb-num">${i + 1}</span>
+            <span class="slide-thumb-type">${s.type === 'title' ? 'ក្របមុខ' : 'ខ្លឹមសារ'}</span>
+          </div>
+          <div class="slide-thumb-preview">
+            <div class="slide-thumb-title">${escapeHtml(s.title || `ស្លាយទី ${i + 1}`)}</div>
+            <div class="slide-thumb-mini-row">
+              <div class="slide-thumb-lines">
+                <div class="slide-thumb-line" style="width: 90%;"></div>
+                <div class="slide-thumb-line" style="width: 72%;"></div>
+                <div class="slide-thumb-line" style="width: 82%;"></div>
+              </div>
+              ${thumbImg ? `<img class="slide-thumb-img" src="${escapeHtml(thumbImg)}" alt="">` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+window.openInAppSlideStudio = function (slideIdx = null) {
+  const deck = loadLastInAppDeckFromStorage();
+  if (!deck || !deck.slides || deck.slides.length === 0) {
+    showToast('⚠️ មិនទាន់មានស្លាយទេ — សូមបង្កើតស្លាយជាមុនសិន!', 'warning');
+    openPptxModal();
+    return;
+  }
+  closePptxModal();
+  if (typeof slideIdx === 'number') _slideStudioIndex = slideIdx;
+  const modal = document.getElementById('slideDeckStudioModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    renderInAppSlideStudio();
+  }
+};
+
+window.closeInAppSlideStudio = function () {
+  const modal = document.getElementById('slideDeckStudioModal');
+  if (modal) modal.style.display = 'none';
+  closeSlidePhotoPicker();
+};
+
+window.selectStudioSlide = function (idx) {
+  _slideStudioIndex = idx;
+  renderInAppSlideStudio();
+};
+
+window.navigateStudioSlide = function (delta) {
+  const deck = loadLastInAppDeckFromStorage();
+  if (!deck || !deck.slides) return;
+  const next = _slideStudioIndex + delta;
+  if (next >= 0 && next < deck.slides.length) {
+    _slideStudioIndex = next;
+    renderInAppSlideStudio();
+  }
+};
+
+window.setStudioTheme = function (themeName) {
+  const deck = loadLastInAppDeckFromStorage();
+  if (!deck) return;
+  deck.theme = themeName;
+  saveLastInAppDeckToStorage(deck);
+  renderInAppSlideStudio();
+};
+
+window.updateCurrentStudioTitle = function (text) {
+  const deck = loadLastInAppDeckFromStorage();
+  if (!deck || !deck.slides[_slideStudioIndex]) return;
+  deck.slides[_slideStudioIndex].title = String(text || '').trim();
+  if (_slideStudioIndex === 0 && deck.slides[0].title) {
+    deck.meta.lessonTitle = deck.slides[0].title;
+  }
+  saveLastInAppDeckToStorage(deck);
+  const titleEl = document.getElementById('slideStudioDeckTitle');
+  if (titleEl && _slideStudioIndex === 0) titleEl.textContent = deck.meta.lessonTitle;
+  // Refresh thumbnail title smoothly
+  const activeThumbTitle = document.querySelector('.slide-studio-thumb.active .slide-thumb-title');
+  if (activeThumbTitle) activeThumbTitle.textContent = deck.slides[_slideStudioIndex].title;
+};
+
+window.updateCurrentStudioSubtitle = function (text) {
+  const deck = loadLastInAppDeckFromStorage();
+  if (!deck || !deck.slides[_slideStudioIndex]) return;
+  deck.slides[_slideStudioIndex].subtitle = String(text || '').trim();
+  saveLastInAppDeckToStorage(deck);
+};
+
+window.updateCurrentStudioBullet = function (bIdx, text) {
+  const deck = loadLastInAppDeckFromStorage();
+  const slide = deck?.slides?.[_slideStudioIndex];
+  if (!slide || !Array.isArray(slide.bullets)) return;
+  const clean = String(text || '').trim();
+  const colonPos = clean.search(/[:：]/);
+  if (colonPos > 0 && colonPos < 55) {
+    slide.bullets[bIdx] = `**${clean.slice(0, colonPos).trim()}៖** ${clean.slice(colonPos + 1).trim()}`;
+  } else {
+    slide.bullets[bIdx] = clean;
+  }
+  saveLastInAppDeckToStorage(deck);
+};
+
+window.addStudioBullet = function () {
+  const deck = loadLastInAppDeckFromStorage();
+  const slide = deck?.slides?.[_slideStudioIndex];
+  if (!slide) return;
+  if (!Array.isArray(slide.bullets)) slide.bullets = [];
+  slide.bullets.push('**ចំណុចបន្ថែម៖** សរសេរខ្លឹមសារសំខាន់នៅទីនេះ');
+  saveLastInAppDeckToStorage(deck);
+  renderInAppSlideStudio();
+};
+
+window.deleteStudioBullet = function (bIdx) {
+  const deck = loadLastInAppDeckFromStorage();
+  const slide = deck?.slides?.[_slideStudioIndex];
+  if (!slide || !Array.isArray(slide.bullets) || slide.bullets.length <= 1) return;
+  slide.bullets.splice(bIdx, 1);
+  saveLastInAppDeckToStorage(deck);
+  renderInAppSlideStudio();
+};
+
+window.updateCurrentStudioSpeakerNotes = function (val) {
+  const deck = loadLastInAppDeckFromStorage();
+  const slide = deck?.slides?.[_slideStudioIndex];
+  if (!slide) return;
+  slide.speakerNotes = String(val || '');
+  saveLastInAppDeckToStorage(deck);
+};
+
+window.addStudioSlide = function () {
+  const deck = loadLastInAppDeckFromStorage();
+  if (!deck) return;
+  const newSlide = {
+    type: 'content',
+    title: `ស្លាយថ្មីទី ${deck.slides.length + 1}`,
+    subtitle: '',
+    bullets: [
+      '**គោលគំនិតសំខាន់៖** ចុចលើអក្សរនេះដើម្បីសរសេរខ្លឹមសារ',
+      '**ឧទាហរណ៍ជាក់ស្តែង៖** បន្ថែមសកម្មភាព ឬសំណួរបំផុសគំនិត'
+    ],
+    speakerNotes: '',
+    imageSearchKeyword: 'classroom students learning',
+    imageUrl: '',
+    imageDataUrl: '',
+    hideImage: true
+  };
+  deck.slides.splice(_slideStudioIndex + 1, 0, newSlide);
+  _slideStudioIndex = _slideStudioIndex + 1;
+  saveLastInAppDeckToStorage(deck);
+  renderInAppSlideStudio();
+};
+
+window.deleteCurrentStudioSlide = function () {
+  const deck = loadLastInAppDeckFromStorage();
+  if (!deck || !deck.slides || deck.slides.length <= 1) {
+    showToast('⚠️ ត្រូវមានស្លាយយ៉ាងតិច ១ ស្លាយ!', 'warning');
+    return;
+  }
+  deck.slides.splice(_slideStudioIndex, 1);
+  if (_slideStudioIndex >= deck.slides.length) _slideStudioIndex = deck.slides.length - 1;
+  saveLastInAppDeckToStorage(deck);
+  renderInAppSlideStudio();
+};
+
+// 🔍 Inline Wikimedia Photo Picker & Local Image Upload
+window.openSlidePhotoPicker = function () {
+  const deck = loadLastInAppDeckFromStorage();
+  const slide = deck?.slides?.[_slideStudioIndex];
+  const modal = document.getElementById('slidePhotoPickerModal');
+  const inp = document.getElementById('slidePhotoSearchInput');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  const defaultQuery = slide?.imageSearchKeyword || 'students classroom learning';
+  if (inp) inp.value = defaultQuery;
+  runSlidePhotoSearch(defaultQuery);
+};
+
+window.closeSlidePhotoPicker = function () {
+  const modal = document.getElementById('slidePhotoPickerModal');
+  if (modal) modal.style.display = 'none';
+};
+
+window.runSlidePhotoSearch = async function (customQuery = null) {
+  const inp = document.getElementById('slidePhotoSearchInput');
+  const grid = document.getElementById('slidePhotoPickerGrid');
+  if (!grid) return;
+  if (customQuery !== null && inp) inp.value = customQuery;
+  const q = (inp ? inp.value : customQuery || '').trim();
+  if (!q) return;
+
+  grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 36px; color: #64748b;"><i class="fa-solid fa-spinner fa-spin"></i> កំពុងស្វែងរករូបភាព "${escapeHtml(q)}"...</div>`;
+  const items = await searchWikimediaSlideGallery(q, 12);
+  if (!items || items.length === 0) {
+    grid.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 32px; color: #64748b;">មិនរកឃើញរូបភាពសម្រាប់ "${escapeHtml(q)}" ទេ — សូមសាកពាក្យអង់គ្លេសខ្លីៗផ្សេងទៀត (ឧ. baby, students, teacher, science)!</div>`;
+    return;
+  }
+  grid.innerHTML = items.map(item => `
+    <div class="photo-pick-item" onclick="applyStudioSlidePhoto('${escapeHtml(item.url).replace(/'/g, "\\'")}')">
+      <img src="${escapeHtml(item.url)}" alt="${escapeHtml(item.title)}" loading="lazy">
+      <div class="photo-pick-caption" title="${escapeHtml(item.title)}">${escapeHtml(item.title)}</div>
+    </div>
+  `).join('');
+};
+
+window.applyStudioSlidePhoto = function (url) {
+  const deck = loadLastInAppDeckFromStorage();
+  const slide = deck?.slides?.[_slideStudioIndex];
+  if (!slide) return;
+  slide.imageUrl = url;
+  slide.imageDataUrl = '';
+  slide.hideImage = false;
+  saveLastInAppDeckToStorage(deck);
+  closeSlidePhotoPicker();
+  renderInAppSlideStudio();
+  showToast('✅ បានប្ដូររូបភាពស្លាយជោគជ័យ!', 'success', 2500);
+};
+
+window.triggerStudioSlideImageUpload = function () {
+  const inp = document.getElementById('slideStudioImageUploadInput');
+  if (inp) {
+    inp.value = '';
+    inp.click();
+  }
+};
+
+window.handleStudioSlideImageUploaded = function (event) {
+  const file = event?.target?.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const deck = loadLastInAppDeckFromStorage();
+    const slide = deck?.slides?.[_slideStudioIndex];
+    if (!slide) return;
+    slide.imageDataUrl = e.target.result;
+    slide.hideImage = false;
+    renderInAppSlideStudio();
+    showToast('✅ បានបញ្ចូលរូបភាពផ្ទាល់ខ្លួនជោគជ័យ!', 'success', 2500);
+  };
+  reader.readAsDataURL(file);
+};
+
+window.removeCurrentStudioSlideImage = function () {
+  const deck = loadLastInAppDeckFromStorage();
+  const slide = deck?.slides?.[_slideStudioIndex];
+  if (!slide) return;
+  const hasVisibleImg = !slide.hideImage && Boolean(slide.imageDataUrl || slide.imageUrl);
+  if (hasVisibleImg) {
+    slide.hideImage = true;
+    saveLastInAppDeckToStorage(deck);
+    renderInAppSlideStudio();
+  } else if (slide.imageDataUrl || slide.imageUrl) {
+    slide.hideImage = false;
+    saveLastInAppDeckToStorage(deck);
+    renderInAppSlideStudio();
+  } else {
+    openSlidePhotoPicker();
+  }
+};
+
+// 🖥️ Fullscreen Classroom Presentation Mode (Inside Web App!)
+function renderStudioPresentSlide() {
+  const deck = loadLastInAppDeckFromStorage();
+  const stage = document.getElementById('slideStudioPresentStage');
+  const counter = document.getElementById('slideStudioPresentCounter');
+  if (!deck || !stage) return;
+  const total = deck.slides.length;
+  if (_slideStudioPresentIndex < 0) _slideStudioPresentIndex = 0;
+  if (_slideStudioPresentIndex >= total) _slideStudioPresentIndex = total - 1;
+  const slide = deck.slides[_slideStudioPresentIndex];
+  const theme = deck.theme || 'modern_blue';
+  stage.innerHTML = `<div class="slide-studio-canvas theme-${theme}">${buildStudioSlideHtml(slide, _slideStudioPresentIndex, total, deck, false)}</div>`;
+  if (counter) counter.textContent = `${_slideStudioPresentIndex + 1} / ${total}`;
+}
+
+window.startSlideStudioPresent = function () {
+  const overlay = document.getElementById('slideStudioPresentOverlay');
+  if (!overlay) return;
+  _slideStudioPresentIndex = _slideStudioIndex;
+  overlay.style.display = 'flex';
+  renderStudioPresentSlide();
+  try {
+    if (overlay.requestFullscreen) overlay.requestFullscreen();
+  } catch (_) { }
+};
+
+window.exitSlideStudioPresent = function () {
+  const overlay = document.getElementById('slideStudioPresentOverlay');
+  if (overlay) overlay.style.display = 'none';
+  try {
+    if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen();
+  } catch (_) { }
+};
+
+window.navigateStudioPresent = function (delta) {
+  const deck = loadLastInAppDeckFromStorage();
+  if (!deck) return;
+  const next = _slideStudioPresentIndex + delta;
+  if (next >= 0 && next < deck.slides.length) {
+    _slideStudioPresentIndex = next;
+    renderStudioPresentSlide();
+  }
+};
+
+document.addEventListener('keydown', (e) => {
+  const presentEl = document.getElementById('slideStudioPresentOverlay');
+  if (presentEl && presentEl.style.display === 'flex') {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      navigateStudioPresent(1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      navigateStudioPresent(-1);
+    } else if (e.key === 'Escape') {
+      exitSlideStudioPresent();
+    }
+    return;
+  }
+
+  const studioEl = document.getElementById('slideDeckStudioModal');
+  if (studioEl && studioEl.style.display === 'flex') {
+    const activeTag = document.activeElement?.tagName;
+    const isEditing = activeTag === 'INPUT' || activeTag === 'TEXTAREA' || document.activeElement?.isContentEditable;
+    if (isEditing) return;
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      navigateStudioSlide(1);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      navigateStudioSlide(-1);
+    }
+  }
+});
+
+// 📥 Download Native PowerPoint (.pptx) Directly from Slide Studio (Stays in Web App!)
+window.exportStudioDeckToPptx = async function () {
+  const deck = loadLastInAppDeckFromStorage();
+  if (!deck || !deck.slides || deck.slides.length === 0) return;
+  showPptxWidget('📥 កំពុងរៀបចំឯកសារ PowerPoint (.pptx)...');
+  try {
+    await buildPptxPresentation(deck.slides, deck.meta || {}, {
+      theme: deck.theme || 'modern_blue',
+      imageMode: deck.imageMode || 'ai',
+      openGoogleSlidesAfter: false
+    });
+  } catch (err) {
+    finishPptxWidgetError('បរាជ័យទាញយក .pptx: ' + (err.message || err));
+    showToast('❌ បរាជ័យទាញយក .pptx: ' + (err.message || err), 'error');
+  }
+};
+
+// 🖨️ Clean Landscape Print / Save PDF Directly from Slide Studio
+window.printStudioSlideDeck = function () {
+  const deck = loadLastInAppDeckFromStorage();
+  if (!deck || !deck.slides || deck.slides.length === 0) return;
+  const theme = deck.theme || 'modern_blue';
+  const total = deck.slides.length;
+  const slidesHtml = deck.slides.map((s, i) => `
+    <div class="print-slide-page">
+      <div class="slide-studio-canvas theme-${theme}" style="max-width:none;width:100%;height:100%;border-radius:0;box-shadow:none;">
+        ${buildStudioSlideHtml(s, i, total, deck, false)}
+      </div>
+    </div>
+  `).join('');
+
+  const w = window.open('', '_blank');
+  if (!w) {
+    showToast('⚠️ សូមអនុញ្ញាត Pop-up ដើម្បីបោះពុម្ព/រក្សាទុក PDF ស្លាយ!', 'warning', 5000);
+    return;
+  }
+  const cssLink = document.querySelector('link[href*="style.css"]')?.href || 'style.css';
+  w.document.write(`<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8">
+  <title>${escapeHtml(deck.meta?.lessonTitle || 'Slides')} - PDF</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kantumruy+Pro:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="${cssLink}">
+  <style>
+    @page { size: landscape; margin: 0; }
+    body { margin: 0; padding: 0; background: #ffffff; font-family: 'Kantumruy Pro', sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .print-slide-page { width: 100vw; height: 100vh; page-break-after: always; break-after: page; overflow: hidden; }
+    .print-slide-page:last-child { page-break-after: auto; break-after: auto; }
+    .studio-card-del, .studio-add-bullet-btn, .studio-image-hover-bar { display: none !important; }
+  </style>
+</head>
+<body>${slidesHtml}<script>setTimeout(() => { window.print(); }, 650);</script></body>
+</html>`);
+  w.document.close();
+};
+
+window.reopenPptxGeneratorFromStudio = function () {
+  closeInAppSlideStudio();
+  openPptxModal();
 };
 
 // ==========================================================================

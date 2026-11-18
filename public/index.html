@@ -30,7 +30,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=20261118_v167">
+  <link rel="stylesheet" href="style.css?v=20261118_v175">
 
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -2380,16 +2380,12 @@
     <div class="modal modal-card"
       style="max-width: 630px; width: 95%; background: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);">
       <div class="modal-header"
-        style="padding: 16px 20px; border-bottom: 1px solid #fde68a; background: linear-gradient(135deg, #fffbeb, #fef3c7); display: flex; align-items: center; justify-content: space-between;">
+        style="padding: 16px 20px; border-bottom: 1px solid #e0e7ff; background: linear-gradient(135deg, #eef2ff, #e0e7ff); display: flex; align-items: center; justify-content: space-between;">
         <div class="modal-title"
-          style="color: #b45309; font-weight: 800; font-size: 1.08rem; display: flex; align-items: center; gap: 9px;">
-          <i class="fa-brands fa-google" style="color: #d97706;"></i> <span data-i18n="modalPptxTitle">បង្កើតស្លាយ Google Slides (docs.google.com/presentation)</span>
+          style="color: #3730a3; font-weight: 800; font-size: 1.08rem; display: flex; align-items: center; gap: 9px;">
+          <i class="fa-solid fa-display" style="color: #4f46e5;"></i> <span data-i18n="modalPptxTitle">បង្កើតស្លាយបង្រៀន AI (Slide Studio ក្នុងកម្មវិធី)</span>
         </div>
         <div style="display: flex; align-items: center; gap: 6px;">
-          <button type="button" onclick="toggleGoogleClientIdPanel()" title="ការកំណត់ Admin: Google OAuth Client ID"
-            style="font-size: 0.92rem; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px 6px;">
-            <i class="fa-solid fa-gear"></i>
-          </button>
           <button class="modal-close" onclick="closePptxModal()"
             style="font-size: 1.3rem; background: none; border: none; cursor: pointer; color: #64748b;"><i
               class="fa-solid fa-times"></i></button>
@@ -2408,16 +2404,27 @@
         </button>
       </div>
 
-      <!-- Tab 1: AI Direct Generation into Google Slides (docs.google.com/presentation) -->
+      <!-- Tab 1: AI Direct Generation into In-App Slide Studio (Zero Sign-In, Stays in Web App!) -->
       <div id="pptxTabDirect" class="pptx-tab-content" style="padding: 18px 20px; max-height: 72vh; overflow-y: auto;">
         <div
-          style="font-size: 9pt; color: #78350f; margin-bottom: 12px; line-height: 1.55; background: #fffbeb; padding: 10px 13px; border-radius: 9px; border: 1px solid #fde68a;"
+          style="font-size: 9pt; color: #312e81; margin-bottom: 12px; line-height: 1.55; background: #eef2ff; padding: 10px 13px; border-radius: 9px; border: 1px solid #c7d2fe;"
           data-i18n="modalPptxDesc">
-          <i class="fa-solid fa-circle-check" style="color: #d97706;"></i> ប្រព័ន្ធនឹងបង្កើតស្លាយបង្រៀនដោយ AI រួចផ្ញើចូល <b>Google Drive (docs.google.com/presentation)</b> របស់លោកគ្រូដោយផ្ទាល់ — ស្អាត ពុម្ពអក្សរខ្មែរច្បាស់ មាន Speaker Notes និងអាចប្ដូររូបភាព/Theme ក្នុង Google Slides ភ្លាមៗ!
+          <i class="fa-solid fa-circle-check" style="color: #4f46e5;"></i> ប្រព័ន្ធ AI នឹងបង្កើតស្លាយបង្រៀនដោយស្វ័យប្រវត្តិ រួចបើកបង្ហាញភ្លាមៗ<b>ក្នុងកម្មវិធីនេះ</b> (មិនបាច់ចូលគណនី Google ឡើយ!) — លោកគ្រូអាចកែអក្សរ ប្ដូររូបភាព បញ្ចាំងពេញអេក្រង់ ឬទាញយក <b>.pptx / PDF</b> បានភ្លាមៗ!
         </div>
 
-        <!-- 🔐 Google Slides API OAuth Card (Auto-shown only when OAuth Client ID is configured or Admin opens ⚙️) -->
-        <div id="googleSlidesAuthCard" class="gslides-auth-card" style="display: none;">
+        <!-- 🎬 Quick Re-Open Last Generated In-App Slide Deck Banner -->
+        <div id="lastInAppDeckBanner" style="display: none; margin-bottom: 12px; padding: 10px 13px; border-radius: 10px; background: #ecfdf5; border: 1.5px solid #6ee7b7; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
+            <i class="fa-solid fa-circle-check" style="color: #10b981; font-size: 1.05rem;"></i>
+            <span id="lastInAppDeckBannerText" style="font-size: 8.8pt; font-weight: 700; color: #065f46; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">មានស្លាយដែលទើបបង្កើតរួចហើយ!</span>
+          </div>
+          <button type="button" onclick="openInAppSlideStudio()" style="background: linear-gradient(135deg, #059669, #10b981); color: #ffffff; border: none; border-radius: 8px; padding: 6px 13px; font-size: 8.5pt; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-family: inherit;">
+            <i class="fa-solid fa-play"></i> បើកមើលស្លាយមុន
+          </button>
+        </div>
+
+        <!-- 🔐 Google Slides API OAuth Card (Hidden: In-App Slide Studio is now default with Zero Login!) -->
+        <div id="googleSlidesAuthCard" class="gslides-auth-card" style="display: none !important;">
           <div class="gslides-auth-row" id="googleSlidesAuthRow">
             <div class="gslides-auth-status" id="googleSlidesAuthStatusText">
               <i class="fa-brands fa-google" style="color: #d97706;"></i>
@@ -2622,15 +2629,15 @@
         </div>
       </div>
 
-      <!-- Footer for Tab 1 (Single Streamlined Google Slides CTA) -->
+      <!-- Footer for Tab 1 (1-Click In-App Slide Studio — Zero Login, Stays Inside Web App!) -->
       <div id="pptxFooterDirect" class="modal-footer"
-        style="justify-content: flex-end; background: #fffbeb; padding: 14px 20px; border-top: 1px solid #fde68a; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        style="justify-content: flex-end; background: #f8fafc; padding: 14px 20px; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
         <button type="button" class="btn-secondary" onclick="closePptxModal()"
           style="border-color: #cbd5e1; color: #475569; background: #ffffff; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600;"
           data-i18n="modalPptxBtnCancel">បោះបង់</button>
-        <button type="button" class="btn-primary" onclick="generatePptxSlides('google_slides')"
-          style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none; padding: 10px 22px; font-weight: 800; border-radius: 9px; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(217, 119, 6, 0.38); font-size: 9.2pt;">
-          <i class="fa-brands fa-google"></i> <span data-i18n="modalPptxBtnGenerate">បង្កើតក្នុង Google Slides</span>
+        <button type="button" class="btn-primary" onclick="generatePptxSlides('studio')"
+          style="background: linear-gradient(135deg, #4f46e5, #7c3aed); border: none; padding: 10px 22px; font-weight: 800; border-radius: 9px; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.38); font-size: 9.2pt;">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="modalPptxBtnGenerate">បង្កើតស្លាយក្នុងកម្មវិធី</span>
         </button>
       </div>
 
@@ -2711,6 +2718,171 @@
       </div>
     </div>
   </div>
+  <!-- 🎬 In-App Interactive Slide Deck Studio (Stays Inside Web App — Zero Sign-In!) -->
+  <div id="slideDeckStudioModal" class="slide-studio-overlay" style="display: none;">
+    <div class="slide-studio-shell">
+      <!-- Top Bar -->
+      <div class="slide-studio-topbar">
+        <div class="slide-studio-brand">
+          <span class="slide-studio-logo"><i class="fa-solid fa-display"></i></span>
+          <div class="slide-studio-title-wrap">
+            <div id="slideStudioDeckTitle" class="slide-studio-deck-title">ស្លាយបង្រៀន AI</div>
+            <div id="slideStudioCounter" class="slide-studio-counter">ស្លាយទី 1 / 8</div>
+          </div>
+        </div>
+
+        <!-- Live Theme Switcher -->
+        <div class="slide-studio-themes" title="ប្ដូររចនាបទពណ៌ភ្លាមៗ">
+          <button type="button" class="studio-theme-pill active" data-theme="modern_blue" onclick="setStudioTheme('modern_blue')" title="Modern Blue">
+            <span class="theme-dot" style="background: #2563eb;"></span> <span>ខៀវ</span>
+          </button>
+          <button type="button" class="studio-theme-pill" data-theme="eco_green" onclick="setStudioTheme('eco_green')" title="Eco Green">
+            <span class="theme-dot" style="background: #059669;"></span> <span>បៃតង</span>
+          </button>
+          <button type="button" class="studio-theme-pill" data-theme="dark_mode" onclick="setStudioTheme('dark_mode')" title="Dark Mode">
+            <span class="theme-dot" style="background: #0f172a; border: 1px solid #94a3b8;"></span> <span>ងងឹត</span>
+          </button>
+          <button type="button" class="studio-theme-pill" data-theme="simple_light" onclick="setStudioTheme('simple_light')" title="Simple Light">
+            <span class="theme-dot" style="background: #ffffff; border: 1px solid #cbd5e1;"></span> <span>ភ្លឺ</span>
+          </button>
+        </div>
+
+        <!-- Primary Actions -->
+        <div class="slide-studio-actions">
+          <button type="button" class="studio-btn studio-btn-present" onclick="startSlideStudioPresent()" title="បញ្ចាំងពេញអេក្រង់ក្នុងថ្នាក់រៀន">
+            <i class="fa-solid fa-play"></i> <span>បញ្ចាំង</span>
+          </button>
+          <button type="button" class="studio-btn studio-btn-pptx" onclick="exportStudioDeckToPptx()" title="ទាញយកឯកសារ PowerPoint (.pptx)">
+            <i class="fa-solid fa-file-powerpoint"></i> <span>ទាញយក .pptx</span>
+          </button>
+          <button type="button" class="studio-btn studio-btn-pdf" onclick="printStudioSlideDeck()" title="បោះពុម្ព ឬរក្សាទុកជា PDF">
+            <i class="fa-solid fa-print"></i> <span>PDF</span>
+          </button>
+          <button type="button" class="studio-btn studio-btn-regen" onclick="reopenPptxGeneratorFromStudio()" title="បង្កើតស្លាយថ្មី">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> <span>បង្កើតថ្មី</span>
+          </button>
+          <button type="button" class="studio-btn studio-btn-close" onclick="closeInAppSlideStudio()" title="បិទ Slide Studio">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Workspace: Left Thumbnails + Center Stage -->
+      <div class="slide-studio-body">
+        <aside class="slide-studio-sidebar">
+          <div id="slideStudioThumbs" class="slide-studio-thumbs"></div>
+          <div class="slide-studio-sidebar-footer">
+            <button type="button" class="studio-side-btn studio-side-add" onclick="addStudioSlide()">
+              <i class="fa-solid fa-plus"></i> បន្ថែមស្លាយ
+            </button>
+            <button type="button" class="studio-side-btn studio-side-del" onclick="deleteCurrentStudioSlide()" title="លុបស្លាយនេះ">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </div>
+        </aside>
+
+        <main class="slide-studio-main">
+          <!-- Stage Hint & Quick Controls -->
+          <div class="slide-studio-stage-bar">
+            <span class="slide-studio-edit-hint">
+              <i class="fa-solid fa-pen-to-square"></i> ចុចផ្ទាល់លើអក្សរណាមួយលើស្លាយដើម្បីកែសម្រួល
+            </span>
+            <div class="slide-studio-stage-tools">
+              <button type="button" class="studio-mini-btn" onclick="openSlidePhotoPicker()">
+                <i class="fa-solid fa-magnifying-glass"></i> ប្ដូររូបភាព
+              </button>
+              <button type="button" class="studio-mini-btn" onclick="triggerStudioSlideImageUpload()">
+                <i class="fa-solid fa-upload"></i> ផ្ទុករូបខ្លួនឯង
+              </button>
+              <button type="button" class="studio-mini-btn" id="btnStudioToggleImage" onclick="removeCurrentStudioSlideImage()">
+                <i class="fa-solid fa-eye-slash"></i> ដករូបចេញ
+              </button>
+            </div>
+          </div>
+
+          <!-- 16:9 Live Editable Slide Stage -->
+          <div class="slide-studio-stage-wrap">
+            <div id="slideStudioCanvas" class="slide-studio-canvas theme-modern_blue"></div>
+          </div>
+
+          <!-- Navigation & Speaker Notes -->
+          <div class="slide-studio-bottom">
+            <div class="slide-studio-nav-row">
+              <button type="button" class="studio-nav-btn" onclick="navigateStudioSlide(-1)">
+                <i class="fa-solid fa-chevron-left"></i> ស្លាយមុន
+              </button>
+              <span id="slideStudioNavLabel" class="slide-studio-nav-label">1 / 8</span>
+              <button type="button" class="studio-nav-btn" onclick="navigateStudioSlide(1)">
+                ស្លាយបន្ទាប់ <i class="fa-solid fa-chevron-right"></i>
+              </button>
+            </div>
+            <div class="slide-studio-notes-box">
+              <label for="slideStudioNotesInput" class="slide-studio-notes-label">
+                <i class="fa-solid fa-microphone-lines"></i> កំណត់ចំណាំសម្រាប់គ្រូបង្រៀន (Speaker Notes):
+              </label>
+              <textarea id="slideStudioNotesInput" class="slide-studio-notes-input" rows="2"
+                placeholder="ការណែនាំសម្រាប់គ្រូបង្រៀន..."
+                oninput="updateCurrentStudioSpeakerNotes(this.value)"></textarea>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <input type="file" id="slideStudioImageUploadInput" accept="image/*" style="display: none;"
+      onchange="handleStudioSlideImageUploaded(event)">
+  </div>
+
+  <!-- 🔍 Inline Wikimedia Photo Search & Swap Sub-Modal -->
+  <div id="slidePhotoPickerModal" class="slide-photo-picker-overlay" style="display: none;">
+    <div class="slide-photo-picker-card">
+      <div class="slide-photo-picker-header">
+        <div style="font-weight: 800; font-size: 1rem; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+          <i class="fa-solid fa-images" style="color: #4f46e5;"></i>
+          <span>ស្វែងរក និងប្ដូររូបភាពស្លាយ (Wikimedia Commons)</span>
+        </div>
+        <button type="button" onclick="closeSlidePhotoPicker()"
+          style="background: none; border: none; font-size: 1.25rem; color: #64748b; cursor: pointer;">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="slide-photo-picker-search">
+        <input type="text" id="slidePhotoSearchInput" class="form-control"
+          placeholder="វាយពាក្យគន្លឹះជាភាសាអង់គ្លេស (ឧ. mother smiling baby, classroom, science lab)..."
+          onkeydown="if(event.key==='Enter'){ event.preventDefault(); runSlidePhotoSearch(); }">
+        <button type="button" class="studio-btn studio-btn-present" onclick="runSlidePhotoSearch()">
+          <i class="fa-solid fa-magnifying-glass"></i> ស្វែងរក
+        </button>
+      </div>
+      <div class="slide-photo-picker-chips">
+        <button type="button" onclick="runSlidePhotoSearch('students classroom')">Classroom</button>
+        <button type="button" onclick="runSlidePhotoSearch('mother smiling baby')">Mother &amp; Baby</button>
+        <button type="button" onclick="runSlidePhotoSearch('child reading book')">Child Reading</button>
+        <button type="button" onclick="runSlidePhotoSearch('students group discussion')">Group Discussion</button>
+        <button type="button" onclick="runSlidePhotoSearch('teacher whiteboard')">Teacher</button>
+        <button type="button" onclick="runSlidePhotoSearch('science laboratory experiment')">Science Lab</button>
+        <button type="button" onclick="runSlidePhotoSearch('Angkor Wat Cambodia')">Cambodia</button>
+      </div>
+      <div id="slidePhotoPickerGrid" class="slide-photo-picker-grid"></div>
+    </div>
+  </div>
+
+  <!-- 🖥️ Fullscreen Classroom Presentation Overlay -->
+  <div id="slideStudioPresentOverlay" class="slide-present-overlay" style="display: none;">
+    <div id="slideStudioPresentStage" class="slide-present-stage"></div>
+    <div class="slide-present-controls">
+      <button type="button" onclick="navigateStudioPresent(-1)" title="ស្លាយមុន (←)">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <span id="slideStudioPresentCounter">1 / 8</span>
+      <button type="button" onclick="navigateStudioPresent(1)" title="ស្លាយបន្ទាប់ (→)">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+      <button type="button" onclick="exitSlideStudioPresent()" title="ចាកចេញ (Esc)" style="background: rgba(239,68,68,0.85);">
+        <i class="fa-solid fa-compress"></i> ចាកចេញ
+      </button>
+    </div>
+  </div>
+
   <!-- Floating Background Task Widget for PowerPoint -->
   <div id="pptxBackgroundWidget" class="pptx-floating-widget" style="display: none;">
     <div class="pptx-widget-card">
@@ -2745,7 +2917,7 @@
   <div id="smartHoverTooltip" class="smart-hover-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261118_v174"></script>
+  <script src="app.js?v=20261118_v175"></script>
 </body>
 
 </html>
