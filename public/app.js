@@ -1925,8 +1925,8 @@ const I18N_DICTIONARY = {
     headerWheelTitle: "បង្វិលកងចៃដន្យ (Lucky Wheel & Group Maker)",
     headerHistory: "ប្រវត្តិ",
     headerHistoryTitle: "ប្រវត្តិកិច្ចតែងការ (History Dashboard)",
-    headerLibrary: "បណ្ណាល័យ",
-    headerLibraryTitle: "បើកបណ្ណាល័យកិច្ចតែងការដែលបានរក្សាទុក (Saved Lesson Plans Library)",
+    headerLibrary: "ថតមេរៀន",
+    headerLibraryTitle: "បើកថតមេរៀន (Lesson Folders: កិច្ចតែងការ, ស្លាយ, ឯកសារ)",
     headerLicense: "អាជ្ញាបណ្ណ",
     headerLicenseTitle: "ព័ត៌មានអាជ្ញាបណ្ណ និងការ Activate កម្មវិធី",
     headerApiKey: "API Key",
@@ -2061,7 +2061,7 @@ const I18N_DICTIONARY = {
     modalLicenseKeyLabel: "បញ្ចូលលេខកូដអាជ្ញាបណ្ណ (Enter License Key)",
     modalLicenseBtnActivate: "ធ្វើឱ្យសកម្ម (Activate)",
 
-    modalSavedPlansTitle: "បណ្ណាល័យកិច្ចតែងការដែលបានរក្សាទុក (Saved Lesson Plans)",
+    modalSavedPlansTitle: "ថតមេរៀន (Lesson Folders Studio)",
     modalSavedPlansSearchPlaceholder: "ស្វែងរកតាមចំណងជើងមេរៀន មុខវិជ្ជា ថ្នាក់ ឬកាលបរិច្ឆេទ...",
     modalSavedPlansFilterAll: "-- គ្រប់មុខវិជ្ជា --",
 
@@ -2088,8 +2088,8 @@ const I18N_DICTIONARY = {
     headerWheelTitle: "Lucky Wheel & Random Selector",
     headerHistory: "History",
     headerHistoryTitle: "Lesson Plan History Dashboard",
-    headerLibrary: "Library",
-    headerLibraryTitle: "Open Saved Lesson Plans Library",
+    headerLibrary: "Lesson Folders",
+    headerLibraryTitle: "Open Lesson Folders Studio (Plans, Slides, Materials)",
     headerLicense: "License",
     headerLicenseTitle: "License Information & App Activation",
     headerApiKey: "API Key",
@@ -2227,7 +2227,7 @@ const I18N_DICTIONARY = {
     modalLicenseKeyLabel: "Enter License Key",
     modalLicenseBtnActivate: "Activate License",
 
-    modalSavedPlansTitle: "Saved Lesson Plans Library",
+    modalSavedPlansTitle: "Lesson Folders Studio",
     modalSavedPlansSearchPlaceholder: "Search by lesson title, subject, grade, or date...",
     modalSavedPlansFilterAll: "-- All Subjects --",
 
@@ -14097,11 +14097,12 @@ function applyZoom() {
 // ==========================================================================
 // Export to Microsoft Word (.docx)
 // ==========================================================================
-async function handleExportWord() {
-  const data = state.generatedPlanData || state.currentPlan;
+async function handleExportWord(exportOptions = {}) {
+  const isSilentBlob = Boolean(exportOptions && exportOptions.returnBlob);
+  const data = (exportOptions && exportOptions.dataOverride) || state.generatedPlanData || state.currentPlan;
   if (!data) {
-    showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
-    return;
+    if (!isSilentBlob) showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
+    return null;
   }
 
   const isEn = (state.language === 'en');
@@ -14109,7 +14110,7 @@ async function handleExportWord() {
     .replace(/[\\/:*?"<>|]/g, '_')
     .replace(/\s+/g, '_') + '.docx';
 
-  showToast('កំពុងបង្កើតឯកសារ Microsoft Word (.docx)...', 'info');
+  if (!isSilentBlob) showToast('កំពុងបង្កើតឯកសារ Microsoft Word (.docx)...', 'info');
 
   // Helper: Fallback to Python Backend /api/export/docx if client-side docx library is unavailable
   const exportViaServerDocx = async () => {
@@ -14122,6 +14123,7 @@ async function handleExportWord() {
       throw new Error(`Server Word export HTTP ${resp.status}`);
     }
     const blob = await resp.blob();
+    if (isSilentBlob) return { blob, fileName: safeFileName };
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -14554,6 +14556,7 @@ async function handleExportWord() {
         sections: [{ children: docChildren }]
       }));
       const filename = `${isEn ? 'Flipped_Classroom_Lesson_Plan' : 'កិច្ចតែងការ_បែបថ្នាក់រៀនត្រឡប់'}_${(data.subject || 'មេរៀន')}_${(data.teacher || 'កែម_បូរី')}.docx`.replace(/\s+/g, '_');
+      if (isSilentBlob) return { blob, fileName: filename };
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = filename;
@@ -14902,6 +14905,7 @@ async function handleExportWord() {
 
     // Generate blob and download reliably across all browsers
     const blob = await Packer.toBlob(doc);
+    if (isSilentBlob) return { blob, fileName: safeFileName };
     const blobUrl = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = blobUrl;
@@ -14915,10 +14919,11 @@ async function handleExportWord() {
   } catch (err) {
     console.error('Client Word Export Error, attempting server fallback:', err);
     try {
-      await exportViaServerDocx();
+      return await exportViaServerDocx();
     } catch (srvErr) {
       console.error('Server Word Export Fallback Error:', srvErr);
-      showToast(`បញ្ហាក្នុងការទាញយក Word: ${err.message}`, 'error');
+      if (!isSilentBlob) showToast(`បញ្ហាក្នុងការទាញយក Word: ${err.message}`, 'error');
+      return null;
     }
   }
 }
@@ -16159,35 +16164,196 @@ function deleteSavedLesson(id) {
 }
 
 // ==========================================================================
-// 📚 Saved Generated Lesson Plans Library (បណ្ណាល័យកិច្ចតែងការដែលបានបង្កើត)
+// 📁 LESSON FOLDERS STUDIO (IndexedDB + Auto-Named Folders + 1-Click .zip Export)
+// Stores each lesson's Plan, Slides (.pptx), Pre/Post-Test, Worksheet,
+// Attachments (PDF/Word/Images <= 15MB), Reference Links & Teacher Notes
+// locally in the user's browser (IndexedDB — 0 Server/Vercel Storage Cost!).
 // ==========================================================================
 
-function loadSavedPlans() {
+const LESSON_FOLDERS_DB_NAME = 'ALPS_LessonFoldersDB';
+const LESSON_FOLDERS_DB_VERSION = 1;
+const LESSON_FOLDERS_STORE = 'folders';
+const LESSON_FOLDER_MAX_FILE_BYTES = 15 * 1024 * 1024; // 15 MB per attachment
+
+let _lessonFoldersDbPromise = null;
+let _activeLessonFolderId = null;
+let _saveFolderContextMode = 'plan';
+
+state.lessonFolders = state.lessonFolders || [];
+
+function openLessonFoldersDb() {
+  if (_lessonFoldersDbPromise) return _lessonFoldersDbPromise;
+  _lessonFoldersDbPromise = new Promise((resolve) => {
+    if (typeof indexedDB === 'undefined') {
+      resolve(null);
+      return;
+    }
+    try {
+      const req = indexedDB.open(LESSON_FOLDERS_DB_NAME, LESSON_FOLDERS_DB_VERSION);
+      req.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(LESSON_FOLDERS_STORE)) {
+          db.createObjectStore(LESSON_FOLDERS_STORE, { keyPath: 'id' });
+        }
+      };
+      req.onsuccess = (e) => resolve(e.target.result);
+      req.onerror = () => resolve(null);
+    } catch (_) {
+      resolve(null);
+    }
+  });
+  return _lessonFoldersDbPromise;
+}
+
+async function idbGetAllLessonFolders() {
+  const db = await openLessonFoldersDb();
+  if (!db) return [];
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(LESSON_FOLDERS_STORE, 'readonly');
+      const store = tx.objectStore(LESSON_FOLDERS_STORE);
+      const req = store.getAll();
+      req.onsuccess = () => resolve(Array.isArray(req.result) ? req.result : []);
+      req.onerror = () => resolve([]);
+    } catch (_) {
+      resolve([]);
+    }
+  });
+}
+
+async function idbPutLessonFolder(folder) {
+  const db = await openLessonFoldersDb();
+  if (!db) return false;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(LESSON_FOLDERS_STORE, 'readwrite');
+      tx.objectStore(LESSON_FOLDERS_STORE).put(folder);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    } catch (_) {
+      resolve(false);
+    }
+  });
+}
+
+async function idbDeleteLessonFolder(id) {
+  const db = await openLessonFoldersDb();
+  if (!db) return false;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(LESSON_FOLDERS_STORE, 'readwrite');
+      tx.objectStore(LESSON_FOLDERS_STORE).delete(id);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    } catch (_) {
+      resolve(false);
+    }
+  });
+}
+
+function formatFolderBytes(bytes) {
+  const b = Number(bytes) || 0;
+  if (b < 1024) return `${b} B`;
+  if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+  return `${(b / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function getDefaultLessonFolderName() {
+  const inputTitle = (document.getElementById('inputLessonTitle')?.value || '').trim();
+  const planTitle = (state.generatedPlanData?.lessonTitle || '').trim();
+  const slideTitle = (state.currentSlideDeck?.meta?.lessonTitle || state.currentSlideDeck?.slides?.[0]?.title || '').trim();
+  const chapter = (document.getElementById('inputChapter')?.value || '').trim();
+  if (inputTitle) return inputTitle;
+  if (planTitle) return planTitle;
+  if (slideTitle) return slideTitle;
+  if (chapter) return chapter;
+  return `មេរៀនថ្មី (${getKhmerFormattedDate()})`;
+}
+
+function updateLessonFoldersStorageMeter() {
+  const meter = document.getElementById('lessonFolderStorageMeter');
+  if (!meter) return;
   try {
-    const raw = localStorage.getItem(SAVED_PLANS_STORAGE_KEY);
-    state.savedPlans = raw ? JSON.parse(raw) : [];
-    updateSavedPlansCountBadge();
-  } catch (e) {
-    console.error('Error loading saved plans:', e);
-    state.savedPlans = [];
-    updateSavedPlansCountBadge();
-  }
+    let totalBytes = 0;
+    (state.lessonFolders || []).forEach(f => {
+      totalBytes += new Blob([JSON.stringify(f)]).size;
+    });
+    meter.innerHTML = `<i class="fa-solid fa-hard-drive"></i> ទំហំប្រើប្រាស់ក្នុងម៉ាស៊ីន៖ ${formatFolderBytes(totalBytes)}`;
+  } catch (_) { }
 }
 
 function updateSavedPlansCountBadge() {
   const badgeHeader = document.getElementById('savedPlansCountBadge');
   const badgeModal = document.getElementById('modalSavedPlansBadge');
-  const count = state.savedPlans.length;
+  const count = (state.lessonFolders && state.lessonFolders.length > 0)
+    ? state.lessonFolders.length
+    : (state.savedPlans ? state.savedPlans.length : 0);
 
   if (badgeHeader) badgeHeader.textContent = count;
-  if (badgeModal) badgeModal.textContent = `${count} កិច្ចតែងការ`;
+  if (badgeModal) badgeModal.textContent = `${count} ថត`;
+  updateLessonFoldersStorageMeter();
 }
 
-function openSavedPlansModal() {
-  loadSavedPlans();
-  renderSavedPlansGrid();
+async function loadSavedPlans() {
+  try {
+    // 1. Load existing folders from IndexedDB
+    let folders = await idbGetAllLessonFolders();
+
+    // 2. Seamless one-time migration of any legacy localStorage savedPlans -> Lesson Folders
+    const rawLegacy = localStorage.getItem(SAVED_PLANS_STORAGE_KEY);
+    const legacyPlans = rawLegacy ? JSON.parse(rawLegacy) : [];
+    state.savedPlans = Array.isArray(legacyPlans) ? legacyPlans : [];
+
+    if (Array.isArray(legacyPlans) && legacyPlans.length > 0) {
+      const existingIds = new Set(folders.map(f => f.id));
+      let migrated = false;
+      for (const p of legacyPlans) {
+        if (!p || !p.id || existingIds.has(p.id)) continue;
+        const folder = {
+          id: p.id,
+          name: p.title || p.planData?.lessonTitle || 'កិច្ចតែងការបង្រៀន',
+          subject: p.subject || p.planData?.subject || '',
+          grade: p.grade || p.planData?.grade || '',
+          chapter: p.chapter || p.planData?.chapter || '',
+          school: p.school || p.planData?.school || '',
+          teacher: p.teacher || p.planData?.teacher || '',
+          dateLabel: p.date || getKhmerFormattedDate(),
+          createdAt: p.savedAt || new Date().toISOString(),
+          updatedAt: p.savedAt || new Date().toISOString(),
+          planData: p.planData ? JSON.parse(JSON.stringify(p.planData)) : null,
+          slideDeck: null,
+          attachments: [],
+          links: [],
+          notes: ''
+        };
+        await idbPutLessonFolder(folder);
+        folders.push(folder);
+        migrated = true;
+      }
+      if (migrated) {
+        folders = await idbGetAllLessonFolders();
+      }
+    }
+
+    folders.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+    state.lessonFolders = folders;
+    updateSavedPlansCountBadge();
+  } catch (e) {
+    console.error('Error loading lesson folders:', e);
+    state.lessonFolders = state.lessonFolders || [];
+    updateSavedPlansCountBadge();
+  }
+}
+
+async function openSavedPlansModal(openFolderId = null) {
+  await loadSavedPlans();
   const modal = document.getElementById('savedPlansModal');
   if (modal) modal.style.display = 'flex';
+  if (typeof openFolderId === 'string' && openFolderId.trim()) {
+    openLessonFolderDetail(openFolderId.trim());
+  } else {
+    showLessonFoldersGridView();
+  }
 }
 
 function closeSavedPlansModal() {
@@ -16196,50 +16362,192 @@ function closeSavedPlansModal() {
 }
 window.openSavedPlansModal = openSavedPlansModal;
 window.closeSavedPlansModal = closeSavedPlansModal;
+
+// Legacy alias now opens the smart Save-to-Folder dialog!
+function saveCurrentGeneratedPlan() {
+  openSaveToFolderModal('plan');
+}
 window.saveCurrentGeneratedPlan = saveCurrentGeneratedPlan;
 
-function saveCurrentGeneratedPlan() {
-  if (!state.generatedPlanData) {
-    showToast('មិនទាន់មានកិច្ចតែងការសម្រាប់រក្សាទុកទេ! សូមចុចបង្កើតកិច្ចតែងការជាមុនសិន។', 'warning');
-    return;
+// 📁 Quick Save-to-Lesson-Folder Modal (Auto-named from Lesson Input!)
+window.openSaveToFolderModal = async function (contextMode = 'plan') {
+  _saveFolderContextMode = contextMode;
+  await loadSavedPlans();
+
+  const hasPlan = Boolean(state.generatedPlanData);
+  const deck = (typeof loadLastInAppDeckFromStorage === 'function') ? loadLastInAppDeckFromStorage() : state.currentSlideDeck;
+  const hasSlides = Boolean(deck && Array.isArray(deck.slides) && deck.slides.length > 0);
+  const hasUploadedLesson = Boolean(state.lessonContent && state.lessonFileName);
+
+  const modal = document.getElementById('saveToFolderModal');
+  const nameInp = document.getElementById('inputSaveFolderName');
+  const sel = document.getElementById('selectExistingTargetFolder');
+  const checklist = document.getElementById('saveFolderItemsPreview');
+  if (!modal) return;
+
+  const defaultName = getDefaultLessonFolderName();
+  if (nameInp) nameInp.value = defaultName;
+
+  if (sel) {
+    const opts = ['<option value="">✨ បង្កើតថតថ្មី (ឬ Update តាមឈ្មោះដូចគ្នា)</option>'];
+    (state.lessonFolders || []).forEach(f => {
+      const selected = (f.name || '').trim().toLowerCase() === defaultName.trim().toLowerCase() ? ' selected' : '';
+      opts.push(`<option value="${escapeHtml(f.id)}"${selected}>📁 ${escapeHtml(f.name)}${f.subject ? ' — ' + escapeHtml(f.subject) : ''}</option>`);
+    });
+    sel.innerHTML = opts.join('');
   }
 
-  const plan = state.generatedPlanData;
-  const isBd = plan.templateType === 'backward_design' || Boolean(plan.stage1);
-  const planTitle = plan.lessonTitle || 'កិច្ចតែងការបង្រៀន';
+  const hasTests = Boolean(hasPlan && ((state.generatedPlanData.preTestMCQ?.length > 0) || (state.generatedPlanData.postTestMCQ?.length > 0)));
+  if (checklist) {
+    checklist.innerHTML = `
+      <div style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 2px;">ឯកសារដែលនឹងរក្សាទុកចូលថតនេះ៖</div>
+      <label class="save-folder-check-item ${hasPlan ? '' : 'disabled'}">
+        <input type="checkbox" id="chkSaveFolderPlan" ${hasPlan ? 'checked' : 'disabled'}>
+        <span>📄 កិច្ចតែងការបង្រៀន ${hasTests ? '+ វិញ្ញាសា Pre/Post-Test' : ''} ${hasPlan ? '' : '(មិនទាន់បានបង្កើត)'}</span>
+      </label>
+      <label class="save-folder-check-item ${hasSlides ? '' : 'disabled'}">
+        <input type="checkbox" id="chkSaveFolderSlides" ${hasSlides ? 'checked' : 'disabled'}>
+        <span>🎬 ស្លាយបង្រៀន Slide Studio ${hasSlides ? `(${deck.slides.length} ស្លាយ)` : '(មិនទាន់បានបង្កើត)'}</span>
+      </label>
+      ${hasUploadedLesson ? `
+      <label class="save-folder-check-item">
+        <input type="checkbox" id="chkSaveFolderSourceNote" checked>
+        <span>📎 កំណត់ត្រាឯកសារមេរៀនដើម (${escapeHtml(state.lessonFileName)})</span>
+      </label>` : ''}
+    `;
+  }
 
-  // Check if already saved with exact title & date
-  const existingIdx = state.savedPlans.findIndex(p =>
-    p.planData && p.planData.lessonTitle === plan.lessonTitle && p.planData.subject === plan.subject && p.planData.grade === plan.grade
-  );
+  modal.style.display = 'flex';
+  setTimeout(() => { if (nameInp) { nameInp.focus(); nameInp.select(); } }, 60);
+};
 
-  const planRecord = {
-    id: 'plan_' + Date.now(),
-    title: planTitle,
-    chapter: plan.chapter || '',
-    subject: plan.subject || '',
-    grade: plan.grade || '',
-    school: plan.school || '',
-    teacher: plan.teacher || '',
-    duration: plan.duration || '',
-    templateType: isBd ? 'backward_design' : '5_steps',
-    templateBadge: isBd ? 'បែបត្រឡប់ UbD' : 'ស្តង់ដារ MoEYS',
-    date: plan.dateStr || getKhmerFormattedDate(),
-    savedAt: new Date().toISOString(),
-    planData: JSON.parse(JSON.stringify(plan))
+window.closeSaveToFolderModal = function () {
+  const modal = document.getElementById('saveToFolderModal');
+  if (modal) modal.style.display = 'none';
+};
+
+window.onSelectExistingTargetFolder = function (folderId) {
+  if (!folderId) return;
+  const f = (state.lessonFolders || []).find(item => item.id === folderId);
+  const nameInp = document.getElementById('inputSaveFolderName');
+  if (f && nameInp) nameInp.value = f.name;
+};
+
+window.confirmSaveToLessonFolder = async function () {
+  const nameInp = document.getElementById('inputSaveFolderName');
+  const sel = document.getElementById('selectExistingTargetFolder');
+  const folderName = (nameInp ? nameInp.value : '').trim() || getDefaultLessonFolderName();
+  const targetId = sel ? sel.value : '';
+
+  const includePlan = Boolean(document.getElementById('chkSaveFolderPlan')?.checked && state.generatedPlanData);
+  const deck = (typeof loadLastInAppDeckFromStorage === 'function') ? loadLastInAppDeckFromStorage() : state.currentSlideDeck;
+  const includeSlides = Boolean(document.getElementById('chkSaveFolderSlides')?.checked && deck && deck.slides?.length > 0);
+  const includeSourceNote = Boolean(document.getElementById('chkSaveFolderSourceNote')?.checked && state.lessonFileName);
+
+  // Match by explicitly selected ID OR case-insensitive exact folder name
+  let existing = targetId
+    ? (state.lessonFolders || []).find(f => f.id === targetId)
+    : (state.lessonFolders || []).find(f => (f.name || '').trim().toLowerCase() === folderName.toLowerCase());
+
+  const nowIso = new Date().toISOString();
+  const plan = state.generatedPlanData || {};
+  const subj = plan.subject || (document.getElementById('inputSubject')?.value || '').trim() || deck?.meta?.subject || '';
+  const grade = plan.grade || (document.getElementById('inputGrade')?.value || '').trim() || deck?.meta?.grade || '';
+  const chapter = plan.chapter || (document.getElementById('inputChapter')?.value || '').trim() || '';
+
+  const folder = existing ? JSON.parse(JSON.stringify(existing)) : {
+    id: 'folder_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+    name: folderName,
+    subject: subj,
+    grade: grade,
+    chapter: chapter,
+    school: plan.school || (document.getElementById('inputSchool')?.value || '').trim() || '',
+    teacher: plan.teacher || (document.getElementById('inputTeacher')?.value || '').trim() || '',
+    dateLabel: plan.dateStr || getKhmerFormattedDate(),
+    createdAt: nowIso,
+    updatedAt: nowIso,
+    planData: null,
+    slideDeck: null,
+    attachments: [],
+    links: [],
+    notes: ''
   };
 
-  if (existingIdx >= 0) {
-    state.savedPlans[existingIdx] = planRecord;
-    showToast(`💾 បានធ្វើបច្ចុប្បន្នភាពកិច្ចតែងការ "${planTitle}" ក្នុងបណ្ណាល័យ!`, 'success');
-  } else {
-    state.savedPlans.unshift(planRecord);
-    showToast(`✨ បានរក្សាទុកកិច្ចតែងការ "${planTitle}" ទៅក្នុងបណ្ណាល័យជោគជ័យ!`, 'success');
+  folder.name = folderName;
+  if (subj) folder.subject = subj;
+  if (grade) folder.grade = grade;
+  if (chapter) folder.chapter = chapter;
+  folder.updatedAt = nowIso;
+
+  if (includePlan) {
+    folder.planData = JSON.parse(JSON.stringify(state.generatedPlanData));
+  }
+  if (includeSlides) {
+    folder.slideDeck = JSON.parse(JSON.stringify(deck));
+  }
+  if (includeSourceNote && state.lessonFileName) {
+    const noteLine = `📎 ឯកសារមេរៀនដើម៖ ${state.lessonFileName}`;
+    if (!folder.notes || !folder.notes.includes(state.lessonFileName)) {
+      folder.notes = folder.notes ? `${folder.notes}\n${noteLine}` : noteLine;
+    }
   }
 
-  localStorage.setItem(SAVED_PLANS_STORAGE_KEY, JSON.stringify(state.savedPlans));
-  updateSavedPlansCountBadge();
+  await idbPutLessonFolder(folder);
+  await loadSavedPlans();
+  closeSaveToFolderModal();
+
+  // Refresh modal if currently open
+  const mainModal = document.getElementById('savedPlansModal');
+  if (mainModal && mainModal.style.display === 'flex') {
+    if (_activeLessonFolderId === folder.id) {
+      renderLessonFolderDetail(folder.id);
+    } else {
+      renderSavedPlansGrid();
+    }
+  }
+
+  showToast(`📁 បានរក្សាទុកចូលថតមេរៀន «${folder.name}» ជោគជ័យ!`, 'success', 4500);
+};
+
+window.createEmptyLessonFolderPrompt = async function () {
+  const defaultName = getDefaultLessonFolderName();
+  const inputName = prompt('សូមបញ្ចូលឈ្មោះថតមេរៀនថ្មី៖', defaultName);
+  if (!inputName || !inputName.trim()) return;
+  const nowIso = new Date().toISOString();
+  const folder = {
+    id: 'folder_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+    name: inputName.trim(),
+    subject: (document.getElementById('inputSubject')?.value || '').trim(),
+    grade: (document.getElementById('inputGrade')?.value || '').trim(),
+    chapter: (document.getElementById('inputChapter')?.value || '').trim(),
+    school: (document.getElementById('inputSchool')?.value || '').trim(),
+    teacher: (document.getElementById('inputTeacher')?.value || '').trim(),
+    dateLabel: getKhmerFormattedDate(),
+    createdAt: nowIso,
+    updatedAt: nowIso,
+    planData: null,
+    slideDeck: null,
+    attachments: [],
+    links: [],
+    notes: ''
+  };
+  await idbPutLessonFolder(folder);
+  await loadSavedPlans();
+  openLessonFolderDetail(folder.id);
+  showToast(`📁 បានបង្កើតថតមេរៀន «${folder.name}» រួចរាល់!`, 'success');
+};
+
+function showLessonFoldersGridView() {
+  _activeLessonFolderId = null;
+  const gridView = document.getElementById('lessonFoldersGridView');
+  const detailView = document.getElementById('lessonFolderDetailView');
+  if (gridView) gridView.style.display = 'block';
+  if (detailView) detailView.style.display = 'none';
+  const searchVal = document.getElementById('searchSavedPlansInput')?.value || '';
+  const subjVal = document.getElementById('filterSavedPlansSubject')?.value || '';
+  renderSavedPlansGrid(searchVal, subjVal);
 }
+window.showLessonFoldersGridView = showLessonFoldersGridView;
 
 function renderSavedPlansGrid(searchQuery = '', filterSubject = '') {
   const grid = document.getElementById('savedPlansGrid');
@@ -16250,80 +16558,70 @@ function renderSavedPlansGrid(searchQuery = '', filterSubject = '') {
   const q = (searchQuery || '').trim().toLowerCase();
   const subj = (filterSubject || '').trim();
 
-  let filtered = state.savedPlans.filter(p => {
-    const matchSubj = !subj || (p.subject && p.subject === subj);
-    if (!matchSubj) return false;
-
+  const folders = (state.lessonFolders || []).filter(f => {
+    if (subj && f.subject !== subj) return false;
     if (!q) return true;
-    const titleMatch = (p.title || '').toLowerCase().includes(q);
-    const chapterMatch = (p.chapter || '').toLowerCase().includes(q);
-    const subjMatch = (p.subject || '').toLowerCase().includes(q);
-    const gradeMatch = (p.grade || '').toLowerCase().includes(q);
-    const schoolMatch = (p.school || '').toLowerCase().includes(q);
-    const dateMatch = (p.date || '').toLowerCase().includes(q);
-    return titleMatch || chapterMatch || subjMatch || gradeMatch || schoolMatch || dateMatch;
+    const hay = `${f.name || ''} ${f.subject || ''} ${f.grade || ''} ${f.chapter || ''} ${f.teacher || ''} ${f.dateLabel || ''}`.toLowerCase();
+    return hay.includes(q);
   });
 
-  if (filtered.length === 0) {
+  if (folders.length === 0) {
     if (emptyState) emptyState.style.display = 'block';
     return;
   }
-
   if (emptyState) emptyState.style.display = 'none';
 
-  filtered.forEach(planRecord => {
-    const isBd = planRecord.templateType === 'backward_design';
-    const plan = planRecord.planData || {};
+  folders.forEach(folder => {
+    const hasPlan = Boolean(folder.planData);
+    const slideCount = folder.slideDeck?.slides?.length || 0;
+    const preCount = folder.planData?.preTestMCQ?.length || 0;
+    const postCount = folder.planData?.postTestMCQ?.length || 0;
+    const fileCount = folder.attachments?.length || 0;
+    const linkCount = folder.links?.length || 0;
 
-    let snippetText = '';
-    if (isBd && plan.stage1) {
-      snippetText = plan.stage1.establishedGoals || (plan.stage1.enduringUnderstandings ? plan.stage1.enduringUnderstandings[0] : '');
-    } else if (plan.objectives && plan.objectives.knowledge) {
-      snippetText = plan.objectives.knowledge[0] || '';
-    }
+    const pills = [];
+    if (hasPlan) pills.push(`<span class="folder-pill folder-pill-plan"><i class="fa-solid fa-file-lines"></i> កិច្ចតែងការ</span>`);
+    if (slideCount > 0) pills.push(`<span class="folder-pill folder-pill-slides"><i class="fa-solid fa-display"></i> ${slideCount} ស្លាយ</span>`);
+    if (preCount > 0 || postCount > 0) pills.push(`<span class="folder-pill folder-pill-test"><i class="fa-solid fa-clipboard-check"></i> វិញ្ញាសា</span>`);
+    if (fileCount > 0) pills.push(`<span class="folder-pill folder-pill-file"><i class="fa-solid fa-paperclip"></i> ${fileCount} ឯកសារ</span>`);
+    if (linkCount > 0) pills.push(`<span class="folder-pill folder-pill-link"><i class="fa-solid fa-link"></i> ${linkCount} តំណ</span>`);
+    if (pills.length === 0) pills.push(`<span class="folder-pill folder-pill-empty">ថតទទេ</span>`);
 
     const card = document.createElement('div');
-    card.className = 'saved-plan-card';
+    card.className = 'lesson-folder-card';
+    card.onclick = () => openLessonFolderDetail(folder.id);
     card.innerHTML = `
       <div>
-        <div class="saved-plan-card-header">
-          <div>
-            <div class="saved-plan-title">${escapeHtml(planRecord.title)}</div>
-            ${planRecord.chapter ? `<div style="font-size: 0.8rem; color: var(--text-muted);">${escapeHtml(planRecord.chapter)}</div>` : ''}
+        <div class="folder-card-top">
+          <div class="folder-card-icon"><i class="fa-solid fa-folder"></i></div>
+          <div class="folder-card-info">
+            <div class="folder-card-name">${escapeHtml(folder.name || 'ថតមេរៀន')}</div>
+            <div class="folder-card-sub">
+              ${escapeHtml(folder.subject || 'ទូទៅ')}${folder.grade ? ' • ' + escapeHtml(folder.grade) : ''} • ${escapeHtml(folder.dateLabel || '')}
+            </div>
           </div>
-          <span class="plan-tag plan-tag-template">${escapeHtml(planRecord.templateBadge || 'MoEYS')}</span>
         </div>
-
-        <div class="saved-plan-tags">
-          <span class="plan-tag plan-tag-subject">${escapeHtml(planRecord.subject || 'មុខវិជ្ជា')}</span>
-          <span class="plan-tag plan-tag-grade">${escapeHtml(planRecord.grade || 'ថ្នាក់')}</span>
-        </div>
-
-        <div class="saved-plan-snippet mt-2">
-          ${escapeHtml(snippetText || 'កិច្ចតែងការបង្រៀនស្តង់ដារ')}
+        <div class="folder-content-pills mt-2">
+          ${pills.join('')}
         </div>
       </div>
 
-      <div>
-        <div class="saved-plan-meta">
-          <div><strong>គ្រឹះស្ថាន៖</strong> ${escapeHtml(planRecord.school || '-')} | <strong>គ្រូ៖</strong> ${escapeHtml(planRecord.teacher || '-')}</div>
-          <div><strong>កាលបរិច្ឆេទ៖</strong> ${escapeHtml(planRecord.date || '-')}</div>
+      <div class="folder-card-actions" onclick="event.stopPropagation()">
+        <div class="folder-card-actions-left">
+          <button type="button" class="btn-folder-mini" onclick="openLessonFolderDetail('${folder.id}')">
+            <i class="fa-solid fa-folder-open"></i> បើកថត
+          </button>
+          <button type="button" class="btn-folder-mini btn-folder-mini-zip" onclick="exportLessonFolderZip('${folder.id}')" title="ទាញយកថតទាំងមូលជាឯកសារ .zip">
+            <i class="fa-solid fa-file-zipper"></i> .zip
+          </button>
         </div>
-
-        <div class="saved-plan-card-actions">
-          <div class="actions-left">
-            <button type="button" class="btn btn-sm btn-primary" onclick="openSavedPlanInCanvas('${planRecord.id}')" title="បើកមើលលើសន្លឹក A4">
-              <i class="fa-solid fa-eye"></i> បើកមើល
-            </button>
-            <button type="button" class="btn btn-sm btn-outline btn-word" onclick="exportSavedPlanDocx('${planRecord.id}')" title="ទាញយកជា Word (.docx)">
-              <i class="fa-solid fa-file-word"></i> Word
-            </button>
-          </div>
-          <div class="actions-right">
-            <button type="button" class="btn-icon-danger" onclick="deleteSavedPlan('${planRecord.id}')" title="លុបកិច្ចតែងការនេះ">
-              <i class="fa-solid fa-trash-can"></i>
-            </button>
-          </div>
+        <div class="folder-card-actions-right">
+          <button type="button" class="btn-folder-icon" onclick="renameLessonFolder('${folder.id}')" title="ប្ដូរឈ្មោះថត">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button type="button" class="btn-folder-icon danger" onclick="deleteSavedPlan('${folder.id}')" title="លុបថតមេរៀន">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
         </div>
       </div>
     `;
@@ -16331,19 +16629,504 @@ function renderSavedPlansGrid(searchQuery = '', filterSubject = '') {
   });
 }
 
+window.openLessonFolderDetail = function (folderId) {
+  _activeLessonFolderId = folderId;
+  const gridView = document.getElementById('lessonFoldersGridView');
+  const detailView = document.getElementById('lessonFolderDetailView');
+  if (gridView) gridView.style.display = 'none';
+  if (detailView) detailView.style.display = 'block';
+  renderLessonFolderDetail(folderId);
+};
+
+function renderLessonFolderDetail(folderId) {
+  const detailView = document.getElementById('lessonFolderDetailView');
+  const folder = (state.lessonFolders || []).find(f => f.id === folderId);
+  if (!detailView || !folder) {
+    showLessonFoldersGridView();
+    return;
+  }
+
+  const hasPlan = Boolean(folder.planData);
+  const slideCount = folder.slideDeck?.slides?.length || 0;
+  const preCount = folder.planData?.preTestMCQ?.length || 0;
+  const postCount = folder.planData?.postTestMCQ?.length || 0;
+  const attachments = Array.isArray(folder.attachments) ? folder.attachments : [];
+  const links = Array.isArray(folder.links) ? folder.links : [];
+
+  const attachmentsHtml = attachments.length > 0
+    ? attachments.map(att => {
+        const isPreviewable = /^image\/|application\/pdf/i.test(att.type || '');
+        return `
+          <div class="folder-item-row">
+            <div class="folder-item-left">
+              <i class="fa-solid fa-file-lines" style="color: #ea580c; font-size: 1.05rem;"></i>
+              <div style="min-width: 0;">
+                <div class="folder-item-name" title="${escapeHtml(att.name)}">${escapeHtml(att.name)}</div>
+                <div class="folder-item-sub">${formatFolderBytes(att.size)}</div>
+              </div>
+            </div>
+            <div class="folder-item-btns">
+              ${isPreviewable ? `<button type="button" class="btn-folder-mini" onclick="previewFolderAttachment('${folder.id}', '${att.id}')"><i class="fa-solid fa-eye"></i> មើល</button>` : ''}
+              <button type="button" class="btn-folder-mini" onclick="downloadFolderAttachment('${folder.id}', '${att.id}')"><i class="fa-solid fa-download"></i> ទាញយក</button>
+              <button type="button" class="btn-folder-icon danger" onclick="deleteFolderAttachment('${folder.id}', '${att.id}')" title="លុបឯកសារ"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+          </div>
+        `;
+      }).join('')
+    : `<div style="font-size: 0.83rem; color: #94a3b8; padding: 6px 2px;">មិនទាន់មានឯកសារបន្ថែមទេ — ចុច «+ បង្ហោះឯកសារ» ដើម្បីដាក់ PDF, Word, ឬរូបភាពចូលថតនេះ។</div>`;
+
+  const linksHtml = links.length > 0
+    ? links.map(lk => `
+        <div class="folder-item-row">
+          <div class="folder-item-left">
+            <i class="fa-solid fa-link" style="color: #0284c7;"></i>
+            <div style="min-width: 0;">
+              <a href="${escapeHtml(lk.url)}" target="_blank" rel="noopener" class="folder-item-name" style="color: #0369a1; text-decoration: underline; display: block;">${escapeHtml(lk.title || lk.url)}</a>
+              <div class="folder-item-sub">${escapeHtml(lk.url)}</div>
+            </div>
+          </div>
+          <button type="button" class="btn-folder-icon danger" onclick="deleteFolderLink('${folder.id}', '${lk.id}')" title="លុបតំណភ្ជាប់"><i class="fa-solid fa-trash-can"></i></button>
+        </div>
+      `).join('')
+    : '';
+
+  detailView.innerHTML = `
+    <div class="folder-detail-header">
+      <div class="folder-detail-title-group">
+        <button type="button" class="btn-folder-secondary" onclick="showLessonFoldersGridView()">
+          <i class="fa-solid fa-arrow-left"></i> ថតទាំងអស់
+        </button>
+        <div>
+          <h4 class="folder-detail-name">📁 ${escapeHtml(folder.name)}</h4>
+          <div class="folder-detail-meta">
+            ${escapeHtml(folder.subject || 'ទូទៅ')}${folder.grade ? ' • ' + escapeHtml(folder.grade) : ''} • កែប្រែចុងក្រោយ៖ ${escapeHtml(folder.dateLabel || '')}
+          </div>
+        </div>
+      </div>
+      <div style="display: flex; gap: 7px; flex-wrap: wrap;">
+        <button type="button" class="btn-folder-secondary" onclick="renameLessonFolder('${folder.id}')">
+          <i class="fa-solid fa-pen"></i> ប្ដូរឈ្មោះ
+        </button>
+        <button type="button" class="btn-folder-primary" onclick="exportLessonFolderZip('${folder.id}')" style="background: linear-gradient(135deg, #059669, #10b981);">
+          <i class="fa-solid fa-file-zipper"></i> ទាញយកថតទាំងមូល (.zip)
+        </button>
+      </div>
+    </div>
+
+    <div class="folder-detail-sections">
+      <!-- 1. Lesson Plan + Pre/Post-Test -->
+      <div class="folder-section-card">
+        <div class="folder-section-head">
+          <div class="folder-section-title">
+            <i class="fa-solid fa-file-lines" style="color: #2563eb;"></i>
+            <span>កិច្ចតែងការបង្រៀន &amp; វិញ្ញាសា (Lesson Plan)</span>
+          </div>
+          <div class="folder-item-btns">
+            ${hasPlan ? `
+              <button type="button" class="btn-folder-mini" onclick="openSavedPlanInCanvas('${folder.id}')"><i class="fa-solid fa-eye"></i> បើកលើសន្លឹក A4</button>
+              <button type="button" class="btn-folder-mini" onclick="exportSavedPlanDocx('${folder.id}')"><i class="fa-solid fa-file-word"></i> ទាញយក .docx</button>
+            ` : ''}
+            ${state.generatedPlanData ? `
+              <button type="button" class="btn-folder-mini" onclick="attachCurrentPlanToFolder('${folder.id}')"><i class="fa-solid fa-rotate"></i> ${hasPlan ? 'ជំនួសដោយកិច្ចតែងការបច្ចុប្បន្ន' : 'ដាក់កិច្ចតែងការបច្ចុប្បន្នចូល'}</button>
+            ` : ''}
+          </div>
+        </div>
+        <div style="font-size: 0.84rem; color: #475569;">
+          ${hasPlan
+            ? `✅ មានកិច្ចតែងការពេញលេញ (${escapeHtml(folder.planData.lessonTitle || folder.name)})${preCount > 0 ? ` • Pre-Test (${preCount} សំណួរ)` : ''}${postCount > 0 ? ` • Post-Test (${postCount} សំណួរ)` : ''}`
+            : '⚠️ មិនទាន់មានកិច្ចតែងការក្នុងថតនេះទេ។'}
+        </div>
+      </div>
+
+      <!-- 2. Teaching Slides (.pptx / Slide Studio) -->
+      <div class="folder-section-card">
+        <div class="folder-section-head">
+          <div class="folder-section-title">
+            <i class="fa-solid fa-display" style="color: #7c3aed;"></i>
+            <span>ស្លាយបង្រៀន (Slide Studio &amp; PowerPoint)</span>
+          </div>
+          <div class="folder-item-btns">
+            ${slideCount > 0 ? `
+              <button type="button" class="btn-folder-mini" onclick="openFolderSlideDeck('${folder.id}')"><i class="fa-solid fa-play"></i> បើក Slide Studio</button>
+              <button type="button" class="btn-folder-mini" onclick="exportFolderSlidesPptx('${folder.id}')"><i class="fa-solid fa-file-powerpoint"></i> ទាញយក .pptx</button>
+            ` : ''}
+            ${(state.currentSlideDeck && state.currentSlideDeck.slides?.length > 0) ? `
+              <button type="button" class="btn-folder-mini" onclick="attachCurrentSlidesToFolder('${folder.id}')"><i class="fa-solid fa-rotate"></i> ${slideCount > 0 ? 'ជំនួសដោយស្លាយបច្ចុប្បន្ន' : 'ដាក់ស្លាយបច្ចុប្បន្នចូល'}</button>
+            ` : ''}
+          </div>
+        </div>
+        <div style="font-size: 0.84rem; color: #475569;">
+          ${slideCount > 0
+            ? `✅ មានស្លាយបង្រៀនចំនួន <b>${slideCount} ស្លាយ</b> រួចរាល់សម្រាប់កែ បញ្ចាំង ឬទាញយក .pptx`
+            : '⚠️ មិនទាន់មានស្លាយក្នុងថតនេះទេ — លោកគ្រូអាចបង្កើតស្លាយ រួចចុច «📁 ដាក់ចូលថត»។'}
+        </div>
+      </div>
+
+      <!-- 3. Attachments (PDF, Word, Images, etc.) -->
+      <div class="folder-section-card">
+        <div class="folder-section-head">
+          <div class="folder-section-title">
+            <i class="fa-solid fa-paperclip" style="color: #ea580c;"></i>
+            <span>ឯកសារបន្ថែមផ្សេងៗ (PDF, Word, រូបភាព — ≤ 15MB/ឯកសារ)</span>
+          </div>
+          <button type="button" class="btn-folder-mini" onclick="triggerFolderAttachmentUpload('${folder.id}')">
+            <i class="fa-solid fa-cloud-arrow-up"></i> + បង្ហោះឯកសារ
+          </button>
+        </div>
+        ${attachmentsHtml}
+      </div>
+
+      <!-- 4. Reference Links (YouTube / Websites) -->
+      <div class="folder-section-card">
+        <div class="folder-section-head">
+          <div class="folder-section-title">
+            <i class="fa-solid fa-link" style="color: #0284c7;"></i>
+            <span>តំណភ្ជាប់យោង (YouTube / វេបសាយ / Google Drive)</span>
+          </div>
+        </div>
+        <div class="folder-link-add-row">
+          <input type="text" id="inputFolderLinkTitle" class="form-control" placeholder="ឈ្មោះតំណភ្ជាប់ (ឧ. វីដេអូពន្យល់មេរៀន)" style="flex: 1; min-width: 160px;">
+          <input type="url" id="inputFolderLinkUrl" class="form-control" placeholder="https://youtube.com/..." style="flex: 1.4; min-width: 200px;">
+          <button type="button" class="btn-folder-mini" onclick="addFolderLink('${folder.id}')"><i class="fa-solid fa-plus"></i> បន្ថែម</button>
+        </div>
+        ${linksHtml}
+      </div>
+
+      <!-- 5. Teacher Notes -->
+      <div class="folder-section-card">
+        <div class="folder-section-head">
+          <div class="folder-section-title">
+            <i class="fa-solid fa-note-sticky" style="color: #ca8a04;"></i>
+            <span>កំណត់ចំណាំគ្រូសម្រាប់មេរៀននេះ (Teacher Notes)</span>
+          </div>
+        </div>
+        <textarea class="form-control" rows="3" placeholder="សរសេរកំណត់ចំណាំ សម្ភារៈត្រូវត្រៀម ឬការកែលម្អសម្រាប់ម៉ោងក្រោយ..."
+          oninput="updateFolderTeacherNotes('${folder.id}', this.value)">${escapeHtml(folder.notes || '')}</textarea>
+      </div>
+    </div>
+  `;
+}
+
+window.renameLessonFolder = async function (folderId) {
+  const folder = (state.lessonFolders || []).find(f => f.id === folderId);
+  if (!folder) return;
+  const nextName = prompt('ប្ដូរឈ្មោះថតមេរៀន៖', folder.name || '');
+  if (!nextName || !nextName.trim() || nextName.trim() === folder.name) return;
+  folder.name = nextName.trim();
+  folder.updatedAt = new Date().toISOString();
+  await idbPutLessonFolder(folder);
+  await loadSavedPlans();
+  if (_activeLessonFolderId === folderId) renderLessonFolderDetail(folderId);
+  else renderSavedPlansGrid();
+  showToast(`✏️ បានប្ដូរឈ្មោះថតទៅជា «${folder.name}»!`, 'success');
+};
+
+window.attachCurrentPlanToFolder = async function (folderId) {
+  const folder = (state.lessonFolders || []).find(f => f.id === folderId);
+  if (!folder || !state.generatedPlanData) return;
+  folder.planData = JSON.parse(JSON.stringify(state.generatedPlanData));
+  folder.updatedAt = new Date().toISOString();
+  await idbPutLessonFolder(folder);
+  await loadSavedPlans();
+  renderLessonFolderDetail(folderId);
+  showToast('✅ បានដាក់កិច្ចតែងការបច្ចុប្បន្នចូលថតរួចរាល់!', 'success');
+};
+
+window.attachCurrentSlidesToFolder = async function (folderId) {
+  const folder = (state.lessonFolders || []).find(f => f.id === folderId);
+  const deck = (typeof loadLastInAppDeckFromStorage === 'function') ? loadLastInAppDeckFromStorage() : state.currentSlideDeck;
+  if (!folder || !deck || !deck.slides?.length) return;
+  folder.slideDeck = JSON.parse(JSON.stringify(deck));
+  folder.updatedAt = new Date().toISOString();
+  await idbPutLessonFolder(folder);
+  await loadSavedPlans();
+  renderLessonFolderDetail(folderId);
+  showToast(`✅ បានដាក់ស្លាយ (${deck.slides.length} ស្លាយ) ចូលថតរួចរាល់!`, 'success');
+};
+
+window.openFolderSlideDeck = function (folderId) {
+  const folder = (state.lessonFolders || []).find(f => f.id === folderId);
+  if (!folder || !folder.slideDeck || !folder.slideDeck.slides?.length) return;
+  state.currentSlideDeck = JSON.parse(JSON.stringify(folder.slideDeck));
+  if (typeof saveLastInAppDeckToStorage === 'function') saveLastInAppDeckToStorage(state.currentSlideDeck);
+  closeSavedPlansModal();
+  if (typeof openInAppSlideStudio === 'function') openInAppSlideStudio(0);
+};
+
+window.exportFolderSlidesPptx = async function (folderId) {
+  const folder = (state.lessonFolders || []).find(f => f.id === folderId);
+  if (!folder || !folder.slideDeck || !folder.slideDeck.slides?.length) return;
+  showPptxWidget('📥 កំពុងរៀបចំឯកសារ PowerPoint (.pptx)...');
+  try {
+    await buildPptxPresentation(folder.slideDeck.slides, folder.slideDeck.meta || { lessonTitle: folder.name }, {
+      theme: folder.slideDeck.theme || 'modern_blue',
+      imageMode: folder.slideDeck.imageMode || 'ai',
+      openGoogleSlidesAfter: false
+    });
+  } catch (err) {
+    finishPptxWidgetError('បរាជ័យទាញយក .pptx: ' + (err.message || err));
+  }
+};
+
+window.triggerFolderAttachmentUpload = function (folderId) {
+  _activeLessonFolderId = folderId;
+  const inp = document.getElementById('lessonFolderAttachmentInput');
+  if (inp) {
+    inp.value = '';
+    inp.click();
+  }
+};
+
+window.handleLessonFolderAttachmentsSelected = async function (event) {
+  const files = Array.from(event?.target?.files || []);
+  const folder = (state.lessonFolders || []).find(f => f.id === _activeLessonFolderId);
+  if (!folder || files.length === 0) return;
+  folder.attachments = Array.isArray(folder.attachments) ? folder.attachments : [];
+
+  let added = 0;
+  for (const file of files) {
+    if (file.size > LESSON_FOLDER_MAX_FILE_BYTES) {
+      showToast(`⚠️ ឯកសារ "${file.name}" ធំជាង 15 MB — សូមជ្រើសឯកសារតូចជាង 15 MB!`, 'warning', 5000);
+      continue;
+    }
+    const dataUrl = await new Promise((resolve) => {
+      const r = new FileReader();
+      r.onload = (e) => resolve(e.target.result);
+      r.onerror = () => resolve(null);
+      r.readAsDataURL(file);
+    });
+    if (!dataUrl) continue;
+    folder.attachments.push({
+      id: 'att_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+      name: file.name,
+      type: file.type || 'application/octet-stream',
+      size: file.size,
+      dataUrl,
+      addedAt: new Date().toISOString()
+    });
+    added++;
+  }
+
+  if (added > 0) {
+    folder.updatedAt = new Date().toISOString();
+    await idbPutLessonFolder(folder);
+    await loadSavedPlans();
+    renderLessonFolderDetail(folder.id);
+    showToast(`📎 បានបញ្ចូល ${added} ឯកសារចូលថតមេរៀនជោគជ័យ!`, 'success');
+  }
+};
+
+window.downloadFolderAttachment = function (folderId, attId) {
+  const folder = (state.lessonFolders || []).find(f => f.id === folderId);
+  const att = folder?.attachments?.find(a => a.id === attId);
+  if (!att || !att.dataUrl) return;
+  const a = document.createElement('a');
+  a.href = att.dataUrl;
+  a.download = att.name || 'attachment';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+};
+
+window.previewFolderAttachment = function (folderId, attId) {
+  const folder = (state.lessonFolders || []).find(f => f.id === folderId);
+  const att = folder?.attachments?.find(a => a.id === attId);
+  if (!att || !att.dataUrl) return;
+  const w = window.open('', '_blank');
+  if (!w) return;
+  if (/^image\//i.test(att.type || '')) {
+    w.document.write(`<html><body style="margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${att.dataUrl}" style="max-width:96vw;max-height:96vh;"></body></html>`);
+  } else {
+    w.document.write(`<html><body style="margin:0;height:100vh;"><iframe src="${att.dataUrl}" style="width:100%;height:100%;border:none;"></iframe></body></html>`);
+  }
+  w.document.close();
+};
+
+window.deleteFolderAttachment = async function (folderId, attId) {
+  const folder = (state.lessonFolders || []).find(f => f.id === folderId);
+  if (!folder || !Array.isArray(folder.attachments)) return;
+  folder.attachments = folder.attachments.filter(a => a.id !== attId);
+  folder.updatedAt = new Date().toISOString();
+  await idbPutLessonFolder(folder);
+  await loadSavedPlans();
+  renderLessonFolderDetail(folderId);
+};
+
+window.addFolderLink = async function (folderId) {
+  const folder = (state.lessonFolders || []).find(f => f.id === folderId);
+  const titleEl = document.getElementById('inputFolderLinkTitle');
+  const urlEl = document.getElementById('inputFolderLinkUrl');
+  let url = (urlEl?.value || '').trim();
+  const title = (titleEl?.value || '').trim();
+  if (!folder || !url) {
+    showToast('⚠️ សូមបញ្ចូលតំណភ្ជាប់ URL ជាមុនសិន!', 'warning');
+    return;
+  }
+  if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+  folder.links = Array.isArray(folder.links) ? folder.links : [];
+  folder.links.push({
+    id: 'lnk_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
+    title: title || url,
+    url,
+    addedAt: new Date().toISOString()
+  });
+  folder.updatedAt = new Date().toISOString();
+  await idbPutLessonFolder(folder);
+  await loadSavedPlans();
+  renderLessonFolderDetail(folderId);
+  showToast('🔗 បានបន្ថែមតំណភ្ជាប់ជោគជ័យ!', 'success', 2500);
+};
+
+window.deleteFolderLink = async function (folderId, linkId) {
+  const folder = (state.lessonFolders || []).find(f => f.id === folderId);
+  if (!folder || !Array.isArray(folder.links)) return;
+  folder.links = folder.links.filter(l => l.id !== linkId);
+  folder.updatedAt = new Date().toISOString();
+  await idbPutLessonFolder(folder);
+  await loadSavedPlans();
+  renderLessonFolderDetail(folderId);
+};
+
+let _folderNotesSaveTimer = null;
+window.updateFolderTeacherNotes = function (folderId, val) {
+  const folder = (state.lessonFolders || []).find(f => f.id === folderId);
+  if (!folder) return;
+  folder.notes = String(val || '');
+  folder.updatedAt = new Date().toISOString();
+  clearTimeout(_folderNotesSaveTimer);
+  _folderNotesSaveTimer = setTimeout(() => {
+    idbPutLessonFolder(folder);
+  }, 450);
+};
+
+// 📦 1-Click Export Entire Lesson Folder as Real .zip Package (.docx + .pptx + Worksheet + Attachments + Links!)
+window.exportLessonFolderZip = async function (folderId) {
+  const folder = (state.lessonFolders || []).find(f => f.id === folderId);
+  if (!folder) return;
+  if (typeof JSZip === 'undefined') {
+    showToast('❌ បណ្ណាល័យ JSZip មិនទាន់ផ្ទុករួចរាល់ទេ!', 'error');
+    return;
+  }
+
+  const safeFolderName = (folder.name || 'Lesson_Folder')
+    .replace(/[\\/:*?"<>|]/g, '_')
+    .replace(/\s+/g, '_')
+    .slice(0, 60);
+
+  showToast(`📦 កំពុងវេចខ្ចប់ថត «${folder.name}» ជាឯកសារ .zip...`, 'info', 8000);
+
+  try {
+    const zip = new JSZip();
+    const rootDir = zip.folder(safeFolderName);
+    let itemCount = 0;
+
+    // 1. Lesson Plan (.docx)
+    if (folder.planData) {
+      const docxRes = await handleExportWord({ dataOverride: folder.planData, returnBlob: true });
+      if (docxRes && docxRes.blob) {
+        rootDir.file(`01_Lesson_Plan_${safeFolderName}.docx`, docxRes.blob);
+        itemCount++;
+      }
+      // Also bundle Student Worksheet (.docx) if generated or constructible
+      try {
+        const wsRes = await exportWorksheetDocx({ dataOverride: folder.planData, returnBlob: true });
+        if (wsRes && wsRes.blob) {
+          rootDir.file(`03_Student_Worksheet_${safeFolderName}.docx`, wsRes.blob);
+          itemCount++;
+        }
+      } catch (_) { }
+    }
+
+    // 2. Teaching Slides (.pptx)
+    if (folder.slideDeck && Array.isArray(folder.slideDeck.slides) && folder.slideDeck.slides.length > 0) {
+      const pptxRes = await buildPptxPresentation(
+        folder.slideDeck.slides,
+        folder.slideDeck.meta || { lessonTitle: folder.name, subject: folder.subject, grade: folder.grade },
+        {
+          theme: folder.slideDeck.theme || 'modern_blue',
+          imageMode: folder.slideDeck.imageMode || 'ai',
+          returnBlob: true
+        }
+      );
+      if (pptxRes && pptxRes.blob) {
+        rootDir.file(`02_Teaching_Slides_${safeFolderName}.pptx`, pptxRes.blob);
+        itemCount++;
+      }
+    }
+
+    // 3. Links & Teacher Notes (.txt UTF-8)
+    const hasLinks = Array.isArray(folder.links) && folder.links.length > 0;
+    const hasNotes = Boolean((folder.notes || '').trim());
+    if (hasLinks || hasNotes) {
+      let txt = `📁 ថតមេរៀន៖ ${folder.name}\n`;
+      txt += `មុខវិជ្ជា៖ ${folder.subject || '-'} | កម្រិតថ្នាក់៖ ${folder.grade || '-'}\n`;
+      txt += `កាលបរិច្ឆេទ៖ ${folder.dateLabel || ''}\n`;
+      txt += `==================================================\n\n`;
+      if (hasLinks) {
+        txt += `🔗 តំណភ្ជាប់យោង (Reference Links):\n`;
+        folder.links.forEach((l, i) => {
+          txt += `${i + 1}. ${l.title || l.url}\n   ${l.url}\n`;
+        });
+        txt += `\n`;
+      }
+      if (hasNotes) {
+        txt += `🗒️ កំណត់ចំណាំគ្រូ (Teacher Notes):\n${folder.notes}\n`;
+      }
+      rootDir.file('04_Links_and_Notes.txt', txt);
+      itemCount++;
+    }
+
+    // 4. Uploaded Attachments (PDF, Word, Images, etc.)
+    if (Array.isArray(folder.attachments) && folder.attachments.length > 0) {
+      const matDir = rootDir.folder('05_Materials');
+      folder.attachments.forEach((att, idx) => {
+        if (!att.dataUrl) return;
+        const commaIdx = att.dataUrl.indexOf(',');
+        if (commaIdx < 0) return;
+        const base64Body = att.dataUrl.slice(commaIdx + 1);
+        const safeAttName = (att.name || `material_${idx + 1}`).replace(/[\\/:*?"<>|]/g, '_');
+        matDir.file(safeAttName, base64Body, { base64: true });
+        itemCount++;
+      });
+    }
+
+    if (itemCount === 0) {
+      rootDir.file('README.txt', `ថតមេរៀន៖ ${folder.name}\n(មិនទាន់មានឯកសារក្នុងថតនេះនៅឡើយទេ)`);
+    }
+
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const url = URL.createObjectURL(zipBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${safeFolderName}.zip`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+
+    showToast(`✅ បានទាញយកថត «${safeFolderName}.zip» (${itemCount} ឯកសារ) ជោគជ័យ!`, 'success', 6000);
+  } catch (err) {
+    console.error('Export Folder ZIP error:', err);
+    showToast('❌ បរាជ័យវេចខ្ចប់ .zip: ' + (err.message || err), 'error');
+  }
+};
+
 function openSavedPlanInCanvas(id) {
-  const record = state.savedPlans.find(p => p.id === id);
+  const record = (state.lessonFolders || []).find(p => p.id === id) || (state.savedPlans || []).find(p => p.id === id);
   if (!record || !record.planData) {
     showToast('រកមិនឃើញទិន្នន័យកិច្ចតែងការនេះទេ', 'error');
     return;
   }
 
-  if (typeof closeSavedPlansModal === 'function') {
-    closeSavedPlansModal();
-  }
+  closeSavedPlansModal();
+  state.generatedPlanData = JSON.parse(JSON.stringify(record.planData));
+  renderLessonPlanToA4(state.generatedPlanData);
 
-  state.generatedPlanData = record.planData;
-  renderLessonPlanToA4(record.planData);
+  // Also load this folder's Slide Deck into memory if present!
+  if (record.slideDeck && Array.isArray(record.slideDeck.slides) && record.slideDeck.slides.length > 0) {
+    state.currentSlideDeck = JSON.parse(JSON.stringify(record.slideDeck));
+    if (typeof saveLastInAppDeckToStorage === 'function') saveLastInAppDeckToStorage(state.currentSlideDeck);
+  }
 
   if (typeof setMobileWorkspaceView === 'function' && window.innerWidth < 1024) {
     setMobileWorkspaceView('preview');
@@ -16352,7 +17135,6 @@ function openSavedPlanInCanvas(id) {
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('printableDoc').style.display = 'block';
 
-  // Also pre-fill the form inputs with this plan's info
   if (record.planData.subject) {
     if (typeof setSubjectValue === 'function') setSubjectValue(record.planData.subject);
     else document.getElementById('inputSubject').value = record.planData.subject;
@@ -16370,7 +17152,6 @@ function openSavedPlanInCanvas(id) {
     if (typeof saveSelectedTechniques === 'function') saveSelectedTechniques(record.planData.techniques);
     if (typeof renderTechniquesChips === 'function') renderTechniquesChips();
   }
-
   if (record.planData.grade) {
     const degreeKey = findDegreeKeyForGrade(record.planData.grade);
     const inputDegree = document.getElementById('inputDegree');
@@ -16380,81 +17161,107 @@ function openSavedPlanInCanvas(id) {
     }
   }
 
-  closeSavedPlansModal();
-  showToast(`✨ បានបើកកិច្ចតែងការ "${record.title}" លើសន្លឹក A4 រួចរាល់!`, 'success');
+  showToast(`✨ បានបើកកិច្ចតែងការ «${record.name || record.title}» លើសន្លឹក A4 រួចរាល់!`, 'success');
 }
+window.openSavedPlanInCanvas = openSavedPlanInCanvas;
 
 async function exportSavedPlanDocx(id) {
-  const record = state.savedPlans.find(p => p.id === id);
+  const record = (state.lessonFolders || []).find(p => p.id === id) || (state.savedPlans || []).find(p => p.id === id);
   if (!record || !record.planData) return;
-
-  const previous = state.generatedPlanData;
-  state.generatedPlanData = record.planData;
-  await handleExportWord();
-  state.generatedPlanData = previous;
+  await handleExportWord({ dataOverride: record.planData });
 }
+window.exportSavedPlanDocx = exportSavedPlanDocx;
 
-function deleteSavedPlan(id) {
-  const record = state.savedPlans.find(p => p.id === id);
-  const title = record ? record.title : 'កិច្ចតែងការ';
+async function deleteSavedPlan(id) {
+  const record = (state.lessonFolders || []).find(p => p.id === id);
+  const title = record ? record.name : 'ថតមេរៀន';
 
-  if (!confirm(`តើអ្នកពិតជាចង់លុបកិច្ចតែងការ "${title}" នេះចេញពីបណ្ណាល័យមែនទេ?`)) {
+  if (!confirm(`តើអ្នកពិតជាចង់លុបថតមេរៀន «${title}» (រួមទាំងស្លាយ & ឯកសារក្នុងថត) មែនទេ?`)) {
     return;
   }
 
-  state.savedPlans = state.savedPlans.filter(p => p.id !== id);
-  localStorage.setItem(SAVED_PLANS_STORAGE_KEY, JSON.stringify(state.savedPlans));
-  updateSavedPlansCountBadge();
-  renderSavedPlansGrid();
-  showToast(`បានលុបកិច្ចតែងការ "${title}" ចេញរួចរាល់`, 'info');
+  await idbDeleteLessonFolder(id);
+  state.savedPlans = (state.savedPlans || []).filter(p => p.id !== id);
+  try { localStorage.setItem(SAVED_PLANS_STORAGE_KEY, JSON.stringify(state.savedPlans)); } catch (_) { }
+  await loadSavedPlans();
+  showLessonFoldersGridView();
+  showToast(`🗑️ បានលុបថតមេរៀន «${title}» រួចរាល់`, 'info');
 }
+window.deleteSavedPlan = deleteSavedPlan;
 
 function exportAllPlansAsJson() {
-  if (!state.savedPlans || state.savedPlans.length === 0) {
-    showToast('មិនទាន់មានកិច្ចតែងការសម្រាប់ Backup ទេ!', 'warning');
+  const folders = state.lessonFolders || [];
+  if (folders.length === 0) {
+    showToast('មិនទាន់មានថតមេរៀនសម្រាប់ Backup ទេ!', 'warning');
     return;
   }
 
   const backupData = {
-    appName: "AI Lesson Plan Studio",
-    version: "2.0",
+    appName: 'AI Lesson Plan Studio',
+    version: '3.0',
     exportDate: new Date().toISOString(),
-    plansCount: state.savedPlans.length,
-    plans: state.savedPlans,
-    lessons: state.savedLessons
+    foldersCount: folders.length,
+    folders: folders,
+    lessons: state.savedLessons || []
   };
 
   const jsonStr = JSON.stringify(backupData, null, 2);
-  const blob = new Blob([jsonStr], { type: "application/json" });
+  const blob = new Blob([jsonStr], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `LessonPlans_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+  link.download = `LessonFolders_Backup_${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
-  URL.revokeObjectURL(url);
-  showToast(`📥 បានទាញយក Backup កិច្ចតែងការទាំងអស់ជោគជ័យ!`, 'success');
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  showToast(`📥 បានទាញយក Backup ថតមេរៀនទាំង ${folders.length} ជោគជ័យ!`, 'success');
 }
 
 function importPlansFromJson(file) {
   const reader = new FileReader();
-  reader.onload = (e) => {
+  reader.onload = async (e) => {
     try {
       const data = JSON.parse(e.target.result);
-      let importedPlansCount = 0;
+      let importedFoldersCount = 0;
       let importedLessonsCount = 0;
 
-      if (data.plans && Array.isArray(data.plans)) {
-        // Merge or prepend plans without duplicates by ID
-        data.plans.forEach(plan => {
-          if (!state.savedPlans.some(p => p.id === plan.id)) {
-            state.savedPlans.unshift(plan);
-            importedPlansCount++;
+      const existingIds = new Set((state.lessonFolders || []).map(f => f.id));
+
+      // Support v3 folders backup
+      if (Array.isArray(data.folders)) {
+        for (const f of data.folders) {
+          if (f && f.id && !existingIds.has(f.id)) {
+            await idbPutLessonFolder(f);
+            existingIds.add(f.id);
+            importedFoldersCount++;
           }
-        });
-        localStorage.setItem(SAVED_PLANS_STORAGE_KEY, JSON.stringify(state.savedPlans));
+        }
+      }
+      // Support legacy v2 plans backup
+      if (Array.isArray(data.plans)) {
+        for (const p of data.plans) {
+          if (p && p.id && !existingIds.has(p.id)) {
+            await idbPutLessonFolder({
+              id: p.id,
+              name: p.title || p.planData?.lessonTitle || 'កិច្ចតែងការបង្រៀន',
+              subject: p.subject || p.planData?.subject || '',
+              grade: p.grade || p.planData?.grade || '',
+              chapter: p.chapter || '',
+              dateLabel: p.date || getKhmerFormattedDate(),
+              createdAt: p.savedAt || new Date().toISOString(),
+              updatedAt: p.savedAt || new Date().toISOString(),
+              planData: p.planData || null,
+              slideDeck: null,
+              attachments: [],
+              links: [],
+              notes: ''
+            });
+            existingIds.add(p.id);
+            importedFoldersCount++;
+          }
+        }
       }
 
-      if (data.lessons && Array.isArray(data.lessons)) {
+      if (Array.isArray(data.lessons)) {
         data.lessons.forEach(lesson => {
           if (!state.savedLessons.some(l => l.id === lesson.id)) {
             state.savedLessons.unshift(lesson);
@@ -16465,9 +17272,9 @@ function importPlansFromJson(file) {
         updateSavedLessonsUI();
       }
 
-      updateSavedPlansCountBadge();
-      renderSavedPlansGrid();
-      showToast(`📤 បានស្តារ (${importedPlansCount} កិច្ចតែងការ, ${importedLessonsCount} មេរៀន) ដោយជោគជ័យ!`, 'success');
+      await loadSavedPlans();
+      showLessonFoldersGridView();
+      showToast(`📤 បានស្តារ (${importedFoldersCount} ថតមេរៀន, ${importedLessonsCount} មេរៀនដើម) ជោគជ័យ!`, 'success');
     } catch (err) {
       console.error('Import error:', err);
       showToast('ឯកសារ JSON មិនត្រឹមត្រូវ: ' + err.message, 'error');
@@ -22203,6 +23010,10 @@ window.buildPptxPresentation = async function (slidesData, meta, options) {
     .replace(/[\\/:*?"<>|]/g, '_')
     .trim();
   const fileName = `PPT_${cleanTitle || 'Lesson'}.pptx`;
+  if (options.returnBlob) {
+    const blob = await pptx.write({ outputType: 'blob' });
+    return { blob, fileName };
+  }
   await pptx.writeFile({ fileName: fileName });
 
   if (options.openGoogleSlidesAfter) {
@@ -23329,8 +24140,9 @@ function renderWorksheetPreview() {
 }
 window.renderWorksheetPreview = renderWorksheetPreview;
 
-async function exportWorksheetDocx() {
-  let data = state.generatedPlanData || state.currentPlan;
+async function exportWorksheetDocx(exportOptions = {}) {
+  const isSilentBlob = Boolean(exportOptions && exportOptions.returnBlob);
+  let data = (exportOptions && exportOptions.dataOverride) || state.generatedPlanData || state.currentPlan;
   if (!data) {
     try {
       const history = JSON.parse(localStorage.getItem('alps_plan_history') || '[]');
@@ -23589,6 +24401,7 @@ async function exportWorksheetDocx() {
 
     const blob = await Packer.toBlob(doc);
     const fileName = `សន្លឹកកិច្ចការសិស្ស_${(data.subject || 'មេរៀន')}_${(data.lessonTitle || 'កិច្ចការ')}.docx`.replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '_');
+    if (isSilentBlob) return { blob, fileName };
 
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

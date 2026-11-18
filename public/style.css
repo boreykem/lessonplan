@@ -7397,3 +7397,376 @@ tr.step-just-updated td {
     max-height: 180px;
   }
 }
+
+
+/* ==========================================================================
+   📁 Lesson Folders Studio (In-App Folders + 1-Click .zip Export)
+   ========================================================================== */
+.studio-btn-folder {
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+}
+
+.btn-folder-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: #ffffff;
+  border: none;
+  border-radius: 9px;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.25);
+  transition: transform 0.12s ease, opacity 0.15s ease;
+}
+
+.btn-folder-primary:hover {
+  transform: translateY(-1px);
+  opacity: 0.94;
+}
+
+.btn-folder-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  color: #0f172a;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 9px;
+  padding: 7px 12px;
+  font-family: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-folder-secondary:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.lesson-folders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.lesson-folder-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 14px 15px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  transition: all 0.16s ease;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+  cursor: pointer;
+  position: relative;
+}
+
+.lesson-folder-card:hover {
+  border-color: #38bdf8;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px -8px rgba(2, 132, 199, 0.22);
+}
+
+.folder-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+}
+
+.folder-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  color: #d97706;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+  flex-shrink: 0;
+  border: 1px solid #fcd34d;
+}
+
+.folder-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.folder-card-name {
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.folder-card-sub {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+.folder-content-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.folder-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 99px;
+}
+
+.folder-pill-plan { background: #eff6ff; color: #1d4ed8; }
+.folder-pill-slides { background: #f5f3ff; color: #6d28d9; }
+.folder-pill-test { background: #ecfdf5; color: #047857; }
+.folder-pill-file { background: #fff7ed; color: #c2410c; }
+.folder-pill-link { background: #f0f9ff; color: #0369a1; }
+.folder-pill-empty { background: #f1f5f9; color: #64748b; }
+
+.folder-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding-top: 9px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.folder-card-actions-left {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.folder-card-actions-right {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-folder-mini {
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  border-radius: 7px;
+  padding: 5px 10px;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-folder-mini:hover {
+  background: #eff6ff;
+  border-color: #60a5fa;
+  color: #1d4ed8;
+}
+
+.btn-folder-mini-zip {
+  background: #ecfdf5;
+  border-color: #6ee7b7;
+  color: #047857;
+}
+
+.btn-folder-mini-zip:hover {
+  background: #059669;
+  border-color: #059669;
+  color: #ffffff;
+}
+
+.btn-folder-icon {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #64748b;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.btn-folder-icon:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.btn-folder-icon.danger:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Folder Detail View (Inside a Lesson Folder) */
+.folder-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1.5px solid #e2e8f0;
+}
+
+.folder-detail-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 220px;
+}
+
+.folder-detail-name {
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.folder-detail-meta {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.folder-detail-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.folder-section-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 13px 15px;
+}
+
+.folder-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.folder-section-title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.folder-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 9px 11px;
+  border-radius: 9px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 7px;
+}
+
+.folder-item-row:last-child {
+  margin-bottom: 0;
+}
+
+.folder-item-left {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  flex: 1;
+}
+
+.folder-item-name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-item-sub {
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+.folder-item-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.folder-link-add-row {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.folder-storage-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0369a1;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  padding: 4px 10px;
+  border-radius: 99px;
+}
+
+.save-folder-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 11px 13px;
+}
+
+.save-folder-check-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+}
+
+.save-folder-check-item.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
