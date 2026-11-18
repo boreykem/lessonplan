@@ -2465,7 +2465,14 @@ function setLanguage(lang, showNotification = false) {
   // Update word counter
   updateWordCount();
 
-  // 16. Translate tooltips and action buttons
+  // 16. Translate smart floating tooltips and action buttons
+  const setSmartTip = (el, t, d) => {
+    if (!el) return;
+    el.setAttribute('data-tooltip-title', t);
+    el.setAttribute('data-tooltip-desc', d);
+    el.removeAttribute('title');
+  };
+
   const btnWord = document.getElementById('btnExportWord');
   const btnPdf = document.getElementById('btnPrintPdf');
   const btnCopy = document.getElementById('btnCopyText');
@@ -2476,22 +2483,42 @@ function setLanguage(lang, showNotification = false) {
   const btnPptx = document.getElementById('btnExportPptx');
   const btnPre = document.getElementById('btnToolbarPreTest');
   const btnPost = document.getElementById('btnToolbarPostTest');
+  const btnWorksheet = document.getElementById('btnOpenWorksheetModal');
+  const btnDiagram = document.getElementById('btnInsertDocImage');
 
-  if (btnWord) btnWord.title = isEn ? "Download Microsoft Word (.docx)" : "ទាញយកជាឯកសារ Microsoft Word (.docx)";
-  if (btnPdf) btnPdf.title = isEn ? "Print or Save as PDF" : "បោះពុម្ព ឬរក្សាទុកជា PDF";
-  if (btnCopy) btnCopy.title = isEn ? "Copy All Text" : "ចម្លងអត្ថបទទាំងអស់";
-  if (btnNblm) btnNblm.title = isEn ? "Open Google NotebookLM for AI Audio/Video" : "បើក Google NotebookLM ដើម្បីបង្កើត AI Audio Overview / Video";
-  if (btnGain) btnGain.title = isEn ? "Calculate Hake's Normalized Learning Gain" : "គណនាអត្រាកំណើននៃការរៀនសូត្រ (Hake's Normalized Learning Gain)";
+  setSmartTip(btnWord,
+    isEn ? '📄 Download Word (.docx)' : '📄 ទាញយក Word (.docx)',
+    isEn ? 'Export official Microsoft Word document ready to print' : 'ដោនឡូតជាឯកសារ Microsoft Word ស្តង់ដារផ្លូវការ');
+  setSmartTip(btnPdf,
+    isEn ? '🖨️ Print / Save PDF' : '🖨️ បោះពុម្ព / រក្សាទុក PDF',
+    isEn ? 'Print directly on A4 paper or save as a PDF file' : 'បោះពុម្ពលើក្រដាស A4 ឬរក្សាទុកជាឯកសារ PDF');
+  setSmartTip(btnCopy,
+    isEn ? '📋 Copy All Text' : '📋 ចម្លងអត្ថបទទាំងអស់',
+    isEn ? 'Copy the full lesson plan text to your clipboard' : 'ចម្លងខ្លឹមសារកិច្ចតែងការទាំងមូលទុក Paste កន្លែងផ្សេង');
+  setSmartTip(btnNblm,
+    isEn ? '🎙️ Google NotebookLM' : '🎙️ Google NotebookLM',
+    isEn ? 'Create AI Audio/Video Overview from this lesson' : 'បង្កើតវីដេអូ ឬសំឡេងពន្យល់មេរៀន (AI Audio/Video Overview)');
+  setSmartTip(btnGain,
+    isEn ? '🧮 Learning Gain Calculator' : '🧮 គណនា Learning Gain',
+    isEn ? "Measure student learning growth (Pre-Test vs Post-Test)" : 'វាស់ស្ទង់អត្រាកំណើនការរៀនសូត្រ (Pre-Test ធៀប Post-Test)');
+  setSmartTip(btnPptx,
+    isEn ? '📊 Generate PowerPoint (.pptx)' : '📊 បង្កើតស្លាយ PowerPoint (.pptx)',
+    isEn ? 'Create AI-designed presentation slides for classroom teaching' : 'បង្កើតស្លាយបង្រៀនស្វ័យប្រវត្តិដោយ AI សម្រាប់បញ្ចាំងក្នុងថ្នាក់');
+  setSmartTip(btnWorksheet,
+    isEn ? '📝 Student Worksheet' : '📝 សន្លឹកកិច្ចការសិស្ស (Worksheet)',
+    isEn ? 'Generate printable student exercises & activity handouts' : 'បង្កើតសន្លឹកកិច្ចការ និងលំហាត់សម្រាប់ចែកជូនសិស្សអនុវត្ត');
+  setSmartTip(btnDiagram,
+    isEn ? '🖼️ Insert Diagram / Image' : '🖼️ បញ្ចូលគំនូសតាង / រូបភាព',
+    isEn ? 'Add science diagrams, charts, or photos into the A4 plan' : 'បន្ថែមរូបភាព ក្រាហ្វិក ឬគំនូសតាងពិសោធន៍ចូលក្នុងសន្លឹក A4');
+  setSmartTip(btnPre,
+    isEn ? '✨ Generate Pre-Test (QCM)' : '✨ បង្កើតបុរេតេស្ត (Pre-Test QCM)',
+    isEn ? 'Create diagnostic quiz before class to check readiness' : 'បង្កើតសំណួរស្ទង់មតិមុនម៉ោងរៀន ដើម្បីដឹងកម្រិតយល់ដឹងសិស្ស');
+  setSmartTip(btnPost,
+    isEn ? '🎓 Generate Post-Test (MCQ)' : '🎓 បង្កើតបច្ឆាតេស្ត (Post-Test MCQ)',
+    isEn ? 'Create end-of-lesson mastery assessment questions' : 'បង្កើតសំណួរវាយតម្លៃចុងម៉ោង ដើម្បីវាស់លទ្ធផលសិក្សា');
+
   if (btnInstall) btnInstall.title = isEn ? "Install Application on Screen (PWA)" : "ដំឡើងកម្មវិធីលើអេក្រង់កុំព្យូទ័រ ឬទូរស័ព្ទ (Install App)";
   if (btnReset) btnReset.title = isEn ? "Reset Form Inputs" : "កំណត់ទិន្នន័យឡើងវិញ";
-  if (btnPptx) btnPptx.title = isEn ? "Generate & Download PowerPoint (.pptx)" : "បង្កើត និងទាញយកស្លាយ PowerPoint (.pptx)";
-  if (btnPre) btnPre.title = isEn ? "Generate Diagnostic Pre-Test (QCM)" : "បង្កើតបុរេតេស្ត (Pre-Test QCM)";
-  if (btnPost) btnPost.title = isEn ? "Generate Mastery Post-Test (MCQ)" : "បង្កើតបច្ឆាតេស្ត (Post-Test MCQ)";
-
-  const btnDiagram = document.getElementById('btnInsertDocImage');
-  const btnDiagramText = document.querySelector('[data-i18n="btnInsertDiagram"]');
-  if (btnDiagram) btnDiagram.title = isEn ? "Insert Science Diagram, Chart or Image" : "បញ្ចូលរូបភាព គំនូសតាងពិសោធន៍ ឬក្រាហ្វិក (Insert Diagram / Image)";
-  if (btnDiagramText) btnDiagramText.textContent = isEn ? "Diagram/Image" : "គំនូសតាង/រូបភាព";
 
   // 17. Translate duration chips & active duration label
   const durationChips = document.querySelectorAll('#durationChipsGrid .duration-chip');
@@ -2543,13 +2570,11 @@ function setLanguage(lang, showNotification = false) {
     if (s) s.textContent = isEn ? "Attach File" : "ភ្ជាប់ឯកសារ";
   }
 
-  // 22. Translate save generated plan button
+  // 22. Translate save generated plan button (Smart Floating Tooltip)
   const btnSaveGen = document.getElementById('btnSaveGeneratedPlan');
-  if (btnSaveGen) {
-    btnSaveGen.title = isEn ? "Save this lesson plan to library" : "រក្សាទុកកិច្ចតែងការនេះទៅក្នុងបណ្ណាល័យ";
-    const s = btnSaveGen.querySelector('span');
-    if (s) s.textContent = isEn ? "Save" : "រក្សាទុក";
-  }
+  setSmartTip(btnSaveGen,
+    isEn ? '💾 Save Lesson Plan' : '💾 រក្សាទុកកិច្ចតែងការ',
+    isEn ? 'Save this plan to your library to edit or reuse later' : 'រក្សាទុកចូលបណ្ណាល័យ ដើម្បីបើកកែ ឬប្រើលើកក្រោយ');
 
   // 23. Update Empty State API Banner & Status
   if (typeof updateEmptyStateApiStatus === 'function') {
@@ -3356,6 +3381,99 @@ function findDegreeKeyForGrade(gradeName) {
   return 'lower_sec';
 }
 
+// ✨ Smart Modern Floating Hover Tooltips (Instant, viewport-clamped, rich Khmer + English comment)
+function initSmartHoverTooltips() {
+  if (window._smartHoverTooltipsInitialized) return;
+  window._smartHoverTooltipsInitialized = true;
+
+  let tipEl = document.getElementById('smartHoverTooltip');
+  if (!tipEl) {
+    tipEl = document.createElement('div');
+    tipEl.id = 'smartHoverTooltip';
+    tipEl.className = 'smart-hover-tooltip';
+    tipEl.setAttribute('role', 'tooltip');
+    tipEl.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(tipEl);
+  }
+
+  let activeTarget = null;
+
+  const showTip = (target) => {
+    const title = target.getAttribute('data-tooltip-title');
+    if (!title) return;
+    const desc = target.getAttribute('data-tooltip-desc') || '';
+    activeTarget = target;
+
+    tipEl.innerHTML = `
+      <div class="smart-tooltip-arrow"></div>
+      <div class="smart-tooltip-title">${escapeHtml(title)}</div>
+      ${desc ? `<div class="smart-tooltip-desc">${escapeHtml(desc)}</div>` : ''}
+    `;
+    tipEl.classList.remove('tip-above');
+    tipEl.style.left = '0px';
+    tipEl.style.top = '0px';
+    tipEl.classList.add('visible');
+    tipEl.setAttribute('aria-hidden', 'false');
+
+    const rect = target.getBoundingClientRect();
+    const tipW = tipEl.offsetWidth;
+    const tipH = tipEl.offsetHeight;
+    const gap = 10;
+
+    let top = rect.bottom + gap;
+    let isAbove = false;
+    if (top + tipH > window.innerHeight - 10 && rect.top - tipH - gap > 10) {
+      top = rect.top - tipH - gap;
+      isAbove = true;
+    }
+
+    const btnCenterX = rect.left + rect.width / 2;
+    let left = btnCenterX - tipW / 2;
+    left = Math.max(10, Math.min(window.innerWidth - tipW - 10, left));
+
+    tipEl.style.left = `${Math.round(left)}px`;
+    tipEl.style.top = `${Math.round(top)}px`;
+    tipEl.classList.toggle('tip-above', isAbove);
+
+    const arrow = tipEl.querySelector('.smart-tooltip-arrow');
+    if (arrow) {
+      const arrowX = Math.max(14, Math.min(tipW - 14, btnCenterX - left));
+      arrow.style.left = `${Math.round(arrowX)}px`;
+    }
+  };
+
+  const hideTip = () => {
+    activeTarget = null;
+    tipEl.classList.remove('visible');
+    tipEl.setAttribute('aria-hidden', 'true');
+  };
+
+  document.addEventListener('mouseover', (e) => {
+    const target = e.target && e.target.closest ? e.target.closest('[data-tooltip-title]') : null;
+    if (target) {
+      if (target !== activeTarget) showTip(target);
+    } else if (activeTarget) {
+      hideTip();
+    }
+  });
+
+  document.addEventListener('mouseout', (e) => {
+    if (!activeTarget) return;
+    const related = e.relatedTarget && e.relatedTarget.closest ? e.relatedTarget.closest('[data-tooltip-title]') : null;
+    if (related !== activeTarget) hideTip();
+  });
+
+  document.addEventListener('focusin', (e) => {
+    const target = e.target && e.target.closest ? e.target.closest('[data-tooltip-title]') : null;
+    if (target) showTip(target);
+  });
+
+  document.addEventListener('focusout', () => hideTip());
+  document.addEventListener('mousedown', () => hideTip());
+  window.addEventListener('scroll', () => { if (activeTarget) hideTip(); }, true);
+}
+window.initSmartHoverTooltips = initSmartHoverTooltips;
+
 // Initialize on DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
   try { initPdfJs(); } catch (e) { console.error('initPdfJs err:', e); }
@@ -3376,6 +3494,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try { updateEmptyStateApiStatus(); } catch (e) { console.error('updateEmptyStateApiStatus err:', e); }
   try { initPedagogyControls(); } catch (e) { console.error('initPedagogyControls err:', e); }
   try { updateDynamicPacingBar(); } catch (e) { console.error('updateDynamicPacingBar err:', e); }
+  try { initSmartHoverTooltips(); } catch (e) { console.error('initSmartHoverTooltips err:', e); }
   try { setLanguage(state.language || 'km', false); } catch (e) { console.error('setLanguage err:', e); }
   try { updateWordCount(); } catch (e) { console.error('updateWordCount err:', e); }
   try { loadCustomSubjectsFromStorage(); } catch (e) { console.error('loadCustomSubjectsFromStorage err:', e); }

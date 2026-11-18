@@ -4544,6 +4544,91 @@ textarea.form-control {
   transform: translateY(0);
 }
 
+/* ✨ Smart Modern Floating Hover Tooltip Popover */
+.smart-hover-tooltip {
+  position: fixed;
+  z-index: 99999;
+  pointer-events: none;
+  max-width: 260px;
+  padding: 9px 13px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.28), 0 2px 6px rgba(15, 23, 42, 0.14);
+  font-family: 'Kantumruy Pro', 'Inter', sans-serif;
+  opacity: 0;
+  transform: translateY(4px) scale(0.97);
+  transition: opacity 0.14s ease, transform 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  visibility: hidden;
+}
+
+.smart-hover-tooltip.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  visibility: visible;
+}
+
+.smart-hover-tooltip.tip-above {
+  transform: translateY(-4px) scale(0.97);
+}
+
+.smart-hover-tooltip.tip-above.visible {
+  transform: translateY(0) scale(1);
+}
+
+.smart-tooltip-arrow {
+  position: absolute;
+  top: -5px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  background: rgba(15, 23, 42, 0.96);
+  border-top: 1px solid rgba(148, 163, 184, 0.22);
+  border-left: 1px solid rgba(148, 163, 184, 0.22);
+  transform: rotate(45deg);
+}
+
+.smart-hover-tooltip.tip-above .smart-tooltip-arrow {
+  top: auto;
+  bottom: -5px;
+  border-top: none;
+  border-left: none;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+  border-right: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.smart-tooltip-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.35;
+  margin-bottom: 2px;
+  white-space: nowrap;
+}
+
+.smart-tooltip-desc {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+
+[data-theme="dark"] .smart-hover-tooltip {
+  background: rgba(30, 41, 59, 0.98);
+  border-color: rgba(129, 140, 248, 0.35);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="dark"] .smart-tooltip-arrow {
+  background: rgba(30, 41, 59, 0.98);
+  border-color: rgba(129, 140, 248, 0.35);
+}
+
+
 
 
 
