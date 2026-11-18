@@ -4776,6 +4776,1069 @@ function undoLastAutoFixAll() {
 window.undoLastAutoFixAll = undoLastAutoFixAll;
 
 // ==========================================================================
+// 🧪 PHASE 2.1: DEEP PSYCHOMETRIC ASSESSMENT INSPECTOR (Pre-Test & Post-Test)
+// Independent 100-pt 6-Pillar Audit (Haladyna MCQ Guidelines + CTT Item Analysis)
+// On-Demand Trigger • Layer 2 Deterministic Guardrails • Per-Item p-value Matrix
+// Actionable 1-Click Fix (Single Item & Full Test) + Undo
+// ==========================================================================
+const _testAuditInFlight = { pre: false, post: false };
+const _testAuditFixInFlight = { pre: false, post: false };
+const _testAuditFixingQNum = { pre: 0, post: 0 };
+const _testAuditDetailsOpen = { pre: true, post: true };
+const _testAuditLastError = { pre: '', post: '' };
+const _testAuditRunSeq = { pre: 0, post: 0 };
+const _currentTestAuditFixes = { pre: [], post: [] };
+const _testAuditUndoSnapshots = { pre: null, post: null };
+
+function getTestListForType(plan, testType) {
+  if (!plan) return [];
+  return testType === 'pre'
+    ? (Array.isArray(plan.preTestQCM) ? plan.preTestQCM : [])
+    : (Array.isArray(plan.postTestMCQ) ? plan.postTestMCQ : []);
+}
+
+function setTestListForType(plan, testType, list) {
+  if (!plan) return;
+  if (testType === 'pre') plan.preTestQCM = list;
+  else plan.postTestMCQ = list;
+}
+
+function getTestAuditReport(plan, testType) {
+  if (!plan) return null;
+  const r = testType === 'pre' ? plan.preTestAuditReport : plan.postTestAuditReport;
+  return (r && typeof r === 'object' && Array.isArray(r.pillars)) ? r : null;
+}
+
+function setTestAuditReport(plan, testType, report) {
+  if (!plan) return;
+  if (testType === 'pre') plan.preTestAuditReport = report;
+  else plan.postTestAuditReport = report;
+}
+
+function computeTestObjectiveMetrics(qList, testType) {
+  const list = Array.isArray(qList) ? qList : [];
+  const total = list.length;
+  const keyCounts = { A: 0, B: 0, C: 0, D: 0 };
+  const difficultySpread = { easy: 0, medium: 0, hard: 0 };
+  const lengthBiasItems = [];
+  const clueFlawItems = [];
+  const brokenOptionItems = [];
+  const roboticStemItems = [];
+  let missingExplanationCount = 0;
+  let maxStreak = 0;
+  let curStreak = 0;
+  let prevKey = '';
+
+  const lazyOptRe = /(ត្រូវទាំងអស់|ខុសទាំងអស់|គ្មានចម្លើយត្រឹមត្រូវ|គ្មានចម្លើយណាត្រូវ|all of the above|none of the above)/i;
+  const absoluteWordRe = /(ជានិច្ចកាល|ជានិច្ច|មិនដែល|ដាច់ខាត|តែមួយគត់|ទាំងអស់គ្មានលើកលែង|\balways\b|\bnever\b)/i;
+  const roboticStemRe = /(មានឥទ្ធិពលយ៉ាងណា|ត្រូវធ្វើតាមដំណាក់កាលណា|សារពារពាក់ព័ន្ធណា)/i;
+
+  list.forEach((q, idx) => {
+    const qNum = idx + 1;
+    const stem = String(q.question || '').trim();
+    const opts = q.options || {};
+    const optMap = {
+      A: String(opts.A || opts['ក'] || '').trim(),
+      B: String(opts.B || opts['ខ'] || '').trim(),
+      C: String(opts.C || opts['គ'] || '').trim(),
+      D: String(opts.D || opts['ឃ'] || '').trim()
+    };
+    const rawKey = String(q.correctAnswer || 'A').trim().toUpperCase();
+    const key = ['A', 'B', 'C', 'D'].includes(rawKey) ? rawKey : 'A';
+
+    keyCounts[key] = (keyCounts[key] || 0) + 1;
+    if (key === prevKey) {
+      curStreak++;
+    } else {
+      curStreak = 1;
+      prevKey = key;
+    }
+    if (curStreak > maxStreak) maxStreak = curStreak;
+
+    const diffStr = `${q.difficultyLevel || ''} ${q.difficulty || ''}`.toLowerCase();
+    if (/easy|ងាយ/.test(diffStr)) difficultySpread.easy++;
+    else if (/hard|ពិបាក|challeng/.test(diffStr)) difficultySpread.hard++;
+    else difficultySpread.medium++;
+
+    const optValues = [optMap.A, optMap.B, optMap.C, optMap.D];
+    const nonEmptyCount = optValues.filter(v => v.length >= 2).length;
+    const uniqueCount = new Set(optValues.map(v => v.toLowerCase())).size;
+    if (nonEmptyCount < 4 || uniqueCount < 4) {
+      brokenOptionItems.push(qNum);
+    }
+
+    // Length-bias check: correct option disproportionately longer than distractors
+    const correctLen = optMap[key].length;
+    const distractorKeys = ['A', 'B', 'C', 'D'].filter(k => k !== key);
+    const distractorLens = distractorKeys.map(k => optMap[k].length);
+    const avgDistLen = distractorLens.reduce((a, b) => a + b, 0) / Math.max(1, distractorLens.length);
+    if (correctLen > avgDistLen * 1.65 && (correctLen - avgDistLen) >= 18) {
+      lengthBiasItems.push(qNum);
+    }
+
+    // Lazy options & absolute words in distractors
+    const hasLazy = optValues.some(v => lazyOptRe.test(v));
+    const hasAbsoluteDistractor = distractorKeys.some(k => absoluteWordRe.test(optMap[k]));
+    if (hasLazy) {
+      clueFlawItems.push({ qNumber: qNum, reason: 'lazy_option' });
+    } else if (hasAbsoluteDistractor) {
+      clueFlawItems.push({ qNumber: qNum, reason: 'absolute_word' });
+    }
+
+    if (stem.length < 15 || roboticStemRe.test(stem)) {
+      roboticStemItems.push(qNum);
+    }
+
+    if (String(q.explanation || '').trim().length < 12) {
+      missingExplanationCount++;
+    }
+  });
+
+  let maxLetter = 'A';
+  let maxLetterCount = 0;
+  Object.entries(keyCounts).forEach(([k, c]) => {
+    if (c > maxLetterCount) {
+      maxLetterCount = c;
+      maxLetter = k;
+    }
+  });
+  const maxLetterRatio = total > 0 ? (maxLetterCount / total) : 0;
+  const distinctDifficulties = [difficultySpread.easy, difficultySpread.medium, difficultySpread.hard].filter(c => c > 0).length;
+
+  return {
+    testType,
+    total,
+    keyCounts,
+    maxLetter,
+    maxLetterCount,
+    maxLetterRatio,
+    maxStreak,
+    difficultySpread,
+    isMonolithicDifficulty: total >= 5 && distinctDifficulties <= 1,
+    lengthBiasItems,
+    clueFlawItems,
+    brokenOptionItems,
+    roboticStemItems,
+    missingExplanationCount
+  };
+}
+
+// Layer 2: Deterministic Code-Enforced Psychometric Guardrails (Zero AI Sycophancy)
+function enforceTestAuditGuardrails(qList, testType, rawPillars, isEn) {
+  const m = computeTestObjectiveMetrics(qList, testType);
+  const kNum = (typeof toKhmerNumber === 'function' && !isEn) ? toKhmerNumber : String;
+  let guardrailTriggered = false;
+
+  const checkedPillars = rawPillars.map((p, i) => {
+    const out = Object.assign({}, p, { guardrailNote: '' });
+    const key = String(p.key || '').toLowerCase();
+
+    // 1. Distractor Quality (Max 25 - Most Important!)
+    if (key === 'distractors' || i === 0) {
+      const biasRatio = m.total > 0 ? (m.lengthBiasItems.length / m.total) : 0;
+      if (m.brokenOptionItems.length > 0 && out.score > 14) {
+        out.score = 14;
+        guardrailTriggered = true;
+        out.guardrailNote = isEn
+          ? `Code check: Empty/duplicate options on Q${m.brokenOptionItems.join(', Q')} (capped at 14/25).`
+          : `រនាំងកូដ៖ មានជម្រើសទទេ ឬស្ទួននៅសំណួរទី ${m.brokenOptionItems.map(kNum).join(', ')} (កំណត់អតិបរមា ១៤/២៥)។`;
+      } else if (biasRatio >= 0.30 && out.score > 18) {
+        out.score = 18;
+        guardrailTriggered = true;
+        out.guardrailNote = isEn
+          ? `Code check: Length-bias detected (correct answer much longer) on Q${m.lengthBiasItems.join(', Q')} (capped at 18/25).`
+          : `រនាំងកូដ៖ រកឃើញចម្លើយត្រូវវែងជាងចម្លើយបំភាន់ដាច់ (Length Bias) នៅស.ទី ${m.lengthBiasItems.map(kNum).join(', ')} (កំណត់អតិបរមា ១៨/២៥)។`;
+      } else if (m.clueFlawItems.length >= 2 && out.score > 19) {
+        out.score = 19;
+        guardrailTriggered = true;
+        out.guardrailNote = isEn
+          ? `Code check: Test-wiseness clues (all/none/always/never) on ${m.clueFlawItems.length} items (capped at 19/25).`
+          : `រនាំងកូដ៖ មានពាក្យបង្ហើបតម្រុយ (ត្រូវទាំងអស់/ជានិច្ច/មិនដែល) ចំនួន ${kNum(m.clueFlawItems.length)} សំណួរ (កំណត់អតិបរមា ១៩/២៥)។`;
+      }
+    }
+
+    // 3. Difficulty & Discrimination (Max 20)
+    if (key === 'difficulty_discrimination' || i === 2) {
+      if (m.isMonolithicDifficulty && out.score > 15) {
+        out.score = 15;
+        guardrailTriggered = true;
+        out.guardrailNote = isEn
+          ? 'Code check: All items share a single difficulty tier (capped at 15/20).'
+          : 'រនាំងកូដ៖ សំណួរទាំងអស់មានតែកម្រិតលំបាកតែមួយ (កំណត់អតិបរមា ១៥/២០)។';
+      }
+    }
+
+    // 4. Stem Quality & Grade Fit (Max 15)
+    if (key === 'stem_grade_fit' || i === 3) {
+      if (m.roboticStemItems.length >= 2 && out.score > 10) {
+        out.score = 10;
+        guardrailTriggered = true;
+        out.guardrailNote = isEn
+          ? `Code check: Generic or overly short stems on Q${m.roboticStemItems.join(', Q')} (capped at 10/15).`
+          : `រនាំងកូដ៖ សំណួរខ្លីពេក ឬមានទម្រង់ពុម្ពទូទៅនៅស.ទី ${m.roboticStemItems.map(kNum).join(', ')} (កំណត់អតិបរមា ១០/១៥)។`;
+      }
+    }
+
+    // 5. Item Count & Answer Key Balance (Max 10)
+    if (key === 'structure_fairness' || i === 4) {
+      if (m.total < 4 && out.score > 6) {
+        out.score = 6;
+        guardrailTriggered = true;
+        out.guardrailNote = isEn
+          ? `Code check: Only ${m.total} questions — too short for reliable measurement (capped at 6/10).`
+          : `រនាំងកូដ៖ មានតែ ${kNum(m.total)} សំណួរ (តិចពេកសម្រាប់ភាពជឿជាក់ — កំណត់អតិបរមា ៦/១០)។`;
+      } else if (m.total >= 5 && (m.maxLetterRatio > 0.45 || m.maxStreak >= 4) && out.score > 6) {
+        out.score = 6;
+        guardrailTriggered = true;
+        out.guardrailNote = isEn
+          ? `Code check: Skewed Answer Key (${m.maxLetter}: ${m.maxLetterCount}/${m.total}, max streak ${m.maxStreak}) — capped at 6/10.`
+          : `រនាំងកូដ៖ ការចែកចាយចម្លើយគំរូមិនស្មើ (${m.maxLetter} ដល់ ${kNum(m.maxLetterCount)}/${kNum(m.total)}) — កំណត់អតិបរមា ៦/១០។`;
+      }
+    }
+
+    // 6. Key Accuracy & Pedagogical Explanation (Max 10)
+    if (key === 'key_explanation' || i === 5) {
+      if (m.total > 0 && m.missingExplanationCount >= Math.ceil(m.total * 0.4) && out.score > 6) {
+        out.score = 6;
+        guardrailTriggered = true;
+        out.guardrailNote = isEn
+          ? `Code check: ${m.missingExplanationCount}/${m.total} items lack pedagogical explanations (capped at 6/10).`
+          : `រនាំងកូដ៖ ខ្វះការពន្យល់គរុកោសល្យ ${kNum(m.missingExplanationCount)}/${kNum(m.total)} សំណួរ (កំណត់អតិបរមា ៦/១០)។`;
+      }
+    }
+
+    // Evidence citation enforcement for top scores
+    if (out.score >= Math.ceil(out.max * 0.85) && (!out.evidence || out.evidence.trim().length < 6)) {
+      out.score = Math.max(0, out.score - 1);
+    }
+
+    return out;
+  });
+
+  const totalScore = Math.min(100, Math.max(0, checkedPillars.reduce((acc, p) => acc + p.score, 0)));
+  return { pillars: checkedPillars, totalScore, guardrailTriggered, metrics: m };
+}
+
+function renderTestAuditPanelHtml(plan, testType) {
+  const qList = getTestListForType(plan, testType);
+  if (!qList || qList.length === 0) return '';
+
+  const isEn = (state.language === 'en');
+  const kNum = (typeof toKhmerNumber === 'function' && !isEn) ? toKhmerNumber : String;
+  const inFlight = _testAuditInFlight[testType];
+  const fixAllFlight = _testAuditFixInFlight[testType];
+  const fixingQ = _testAuditFixingQNum[testType];
+  const errMsg = _testAuditLastError[testType];
+  const report = getTestAuditReport(plan, testType);
+  const testLabel = testType === 'pre'
+    ? (isEn ? 'Pre-Test' : 'បុរេតេស្ត (Pre-Test)')
+    : (isEn ? 'Post-Test' : 'បច្ឆាតេស្ត (Post-Test)');
+
+  if (!inFlight && !fixAllFlight && !errMsg && !report) {
+    return '';
+  }
+
+  if (inFlight && !report) {
+    return `
+      <div class="test-audit-card test-audit-loading">
+        <i class="fa-solid fa-spinner fa-spin" style="color: #4f46e5; font-size: 1.15rem;"></i>
+        <div>
+          <div style="font-weight: 700; color: #312e81; font-size: 0.84rem;">
+            ${isEn ? `🕵️ Psychometric AI Inspector is auditing ${testLabel}...` : `🕵️ អធិការកិច្ចវិញ្ញាសា AI កំពុងវិភាគស៊ីជម្រៅលើ ${testLabel}...`}
+          </div>
+          <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;">
+            ${isEn ? 'Evaluating distractor plausibility, Haladyna clues, content validity, and predicted student difficulty (p-value)...' : 'កំពុងត្រួតពិនិត្យចម្លើយបំភាន់ (Distractors), សុពលភាពខ្លឹមសារ, កម្រិតសិស្សឆ្លើយត្រូវ/ខុស (p-value) និងភាពត្រឹមត្រូវនៃចម្លើយគំរូ...'}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (errMsg && !report) {
+    return `
+      <div class="test-audit-card" style="background: #fef2f2; border-color: #fecaca;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+          <div style="font-size: 0.8rem; color: #991b1b;">
+            <strong>⚠️ ${isEn ? 'Test audit failed:' : 'មិនអាចវាយតម្លៃគុណភាពតេស្ដបាននៅពេលនេះ៖'}</strong> ${escapeHtml(errMsg)}
+          </div>
+          <button type="button" class="btn-ai-audit-run" onclick="runTestPsychometricAudit('${testType}')">
+            <i class="fa-solid fa-rotate-right"></i> ${isEn ? 'Retry' : 'ព្យាយាមម្ដងទៀត'}
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  // Render full report
+  const sc = report.totalScore;
+  const tierClass = sc >= 88 ? 'score-high' : (sc >= 75 ? 'score-mid' : 'score-low');
+  const scoreIcon = sc >= 88 ? '🏆' : (sc >= 75 ? '🏅' : '📝');
+  const improvements = Array.isArray(report.improvements) ? report.improvements : [];
+  _currentTestAuditFixes[testType] = improvements;
+  const fixCount = improvements.length;
+  const showDetails = _testAuditDetailsOpen[testType];
+  const hasUndo = Boolean(_testAuditUndoSnapshots[testType]);
+  const m = report.metrics || computeTestObjectiveMetrics(qList, testType);
+
+  const pillarsHtml = (report.pillars || []).map((p, idx) => {
+    const pct = p.max > 0 ? Math.round((p.score / p.max) * 100) : 0;
+    const barColor = pct >= 85 ? '#10b981' : (pct >= 68 ? '#f59e0b' : '#ef4444');
+    const isDistractor = (String(p.key || '').toLowerCase() === 'distractors' || idx === 0);
+    const evHtml = p.evidence
+      ? `<div class="quality-criterion-evidence"><i class="fa-solid fa-check-double"></i> ${escapeHtml(p.evidence)}</div>`
+      : '';
+    const grHtml = p.guardrailNote
+      ? `<div class="quality-criterion-guardrail"><i class="fa-solid fa-shield-halved"></i> ${escapeHtml(p.guardrailNote)}</div>`
+      : '';
+    return `
+      <div class="quality-criterion-card ${isDistractor ? 'test-pillar-priority' : ''}">
+        <div class="quality-criterion-head">
+          <span>${escapeHtml(p.title)}${isDistractor ? ` <span class="test-priority-tag">${isEn ? '★ Key' : '★ សំខាន់បំផុត'}</span>` : ''}</span>
+          <span style="color: ${barColor}; font-weight: 800; white-space: nowrap;">${kNum(p.score)}/${kNum(p.max)}</span>
+        </div>
+        <div class="quality-criterion-bar">
+          <div class="quality-criterion-fill" style="width: ${pct}%; background: ${barColor};"></div>
+        </div>
+        <div class="quality-criterion-note">${escapeHtml(p.feedback)}</div>
+        ${evHtml}
+        ${grHtml}
+      </div>
+    `;
+  }).join('');
+
+  // Per-Item Psychometric Table (Difficulty p-value + Distractor rating + Quick Fix)
+  const itemRows = Array.isArray(report.itemAnalysis) ? report.itemAnalysis : [];
+  const itemMatrixHtml = itemRows.length > 0 ? `
+    <div class="test-item-matrix-wrap">
+      <div class="test-item-matrix-title">
+        <i class="fa-solid fa-table-list" style="color: #4f46e5;"></i>
+        <span>${isEn ? 'Per-Item Psychometric Analysis (Predicted Student Accuracy & Distractor Strength)' : '📊 តារាងវិភាគសំណួរនីមួយៗ (កម្រិតសិស្សអាចឆ្លើយត្រូវ/ខុស & ចម្លើយបំភាន់)'}</span>
+      </div>
+      <div class="test-item-table-scroll">
+        <table class="test-item-matrix">
+          <thead>
+            <tr>
+              <th style="width: 54px; text-align: center;">${isEn ? 'Item' : 'ស.ទី'}</th>
+              <th style="width: 115px;">${isEn ? "Bloom's" : 'កម្រិតគិត'}</th>
+              <th style="width: 170px;">${isEn ? 'Est. Correct / Wrong' : 'ប៉ាន់ស្មានត្រូវ / ខុស'}</th>
+              <th style="width: 112px; text-align: center;">${isEn ? 'Distractors' : 'ចម្លើយបំភាន់'}</th>
+              <th>${isEn ? 'Diagnostic Note' : 'សង្ខេបវិភាគ'}</th>
+              <th style="width: 82px; text-align: center;">${isEn ? 'Action' : 'កែលម្អ'}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemRows.map(it => {
+              const qn = parseInt(it.qNumber, 10) || 1;
+              const estOk = Math.min(95, Math.max(10, Math.round(Number(it.estCorrectPct) || 60)));
+              const estWrong = 100 - estOk;
+              const dRate = String(it.distractorRating || 'fair').toLowerCase();
+              const dBadge = dRate === 'good'
+                ? `<span class="test-distractor-badge ok">🟢 ${isEn ? 'Strong' : 'ល្អ'}</span>`
+                : (dRate === 'weak'
+                  ? `<span class="test-distractor-badge weak">🔴 ${isEn ? 'Weak' : 'ខ្សោយ'}</span>`
+                  : `<span class="test-distractor-badge fair">🟡 ${isEn ? 'Fair' : 'មធ្យម'}</span>`);
+              const pctColor = estOk >= 75 ? '#15803d' : (estOk >= 45 ? '#b45309' : '#be123c');
+              const isFixingThis = (fixingQ === qn);
+              const quickNote = String(it.note || '').replace(/'/g, '');
+              const actionCell = (dRate !== 'good' || estOk > 88 || estOk < 20)
+                ? `<button type="button" class="btn-test-mini-fix" onclick="fixSingleTestQuestion('${testType}', ${qn}, '')" ${(isFixingThis || fixAllFlight || inFlight) ? 'disabled' : ''}>
+                    <i class="fa-solid ${isFixingThis ? 'fa-spinner fa-spin' : 'fa-wrench'}"></i> ${isFixingThis ? '...' : (isEn ? 'Fix' : 'កែ')}
+                   </button>`
+                : `<span style="color: #16a34a; font-size: 0.72rem; font-weight: 700;">✓</span>`;
+              return `
+                <tr>
+                  <td style="text-align: center; font-weight: 800; color: #312e81;">${isEn ? `Q${qn}` : `ស.${kNum(qn)}`}</td>
+                  <td><span class="test-bloom-pill">${escapeHtml(it.bloomLevel || '-')}</span></td>
+                  <td>
+                    <div class="test-pct-row">
+                      <span style="color: ${pctColor}; font-weight: 700;">~${kNum(estOk)}% ${isEn ? 'OK' : 'ត្រូវ'}</span>
+                      <span style="color: #94a3b8;">/</span>
+                      <span style="color: #64748b;">${kNum(estWrong)}% ${isEn ? 'Err' : 'ខុស'}</span>
+                    </div>
+                    <div class="test-pct-bar"><div style="width: ${estOk}%; background: ${pctColor};"></div></div>
+                  </td>
+                  <td style="text-align: center;">${dBadge}</td>
+                  <td style="font-size: 0.72rem; color: #334155; line-height: 1.4;">${escapeHtml(quickNote)}</td>
+                  <td style="text-align: center;">${actionCell}</td>
+                </tr>
+              `;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  ` : '';
+
+  // Automated Code Pre-Scan Metrics Strip
+  const keyDistStr = `A:${kNum(m.keyCounts.A)} • B:${kNum(m.keyCounts.B)} • C:${kNum(m.keyCounts.C)} • D:${kNum(m.keyCounts.D)}`;
+  const lenBiasOk = m.lengthBiasItems.length === 0;
+  const clueOk = m.clueFlawItems.length === 0;
+  const codeStatsHtml = `
+    <div class="test-code-stats-strip">
+      <span class="test-code-stat ${m.maxLetterRatio <= 0.45 && m.maxStreak < 4 ? 'ok' : 'warn'}">
+        🔑 ${isEn ? 'Answer Keys:' : 'ចម្លើយគំរូ៖'} <strong>${keyDistStr}</strong>
+      </span>
+      <span class="test-code-stat ${lenBiasOk ? 'ok' : 'warn'}">
+        📏 ${isEn ? 'Length Bias:' : 'លំអៀងប្រវែងចម្លើយ៖'} <strong>${lenBiasOk ? (isEn ? 'None ✓' : 'គ្មាន ✓') : (isEn ? `Q${m.lengthBiasItems.join(', Q')}` : `ស.ទី ${m.lengthBiasItems.map(kNum).join(', ')}`)}</strong>
+      </span>
+      <span class="test-code-stat ${clueOk ? 'ok' : 'warn'}">
+        🕵️ ${isEn ? 'Clue Flaws:' : 'ពាក្យបង្ហើបតម្រុយ៖'} <strong>${clueOk ? (isEn ? 'None ✓' : 'គ្មាន ✓') : (isEn ? `${m.clueFlawItems.length} items` : `${kNum(m.clueFlawItems.length)} សំណួរ`)}</strong>
+      </span>
+    </div>
+  `;
+
+  const strengthsHtml = (Array.isArray(report.strengths) && report.strengths.length > 0)
+    ? `<div class="ai-audit-strengths">
+         ${report.strengths.map(s => `<span class="ai-strength-chip"><i class="fa-solid fa-circle-check"></i> ${escapeHtml(s)}</span>`).join('')}
+       </div>`
+    : '';
+
+  const undoBtnHtml = hasUndo
+    ? `<button type="button" class="btn-audit-undo-all" onclick="undoLastTestAuditFix('${testType}')" title="${isEn ? 'Restore previous test version' : 'ត្រឡប់វិញ្ញាសាទៅមុនពេលកែលម្អ'}">
+         <i class="fa-solid fa-rotate-left"></i> ${isEn ? 'Undo' : 'ត្រឡប់មុនកែ'}
+       </button>`
+    : '';
+
+  const fixAllBtnHtml = (sc < 95 || fixCount > 0)
+    ? `<button type="button" class="btn-audit-fix-all" onclick="autoFixAllTestAuditGaps('${testType}')" ${(fixAllFlight || inFlight || fixingQ > 0) ? 'disabled' : ''}>
+         <i class="fa-solid ${fixAllFlight ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'}"></i>
+         <span>${fixAllFlight
+           ? (isEn ? 'Upgrading all weak items...' : 'កំពុងកែលម្អវិញ្ញាសាទាំងមូល...')
+           : (isEn ? '✨ Upgrade Entire Test in 1 Pass (Target 95+)' : '✨ កែលម្អវិញ្ញាសាទាំងមូលក្នុងពេលតែម្ដង (ឈានដល់ ៩៥+)')}</span>
+       </button>`
+    : '';
+
+  const improvementsHtml = fixCount > 0
+    ? `<div class="ai-audit-improvements">
+         <div class="ai-audit-improvements-header">
+           <div class="ai-audit-improvements-title">
+             <i class="fa-solid fa-screwdriver-wrench"></i>
+             <span>${isEn ? 'Actionable Item Improvements (1-Click Fix):' : 'អនុសាសន៍កែលម្អសំណួរជាក់លាក់ (ចុច ១ ដងដើម្បីកែភ្លាម)៖'}</span>
+           </div>
+           <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+             ${fixAllBtnHtml}
+             ${undoBtnHtml}
+           </div>
+         </div>
+         ${improvements.map((imp, idx) => {
+           const qn = parseInt(imp.qNumber, 10) || 0;
+           const isFixingThis = (fixingQ === qn && qn > 0);
+           const itemBadge = qn > 0
+             ? `<span class="ai-fix-step-tag">${isEn ? `Q.${qn}` : `សំណួរទី ${kNum(qn)}`}</span>`
+             : `<span class="ai-fix-step-tag">${isEn ? 'Test-Wide' : 'វិញ្ញាសាទាំងមូល'}</span>`;
+           const btnLabel = qn > 0
+             ? (isEn ? `Fix Q.${qn} Now` : `កែសំណួរទី ${kNum(qn)} ភ្លាម`)
+             : (isEn ? 'Fix All Now' : 'កែទាំងអស់ភ្លាម');
+           return `
+             <div class="ai-audit-fix-row">
+               <div class="ai-audit-fix-text">${itemBadge} <span>${escapeHtml(imp.issue)}</span></div>
+               <button type="button" class="btn-ai-audit-fix" onclick="applyTestAuditFixByIndex('${testType}', ${idx})" ${(isFixingThis || fixAllFlight || inFlight) ? 'disabled' : ''}>
+                 <i class="fa-solid ${isFixingThis ? 'fa-spinner fa-spin' : 'fa-wrench'}"></i> ${isFixingThis ? '...' : btnLabel}
+               </button>
+             </div>
+           `;
+         }).join('')}
+       </div>`
+    : `<div class="audit-mastery-banner">
+         <div>🏆 ${isEn ? 'This assessment meets high Psychometric & Haladyna MCQ standards — Ready for classroom use!' : 'វិញ្ញាសានេះឈានដល់ស្តង់ដារគុណភាពវិភាគតេស្ដខ្ពស់ — រួចរាល់ ១០០% សម្រាប់វាស់ស្ទង់សិស្ស!'}</div>
+         <div style="display: flex; align-items: center; gap: 6px;">
+           ${sc < 95 ? fixAllBtnHtml : ''}
+           ${undoBtnHtml}
+         </div>
+       </div>`;
+
+  return `
+    <div class="test-audit-card">
+      <div class="test-audit-header">
+        <div class="test-audit-header-left">
+          <span class="quality-score-badge ${tierClass}">
+            <span>${scoreIcon}</span>
+            <span>${isEn ? `${testLabel} Audit: ${sc}/100` : `ពិន្ទុអធិការកិច្ចតេស្ដ៖ ${kNum(sc)}/១០០`}</span>
+          </span>
+          ${fixCount > 0
+            ? `<span class="quality-metric-chip warn" style="cursor: pointer;" onclick="toggleTestAuditDetails('${testType}', true)">🔧 ${isEn ? `${fixCount} Items to Improve` : `សំណួរគួរកែ ${kNum(fixCount)}`}</span>`
+            : `<span class="quality-metric-chip ok">✨ ${isEn ? 'High Validity' : 'ស្តង់ដារល្អប្រសើរ'}</span>`}
+        </div>
+        <div class="quality-audit-actions-right">
+          <button type="button" class="btn-ai-audit-run" onclick="runTestPsychometricAudit('${testType}')" ${(inFlight || fixAllFlight) ? 'disabled' : ''}>
+            <i class="fa-solid ${inFlight ? 'fa-spinner fa-spin' : 'fa-user-shield'}"></i>
+            <span>${inFlight ? (isEn ? 'Auditing...' : 'កំពុងវាយតម្លៃ...') : (isEn ? 'Re-Audit' : 'វាយតម្លៃម្ដងទៀត')}</span>
+          </button>
+          <button type="button" class="btn-quality-details-toggle" onclick="toggleTestAuditDetails('${testType}')">
+            <i class="fa-solid fa-magnifying-glass-chart"></i>
+            <span>${isEn ? 'Details' : 'មើលលម្អិត'}</span>
+            <i class="fa-solid fa-chevron-down" style="font-size: 0.65rem; transform: ${showDetails ? 'rotate(180deg)' : 'rotate(0deg)'};"></i>
+          </button>
+        </div>
+      </div>
+      <div class="test-audit-body" style="display: ${showDetails ? 'block' : 'none'};">
+        ${errMsg ? `<div style="margin-bottom: 8px; padding: 6px 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 7px; color: #991b1b; font-size: 0.76rem;">⚠️ ${escapeHtml(errMsg)}</div>` : ''}
+        <div class="ai-audit-verdict-box">
+          <span style="font-size: 1rem;">🧪</span>
+          <div>
+            <strong>${isEn ? 'Psychometric Inspector Verdict:' : 'សេចក្ដីវាយតម្លៃរួមពីអធិការកិច្ចវិញ្ញាសា AI៖'}</strong>
+            ${escapeHtml(report.overallVerdict || '')}
+          </div>
+        </div>
+        <div class="quality-criteria-grid">${pillarsHtml}</div>
+        ${codeStatsHtml}
+        ${itemMatrixHtml}
+        ${strengthsHtml}
+        ${improvementsHtml}
+        <div class="ai-audit-scope-note">
+          <i class="fa-solid fa-shield-halved" style="color: #2563eb;"></i>
+          ${isEn
+            ? 'Phase 2.1 Anti-Bias Verified: Psychometric AI Inspection (Haladyna MCQ & Item Analysis) + Deterministic Code Guardrails (scored independently from Lesson Plan).'
+            : 'ផ្ទៀងផ្ទាត់ ២ ជាន់គ្មានលំអៀង (ផ្នែកទី ២.១)៖ អធិការកិច្ចវិញ្ញាសា QCM/MCQ តាមក្បួន Psychometrics & Haladyna + រនាំងកូដសត្យានុម័ត (វាយតម្លៃដាច់ដោយឡែកពីពិន្ទុកិច្ចតែងការ)។'}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function refreshTestAuditPanel(testType) {
+  const plan = state.generatedPlanData || state.currentPlan;
+  const host = document.getElementById(testType === 'pre' ? 'testAuditHost_pre' : 'testAuditHost_post');
+  if (host && plan) {
+    host.innerHTML = renderTestAuditPanelHtml(plan, testType);
+  }
+  const triggerBtn = document.getElementById(testType === 'pre' ? 'btnAuditTest_pre' : 'btnAuditTest_post');
+  if (triggerBtn && plan) {
+    const isEn = (state.language === 'en');
+    const kNum = (typeof toKhmerNumber === 'function' && !isEn) ? toKhmerNumber : String;
+    const report = getTestAuditReport(plan, testType);
+    const inFlight = _testAuditInFlight[testType];
+    triggerBtn.disabled = Boolean(inFlight || _testAuditFixInFlight[testType]);
+    if (inFlight) {
+      triggerBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${isEn ? 'Auditing...' : 'កំពុងវាយតម្លៃ...'}`;
+    } else if (report) {
+      triggerBtn.innerHTML = `<i class="fa-solid fa-user-shield"></i> ${isEn ? `Audit: ${report.totalScore}/100` : `ពិន្ទុតេស្ដ៖ ${kNum(report.totalScore)}/១០០`}`;
+    } else {
+      triggerBtn.innerHTML = `<i class="fa-solid fa-user-shield"></i> ${isEn ? 'Audit Test Quality' : '🕵️ វាយតម្លៃគុណភាពតេស្ដ'}`;
+    }
+  }
+}
+
+function toggleTestAuditDetails(testType, forceOpen = null) {
+  const cur = Boolean(_testAuditDetailsOpen[testType]);
+  _testAuditDetailsOpen[testType] = (forceOpen !== null) ? Boolean(forceOpen) : !cur;
+  refreshTestAuditPanel(testType);
+}
+window.toggleTestAuditDetails = toggleTestAuditDetails;
+
+function rerenderSingleTestModule(testType, flashQNum = 0) {
+  const plan = state.generatedPlanData || state.currentPlan;
+  if (!plan) return;
+  const isEn = (state.language === 'en');
+  const wrapper = document.getElementById(testType === 'pre' ? 'preTestModuleWrapper' : 'postTestModuleWrapper');
+  if (wrapper) {
+    wrapper.innerHTML = testType === 'pre' ? renderPreTestModule(plan, isEn) : renderPostTestModule(plan, isEn);
+    setTimeout(() => {
+      triggerMathRendering(wrapper);
+      if (flashQNum > 0) {
+        const qCard = wrapper.querySelector(`.qcm-item[data-qnum="${flashQNum}"]`);
+        if (qCard) {
+          qCard.classList.add('qcm-item-just-updated');
+          qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+    }, 60);
+  }
+  if (typeof scheduleAutoSaveDraft === 'function') scheduleAutoSaveDraft(900);
+}
+
+async function runTestPsychometricAudit(testType = 'pre', previousAuditNote = '') {
+  const plan = state.generatedPlanData || state.currentPlan;
+  const qList = getTestListForType(plan, testType);
+  if (!plan || !qList || qList.length === 0) {
+    showToast('សូមបង្កើតកម្រងសំណួរជាមុនសិន!', 'warning');
+    return;
+  }
+
+  const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
+  if (!apiKey) {
+    showToast('⚠️ សូមភ្ជាប់ Google Gemini API Key ដើម្បីវាយតម្លៃគុណភាពតេស្ដដោយ AI!', 'warning');
+    if (typeof openApiKeyModal === 'function') openApiKeyModal();
+    return;
+  }
+
+  let provider = state.aiProvider || 'gemini';
+  if (apiKey.startsWith('AIza') || apiKey.startsWith('AQ.')) provider = 'gemini';
+  else if (apiKey.startsWith('gsk_')) provider = 'groq';
+  else if (apiKey.startsWith('sk-or-')) provider = 'openrouter';
+
+  const isEn = (state.language === 'en');
+  const mySeq = ++_testAuditRunSeq[testType];
+  _testAuditInFlight[testType] = true;
+  _testAuditLastError[testType] = '';
+  _testAuditDetailsOpen[testType] = true;
+  refreshTestAuditPanel(testType);
+
+  const codeMetrics = computeTestObjectiveMetrics(qList, testType);
+  const objectivesDigest = [
+    ...(plan.objectives?.knowledge || []).map(x => `Knowledge: ${x}`),
+    ...(plan.objectives?.skills || []).map(x => `Skills: ${x}`),
+    ...(plan.objectives?.attitudes || []).map(x => `Attitudes: ${x}`)
+  ].join(' | ').slice(0, 900);
+
+  const stepsDigest = (Array.isArray(plan.steps) ? plan.steps : []).map((s, idx) =>
+    `Step ${idx + 1}: ${String(s.contentSummary || '').replace(/\s+/g, ' ').slice(0, 320)}`
+  ).join('\n');
+
+  const itemsDigest = qList.map((q, idx) => {
+    const opts = q.options || {};
+    return `Q${idx + 1} [${q.difficulty || q.difficultyLevel || 'medium'}] (Key=${q.correctAnswer || 'A'}): ${String(q.question || '').trim()}
+  A) ${String(opts.A || opts['ក'] || '').trim()}
+  B) ${String(opts.B || opts['ខ'] || '').trim()}
+  C) ${String(opts.C || opts['គ'] || '').trim()}
+  D) ${String(opts.D || opts['ឃ'] || '').trim()}
+  Explanation: ${String(q.explanation || '').trim()}`;
+  }).join('\n\n');
+
+  const reAuditClause = previousAuditNote
+    ? `\n[FAIR EVIDENCE-BASED RE-AUDIT CONTEXT]\nThe teacher just upgraded items targeting these prior issues:\n${previousAuditNote}\nVERIFY strictly in the updated items whether each flaw (especially weak distractors, length bias, stem ambiguity, and explanations) is ACTUALLY resolved. Award credit ONLY with concrete item-level evidence; do NOT give unearned inflation.\n`
+    : '';
+
+  const auditPrompt = `
+You are an elite Psychometrician, Educational Measurement Specialist, and MoEYS Curriculum Examiner auditing a ${testType === 'pre' ? 'PRE-TEST (Diagnostic Assessment for prior knowledge & baseline misconceptions)' : 'POST-TEST (Mastery Assessment for post-lesson comprehension, application, analysis & synthesis)'}.
+
+[EVIDENCE-BASED ANTI-BIAS AUDIT MANDATE]
+- Be rigorously objective, honest, and grounded strictly in the actual test items below.
+- Pay SPECIAL ATTENTION (highest weight: 25 pts) to DISTRACTOR QUALITY (Haladyna's MCQ Item-Writing Guidelines):
+  * Are all 3 wrong options plausible real student misconceptions, or are some obviously silly/unrealistic?
+  * Is there Length Bias (correct answer noticeably longer/more detailed than distractors)?
+  * Are there Test-Wiseness Clues ("all/none of the above", absolute words like "always/never", grammatical mismatches)?
+- Estimate realistic Student Accuracy (p-value % expected to answer correctly for this exact Grade/Level: e.g. Easy ~75-85%, Medium ~50-70%, Hard ~25-45%).
+- Verify EVERY item's Answer Key is 100% scientifically accurate (no double-correct options, no wrong key).
+- NEVER invent flaws that do not exist, and NEVER praise flaws that remain unfixed.
+${reAuditClause}
+[LESSON CONTEXT]
+- Subject: ${plan.subject || ''} | Grade/Level: ${plan.grade || ''} | Lesson Title: ${plan.lessonTitle || ''}
+- Objectives: ${objectivesDigest || 'Not specified'}
+- Lesson Content Summary:
+${stepsDigest || 'Not provided'}
+
+[AUTOMATED CODE PRE-SCAN STATS]
+- Total Questions: ${codeMetrics.total}
+- Answer Key Counts: A=${codeMetrics.keyCounts.A}, B=${codeMetrics.keyCounts.B}, C=${codeMetrics.keyCounts.C}, D=${codeMetrics.keyCounts.D} (Max Streak=${codeMetrics.maxStreak})
+- Length-Bias Flagged Items: ${codeMetrics.lengthBiasItems.length > 0 ? 'Q' + codeMetrics.lengthBiasItems.join(', Q') : 'None'}
+- Clue-Flaw Flagged Items: ${codeMetrics.clueFlawItems.length > 0 ? codeMetrics.clueFlawItems.map(x => `Q${x.qNumber}(${x.reason})`).join(', ') : 'None'}
+- Missing/Short Explanations: ${codeMetrics.missingExplanationCount}/${codeMetrics.total}
+
+[TEST ITEMS TO AUDIT (${qList.length} QUESTIONS)]
+${itemsDigest}
+
+[OUTPUT LANGUAGE]
+${isEn ? 'Professional Academic English' : 'Standard Formal Khmer (ភាសាខ្មែរផ្លូវការគរុកោសល្យ ១០០% — ខ្លី ច្បាស់ ស្មោះត្រង់ ងាយយល់)'}
+
+[RETURN STRICT JSON ONLY]
+Return ONLY valid JSON matching this EXACT schema (6 pillars summing to max 100, and itemAnalysis for EVERY question 1..${qList.length}):
+{
+  "overallVerdict": "1-2 concise honest sentences summarizing overall test validity, distractor strength, and readiness.",
+  "pillars": [
+    { "key": "distractors", "title": "${isEn ? '🎭 Distractor Quality' : '🎭 គុណភាពចម្លើយបំភាន់'}", "score": 20, "max": 25, "feedback": "1 concise honest sentence.", "evidence": "Cite exact Q# distractors." },
+    { "key": "content_validity", "title": "${isEn ? '🎯 Content Validity' : '🎯 ខ្លឹមសារមេរៀន ធៀបនឹងសំណួរ'}", "score": 17, "max": 20, "feedback": "1 concise honest sentence.", "evidence": "Cite alignment to objectives/concepts." },
+    { "key": "difficulty_discrimination", "title": "${isEn ? '📊 Difficulty & Discrimination' : '📊 កម្រិតសិស្សឆ្លើយត្រូវ/ខុស & ញែកសិស្ស'}", "score": 16, "max": 20, "feedback": "1 concise honest sentence.", "evidence": "Cite easy/medium/hard p-value spread." },
+    { "key": "stem_grade_fit", "title": "${isEn ? '✍️ Stem Clarity & Grade Fit' : '✍️ គុណភាពសំណួរ & កម្រិតថ្នាក់'}", "score": 13, "max": 15, "feedback": "1 concise honest sentence.", "evidence": "Cite stem phrasing & grade fit." },
+    { "key": "structure_fairness", "title": "${isEn ? '🔢 Count, Keys & Independence' : '🔢 ចំនួនសំណួរ & តុល្យភាពចម្លើយ'}", "score": 9, "max": 10, "feedback": "1 concise honest sentence.", "evidence": "Cite count & A/B/C/D balance." },
+    { "key": "key_explanation", "title": "${isEn ? '✅ Key Accuracy & Rationale' : '✅ ចម្លើយគំរូ & ការពន្យល់'}", "score": 8, "max": 10, "feedback": "1 concise honest sentence.", "evidence": "Cite key correctness & explanation depth." }
+  ],
+  "itemAnalysis": [
+    {
+      "qNumber": 1,
+      "bloomLevel": "${isEn ? 'Understand' : 'យល់'}",
+      "estCorrectPct": 75,
+      "distractorRating": "good",
+      "note": "Very short 1-line note on distractor/stem quality"
+    }
+  ],
+  "strengths": [
+    "Specific strength #1",
+    "Specific strength #2"
+  ],
+  "improvements": [
+    {
+      "qNumber": 3,
+      "issue": "Concise specific flaw on this item (0 items if total >= 93 and no weak items remain).",
+      "fixInstruction": "Specific instruction to rewrite weak distractors / balance length / sharpen stem."
+    }
+  ]
+}
+Note: Return "improvements": [] ONLY if total score >= 93 AND all distractors/keys are genuinely strong; otherwise return 1 to 4 highest-impact real item flaws.
+`.trim();
+
+  try {
+    const rawText = await callAiForSingleStep(auditPrompt, apiKey, provider, 3800);
+    if (mySeq !== _testAuditRunSeq[testType]) return;
+
+    const cleanedStr = String(rawText || '')
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim();
+    const sIdx = cleanedStr.indexOf('{');
+    const eIdx = cleanedStr.lastIndexOf('}');
+    if (sIdx === -1 || eIdx === -1) {
+      throw new Error('AI មិនបានត្រឡប់ទម្រង់ JSON វាយតម្លៃតេស្ដត្រឹមត្រូវឡើយ។');
+    }
+
+    const parsed = JSON.parse(cleanedStr.slice(sIdx, eIdx + 1));
+    if (!Array.isArray(parsed.pillars) || parsed.pillars.length < 4) {
+      throw new Error('លទ្ធផលវាយតម្លៃតេស្ដមិនគ្រប់ ៦ សសរស្ដម្ភ។');
+    }
+
+    const expectedMaxes = [25, 20, 20, 15, 10, 10];
+    const expectedKeys = ['distractors', 'content_validity', 'difficulty_discrimination', 'stem_grade_fit', 'structure_fairness', 'key_explanation'];
+    const rawPillars = parsed.pillars.slice(0, 6).map((p, i) => {
+      const maxVal = expectedMaxes[i] || Number(p.max) || 15;
+      const scoreVal = Math.min(maxVal, Math.max(0, Math.round(Number(p.score) || 0)));
+      return {
+        key: p.key || expectedKeys[i],
+        title: String(p.title || `សសរស្ដម្ភទី ${i + 1}`),
+        score: scoreVal,
+        max: maxVal,
+        feedback: String(p.feedback || '').trim(),
+        evidence: String(p.evidence || '').trim()
+      };
+    });
+
+    const guarded = enforceTestAuditGuardrails(qList, testType, rawPillars, isEn);
+
+    const parsedItems = Array.isArray(parsed.itemAnalysis)
+      ? parsed.itemAnalysis.slice(0, qList.length).map((it, idx) => ({
+          qNumber: parseInt(it.qNumber, 10) || (idx + 1),
+          bloomLevel: String(it.bloomLevel || '').trim() || (isEn ? 'Apply' : 'អនុវត្ត'),
+          estCorrectPct: Math.min(95, Math.max(10, Math.round(Number(it.estCorrectPct) || 60))),
+          distractorRating: ['good', 'fair', 'weak'].includes(String(it.distractorRating || '').toLowerCase())
+            ? String(it.distractorRating).toLowerCase()
+            : 'fair',
+          note: String(it.note || '').trim()
+        }))
+      : [];
+
+    const cleanReport = cleanForbiddenScriptsAndFormatMath({
+      auditedAt: Date.now(),
+      testType,
+      totalScore: guarded.totalScore,
+      guardrailTriggered: guarded.guardrailTriggered,
+      overallVerdict: String(parsed.overallVerdict || '').trim(),
+      pillars: guarded.pillars,
+      itemAnalysis: parsedItems,
+      strengths: Array.isArray(parsed.strengths) ? parsed.strengths.slice(0, 3).map(String) : [],
+      improvements: Array.isArray(parsed.improvements)
+        ? parsed.improvements.slice(0, 4).map(imp => ({
+            qNumber: parseInt(imp.qNumber, 10) || 0,
+            issue: String(imp.issue || '').trim(),
+            fixInstruction: String(imp.fixInstruction || imp.issue || '').trim()
+          })).filter(imp => imp.issue.length > 4)
+        : []
+    });
+    cleanReport.metrics = guarded.metrics;
+
+    setTestAuditReport(plan, testType, cleanReport);
+    _testAuditInFlight[testType] = false;
+    _testAuditLastError[testType] = '';
+    _testAuditDetailsOpen[testType] = true;
+    refreshTestAuditPanel(testType);
+    if (typeof scheduleAutoSaveDraft === 'function') scheduleAutoSaveDraft(1000);
+
+    const kNum = (typeof toKhmerNumber === 'function' && !isEn) ? toKhmerNumber : String;
+    showToast(
+      isEn
+        ? `🧪 Psychometric Test Audit complete: ${guarded.totalScore}/100`
+        : `🧪 ការវាយតម្លៃគុណភាពតេស្ដរួចរាល់៖ ${kNum(guarded.totalScore)}/១០០!`,
+      'success'
+    );
+  } catch (err) {
+    if (mySeq !== _testAuditRunSeq[testType]) return;
+    console.warn('[Test Psychometric Audit] Error:', err);
+    _testAuditInFlight[testType] = false;
+    _testAuditLastError[testType] = String(err.message || err).slice(0, 180);
+    refreshTestAuditPanel(testType);
+    showToast('⚠️ មិនអាចវាយតម្លៃគុណភាពតេស្ដបាន៖ ' + _testAuditLastError[testType], 'warning');
+  }
+}
+window.runTestPsychometricAudit = runTestPsychometricAudit;
+
+function applyTestAuditFixByIndex(testType, fixIndex) {
+  const list = _currentTestAuditFixes[testType] || [];
+  const item = list[fixIndex];
+  if (!item) return;
+  const qn = parseInt(item.qNumber, 10) || 0;
+  if (qn <= 0) {
+    autoFixAllTestAuditGaps(testType);
+  } else {
+    fixSingleTestQuestion(testType, qn, item.fixInstruction || item.issue || '');
+  }
+}
+window.applyTestAuditFixByIndex = applyTestAuditFixByIndex;
+
+async function fixSingleTestQuestion(testType, qNumber, customInstruction = '') {
+  const plan = state.generatedPlanData || state.currentPlan;
+  const qList = getTestListForType(plan, testType);
+  const idx = (parseInt(qNumber, 10) || 1) - 1;
+  if (!plan || !qList || !qList[idx]) return;
+  if (_testAuditFixingQNum[testType] > 0 || _testAuditFixInFlight[testType]) return;
+
+  const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
+  if (!apiKey) {
+    showToast('⚠️ សូមភ្ជាប់ Google Gemini API Key ជាមុនសិន!', 'warning');
+    if (typeof openApiKeyModal === 'function') openApiKeyModal();
+    return;
+  }
+
+  let provider = state.aiProvider || 'gemini';
+  if (apiKey.startsWith('AIza') || apiKey.startsWith('AQ.')) provider = 'gemini';
+  else if (apiKey.startsWith('gsk_')) provider = 'groq';
+  else if (apiKey.startsWith('sk-or-')) provider = 'openrouter';
+
+  const isEn = (state.language === 'en');
+  const kNum = (typeof toKhmerNumber === 'function' && !isEn) ? toKhmerNumber : String;
+  const curQ = qList[idx];
+  const report = getTestAuditReport(plan, testType);
+  const itemDiag = (report?.itemAnalysis || []).find(it => Number(it.qNumber) === qNumber);
+  const targetInstruction = customInstruction || itemDiag?.note || (isEn
+    ? 'Strengthen all 3 distractors into plausible student misconceptions, equalize option lengths, sharpen stem clarity, and enrich explanation.'
+    : 'បង្កើនគុណភាពចម្លើយបំភាន់ទាំង ៣ ឱ្យផ្អែកលើការយល់ច្រឡំជាក់ស្ដែងរបស់សិស្ស, ធ្វើឱ្យប្រវែងជម្រើសទាំង ៤ ប្រហាក់ប្រហែលគ្នា, កែឃ្លាសំណួរឱ្យច្បាស់លាស់ និងពន្យល់ទាំងមូលហេតុត្រូវ និងខុស។');
+
+  _testAuditUndoSnapshots[testType] = {
+    questions: JSON.parse(JSON.stringify(qList)),
+    report: JSON.parse(JSON.stringify(report || null))
+  };
+
+  _testAuditFixingQNum[testType] = qNumber;
+  refreshTestAuditPanel(testType);
+  showToast(isEn ? `🔧 Upgrading Question ${qNumber}...` : `🔧 កំពុងកែលម្អសំណួរទី ${kNum(qNumber)} តាមស្តង់ដារ Psychometrics...`, 'info');
+
+  const opts = curQ.options || {};
+  const fixPrompt = `
+You are an elite Psychometric MCQ Author following Haladyna's Item-Writing Guidelines.
+Upgrade ONLY Question #${qNumber} of this ${testType === 'pre' ? 'Pre-Test' : 'Post-Test'} for:
+- Subject: ${plan.subject || ''} | Grade/Level: ${plan.grade || ''} | Lesson: ${plan.lessonTitle || ''}
+
+[CURRENT QUESTION #${qNumber}]
+Difficulty: ${curQ.difficulty || curQ.difficultyLevel || 'medium'}
+Question: ${curQ.question || ''}
+A) ${opts.A || opts['ក'] || ''}
+B) ${opts.B || opts['ខ'] || ''}
+C) ${opts.C || opts['គ'] || ''}
+D) ${opts.D || opts['ឃ'] || ''}
+CorrectAnswer: ${curQ.correctAnswer || 'A'}
+Explanation: ${curQ.explanation || ''}
+
+[SPECIFIC ISSUE TO FIX]
+${targetInstruction}
+
+[STRICT PSYCHOMETRIC UPGRADE RULES]
+1. DISTRACTORS (MOST IMPORTANT): All 3 wrong options MUST represent realistic, plausible student misconceptions — NO silly options, NO "all/none of the above", NO absolute words ("always/never/ជានិច្ច/មិនដែល").
+2. EQUAL LENGTH & PARALLELISM: All 4 options (A, B, C, D) MUST have roughly similar length and grammatical structure (NO Length Bias where the correct answer is noticeably longer!).
+3. PRESERVE ANSWER KEY SLOT: Keep "correctAnswer" as "${curQ.correctAnswer || 'A'}" (putting the truly 100% scientifically correct answer in slot ${curQ.correctAnswer || 'A'}) so the overall test's A/B/C/D balance stays intact.
+4. CLEAR AUTHENTIC STEM: Appropriate for Grade/Level "${plan.grade || ''}", unambiguous, no double negatives.
+5. RICH PEDAGOGICAL EXPLANATION: Explain clearly why ${curQ.correctAnswer || 'A'} is right AND briefly why the key distractors are common misconceptions.
+6. LANGUAGE: ${isEn ? 'Academic English' : 'Standard Formal Khmer (ភាសាខ្មែរផ្លូវការគរុកោសល្យ)'}.
+
+Return ONLY valid JSON object (no markdown fences):
+{
+  "number": ${qNumber},
+  "difficulty": "${curQ.difficulty || 'មធ្យម (Medium)'}",
+  "difficultyLevel": "${curQ.difficultyLevel || 'medium'}",
+  "question": "Upgraded question stem...",
+  "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
+  "correctAnswer": "${curQ.correctAnswer || 'A'}",
+  "explanation": "Clear pedagogical rationale..."
+}
+`.trim();
+
+  try {
+    const rawText = await callAiForSingleStep(fixPrompt, apiKey, provider, 1600);
+    const cleaned = String(rawText || '').replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+    const sIdx = cleaned.indexOf('{');
+    const eIdx = cleaned.lastIndexOf('}');
+    if (sIdx === -1 || eIdx === -1) throw new Error('AI មិនបានត្រឡប់ JSON សំណួរត្រឹមត្រូវ។');
+    const updatedQ = cleanForbiddenScriptsAndFormatMath(JSON.parse(cleaned.slice(sIdx, eIdx + 1)));
+    if (!updatedQ.question || !updatedQ.options || !updatedQ.options.A || !updatedQ.options.D) {
+      throw new Error('សំណួរដែលកែថ្មីមិនគ្រប់ ៤ ជម្រើស A/B/C/D ឡើយ។');
+    }
+    updatedQ.number = qNumber;
+    const keyUpper = String(updatedQ.correctAnswer || curQ.correctAnswer || 'A').trim().toUpperCase();
+    updatedQ.correctAnswer = ['A', 'B', 'C', 'D'].includes(keyUpper) ? keyUpper : 'A';
+
+    qList[idx] = updatedQ;
+    setTestListForType(plan, testType, qList);
+    _testAuditFixingQNum[testType] = 0;
+    rerenderSingleTestModule(testType, qNumber);
+
+    showToast(isEn ? `✨ Question ${qNumber} upgraded! Re-auditing score...` : `✨ បានកែលម្អសំណួរទី ${kNum(qNumber)} រួចរាល់! កំពុងវាយតម្លៃពិន្ទុថ្មី...`, 'success');
+    setTimeout(() => {
+      runTestPsychometricAudit(testType, `Fixed Q${qNumber}: ${targetInstruction}`);
+    }, 300);
+  } catch (err) {
+    console.error('[Fix Single Test Question] Error:', err);
+    _testAuditFixingQNum[testType] = 0;
+    refreshTestAuditPanel(testType);
+    showToast('⚠️ មិនអាចកែសំណួរបាន៖ ' + (err.message || err), 'error', 6000);
+  }
+}
+window.fixSingleTestQuestion = fixSingleTestQuestion;
+
+async function autoFixAllTestAuditGaps(testType) {
+  const plan = state.generatedPlanData || state.currentPlan;
+  const qList = getTestListForType(plan, testType);
+  const report = getTestAuditReport(plan, testType);
+  if (!plan || !qList || qList.length === 0 || !report) {
+    showToast('សូមដំណើរការវាយតម្លៃគុណភាពតេស្ដជាមុនសិន!', 'warning');
+    return;
+  }
+  if (_testAuditFixInFlight[testType] || _testAuditInFlight[testType]) return;
+
+  const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
+  if (!apiKey) {
+    showToast('⚠️ សូមភ្ជាប់ Google Gemini API Key ជាមុនសិន!', 'warning');
+    if (typeof openApiKeyModal === 'function') openApiKeyModal();
+    return;
+  }
+
+  let provider = state.aiProvider || 'gemini';
+  if (apiKey.startsWith('AIza') || apiKey.startsWith('AQ.')) provider = 'gemini';
+  else if (apiKey.startsWith('gsk_')) provider = 'groq';
+  else if (apiKey.startsWith('sk-or-')) provider = 'openrouter';
+
+  const isEn = (state.language === 'en');
+  _testAuditUndoSnapshots[testType] = {
+    questions: JSON.parse(JSON.stringify(qList)),
+    report: JSON.parse(JSON.stringify(report))
+  };
+
+  _testAuditFixInFlight[testType] = true;
+  refreshTestAuditPanel(testType);
+  showToast(
+    isEn ? '✨ Upgrading entire test in 1 pass...' : '✨ Gemini AI កំពុងកែលម្អវិញ្ញាសាទាំងមូលក្នុងពេលតែម្ដង...',
+    'info'
+  );
+
+  const pillarFeedback = (report.pillars || []).map(p => `- ${p.title} (${p.score}/${p.max}): ${p.feedback} ${p.guardrailNote || ''}`).join('\n');
+  const itemNotes = (report.itemAnalysis || [])
+    .filter(it => it.distractorRating !== 'good' || it.estCorrectPct > 88 || it.estCorrectPct < 20)
+    .map(it => `- Q${it.qNumber} (Distractors=${it.distractorRating}, EstOK=${it.estCorrectPct}%): ${it.note}`)
+    .join('\n');
+  const impNotes = (report.improvements || []).map(i => `- Q${i.qNumber || 'All'}: ${i.issue} -> ${i.fixInstruction}`).join('\n');
+  const combinedNotes = `${pillarFeedback}\n${itemNotes}\n${impNotes}`.trim();
+
+  const itemsJson = JSON.stringify(qList.map((q, idx) => ({
+    number: idx + 1,
+    difficulty: q.difficulty || 'មធ្យម (Medium)',
+    difficultyLevel: q.difficultyLevel || 'medium',
+    question: q.question || '',
+    options: {
+      A: q.options?.A || q.options?.['ក'] || '',
+      B: q.options?.B || q.options?.['ខ'] || '',
+      C: q.options?.C || q.options?.['គ'] || '',
+      D: q.options?.D || q.options?.['ឃ'] || ''
+    },
+    correctAnswer: q.correctAnswer || 'A',
+    explanation: q.explanation || ''
+  })));
+
+  const fixAllPrompt = `
+You are an elite Psychometrician upgrading a ${qList.length}-question ${testType === 'pre' ? 'Pre-Test' : 'Post-Test'} to 95+/100 quality in ONE SINGLE PASS.
+
+[LESSON CONTEXT]
+- Subject: ${plan.subject || ''} | Grade/Level: ${plan.grade || ''} | Lesson: ${plan.lessonTitle || ''}
+
+[ALL AUDIT GAPS TO RESOLVE]
+${combinedNotes}
+
+[CURRENT ${qList.length} QUESTIONS (JSON)]
+${itemsJson}
+
+[NON-NEGOTIABLE UPGRADE RULES]
+1. Return EXACTLY ${qList.length} questions (keep strong questions intact; thoroughly upgrade every flagged/weak question).
+2. DISTRACTORS (25 pts): Every wrong option MUST be a realistic student misconception — eliminate ALL silly options, eliminate ALL "all/none of the above", eliminate ALL absolute clue words ("always/never/ជានិច្ច/មិនដែល"), and make all 4 options roughly EQUAL in length and grammatical structure (zero Length Bias!).
+3. ANSWER KEY BALANCE: Distribute "correctAnswer" evenly across A, B, C, D (~25% each, no 3+ identical keys in a row), ensuring the text inside the matching option slot is 100% scientifically correct.
+4. EXPLANATIONS: Every question MUST have a clear pedagogical explanation stating why the right answer is correct and why key distractors are wrong.
+5. LANGUAGE: ${isEn ? 'Academic English' : 'Standard Formal Khmer (ភាសាខ្មែរផ្លូវការគរុកោសល្យ ១០០%)'}.
+
+Return ONLY a valid JSON array of ${qList.length} question objects (no markdown fences):
+[
+  {
+    "number": 1,
+    "difficulty": "...",
+    "difficultyLevel": "easy|medium|hard",
+    "question": "...",
+    "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
+    "correctAnswer": "A|B|C|D",
+    "explanation": "..."
+  }
+]
+`.trim();
+
+  try {
+    const rawText = await callAiForSingleStep(fixAllPrompt, apiKey, provider, 4800);
+    const cleaned = String(rawText || '').replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+    const sIdx = cleaned.indexOf('[');
+    const eIdx = cleaned.lastIndexOf(']');
+    if (sIdx === -1 || eIdx === -1) throw new Error('AI មិនបានត្រឡប់ JSON Array សំណួរត្រឹមត្រូវ។');
+    let upgradedList = cleanForbiddenScriptsAndFormatMath(JSON.parse(cleaned.slice(sIdx, eIdx + 1)));
+    if (!Array.isArray(upgradedList) || upgradedList.length < Math.max(1, qList.length - 1)) {
+      throw new Error('ចំនួនសំណួរដែលកែថ្មីមិនគ្រប់គ្រាន់ឡើយ។');
+    }
+    upgradedList = upgradedList.slice(0, qList.length).map((q, idx) => ({
+      number: idx + 1,
+      difficulty: q.difficulty || qList[idx]?.difficulty || 'មធ្យម (Medium)',
+      difficultyLevel: q.difficultyLevel || qList[idx]?.difficultyLevel || 'medium',
+      question: String(q.question || qList[idx]?.question || '').trim(),
+      options: {
+        A: String(q.options?.A || '').trim(),
+        B: String(q.options?.B || '').trim(),
+        C: String(q.options?.C || '').trim(),
+        D: String(q.options?.D || '').trim()
+      },
+      correctAnswer: ['A', 'B', 'C', 'D'].includes(String(q.correctAnswer || '').toUpperCase())
+        ? String(q.correctAnswer).toUpperCase()
+        : (qList[idx]?.correctAnswer || 'A'),
+      explanation: String(q.explanation || '').trim()
+    }));
+
+    // Auto-balance answer keys only if skewed
+    const postCheck = computeTestObjectiveMetrics(upgradedList, testType);
+    if (upgradedList.length >= 5 && (postCheck.maxLetterRatio > 0.42 || postCheck.maxStreak >= 3) && typeof distributeAndBalanceQuizList === 'function') {
+      upgradedList = distributeAndBalanceQuizList(upgradedList);
+      upgradedList.forEach((q, idx) => { q.number = idx + 1; });
+    }
+
+    setTestListForType(plan, testType, upgradedList);
+    setTestAuditReport(plan, testType, null);
+    _testAuditFixInFlight[testType] = false;
+    rerenderSingleTestModule(testType);
+
+    showToast(
+      isEn ? '✨ Entire test upgraded! Re-auditing updated score...' : '✨ បានកែលម្អវិញ្ញាសាទាំងមូលរួចរាល់! កំពុងវាយតម្លៃពិន្ទុថ្មី...',
+      'success'
+    );
+    setTimeout(() => {
+      runTestPsychometricAudit(testType, combinedNotes);
+    }, 350);
+  } catch (err) {
+    console.error('[Auto-Fix All Test Audit] Error:', err);
+    _testAuditFixInFlight[testType] = false;
+    refreshTestAuditPanel(testType);
+    showToast('⚠️ មិនអាចកែលម្អវិញ្ញាសាទាំងមូលបាន៖ ' + (err.message || err), 'error', 6000);
+  }
+}
+window.autoFixAllTestAuditGaps = autoFixAllTestAuditGaps;
+
+function undoLastTestAuditFix(testType) {
+  const plan = state.generatedPlanData || state.currentPlan;
+  const snap = _testAuditUndoSnapshots[testType];
+  if (!plan || !snap) return;
+  setTestListForType(plan, testType, snap.questions);
+  setTestAuditReport(plan, testType, snap.report);
+  _testAuditUndoSnapshots[testType] = null;
+  rerenderSingleTestModule(testType);
+  showToast('↩️ បានត្រឡប់វិញ្ញាសាទៅស្ថានភាពមុនពេលកែលម្អវិញហើយ!', 'info');
+}
+window.undoLastTestAuditFix = undoLastTestAuditFix;
+
+// ==========================================================================
 // ☁️ 3. AUTO-SAVE DRAFT RECOVERY SYSTEM (Every ~3s to localStorage)
 // Protects form inputs & live A4 contenteditable edits against reload/crash
 // ==========================================================================
@@ -10906,7 +11969,7 @@ function renderPreTestHtmlBlock(data) {
     const opts = q.options || {};
     const optLabels = isEn ? ['A.', 'B.', 'C.', 'D.'] : ['ក.', 'ខ.', 'គ.', 'ឃ.'];
     preQcmHtml += `
-      <div class="qcm-item">
+      <div class="qcm-item" data-qnum="${qNum}">
         <div class="qcm-question-header">
           <div class="qcm-question-text"><strong>${isEn ? `Question ${qNum}:` : `សំណួរទី ${qNum} :`}</strong> ${escapeHtml(q.question)}</div>
         </div>
@@ -10921,11 +11984,22 @@ function renderPreTestHtmlBlock(data) {
     `;
   });
 
+  const preAuditReport = getTestAuditReport(data, 'pre');
+  const kNumPre = (typeof toKhmerNumber === 'function' && !isEn) ? toKhmerNumber : String;
+  const preAuditBtnLabel = _testAuditInFlight.pre
+    ? (isEn ? 'Auditing...' : 'កំពុងវាយតម្លៃ...')
+    : (preAuditReport
+      ? (isEn ? `Audit: ${preAuditReport.totalScore}/100` : `ពិន្ទុតេស្ដ៖ ${kNumPre(preAuditReport.totalScore)}/១០០`)
+      : (isEn ? 'Audit Test Quality' : '🕵️ វាយតម្លៃគុណភាពតេស្ដ'));
+
   return `
     <!-- Pre-Test QCM -->
     <div class="doc-section-title flex justify-between items-center" style="flex-wrap: wrap; gap: 6px; margin-top: 8px;">
       <span>${isEn ? `Diagnostic Pre-Test Assessment (${qcmList.length} Questions)` : `វិញ្ញាសាស្ទង់សមត្ថភាពមុនម៉ោង (Pre-Test QCM ${qcmList.length} សំណួរ)`}</span>
-      <div class="flex items-center gap-2" style="flex-wrap: wrap;">
+      <div class="flex items-center gap-2 no-print" contenteditable="false" style="flex-wrap: wrap;">
+        <button type="button" id="btnAuditTest_pre" class="btn-test-audit-trigger no-print" onclick="runTestPsychometricAudit('pre')" title="វាយតម្លៃគុណភាពតេស្ដ ៦ សសរស្ដម្ភ (ចម្លើយបំភាន់, កម្រិតលំបាក p-value, សុពលភាពខ្លឹមសារ)">
+          <i class="fa-solid ${_testAuditInFlight.pre ? 'fa-spinner fa-spin' : 'fa-user-shield'}"></i> ${preAuditBtnLabel}
+        </button>
         <button type="button" class="btn-copy-notebooklm" onclick="openGoogleFormModal('pre')" style="background: #7c3aed; color: white; border: none; font-weight: bold;" title="បង្កើតជា Google Form ដោយស្វ័យប្រវត្តក្នុង Google Drive">
           <i class="fa-solid fa-square-poll-vertical"></i> ${isEn ? '📝 Create Google Form' : '📝 បង្កើត Google Form'}
         </button>
@@ -10940,6 +12014,7 @@ function renderPreTestHtmlBlock(data) {
         </button>
       </div>
     </div>
+    <div id="testAuditHost_pre" class="test-audit-host no-print" contenteditable="false">${renderTestAuditPanelHtml(data, 'pre')}</div>
     <div class="doc-pretest-container">
       <div class="doc-pretest-header">
         <div class="doc-pretest-title"><i class="fa-solid fa-wand-magic-sparkles" style="color: #0284c7;"></i> ${isEn ? 'Diagnostic Pre-Test Assessment (Pre-Test Diagnostic QCM)' : 'កម្រងសំណួរស្ទង់ការយល់ដឹងមុនម៉ោង (Pre-Test Diagnostic QCM)'}</div>
@@ -10983,7 +12058,7 @@ function renderPostTestHtmlBlock(data) {
     const opts = q.options || {};
     const optLabels = isEn ? ['A.', 'B.', 'C.', 'D.'] : ['ក.', 'ខ.', 'គ.', 'ឃ.'];
     postQcmHtml += `
-      <div class="qcm-item">
+      <div class="qcm-item" data-qnum="${qNum}">
         <div class="qcm-question-header">
           <div class="qcm-question-text"><strong>${isEn ? `Question ${qNum}:` : `សំណួរទី ${qNum} :`}</strong> ${escapeHtml(q.question)}</div>
         </div>
@@ -10998,11 +12073,22 @@ function renderPostTestHtmlBlock(data) {
     `;
   });
 
+  const postAuditReport = getTestAuditReport(data, 'post');
+  const kNumPost = (typeof toKhmerNumber === 'function' && !isEn) ? toKhmerNumber : String;
+  const postAuditBtnLabel = _testAuditInFlight.post
+    ? (isEn ? 'Auditing...' : 'កំពុងវាយតម្លៃ...')
+    : (postAuditReport
+      ? (isEn ? `Audit: ${postAuditReport.totalScore}/100` : `ពិន្ទុតេស្ដ៖ ${kNumPost(postAuditReport.totalScore)}/១០០`)
+      : (isEn ? 'Audit Test Quality' : '🕵️ វាយតម្លៃគុណភាពតេស្ដ'));
+
   return `
     <!-- Post-Test MCQ -->
     <div class="doc-section-title flex justify-between items-center" style="flex-wrap: wrap; gap: 6px; margin-top: 18px;">
       <span>${isEn ? `Mastery Post-Test Assessment (${postTestList.length} Questions)` : `បច្ឆាតេស្តវាស់ស្ទង់សមត្ថភាព (Post-Test MCQ ${postTestList.length} សំណួរ)`}</span>
-      <div class="flex items-center gap-2" style="flex-wrap: wrap;">
+      <div class="flex items-center gap-2 no-print" contenteditable="false" style="flex-wrap: wrap;">
+        <button type="button" id="btnAuditTest_post" class="btn-test-audit-trigger no-print" onclick="runTestPsychometricAudit('post')" title="វាយតម្លៃគុណភាពតេស្ដ ៦ សសរស្ដម្ភ (ចម្លើយបំភាន់, កម្រិតលំបាក p-value, សុពលភាពខ្លឹមសារ)">
+          <i class="fa-solid ${_testAuditInFlight.post ? 'fa-spinner fa-spin' : 'fa-user-shield'}"></i> ${postAuditBtnLabel}
+        </button>
         <button type="button" class="btn-copy-notebooklm" onclick="openGoogleFormModal('post')" style="background: #0284c7; color: white; border: none; font-weight: bold;" title="បង្កើតជា Google Form ដោយស្វ័យប្រវត្តក្នុង Google Drive">
           <i class="fa-solid fa-square-poll-vertical"></i> ${isEn ? '📝 Create Google Form' : '📝 បង្កើត Google Form'}
         </button>
@@ -11017,6 +12103,7 @@ function renderPostTestHtmlBlock(data) {
         </button>
       </div>
     </div>
+    <div id="testAuditHost_post" class="test-audit-host no-print" contenteditable="false">${renderTestAuditPanelHtml(data, 'post')}</div>
     <div class="doc-pretest-container">
       <div class="doc-pretest-header">
         <div class="doc-pretest-title"><i class="fa-solid fa-circle-check" style="color: #10b981;"></i> ${isEn ? 'Post-Test Mastery Assessment (Post-Test MCQ)' : 'បច្ឆាតេស្តវាស់ស្ទង់សមត្ថភាព (Post-Test MCQ)'}</div>
@@ -11486,6 +12573,9 @@ async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
       qList.forEach((q, idx) => { q.number = idx + 1; });
     }
     plan.preTestQCM = qList;
+    delete plan.preTestAuditReport;
+    _testAuditLastError.pre = '';
+    _testAuditUndoSnapshots.pre = null;
     state.currentPlan = plan;
     state.generatedPlanData = plan;
 
@@ -11617,6 +12707,9 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
       qList.forEach((q, idx) => { q.number = idx + 1; });
     }
     plan.postTestMCQ = qList;
+    delete plan.postTestAuditReport;
+    _testAuditLastError.post = '';
+    _testAuditUndoSnapshots.post = null;
     state.currentPlan = plan;
     state.generatedPlanData = plan;
 

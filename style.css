@@ -5613,3 +5613,306 @@ tr.step-just-updated td {
   background: rgba(127, 29, 29, 0.35);
   color: #fca5a5;
 }
+
+/* ==========================================================================
+   🧪 PHASE 2.1: PSYCHOMETRIC ASSESSMENT INSPECTOR (Pre-Test & Post-Test)
+   ========================================================================== */
+.btn-test-audit-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 7px;
+  border: 1.5px solid #4f46e5;
+  background: linear-gradient(135deg, #4f46e5, #4338ca);
+  color: #ffffff !important;
+  font-family: 'Kantumruy Pro', 'Inter', sans-serif;
+  font-size: 8.6pt;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+  transition: all 0.16s ease;
+  white-space: nowrap;
+}
+
+.btn-test-audit-trigger:hover:not(:disabled) {
+  background: linear-gradient(135deg, #4338ca, #3730a3);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.34);
+}
+
+.btn-test-audit-trigger:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.test-audit-host {
+  margin: 10px 0 12px 0;
+  font-family: 'Kantumruy Pro', 'Inter', sans-serif;
+  user-select: none;
+}
+
+.test-audit-card {
+  background: #ffffff;
+  border: 1.5px solid #c7d2fe;
+  border-radius: 12px;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.08);
+  overflow: hidden;
+}
+
+.test-audit-loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 15px;
+  background: linear-gradient(135deg, #eef2ff, #f8fafc);
+}
+
+.test-audit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  background: linear-gradient(135deg, #f8fafc, #eef2ff);
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.test-audit-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.test-audit-body {
+  padding: 12px 14px;
+  background: #f8fafc;
+}
+
+.test-pillar-priority {
+  border: 1.5px solid #818cf8 !important;
+  background: linear-gradient(180deg, #fafaff, #ffffff) !important;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.1);
+}
+
+.test-priority-tag {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #4338ca;
+  font-size: 0.64rem;
+  font-weight: 800;
+  vertical-align: middle;
+}
+
+.test-code-stats-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.test-code-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 9px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+}
+
+.test-code-stat.ok {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.test-code-stat.warn {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.test-item-matrix-wrap {
+  margin-top: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.test-item-matrix-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 12px;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 0.77rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.test-item-table-scroll {
+  overflow-x: auto;
+}
+
+.test-item-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.74rem;
+}
+
+.test-item-matrix th {
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 700;
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.test-item-matrix td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.test-item-matrix tr:last-child td {
+  border-bottom: none;
+}
+
+.test-bloom-pill {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.test-pct-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.test-pct-bar {
+  height: 4px;
+  width: 100%;
+  background: #e2e8f0;
+  border-radius: 999px;
+  margin-top: 3px;
+  overflow: hidden;
+}
+
+.test-pct-bar > div {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.test-distractor-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.test-distractor-badge.ok {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.test-distractor-badge.fair {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.test-distractor-badge.weak {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.btn-test-mini-fix {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  border: 1px solid #c7d2fe;
+  background: #eef2ff;
+  color: #4338ca;
+  font-family: inherit;
+  font-size: 0.69rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-test-mini-fix:hover:not(:disabled) {
+  background: #4f46e5;
+  border-color: #4f46e5;
+  color: #ffffff;
+}
+
+.btn-test-mini-fix:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.qcm-item-just-updated {
+  animation: stepUpdatedFlash 2.4s ease-out;
+  border-radius: 8px;
+}
+
+[data-theme="dark"] .test-audit-card,
+[data-theme="dark"] .test-item-matrix-wrap {
+  background: #1e293b;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .test-audit-header,
+[data-theme="dark"] .test-item-matrix-title {
+  background: #0f172a;
+  border-color: #334155;
+  color: #f1f5f9;
+}
+
+[data-theme="dark"] .test-audit-body {
+  background: #0f172a;
+}
+
+[data-theme="dark"] .test-item-matrix th {
+  background: #1e293b;
+  color: #cbd5e1;
+  border-color: #334155;
+}
+
+[data-theme="dark"] .test-item-matrix td {
+  border-color: #1e293b;
+  color: #e2e8f0;
+}
+
+@media print {
+  .test-audit-host,
+  .btn-test-audit-trigger {
+    display: none !important;
+  }
+}
