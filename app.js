@@ -365,29 +365,34 @@ const BUILTIN_TEACHING_METHODS = [
 ];
 
 const BUILTIN_TEACHING_TECHNIQUES = [
-  { id: 'think_pair_share', name: 'Think-Pair-Share', icon: 'fa-user-group', kmLabel: 'Think-Pair-Share', descKm: 'គិតម្នាក់ឯង ពិភាក្សាជាដៃគូ និងចែករំលែករួមថ្នាក់ (Think-Pair-Share)', descEn: 'Think independently, discuss in pairs, share with class' },
-  { id: 'jigsaw', name: 'Jigsaw', icon: 'fa-puzzle-piece', kmLabel: 'ជីកសរ (Jigsaw)', descKm: 'បែងចែកក្រុមអ្នកជំនាញស្រាវជ្រាវ និងត្រឡប់ទៅបង្រៀនក្រុមដើម (Jigsaw Sharing)', descEn: 'Expert groups investigate sub-topics and return to teach Home Groups' },
-  { id: 'gallery_walk', name: 'Gallery Walk', icon: 'fa-person-walking', kmLabel: 'Gallery Walk', descKm: 'ដើរទស្សនាស្នាដៃលើ Flipchart ផ្តល់ Feedback និងវាយតម្លៃគ្នា', descEn: 'Walk to view group posters, provide feedback and assess peers' },
-  { id: 'brainstorming', name: 'Brainstorming', icon: 'fa-bolt', kmLabel: 'Brainstorming', descKm: 'បំផុសគំនិត និងស្រង់យោបល់សេរីពីសិស្សយ៉ាងលឿន', descEn: 'Generate rapid creative ideas without immediate judgment' },
-  { id: 'interactive_quizzes', name: 'Interactive Quizzes', icon: 'fa-circle-question', kmLabel: 'Interactive Quizzes', descKm: 'កម្រងសំណួរអន្តរកម្មរហ័ស QCM / ក្តារឆ្នួន', descEn: 'Quick formative quizzes, diagnostic polls, or mini-whiteboards' },
-  { id: 'fist_to_five', name: 'Fist to Five', icon: 'fa-hand', kmLabel: 'Fist to Five', descKm: 'ស្ទង់កម្រិតយល់ដឹងពីលេខ ១ ដល់ ៥ ដោយប្រើម្រាមដៃ', descEn: 'Check understanding instantly by raising 1 to 5 fingers' },
-  { id: 'exit_ticket', name: 'Exit Ticket 3-2-1', icon: 'fa-ticket', kmLabel: 'Exit Ticket 3-2-1', descKm: 'សំបុត្រឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 មុនបញ្ចប់ម៉ោង', descEn: 'End-of-class reflective ticket (3 things learned, 2 interesting, 1 question)' },
-  { id: 'concept_cartoons', name: 'Concept Cartoons', icon: 'fa-comments', kmLabel: 'Concept Cartoons', descKm: 'ផ្ទាំងគំនូរតុក្កតាចោទជាជម្រើសគំនិតបំផុសការដេញដោល', descEn: 'Visual cartoon dialogue presenting alternative conceptions for debate' },
-  { id: 'mind_concept_map', name: 'Mind / Concept Map', icon: 'fa-diagram-project', kmLabel: 'Mind / Concept Map', descKm: 'ចងក្រងខ្លឹមសារជាផែនទីគំនិត ឬដ្យាក្រាមផ្សារភ្ជាប់', descEn: 'Synthesize concepts into visual hierarchical mind/concept maps' },
-  { id: 'role_play', name: 'Role Play', icon: 'fa-masks-theater', kmLabel: 'Role Play', descKm: 'ការដើរតួ ឬការសម្តែងសេណារីយ៉ូជាក់ស្តែង', descEn: 'Simulate authentic scenarios and perspectives through drama/acting' },
-  { id: 'fishbowl', name: 'Fishbowl Discussion', icon: 'fa-users-between-lines', kmLabel: 'Fishbowl Discussion', descKm: 'ក្រុមខាងក្នុងពិភាក្សាដេញដោលស៊ីជម្រៅ ក្រុមខាងក្រៅកត់ត្រា និងសួរបំពេញ (Fishbowl)', descEn: 'Inner circle discusses deeply while outer circle observes, notes and questions' },
-  { id: 'snowballing', name: 'Snowballing', icon: 'fa-snowflake', kmLabel: 'Snowballing', descKm: 'គិតម្នាក់ឯង ➔ ពិភាក្សាជាគូ ➔ បញ្ចូលជាក្រុម៤នាក់ ➔ បូកសរុបថ្នាក់ (Snowballing)', descEn: 'Progressive pairing from individual to pairs, fours, and whole class' },
-  { id: 'learning_stations', name: 'Learning Stations', icon: 'fa-signs-post', kmLabel: 'Learning Stations', descKm: 'បែងចែកស្ថានីយសិក្សា សិស្សវិលជុំអនុវត្តកិច្ចការតាមស្ថានីយ (Learning Stations)', descEn: 'Rotational student stations with differentiated learning activities' },
-  { id: 'two_stars_wish', name: 'Two Stars and a Wish', icon: 'fa-star', kmLabel: 'Two Stars and a Wish', descKm: 'វាយតម្លៃមិត្តភក្តិ៖ សរសើរចំណុចល្អ ២ និងផ្តល់អនុសាសន៍កែលម្អ ១ (Two Stars & a Wish)', descEn: 'Peer feedback protocol: highlight 2 strengths and 1 area for growth' },
-  { id: 'gamification', name: 'Gamification', icon: 'fa-gamepad', kmLabel: 'Gamification', descKm: 'រៀបចំសកម្មភាពរៀនជាល្បែងប្រកួតប្រជែងដណ្តើមពិន្ទុ/ផ្លាកសញ្ញា (Gamification)', descEn: 'Game elements, points, challenges, and leaderboards to drive engagement' },
-  { id: 'numbered_heads', name: 'Numbered Heads Together', icon: 'fa-arrow-down-1-9', kmLabel: 'Numbered Heads Together', descKm: 'សមាជិកក្រុមមានលេខរៀង គ្រូចាប់ឆ្នោតហៅលេខឱ្យឆ្លើយតំណាងក្រុម (Numbered Heads)', descEn: 'Team members numbered; teacher calls a number randomly to answer for the team' },
-  { id: 'reciprocal_teaching', name: 'Reciprocal Teaching', icon: 'fa-chalkboard-user', kmLabel: 'Reciprocal Teaching', descKm: 'សិស្សប្តូរវេនគ្នាដើរតួជាគ្រូបង្រៀន សួរសំណួរ សង្ខេប និងបំភ្លឺ (Reciprocal Teaching)', descEn: 'Students take turns leading discussions: questioning, clarifying, summarizing, predicting' },
-  { id: 'muddiest_point', name: 'Muddiest Point', icon: 'fa-question', kmLabel: 'Muddiest Point', descKm: 'សិស្សកត់ត្រាចំណុចដែលនៅស្រពិចស្រពិលបំផុត ដើម្បីស្រាយបំភ្លឺរួមគ្នា (Muddiest Point)', descEn: 'Quickly identify the most confusing or unclear concept from the lesson' },
-  { id: 'spaced_retrieval', name: 'Spaced Retrieval Practice / Interleaving', icon: 'fa-brain', kmLabel: 'Spaced Retrieval / Interleaving', descKm: 'ចោទសួររំលឹកក្បួនពីមេរៀនមុនៗឆ្លាស់គ្នា ដើម្បីពង្រឹងការចងចាំយូរអង្វែង (Spaced Retrieval / Interleaving)', descEn: 'Deliberate spaced and mixed recall practice to reinforce long-term memory' },
-  { id: 'four_corners', name: 'Four Corners', icon: 'fa-shapes', kmLabel: 'Four Corners', descKm: 'សិស្សជ្រើសរើសទៅឈរតាមជ្រុងទាំង៤នៃបន្ទប់តាមទស្សនៈរបស់ខ្លួនរួចការពារគំនិត (Four Corners)', descEn: 'Students move to 4 corners based on viewpoints, then debate and justify' },
-  { id: 'six_thinking_hats', name: 'Six Thinking Hats', icon: 'fa-graduation-cap', kmLabel: 'Six Thinking Hats', descKm: 'ពិចារណាបញ្ហាតាមពណ៌មួកទាំង៦ (ព័ត៌មាន អារម្មណ៍ វិជ្ជមាន ហានិភ័យ ច្នៃប្រឌិត និងការគ្រប់គ្រង)', descEn: 'Analyze problems from 6 distinct thinking perspectives (Six Thinking Hats)' },
-  { id: 'concept_attainment', name: 'Concept Attainment', icon: 'fa-magnifying-glass-chart', kmLabel: 'Concept Attainment', descKm: 'បង្ហាញឧទាហរណ៍មែន (Yes) និងមិនមែន (No) ដើម្បីឱ្យសិស្សទាញរកនិយមន័យ (Concept Attainment)', descEn: 'Inductive strategy comparing Yes/No examples to discover defining attributes' },
-  { id: 'reflection_321', name: '3-2-1 Reflection', icon: 'fa-list-check', kmLabel: '3-2-1 Reflection', descKm: 'ឆ្លុះបញ្ចាំង ៣ ចំណុចរៀនបាន ២ ចំណុចចាប់អារម្មណ៍ ១ ចំណុចនៅឆ្ងល់ (3-2-1 Reflection)', descEn: 'Structured reflection: 3 insights gained, 2 interesting facts, 1 remaining question' }
+  // 🌅 ក្រុមទី ១៖ ដើមម៉ោង (Warm-up & Retrieval)
+  { id: 'muddiest_point', name: 'Muddiest Point', category: 'warmup', icon: 'fa-question', kmLabel: 'Muddiest Point', descKm: 'សិស្សកត់ត្រាចំណុចដែលនៅស្រពិចស្រពិលបំផុត ដើម្បីស្រាយបំភ្លឺរួមគ្នា (Muddiest Point)', descEn: 'Quickly identify the most confusing or unclear concept from the lesson' },
+  { id: 'fist_to_five', name: 'Fist to Five', category: 'warmup', icon: 'fa-hand', kmLabel: 'Fist to Five', descKm: 'ស្ទង់កម្រិតយល់ដឹងពីលេខ ១ ដល់ ៥ ដោយប្រើម្រាមដៃ', descEn: 'Check understanding instantly by raising 1 to 5 fingers' },
+  { id: 'interactive_quizzes', name: 'Interactive Quizzes', category: 'warmup', icon: 'fa-circle-question', kmLabel: 'Interactive Quizzes', descKm: 'កម្រងសំណួរអន្តរកម្មរហ័ស QCM / ក្តារឆ្នួន', descEn: 'Quick formative quizzes, diagnostic polls, or mini-whiteboards' },
+  { id: 'spaced_retrieval', name: 'Spaced Retrieval Practice / Interleaving', category: 'warmup', icon: 'fa-brain', kmLabel: 'Spaced Retrieval / Interleaving', descKm: 'ចោទសួររំលឹកក្បួនពីមេរៀនមុនៗឆ្លាស់គ្នា ដើម្បីពង្រឹងការចងចាំយូរអង្វែង (Spaced Retrieval / Interleaving)', descEn: 'Deliberate spaced and mixed recall practice to reinforce long-term memory' },
+  { id: 'brainstorming', name: 'Brainstorming', category: 'warmup', icon: 'fa-bolt', kmLabel: 'Brainstorming', descKm: 'បំផុសគំនិត និងស្រង់យោបល់សេរីពីសិស្សយ៉ាងលឿន', descEn: 'Generate rapid creative ideas without immediate judgment' },
+  { id: 'concept_cartoons', name: 'Concept Cartoons', category: 'warmup', icon: 'fa-comments', kmLabel: 'Concept Cartoons', descKm: 'ផ្ទាំងគំនូរតុក្កតាចោទជាជម្រើសគំនិតបំផុសការដេញដោល', descEn: 'Visual cartoon dialogue presenting alternative conceptions for debate' },
+
+  // ⚡ ក្រុមទី ២៖ កណ្តាលម៉ោង / អនុវត្តសកម្ម (Core Active Practice)
+  { id: 'think_pair_share', name: 'Think-Pair-Share', category: 'practice', icon: 'fa-user-group', kmLabel: 'Think-Pair-Share', descKm: 'គិតម្នាក់ឯង ពិភាក្សាជាដៃគូ និងចែករំលែករួមថ្នាក់ (Think-Pair-Share)', descEn: 'Think independently, discuss in pairs, share with class' },
+  { id: 'jigsaw', name: 'Jigsaw', category: 'practice', icon: 'fa-puzzle-piece', kmLabel: 'ជីកសរ (Jigsaw)', descKm: 'បែងចែកក្រុមអ្នកជំនាញស្រាវជ្រាវ និងត្រឡប់ទៅបង្រៀនក្រុមដើម (Jigsaw Sharing)', descEn: 'Expert groups investigate sub-topics and return to teach Home Groups' },
+  { id: 'learning_stations', name: 'Learning Stations', category: 'practice', icon: 'fa-signs-post', kmLabel: 'Learning Stations', descKm: 'បែងចែកស្ថានីយសិក្សា សិស្សវិលជុំអនុវត្តកិច្ចការតាមស្ថានីយ (Learning Stations)', descEn: 'Rotational student stations with differentiated learning activities' },
+  { id: 'gallery_walk', name: 'Gallery Walk', category: 'practice', icon: 'fa-person-walking', kmLabel: 'Gallery Walk', descKm: 'ដើរទស្សនាស្នាដៃលើ Flipchart ផ្តល់ Feedback និងវាយតម្លៃគ្នា', descEn: 'Walk to view group posters, provide feedback and assess peers' },
+  { id: 'numbered_heads', name: 'Numbered Heads Together', category: 'practice', icon: 'fa-arrow-down-1-9', kmLabel: 'Numbered Heads Together', descKm: 'សមាជិកក្រុមមានលេខរៀង គ្រូចាប់ឆ្នោតហៅលេខឱ្យឆ្លើយតំណាងក្រុម (Numbered Heads)', descEn: 'Team members numbered; teacher calls a number randomly to answer for the team' },
+  { id: 'six_thinking_hats', name: 'Six Thinking Hats', category: 'practice', icon: 'fa-graduation-cap', kmLabel: 'Six Thinking Hats', descKm: 'ពិចារណាបញ្ហាតាមពណ៌មួកទាំង៦ (ព័ត៌មាន អារម្មណ៍ វិជ្ជមាន ហានិភ័យ ច្នៃប្រឌិត និងការគ្រប់គ្រង)', descEn: 'Analyze problems from 6 distinct thinking perspectives (Six Thinking Hats)' },
+  { id: 'role_play', name: 'Role Play', category: 'practice', icon: 'fa-masks-theater', kmLabel: 'Role Play', descKm: 'ការដើរតួ ឬការសម្តែងសេណារីយ៉ូជាក់ស្តែង', descEn: 'Simulate authentic scenarios and perspectives through drama/acting' },
+  { id: 'fishbowl', name: 'Fishbowl Discussion', category: 'practice', icon: 'fa-users-between-lines', kmLabel: 'Fishbowl Discussion', descKm: 'ក្រុមខាងក្នុងពិភាក្សាដេញដោលស៊ីជម្រៅ ក្រុមខាងក្រៅកត់ត្រា និងសួរបំពេញ (Fishbowl)', descEn: 'Inner circle discusses deeply while outer circle observes, notes and questions' },
+  { id: 'snowballing', name: 'Snowballing', category: 'practice', icon: 'fa-snowflake', kmLabel: 'Snowballing', descKm: 'គិតម្នាក់ឯង ➔ ពិភាក្សាជាគូ ➔ បញ្ចូលជាក្រុម៤នាក់ ➔ បូកសរុបថ្នាក់ (Snowballing)', descEn: 'Progressive pairing from individual to pairs, fours, and whole class' },
+  { id: 'reciprocal_teaching', name: 'Reciprocal Teaching', category: 'practice', icon: 'fa-chalkboard-user', kmLabel: 'Reciprocal Teaching', descKm: 'សិស្សប្តូរវេនគ្នាដើរតួជាគ្រូបង្រៀន សួរសំណួរ សង្ខេប និងបំភ្លឺ (Reciprocal Teaching)', descEn: 'Students take turns leading discussions: questioning, clarifying, summarizing, predicting' },
+  { id: 'concept_attainment', name: 'Concept Attainment', category: 'practice', icon: 'fa-magnifying-glass-chart', kmLabel: 'Concept Attainment', descKm: 'បង្ហាញឧទាហរណ៍មែន (Yes) និងមិនមែន (No) ដើម្បីឱ្យសិស្សទាញរកនិយមន័យ (Concept Attainment)', descEn: 'Inductive strategy comparing Yes/No examples to discover defining attributes' },
+  { id: 'mind_concept_map', name: 'Mind / Concept Map', category: 'practice', icon: 'fa-diagram-project', kmLabel: 'Mind / Concept Map', descKm: 'ចងក្រងខ្លឹមសារជាផែនទីគំនិត ឬដ្យាក្រាមផ្សារភ្ជាប់', descEn: 'Synthesize concepts into visual hierarchical mind/concept maps' },
+  { id: 'four_corners', name: 'Four Corners', category: 'practice', icon: 'fa-shapes', kmLabel: 'Four Corners', descKm: 'សិស្សជ្រើសរើសទៅឈរតាមជ្រុងទាំង៤នៃបន្ទប់តាមទស្សនៈរបស់ខ្លួនរួចការពារគំនិត (Four Corners)', descEn: 'Students move to 4 corners based on viewpoints, then debate and justify' },
+  { id: 'gamification', name: 'Gamification', category: 'practice', icon: 'fa-gamepad', kmLabel: 'Gamification', descKm: 'រៀបចំសកម្មភាពរៀនជាល្បែងប្រកួតប្រជែងដណ្តើមពិន្ទុ/ផ្លាកសញ្ញា (Gamification)', descEn: 'Game elements, points, challenges, and leaderboards to drive engagement' },
+
+  // 🎯 ក្រុមទី ៣៖ ចុងម៉ោង / ឆ្លុះបញ្ចាំង (Closure & Reflection)
+  { id: 'exit_ticket', name: 'Exit Ticket 3-2-1', category: 'reflection', icon: 'fa-ticket', kmLabel: 'Exit Ticket 3-2-1', descKm: 'សំបុត្រឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 មុនបញ្ចប់ម៉ោង', descEn: 'End-of-class reflective ticket (3 things learned, 2 interesting, 1 question)' },
+  { id: 'reflection_321', name: '3-2-1 Reflection', category: 'reflection', icon: 'fa-list-check', kmLabel: '3-2-1 Reflection', descKm: 'ឆ្លុះបញ្ចាំង ៣ ចំណុចរៀនបាន ២ ចំណុចចាប់អារម្មណ៍ ១ ចំណុចនៅឆ្ងល់ (3-2-1 Reflection)', descEn: 'Structured reflection: 3 insights gained, 2 interesting facts, 1 remaining question' },
+  { id: 'two_stars_wish', name: 'Two Stars and a Wish', category: 'reflection', icon: 'fa-star', kmLabel: 'Two Stars and a Wish', descKm: 'វាយតម្លៃមិត្តភក្តិ៖ សរសើរចំណុចល្អ ២ និងផ្តល់អនុសាសន៍កែលម្អ ១ (Two Stars & a Wish)', descEn: 'Peer feedback protocol: highlight 2 strengths and 1 area for growth' }
 ];
 
 function getCustomTeachingMethods() {
@@ -506,6 +511,9 @@ function handlePresetTemplateChange(val) {
     state.currentPlan.templateType = (val === 'flipped_learning_5step') ? 'flipped_learning' : '5_steps';
     state.currentPlan = normalizeLessonPlanData(state.currentPlan, { presetId: val });
     renderLessonPlanToA4(state.currentPlan);
+  }
+  if (typeof updateDynamicPacingBar === 'function') {
+    updateDynamicPacingBar();
   }
 }
 window.handlePresetTemplateChange = handlePresetTemplateChange;
@@ -948,6 +956,9 @@ function initPedagogyControls() {
   const isEn = (state.language === 'en');
   populateTeachingMethodsSelect(isEn);
   renderTechniquesChips();
+  if (typeof updateDynamicPacingBar === 'function') {
+    updateDynamicPacingBar();
+  }
 
   // Initialize Gemini Model Tier (Gemini 3.5 Flash vs Gemini Pro)
   try {
@@ -1207,7 +1218,7 @@ const PRESET_TEMPLATES = {
   flipped_learning_5step: {
     id: "flipped_learning_5step",
     name: "កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់ (Flipped Classroom)",
-    badge: "ថ្នាក់រៀនត្រឡប់ (៥%-១០%-១០%-៧០%-៥%)",
+    badge: "ថ្នាក់រៀនត្រឡប់ (៣%-៧%-១០%-៧៥%-៥%)",
     description: "ទម្រង់កិច្ចតែងការបង្រៀនបែបថ្នាក់រៀនត្រឡប់ ជាមួយ Pre-test QCM ៥ សំណួរ និង Post-test MCQ ៥ សំណួរ",
     structure: {
       type: "flipped_learning",
@@ -2511,155 +2522,144 @@ function parseDurationToMinutes(durationStr) {
 // Calculate proportional minutes for each step based on total duration & pedagogical percentage
 function calculateStepDurations(durationStr, mode = 'flipped') {
   const totalMin = parseDurationToMinutes(durationStr);
+  const isFlipped = (mode === 'flipped' || mode === 'flipped_learning_5step');
+  const isUbD = (mode === 'backward_design' || mode === 'backward_design_3stage');
 
-  if (mode === 'flipped') {
-    // 5% - 10% - 10% - 70% - 5%
-    if (totalMin === 60) {
-      return {
-        total: 60,
-        step1: `០៥ នាទី`,
-        step2: `០៥ នាទី`,
-        step3: `០៨ នាទី`,
-        step4: `៣៨ នាទី`,
-        step5: `០៤ នាទី`
-      };
-    }
-    if (totalMin === 120) {
-      return {
-        total: 120,
-        step1: `០៥ នាទី`,
-        step2: `១៥ នាទី`,
-        step3: `១៥ នាទី`,
-        step4: `៨០ នាទី`,
-        step5: `០៥ នាទី`
-      };
-    }
-    if (totalMin === 150) {
-      return {
-        total: 150,
-        step1: `០៨ នាទី`,
-        step2: `១៥ នាទី`,
-        step3: `១៥ នាទី`,
-        step4: `១០៤ នាទី`,
-        step5: `០៨ នាទី`
-      };
-    }
-    if (totalMin === 180) {
-      return {
-        total: 180,
-        step1: `០៥ នាទី`,
-        step2: `២៥ នាទី`,
-        step3: `២០ នាទី`,
-        step4: `១២០ នាទី`,
-        step5: `១០ នាទី`
-      };
-    }
-    const s1 = Math.max(1, Math.round(totalMin * 0.05));
-    const s2 = Math.max(2, Math.round(totalMin * 0.10));
+  if (isFlipped) {
+    // ⚡ Flipped Classroom Official Standard: 3% - 7% - 10% - 75% - 5%
+    const s1 = Math.max(1, Math.round(totalMin * 0.03));
+    const s2 = Math.max(2, Math.round(totalMin * 0.07));
     const s3 = Math.max(2, Math.round(totalMin * 0.10));
     const s5 = Math.max(1, Math.round(totalMin * 0.05));
     const s4 = Math.max(5, totalMin - (s1 + s2 + s3 + s5));
     return {
       total: totalMin,
+      mode: 'flipped',
+      ratio: '៣% - ៧% - ១០% - ៧៥% - ៥%',
       step1: `${toKhmerNumber(s1)} នាទី`,
       step2: `${toKhmerNumber(s2)} នាទី`,
       step3: `${toKhmerNumber(s3)} នាទី`,
       step4: `${toKhmerNumber(s4)} នាទី`,
-      step5: `${toKhmerNumber(s5)} នាទី`
+      step5: `${toKhmerNumber(s5)} នាទី`,
+      s1, s2, s3, s4, s5
     };
-  } else if (mode === 'backward_design') {
-    // UbD: Hook 15%, Explore 70%, Reflect 15%
+  } else if (isUbD) {
+    // UbD Backward Design: Hook 15%, Explore 70%, Reflect 15%
     const s1 = Math.max(3, Math.round(totalMin * 0.15));
     const s3 = Math.max(3, Math.round(totalMin * 0.15));
     const s2 = Math.max(10, totalMin - (s1 + s3));
     return {
       total: totalMin,
+      mode: 'backward_design',
+      ratio: '១៥% - ៧០% - ១៥%',
       step1: `១៥% (~${toKhmerNumber(s1)} នាទី)`,
       step2: `៧០% (~${toKhmerNumber(s2)} នាទី)`,
-      step3: `១៥% (~${toKhmerNumber(s3)} នាទី)`
+      step3: `១៥% (~${toKhmerNumber(s3)} នាទី)`,
+      s1, s2, s3
     };
   } else {
-    // 🎯 Standard 5-Step MoEYS Official Curriculum Standard:
-    // ជំហានទី ១ (រដ្ឋបាលថ្នាក់): ៥%
-    // ជំហានទី ២ (រំលឹកមេរៀនចាស់ ឬ ពិនិត្យកិច្ចការ): ១០-១៥%
-    // ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី): ៥០-៦០% (បង្រៀនខ្លឹមសារស្នូល)
-    // ជំហានទី ៤ (ពង្រឹងពុទ្ធិ): ១៥-២០%
-    // ជំហានទី ៥ (បណ្ដាំផ្ញើ និងកិច្ចការផ្ទះ): ៥-១០%
-    if (totalMin === 50) {
-      return {
-        total: 50,
-        step1: `០២ នាទី`, // 4% (~5%)
-        step2: `០៥ នាទី`, // 10%
-        step3: `៣០ នាទី`, // 60%
-        step4: `០៨ នាទី`, // 16%
-        step5: `០៥ នាទី`  // 10%
-      };
-    }
-    if (totalMin === 60) {
-      return {
-        total: 60,
-        step1: `០៣ នាទី`, // 5%
-        step2: `០៧ នាទី`, // 11.7% (10-15%)
-        step3: `៣៥ នាទី`, // 58.3% (50-60%)
-        step4: `១០ នាទី`, // 16.7% (15-20%)
-        step5: `០៥ នាទី`  // 8.3% (5-10%)
-      };
-    }
-    if (totalMin === 90) {
-      return {
-        total: 90,
-        step1: `០៥ នាទី`, // 5.5%
-        step2: `១០ នាទី`, // 11.1%
-        step3: `៥០ នាទី`, // 55.5%
-        step4: `១៨ នាទី`, // 20%
-        step5: `០៧ នាទី`  // 7.8%
-      };
-    }
-    if (totalMin === 100) {
-      return {
-        total: 100,
-        step1: `០៥ នាទី`, // 5%
-        step2: `១២ នាទី`, // 12%
-        step3: `៥៥ នាទី`, // 55%
-        step4: `២០ នាទី`, // 20%
-        step5: `០៨ នាទី`  // 8%
-      };
-    }
-    if (totalMin === 120) {
-      return {
-        total: 120,
-        step1: `០៦ នាទី`, // 5%
-        step2: `១៤ នាទី`, // 11.7%
-        step3: `៦៨ នាទី`, // 56.7%
-        step4: `២២ នាទី`, // 18.3%
-        step5: `១០ នាទី`  // 8.3%
-      };
-    }
-    if (totalMin === 180) {
-      return {
-        total: 180,
-        step1: `០៩ នាទី`, // 5%
-        step2: `២១ នាទី`, // 11.7%
-        step3: `១០២ នាទី`, // 56.7%
-        step4: `៣៣ នាទី`, // 18.3%
-        step5: `១៥ នាទី`  // 8.3%
-      };
-    }
-    const s1 = Math.max(1, Math.round(totalMin * 0.05)); // 5%
-    const s2 = Math.max(2, Math.round(totalMin * 0.12)); // 10-15% (មធ្យម 12%)
-    const s4 = Math.max(2, Math.round(totalMin * 0.18)); // 15-20% (មធ្យម 18%)
-    const s5 = Math.max(1, Math.round(totalMin * 0.08)); // 5-10% (មធ្យម 8%)
-    const s3 = Math.max(5, totalMin - (s1 + s2 + s4 + s5)); // 50-60% (ខ្លឹមសារស្នូល)
+    // 🏛️ MoEYS Standard 5-Step Official Curriculum Standard: 5% - 15% - 60% - 15% - 5%
+    const s1 = Math.max(1, Math.round(totalMin * 0.05));
+    const s2 = Math.max(2, Math.round(totalMin * 0.15));
+    const s4 = Math.max(2, Math.round(totalMin * 0.15));
+    const s5 = Math.max(1, Math.round(totalMin * 0.05));
+    const s3 = Math.max(5, totalMin - (s1 + s2 + s4 + s5));
     return {
       total: totalMin,
+      mode: 'standard',
+      ratio: '៥% - ១៥% - ៦០% - ១៥% - ៥%',
       step1: `${toKhmerNumber(s1)} នាទី`,
       step2: `${toKhmerNumber(s2)} នាទី`,
       step3: `${toKhmerNumber(s3)} នាទី`,
       step4: `${toKhmerNumber(s4)} នាទី`,
-      step5: `${toKhmerNumber(s5)} នាទី`
+      step5: `${toKhmerNumber(s5)} នាទី`,
+      s1, s2, s3, s4, s5
     };
   }
 }
+window.calculateStepDurations = calculateStepDurations;
+
+function updateDynamicPacingBar() {
+  const container = document.getElementById('pacingBarSegments');
+  const legend = document.getElementById('pacingLegend');
+  const badge = document.getElementById('pacingModeBadge');
+  if (!container || !legend) return;
+
+  const durationStr = (typeof getActiveDurationString === 'function')
+    ? getActiveDurationString()
+    : (document.getElementById('inputDurationSelect')?.value || '០១ ម៉ោង');
+
+  const presetSelect = document.getElementById('presetTemplateSelect');
+  const presetType = presetSelect ? presetSelect.value : 'moeys_standard_5step';
+  const isFlipped = (presetType === 'flipped_learning_5step');
+  const isUbD = (presetType === 'backward_design_3stage');
+
+  let modeKey = 'standard';
+  if (isFlipped) modeKey = 'flipped';
+  else if (isUbD) modeKey = 'backward_design';
+
+  const pacing = calculateStepDurations(durationStr, modeKey);
+
+  if (badge) {
+    if (isFlipped) {
+      badge.textContent = `⚡ Flipped (៣% - ៧% - ១០% - ៧៥% - ៥%) [${toKhmerNumber(pacing.total)} នាទី]`;
+      badge.style.background = '#f3e8ff';
+      badge.style.color = '#7e22ce';
+    } else if (isUbD) {
+      badge.textContent = `🔄 UbD (១៥% - ៧០% - ១៥%) [${toKhmerNumber(pacing.total)} នាទី]`;
+      badge.style.background = '#e0f2fe';
+      badge.style.color = '#0369a1';
+    } else {
+      badge.textContent = `🏛️ ស្តង់ដារក្រសួង (៥% - ១៥% - ៦០% - ១៥% - ៥%) [${toKhmerNumber(pacing.total)} នាទី]`;
+      badge.style.background = '#e0e7ff';
+      badge.style.color = '#4338ca';
+    }
+  }
+
+  if (isFlipped) {
+    container.innerHTML = `
+      <div class="pacing-segment seg-s1" style="width: 3%;" title="ជំហានទី ១ (រដ្ឋបាល): ៣% (~${pacing.step1})"></div>
+      <div class="pacing-segment seg-s2" style="width: 7%;" title="ជំហានទី ២ (ពិនិត្យស្វ័យសិក្សា): ៧% (~${pacing.step2})"></div>
+      <div class="pacing-segment seg-s3" style="width: 10%;" title="ជំហានទី ៣ (ស្រាយចម្ងល់): ១០% (~${pacing.step3})"></div>
+      <div class="pacing-segment seg-s4" style="width: 75%;" title="ជំហានទី ៤ (អនុវត្តសកម្មជាក្រុម): ៧៥% (~${pacing.step4})"></div>
+      <div class="pacing-segment seg-s5" style="width: 5%;" title="ជំហានទី ៥ (ឆ្លុះបញ្ចាំង/វាយតម្លៃ): ៥% (~${pacing.step5})"></div>
+    `;
+    legend.innerHTML = `
+      <span class="p-item"><i class="p-dot dot-s1"></i> ជំ.១: <strong>${pacing.step1}</strong> (៣%)</span>
+      <span class="p-item"><i class="p-dot dot-s2"></i> ជំ.២: <strong>${pacing.step2}</strong> (៧%)</span>
+      <span class="p-item"><i class="p-dot dot-s3"></i> ជំ.៣: <strong>${pacing.step3}</strong> (១០%)</span>
+      <span class="p-item highlight-core"><i class="p-dot dot-s4"></i> ជំ.៤: <strong>${pacing.step4}</strong> (៧៥% អនុវត្តសកម្ម)</span>
+      <span class="p-item"><i class="p-dot dot-s5"></i> ជំ.៥: <strong>${pacing.step5}</strong> (៥%)</span>
+    `;
+  } else if (isUbD) {
+    container.innerHTML = `
+      <div class="pacing-segment seg-s2" style="width: 15%;" title="ដំណាក់កាល ១ (លទ្ធផលរំពឹងទុក): ១៥% (~${pacing.step1})"></div>
+      <div class="pacing-segment seg-s4" style="width: 70%;" title="ដំណាក់កាល ២ (ភស្តុតាងវាយតម្លៃ): ៧០% (~${pacing.step2})"></div>
+      <div class="pacing-segment seg-s5" style="width: 15%;" title="ដំណាក់កាល ៣ (ផែនការបង្រៀន): ១៥% (~${pacing.step3})"></div>
+    `;
+    legend.innerHTML = `
+      <span class="p-item"><i class="p-dot dot-s2"></i> ដ.១: <strong>${pacing.step1}</strong></span>
+      <span class="p-item highlight-core"><i class="p-dot dot-s4"></i> ដ.២: <strong>${pacing.step2}</strong> (៧០%)</span>
+      <span class="p-item"><i class="p-dot dot-s5"></i> ដ.៣: <strong>${pacing.step3}</strong></span>
+    `;
+  } else {
+    container.innerHTML = `
+      <div class="pacing-segment seg-s1" style="width: 5%;" title="ជំហានទី ១ (រដ្ឋបាល): ៥% (~${pacing.step1})"></div>
+      <div class="pacing-segment seg-s2" style="width: 15%;" title="ជំហានទី ២ (រំលឹកមេរៀន): ១៥% (~${pacing.step2})"></div>
+      <div class="pacing-segment seg-s3" style="width: 60%;" title="ជំហានទី ៣ (មេរៀនថ្មី): ៦០% (~${pacing.step3})"></div>
+      <div class="pacing-segment seg-s4" style="width: 15%;" title="ជំហានទី ៤ (ពង្រឹងពុទ្ធិ): ១៥% (~${pacing.step4})"></div>
+      <div class="pacing-segment seg-s5" style="width: 5%;" title="ជំហានទី ៥ (កិច្ចការផ្ទះ): ៥% (~${pacing.step5})"></div>
+    `;
+    legend.innerHTML = `
+      <span class="p-item"><i class="p-dot dot-s1"></i> ជំ.១: <strong>${pacing.step1}</strong> (៥%)</span>
+      <span class="p-item"><i class="p-dot dot-s2"></i> ជំ.២: <strong>${pacing.step2}</strong> (១៥%)</span>
+      <span class="p-item highlight-core"><i class="p-dot dot-s3"></i> ជំ.៣: <strong>${pacing.step3}</strong> (៦០% មេរៀនថ្មី)</span>
+      <span class="p-item"><i class="p-dot dot-s4"></i> ជំ.៤: <strong>${pacing.step4}</strong> (១៥%)</span>
+      <span class="p-item"><i class="p-dot dot-s5"></i> ជំ.៥: <strong>${pacing.step5}</strong> (៥%)</span>
+    `;
+  }
+}
+window.updateDynamicPacingBar = updateDynamicPacingBar;
 
 // Set Duration Value helper (Handles Combo Box + Custom)
 function setDurationValue(val) {
@@ -2722,6 +2722,9 @@ function setDurationValue(val) {
   if (typeof syncDurationChipsFromSelect === 'function') {
     syncDurationChipsFromSelect();
   }
+  if (typeof updateDynamicPacingBar === 'function') {
+    updateDynamicPacingBar();
+  }
 }
 
 // Handle Duration Combo Box Change
@@ -2751,6 +2754,9 @@ function handleDurationChange(val) {
   }
   if (typeof updateTeacherProfileSummaryLive === 'function') {
     updateTeacherProfileSummaryLive();
+  }
+  if (typeof updateDynamicPacingBar === 'function') {
+    updateDynamicPacingBar();
   }
 }
 window.handleDurationChange = handleDurationChange;
@@ -3107,6 +3113,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try { checkApiKeyStatus(); } catch (e) { console.error('checkApiKeyStatus err:', e); }
   try { updateEmptyStateApiStatus(); } catch (e) { console.error('updateEmptyStateApiStatus err:', e); }
   try { initPedagogyControls(); } catch (e) { console.error('initPedagogyControls err:', e); }
+  try { updateDynamicPacingBar(); } catch (e) { console.error('updateDynamicPacingBar err:', e); }
   try { setLanguage(state.language || 'km', false); } catch (e) { console.error('setLanguage err:', e); }
   try { updateWordCount(); } catch (e) { console.error('updateWordCount err:', e); }
   try { loadCustomSubjectsFromStorage(); } catch (e) { console.error('loadCustomSubjectsFromStorage err:', e); }
@@ -3436,6 +3443,9 @@ function initEventListeners() {
       }
       if (typeof updateTeacherProfileSummaryLive === 'function') {
         updateTeacherProfileSummaryLive();
+      }
+      if (typeof updateDynamicPacingBar === 'function') {
+        updateDynamicPacingBar();
       }
     });
   }
@@ -4420,11 +4430,12 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', t
       case 'pbl':
         return `
 10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
-   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា (Problem-Based Learning - PBL)» ក្នុងទម្រង់ Flipped Classroom៖
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «ការពិភាក្សាជាក្រុម និងការដោះស្រាយបញ្ហា (Problem-Based Learning - PBL)» ក្នុងទម្រង់ Flipped Classroom (៣% - ៧% - ១០% - ៧៥% - ៥%)៖
    - ដោយសារទ្រឹស្តីគោលសិស្សបានមើលវីដេអូរៀនមុនម៉ោងរួចហើយ ដំណើរការក្នុងថ្នាក់ត្រូវផ្តោត ១០០% លើការដោះស្រាយបញ្ហាជាក់ស្តែង (Real-World Problem Scenario)៖
-     • ជំហានទី ២ (១០%): ពិនិត្យការយល់ដឹងពីផ្ទះ ស្រាយចម្ងល់ Muddiest Points និងភ្ជាប់ទ្រឹស្តីទៅនឹងបញ្ហាប្រឈមក្នុងសង្គម/វិជ្ជាជីវៈ។
+     • ជំហានទី ១ (៣%): រដ្ឋបាលថ្នាក់ និងរៀបចំបរិយាកាសសិក្សា។
+     • ជំហានទី ២ (៧%): ពិនិត្យការយល់ដឹងពីផ្ទះ ស្រាយចម្ងល់ Muddiest Points និងភ្ជាប់ទ្រឹស្តីទៅនឹងបញ្ហាប្រឈមក្នុងសង្គម/វិជ្ជាជីវៈ។
      • ជំហានទី ៣ (១០%): គ្រូចោទសំណួរតម្រង់ទិស ៤ សំណួរ និងប្រគល់ «សន្លឹកបេសកកម្មដោះស្រាយបញ្ហា (Problem Challenge Scenario)» ជាក់ស្តែងមួយដែលមានឧបសគ្គស្មុគស្មាញ${titleStr}។
-     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): ត្រូវរៀបចំជា ៤ ដំណាក់កាល PBL យ៉ាងច្បាស់លាស់៖
+     • ជំហានទី ៤ (៧៥% - CORE ACTIVE LEARNING): ត្រូវរៀបចំជា ៤ ដំណាក់កាល PBL យ៉ាងច្បាស់លាស់៖
        + ដំណាក់កាល ១ (វិភាគបញ្ហា & ស្វែងរកឫសគល់): ក្រុមនីមួយៗវិភាគសេណារីយ៉ូបញ្ហា កំណត់ឫសគល់ និងទិន្នន័យចាំបាច់ [ការគិតស៊ីជម្រៅ]
        + ដំណាក់កាល ២ (បង្កើតសម្មតិកម្ម & ដំណោះស្រាយច្នៃប្រឌិត): សហការរៀបចំយុទ្ធសាស្ត្រដោះស្រាយ និងសរសេរផែនការសកម្មភាពលើផ្ទាំង Flipchart A0 [ការសហការ & ភាពច្នៃប្រឌិត]
        + ដំណាក់កាល ៣ (ការពារដំណោះស្រាយ & ដេញដោល): តំណាងក្រុមឡើងការពារដំណោះស្រាយ ឆ្លើយតបសំណួរជំទាស់ពីក្រុមដទៃ [ការប្រាស្រ័យទាក់ទង]
@@ -4434,10 +4445,11 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', t
       case 'pjbl':
         return `
 10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
-   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្របង្កើតគម្រោង (Project-Based Learning - PjBL)» ក្នុងទម្រង់ Flipped Classroom៖
-     • ជំហានទី ២ (១០%): ត្រួតពិនិត្យការយល់ដឹងពីផ្ទះ ភ្ជាប់គំនិតមូលដ្ឋានទៅនឹងបញ្ហាជាក់ស្តែងដែលត្រូវផលិតគម្រោង។
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្របង្កើតគម្រោង (Project-Based Learning - PjBL)» ក្នុងទម្រង់ Flipped Classroom (៣% - ៧% - ១០% - ៧៥% - ៥%)៖
+     • ជំហានទី ១ (៣%): រដ្ឋបាលថ្នាក់ និងរៀបចំក្រុមការងារ។
+     • ជំហានទី ២ (៧%): ត្រួតពិនិត្យការយល់ដឹងពីផ្ទះ ភ្ជាប់គំនិតមូលដ្ឋានទៅនឹងបញ្ហាជាក់ស្តែងដែលត្រូវផលិតគម្រោង។
      • ជំហានទី ៣ (១០%): គ្រូប្រគល់ប្រធានបទគម្រោង (Driving Question & Project Challenge) និងកំណត់គោលដៅលទ្ធផលជាក់ស្តែង${titleStr}។
-     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): សហការផលិត និងការពារគម្រោង៖
+     • ជំហានទី ៤ (៧៥% - CORE ACTIVE LEARNING): សហការផលិត និងការពារគម្រោង៖
        + ដំណាក់កាល ១: បែងចែកតួនាទី និងរៀបចំផែនការសកម្មភាពគម្រោង (Action Plan & Milestones)
        + ដំណាក់កាល ២: សហការស្រាវជ្រាវ និងផលិតលទ្ធផលគម្រោងជាក់ស្តែង (Artifact / Prototype)
        + ដំណាក់កាល ៣: បទបង្ហាញការពារស្នាដៃគម្រោង និងឆ្លើយតបសំណួររិះគន់ស្ថាបនា (Critique & Defense)
@@ -4447,10 +4459,11 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', t
       case 'ibl':
         return `
 10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
-   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្ររិះរក និងស៊ើបអង្កេត (Inquiry-Based Learning - IBL)» ក្នុងទម្រង់ Flipped Classroom៖
-     • ជំហានទី ២ (១០%): ពិនិត្យការយល់ដឹងពីផ្ទះ ចោទសួរសំណួរដាស់ការចង់ដឹង និងបង្កើតសំណួរស៊ើបអង្កេតរួម (Inquiry Question)។
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្ររិះរក និងស៊ើបអង្កេត (Inquiry-Based Learning - IBL)» ក្នុងទម្រង់ Flipped Classroom (៣% - ៧% - ១០% - ៧៥% - ៥%)៖
+     • ជំហានទី ១ (៣%): រដ្ឋបាលថ្នាក់ និងរៀបចំសម្ភារស៊ើបអង្កេត។
+     • ជំហានទី ២ (៧%): ពិនិត្យការយល់ដឹងពីផ្ទះ ចោទសួរសំណួរដាស់ការចង់ដឹង និងបង្កើតសំណួរស៊ើបអង្កេតរួម (Inquiry Question)។
      • ជំហានទី ៣ (១០%): បង្កើតសម្មតិកម្ម និងផ្តល់ធនធាន/ទិន្នន័យសម្រាប់ស៊ើបអង្កេត${titleStr}។
-     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): ដំណើរការស៊ើបអង្កេតស៊ីជម្រៅ៖
+     • ជំហានទី ៤ (៧៥% - CORE ACTIVE LEARNING): ដំណើរការស៊ើបអង្កេតស៊ីជម្រៅ៖
        + ដំណាក់កាល ១: ក្រុមសិស្សប្រមូល និងវិភាគទិន្នន័យ/ភស្តុតាងជាក់ស្តែង [ការគិតស៊ីជម្រៅ]
        + ដំណាក់កាល ២: ផ្ទៀងផ្ទាត់សម្មតិកម្ម និងទាញសេចក្តីសន្និដ្ឋានដោយផ្អែកលើភស្តុតាង
        + ដំណាក់កាល ៣: បង្ហាញលទ្ធផលស៊ើបអង្កេត និងដេញដោលតម្លាភាពនៃទិន្នន័យ [ការប្រាស្រ័យទាក់ទង]
@@ -4460,10 +4473,11 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', t
       case 'socratic':
         return `
 10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
-   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្រសួរដេញដោលតាមបែបសូក្រាត (Socratic / Inquiry Questioning)» ក្នុងទម្រង់ Flipped Classroom៖
-     • ជំហានទី ២ (១០%): ពិនិត្យសំណួរស្ទង់ និងដោះស្រាយ Muddiest Points ពីការមើលវីដេអូ។
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្រសួរដេញដោលតាមបែបសូក្រាត (Socratic / Inquiry Questioning)» ក្នុងទម្រង់ Flipped Classroom (៣% - ៧% - ១០% - ៧៥% - ៥%)៖
+     • ជំហានទី ១ (៣%): រដ្ឋបាលថ្នាក់ និងរៀបចំរង្វង់សូក្រាត (Seminar Circle)។
+     • ជំហានទី ២ (៧%): ពិនិត្យសំណួរស្ទង់ និងដោះស្រាយ Muddiest Points ពីការមើលវីដេអូ។
      • ជំហានទី ៣ (១០%): គ្រូចោទសំណួរទស្សនវិជ្ជា/សំណួរគន្លឹះចំហកម្រិតខ្ពស់ (Essential Dilemma Question)${titleStr}។
-     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): សិក្ខាសាលាសូក្រាត (Socratic Seminar)៖
+     • ជំហានទី ៤ (៧៥% - CORE ACTIVE LEARNING): សិក្ខាសាលាសូក្រាត (Socratic Seminar)៖
        + ដំណាក់កាល ១ (Think-Pair-Share): ពិចារណាជាបុគ្គល រួចពិភាក្សាជាដៃគូដើម្បីរៀបចំទឡ្ហីករណ៍
        + ដំណាក់កាល ២ (Socratic Dialogue): ដេញដោលទស្សនៈរួមថ្នាក់ សួរបក និងការពារគំនិតដោយផ្អែកលើភស្តុតាង [ការគិតស៊ីជម្រៅ]
        + ដំណាក់កាល ៣: វិភាគរកចំណុចស្រប និងចំណុចខុសគ្នា (Dialectic Synthesis)
@@ -4473,10 +4487,11 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', t
       case 'experimental':
         return `
 10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
-   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្រពិសោធន៍ និងអនុវត្តជាក់ស្តែង (Experimental Method)» ក្នុងទម្រង់ Flipped Classroom៖
-     • ជំហានទី ២ (១០%): ពិនិត្យទ្រឹស្តី និងគោលការណ៍សុវត្ថិភាពពិសោធន៍ដែលបានរៀនតាមវីដេអូ។
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្រពិសោធន៍ និងអនុវត្តជាក់ស្តែង (Experimental Method)» ក្នុងទម្រង់ Flipped Classroom (៣% - ៧% - ១០% - ៧៥% - ៥%)៖
+     • ជំហានទី ១ (៣%): រដ្ឋបាលថ្នាក់ និងពិនិត្យឧបករណ៍ពិសោធន៍។
+     • ជំហានទី ២ (៧%): ពិនិត្យទ្រឹស្តី និងគោលការណ៍សុវត្ថិភាពពិសោធន៍ដែលបានរៀនតាមវីដេអូ។
      • ជំហានទី ៣ (១០%): ណែនាំឧបករណ៍ពិសោធន៍ និងកំណត់សម្មតិកម្ម${titleStr}។
-     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): ប្រតិបត្តិការពិសោធន៍ជាក្រុម៖
+     • ជំហានទី ៤ (៧៥% - CORE ACTIVE LEARNING): ប្រតិបត្តិការពិសោធន៍ជាក្រុម៖
        + ដំណាក់កាល ១: ដំឡើង និងដំណើរការពិសោធន៍ជាក់ស្តែងតាមក្រុម
        + ដំណាក់កាល ២: កត់ត្រាទិន្នន័យ វាស់វែង និងគូសក្រាហ្វិក/តារាងលទ្ធផល
        + ដំណាក់កាល ៣: វិភាគកំហុសលម្អៀង (Error Analysis) និងផ្ទៀងផ្ទាត់សម្មតិកម្ម
@@ -4487,11 +4502,12 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', t
       case 'cooperative':
         return `
 10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
-   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្រសហការ (Cooperative Learning / Jigsaw)» ក្នុងទម្រង់ Flipped Classroom៖
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «វិធីសាស្ត្រសហការ (Cooperative Learning / Jigsaw)» ក្នុងទម្រង់ Flipped Classroom (៣% - ៧% - ១០% - ៧៥% - ៥%)៖
    - រៀបចំដំណើរការក្នុងថ្នាក់ដោយប្រើបច្ចេកទេស Jigsaw និងផែនទីគំនិតឱ្យមានអន្តរកម្មកម្រិតខ្ពស់បំផុត៖
-     • ជំហានទី ២ (១០%): ពិនិត្យលទ្ធផល Pre-Test ស្រាយចម្ងល់ Muddiest Points និងផ្ទៀងផ្ទាត់ចំណេះដឹងជាមូលដ្ឋាន។
+     • ជំហានទី ១ (៣%): រដ្ឋបាលថ្នាក់ និងរៀបចំតុក្រុម។
+     • ជំហានទី ២ (៧%): ពិនិត្យលទ្ធផល Pre-Test ស្រាយចម្ងល់ Muddiest Points និងផ្ទៀងផ្ទាត់ចំណេះដឹងជាមូលដ្ឋាន។
      • ជំហានទី ៣ (១០%): គ្រូចោទសំណួរគន្លឹះ ៤ សំណួរ បែងចែកសិស្សជា «ក្រុមដើម (Home Groups)» រួចបញ្ជូនតំណាងទៅកាន់ «ក្រុមអ្នកជំនាញ (Expert Groups)» តាមប្រធានបទរងនៃមេរៀន${titleStr}។
-     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): ត្រូវរៀបចំជា ៤ ដំណាក់កាលសហការស៊ីជម្រៅ៖
+     • ជំហានទី ៤ (៧៥% - CORE ACTIVE LEARNING): ត្រូវរៀបចំជា ៤ ដំណាក់កាលសហការស៊ីជម្រៅ៖
        + ដំណាក់កាល ១ (ក្រុមអ្នកជំនាញស្រាវជ្រាវស៊ីជម្រៅ): Expert Groups ប្រជុំវិភាគឯកសារ ស្វែងយល់ផ្នែកជំនាញរបស់ខ្លួន និងរៀបចំយុទ្ធសាស្ត្របង្រៀនបន្ត [ការគិតស៊ីជម្រៅ]
        + ដំណាក់កាល ២ (ត្រឡប់ទៅក្រុមដើមដើម្បីបង្រៀនគ្នា - Jigsaw Sharing): សមាជិកត្រឡប់ទៅ Home Groups វិញ បង្រៀនគ្នាទៅវិញទៅមកលើគ្រប់ផ្នែកនៃមេរៀន [ការប្រាស្រ័យទាក់ទង & សហការ]
        + ដំណាក់កាល ៣ (សំយោគគំនិតរួមលើ Concept Map / Flipchart): ក្រុមដើមរួមគ្នាចងក្រងជា «ផែនទីគំនិតរួម (Comprehensive Concept Map)» ឬសេណារីយ៉ូ Role-Play [ភាពច្នៃប្រឌិត]
@@ -4501,23 +4517,25 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', t
       case '5e':
         return `
 10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
-   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «ការរិះរក និងពិសោធន៍ តាមបែប 5E (Inquiry-based / STEM)» ក្នុងទម្រង់ Flipped Classroom៖
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «ការរិះរក និងពិសោធន៍ តាមបែប 5E (Inquiry-based / STEM)» ក្នុងទម្រង់ Flipped Classroom (៣% - ៧% - ១០% - ៧៥% - ៥%)៖
    - ត្រូវរៀបចំដំណាក់កាលទាំង ៥ នៃ 5E ឱ្យឆ្លុះបញ្ចាំងយ៉ាងច្បាស់ក្នុង ៥ ជំហាន៖
-     • ជំហានទី ១ & ២: ផ្សារភ្ជាប់ដំណាក់កាល Engage (ឈានចូល & បំផុសចំណាប់អារម្មណ៍ តាមរយៈលទ្ធផល Pre-Test QCM & ដោះស្រាយ Muddiest Points ពីផ្ទះ)
-     • ជំហានទី ៣: ផ្សារភ្ជាប់ដំណាក់កាល Explore (រុករក & ពិសោធន៍ តាមសន្លឹកបេសកកម្ម Challenge Scenario / ឧបករណ៍ពិសោធន៍ STEM${titleStr})
-     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): ផ្សារភ្ជាប់ដំណាក់កាល Explain & Elaborate៖
+     • ជំហានទី ១ (៣%): រដ្ឋបាលថ្នាក់ និងរៀបចំបរិយាកាសសិក្សា STEM។
+     • ជំហានទី ២ (៧%): ផ្សារភ្ជាប់ដំណាក់កាល Engage (ឈានចូល & បំផុសចំណាប់អារម្មណ៍ តាមរយៈលទ្ធផល Pre-Test QCM & ដោះស្រាយ Muddiest Points ពីផ្ទះ)
+     • ជំហានទី ៣ (១០%): ផ្សារភ្ជាប់ដំណាក់កាល Explore (រុករក & ពិសោធន៍ តាមសន្លឹកបេសកកម្ម Challenge Scenario / ឧបករណ៍ពិសោធន៍ STEM${titleStr})
+     • ជំហានទី ៤ (៧៥% - CORE ACTIVE LEARNING): ផ្សារភ្ជាប់ដំណាក់កាល Explain & Elaborate៖
        + Explain: ក្រុមនីមួយៗពន្យល់ និងការពារទិន្នន័យ/របកគំហើញដែលបានរកឃើញ គ្រូបូកសរុបគោលការណ៍គន្លឹះ
        + Elaborate: សិស្សយកចំណេះដឹងទៅពង្រីកអនុវត្តដោះស្រាយបញ្ហាប្រឈមថ្មី (Transfer of Learning) លើផ្ទាំង Flipchart A0
-     • ជំហានទី ៥: ផ្សារភ្ជាប់ដំណាក់កាល Evaluate (វាយតម្លៃសមត្ថភាព តាមរយៈ Exit Ticket 3-2-1, Rubric និង Post-Test)។${techPrompt}`;
+     • ជំហានទី ៥ (៥%): ផ្សារភ្ជាប់ដំណាក់កាល Evaluate (វាយតម្លៃសមត្ថភាព តាមរយៈ Exit Ticket 3-2-1, Rubric និង Post-Test)។${techPrompt}`;
 
       case 'direct':
         return `
 10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
-   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង (Direct Instruction / I Do - We Do - You Do)» ក្នុងទម្រង់ Flipped Classroom៖
-   - ដោយសារដំណាក់កាល "I Do" (ការពន្យល់ទ្រឹស្តីមូលដ្ឋាន) សិស្សបានរៀនតាមវីដេអូមុនម៉ោងរួចហើយ ម៉ោងក្នុងថ្នាក់ត្រូវប្រែក្លាយទៅជា "Advanced We Do" និង "Intensive You Do (៧០%)"៖
-     • ជំហានទី ២ (១០%): ត្រួតពិនិត្យ Pre-Test ស្រាយចម្ងល់ Muddiest Points និងធ្វើ Mini-Modeling (I Do បំភ្លឺចំណុចពិបាកបំផុត ២-៣ នាទី)។
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «ការពន្យល់បង្ហាញ និងអនុវត្តជាក់ស្តែង (Direct Instruction / I Do - We Do - You Do)» ក្នុងទម្រង់ Flipped Classroom (៣% - ៧% - ១០% - ៧៥% - ៥%)៖
+   - ដោយសារដំណាក់កាល "I Do" (ការពន្យល់ទ្រឹស្តីមូលដ្ឋាន) សិស្សបានរៀនតាមវីដេអូមុនម៉ោងរួចហើយ ម៉ោងក្នុងថ្នាក់ត្រូវប្រែក្លាយទៅជា "Advanced We Do" និង "Intensive You Do (៧៥%)"៖
+     • ជំហានទី ១ (៣%): រដ្ឋបាលថ្នាក់ និងរៀបចំសណ្ដាប់ធ្នាប់។
+     • ជំហានទី ២ (៧%): ត្រួតពិនិត្យ Pre-Test ស្រាយចម្ងល់ Muddiest Points និងធ្វើ Mini-Modeling (I Do បំភ្លឺចំណុចពិបាកបំផុត ២-៣ នាទី)។
      • ជំហានទី ៣ (១០%): ដំណាក់កាល Guided Practice (We Do) គ្រូនាំសិស្សអនុវត្តគំរូលំហាត់គន្លឹះរួមគ្នា ៤ សំណួរ ដើម្បីពង្រឹងក្បួនខ្នាត${titleStr}។
-     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): ដំណាក់កាល Intensive Independent & Collaborative Practice (You Do)៖
+     • ជំហានទី ៤ (៧៥% - CORE ACTIVE LEARNING): ដំណាក់កាល Intensive Independent & Collaborative Practice (You Do)៖
        + ដំណាក់កាល ១ (អនុវត្តជាគូ): សិស្សដោះស្រាយលំហាត់កម្រិតមធ្យមជាដៃគូ និងត្រួតពិនិត្យចម្លើយគ្នាទៅវិញទៅមក
        + ដំណាក់កាល ២ (អនុវត្តកម្រិតខ្ពស់ជាក្រុម): ដោះស្រាយលំហាត់ស្មុគស្មាញ ឬស្ថានភាពអនុវត្តជាក់ស្តែងលើ Flipchart A0 [ការដោះស្រាយបញ្ហា]
        + ដំណាក់កាល ៣ (បង្ហាញលទ្ធផល & ពិនិត្យកែកំហុស): ឡើងបង្ហាញដំណោះស្រាយលើក្តារខៀន គ្រូនិងសិស្សពិនិត្យកំហុសទូទៅ (Error Analysis)
@@ -4527,11 +4545,12 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', t
       default:
         return `
 10. INTEGRATION OF PRIMARY TEACHING METHOD («${methodName}»):
-   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «${methodName}» តាមគោលវិធីសិស្សមជ្ឈមណ្ឌល (Student-Centered Approach) ក្នុងទម្រង់ Flipped Classroom៖
+   - វិធីសាស្ត្របង្រៀនចម្បងដែលបានជ្រើសរើស៖ «${methodName}» តាមគោលវិធីសិស្សមជ្ឈមណ្ឌល (Student-Centered Approach) ក្នុងទម្រង់ Flipped Classroom (៣% - ៧% - ១០% - ៧៥% - ៥%)៖
    - អនុវត្តយ៉ាងម៉ឺងម៉ាត់នូវគោលការណ៍ TTT 30% / STT 70% និងជំនាញសតវត្សទី២១ (4Cs)៖
-     • ជំហានទី ២ (១០%): សិស្សជាអ្នកលើកឡើង Muddiest Points ពីផ្ទះ គ្រូដើរតួជាអ្នកសម្របសម្រួល (Facilitator) បំផុសឱ្យសិស្សឆ្លើយបំភ្លឺគ្នាទៅវិញទៅមក។
+     • ជំហានទី ១ (៣%): រដ្ឋបាលថ្នាក់ និងរៀបចំសណ្ដាប់ធ្នាប់។
+     • ជំហានទី ២ (៧%): សិស្សជាអ្នកលើកឡើង Muddiest Points ពីផ្ទះ គ្រូដើរតួជាអ្នកសម្របសម្រួល (Facilitator) បំផុសឱ្យសិស្សឆ្លើយបំភ្លឺគ្នាទៅវិញទៅមក។
      • ជំហានទី ៣ (១០%): គ្រូចោទសួរ ៤ សំណួរដាស់ការត្រិះរិះ និងប្រគល់កិច្ចការស្វ័យសិក្សាជាក្រុម${titleStr}។
-     • ជំហានទី ៤ (៧០% - CORE ACTIVE LEARNING): សិស្សគ្រប់គ្រងការរៀនដោយខ្លួនឯង (Learner Autonomy)៖
+     • ជំហានទី ៤ (៧៥% - CORE ACTIVE LEARNING): សិស្សគ្រប់គ្រងការរៀនដោយខ្លួនឯង (Learner Autonomy)៖
        + ដំណាក់កាល ១ (រិះរកដោយស្វ័យភាព): ក្រុមសិស្សពិភាក្សា វិភាគទិន្នន័យ និងស្រង់ខ្លឹមសារដោយសេរីតាមទស្សនៈផ្ទាល់ខ្លួន [ការគិតស៊ីជម្រៅ]
        + ដំណាក់កាល ២ (សហការផលិតស្នាដៃ): ផលិតលទ្ធផលរួមលើ Flipchart A0 ដោយបែងចែកតួនាទីច្បាស់លាស់ [ការសហការ]
        + ដំណាក់កាល ៣ (បទបង្ហាញដឹកនាំដោយសិស្ស): សិស្សដឹកនាំការធ្វើបទបង្ហាញ និងសួរសំណួរដេញដោលគ្នា [ការប្រាស្រ័យទាក់ទង]
@@ -5427,12 +5446,12 @@ async function generateWithGeminiAPI(params) {
     Your mission is to deeply analyze the uploaded lesson content and generate an authentic, 100% lesson-specific, state-of-the-art Flipped Classroom Lesson Plan in ${isEn ? 'ENGLISH (all content, objectives, materials, questions, teacher and student activities MUST be 100% in English)' : 'Khmer (កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់)'}.
 
 CRITICAL DURATION & ACTIVITY SCALING (${totalMin} MINUTES TOTAL):
-1. Total teaching duration is ${params.duration} (${totalMin} minutes). You MUST allocate step durations:
-- ជំហានទី ១: ${stepTimeHints.step1}
-- ជំហានទី ២: ${stepTimeHints.step2}
-- ជំហានទី ៣: ${stepTimeHints.step3}
-- ជំហានទី ៤: ${stepTimeHints.step4}
-- ជំហានទី ៥: ${stepTimeHints.step5}
+1. Total teaching duration is ${params.duration} (${totalMin} minutes). You MUST allocate step durations according to official Flipped Classroom ratios (3% - 7% - 10% - 75% - 5%):
+- ជំហានទី ១ (រដ្ឋបាលថ្នាក់ ៣%): ${stepTimeHints.step1}
+- ជំហានទី ២ (ពិនិត្យការយល់ដឹងពីផ្ទះ & Muddiest Points ៧%): ${stepTimeHints.step2}
+- ជំហានទី ៣ (បំភ្លឺចំណុចងងឹត & ប្រគល់បេសកកម្ម ១០%): ${stepTimeHints.step3}
+- ជំហានទី ៤ (អនុវត្តសកម្មជាក្រុម & ដោះស្រាយបញ្ហា ៧៥% - CORE ACTIVE LEARNING): ${stepTimeHints.step4}
+- ជំហានទី ៥ (ឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 & បណ្តាំផ្ញើ ៥%): ${stepTimeHints.step5}
 
 2. DURATION-REFLECTIVE ACTIVITIES & STUDY MATERIALS:
 ${isLongSession ? `• This is an EXTENDED ${totalMin}-minute block (Multi-hour / Workshop / Deep Learning Session).
@@ -5679,10 +5698,10 @@ YOUR MISSION: Generate a COMPLETE, PROFESSIONAL, CLASSROOM-READY official Lesson
 STEP DURATION ALLOCATION (${totalMin} MINUTES TOTAL - MoEYS STANDARD PERCENTAGES):
 ═══════════════════════════════════════════════════
 - ជំហានទី ១ (រដ្ឋបាលថ្នាក់ ៥%): ${stepTimeHints.step1}
-- ជំហានទី ២ (រំលឹកមេរៀនចាស់ ឬ ពិនិត្យកិច្ចការ ១០-១៥%): ${stepTimeHints.step2}
-- ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី ៥០-៦០% - ខ្លឹមសារស្នូលនៃមេរៀន): ${stepTimeHints.step3}
-- ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ១៥-២០%): ${stepTimeHints.step4}
-- ជំហានទី ៥ (បណ្ដាំផ្ញើ និងកិច្ចការផ្ទះ ៥-១០%): ${stepTimeHints.step5}
+- ជំហានទី ២ (រំលឹកមេរៀនចាស់ ឬ ពិនិត្យកិច្ចការ ១៥%): ${stepTimeHints.step2}
+- ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី ៦០% - ខ្លឹមសារស្នូលនៃមេរៀន): ${stepTimeHints.step3}
+- ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ១៥%): ${stepTimeHints.step4}
+- ជំហានទី ៥ (បណ្ដាំផ្ញើ និងកិច្ចការផ្ទះ ៥%): ${stepTimeHints.step5}
 
 ═══════════════════════════════════════════════════
 🚨 វិធានភាសាដាច់ខាត & សញ្ញាគណិតវិទ្យា/វិទ្យាសាស្ត្រ (STRICT LANGUAGE & STEM NOTATION):

@@ -561,6 +561,20 @@
               </div>
             </div>
 
+            <!-- 🎯 Real-Time Dynamic Pacing Bar (Visual Timeline Breakdown) -->
+            <div id="dynamicPacingBarWrap" class="dynamic-pacing-wrap mt-2">
+              <div class="pacing-header">
+                <span class="pacing-title"><i class="fa-solid fa-chart-pie text-primary"></i> បែងចែកពេលវេលាគរុកោសល្យ៖</span>
+                <span class="pacing-mode-badge" id="pacingModeBadge">កិច្ចតែងការ (ភាគរយតាមជំហាន)</span>
+              </div>
+              <div class="pacing-bar-container" id="pacingBarSegments">
+                <!-- Segments populated dynamically by updateDynamicPacingBar() -->
+              </div>
+              <div class="pacing-legend" id="pacingLegend">
+                <!-- Legend populated dynamically by updateDynamicPacingBar() -->
+              </div>
+            </div>
+
             <!-- Teaching Approach & Active Learning Techniques Box -->
             <div class="teaching-pedagogy-box mt-2"
               style="background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 10px 12px;">
@@ -2663,7 +2677,7 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261118_v128"></script>
+  <script src="app.js?v=20261118_v129"></script>
 </body>
 
 </html>
