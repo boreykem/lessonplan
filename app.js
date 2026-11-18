@@ -713,6 +713,12 @@ function handlePresetTemplateChange(val) {
   if (typeof autoSyncTechniquesToMethod === 'function') {
     autoSyncTechniquesToMethod(true);
   }
+  if (typeof renderSubjectMethodSuggestions === 'function') {
+    renderSubjectMethodSuggestions();
+  }
+  if (typeof scheduleAutoSaveDraft === 'function') {
+    scheduleAutoSaveDraft();
+  }
 }
 window.handlePresetTemplateChange = handlePresetTemplateChange;
 
@@ -741,6 +747,12 @@ function handleTeachingMethodChange(autoSyncTechs = true) {
 
   if (typeof updateDynamicPacingBar === 'function') {
     updateDynamicPacingBar();
+  }
+  if (typeof renderSubjectMethodSuggestions === 'function') {
+    renderSubjectMethodSuggestions();
+  }
+  if (typeof scheduleAutoSaveDraft === 'function') {
+    scheduleAutoSaveDraft();
   }
 }
 window.handleTeachingMethodChange = handleTeachingMethodChange;
@@ -2581,6 +2593,12 @@ function setLanguage(lang, showNotification = false) {
   if (typeof syncDurationChipsFromSelect === 'function') {
     syncDurationChipsFromSelect();
   }
+  if (typeof renderSubjectMethodSuggestions === 'function') {
+    renderSubjectMethodSuggestions();
+  }
+  if (typeof renderPedagogicalQualityScore === 'function' && state.currentPlan) {
+    renderPedagogicalQualityScore(state.currentPlan);
+  }
 
   // 18. Update profile toggle button text based on drawer open/close state
   const profFields = document.getElementById('teacherProfileFields');
@@ -3115,6 +3133,12 @@ function setDurationValue(val) {
   if (typeof syncDurationChipsFromSelect === 'function') {
     syncDurationChipsFromSelect();
   }
+  if (typeof renderSubjectMethodSuggestions === 'function') {
+    renderSubjectMethodSuggestions();
+  }
+  if (typeof renderPedagogicalQualityScore === 'function' && state.currentPlan) {
+    renderPedagogicalQualityScore(state.currentPlan);
+  }
   if (typeof updateDynamicPacingBar === 'function') {
     updateDynamicPacingBar();
   }
@@ -3278,6 +3302,12 @@ function handleSubjectChange() {
 
   if (typeof updateTeacherProfileSummaryLive === 'function') {
     updateTeacherProfileSummaryLive();
+  }
+  if (typeof renderSubjectMethodSuggestions === 'function') {
+    renderSubjectMethodSuggestions();
+  }
+  if (typeof scheduleAutoSaveDraft === 'function') {
+    scheduleAutoSaveDraft();
   }
 }
 window.handleSubjectChange = handleSubjectChange;
@@ -3589,6 +3619,653 @@ function initSmartHoverTooltips() {
 }
 window.initSmartHoverTooltips = initSmartHoverTooltips;
 
+// ==========================================================================
+// 🧠 1. SUBJECT-TO-METHOD SMART AUTO-SUGGEST ENGINE
+// Recommends the top 3 pedagogically optimal methods for Subject × Template
+// ==========================================================================
+const SUBJECT_METHOD_META = {
+  '5e': { icon: '🔬', labelKm: '5E Model', labelEn: '5E Model' },
+  'pbl': { icon: '🧩', labelKm: 'ដោះស្រាយបញ្ហា (PBL)', labelEn: 'PBL' },
+  'pjbl': { icon: '🛠️', labelKm: 'បង្កើតគម្រោង (PjBL)', labelEn: 'Project (PjBL)' },
+  'ibl': { icon: '🔍', labelKm: 'រិះរក (IBL)', labelEn: 'Inquiry (IBL)' },
+  'direct': { icon: '📘', labelKm: 'ពន្យល់បង្ហាញ (Direct)', labelEn: 'Direct Instruction' },
+  'socratic': { icon: '💬', labelKm: 'សួរដេញដោលសូក្រាត', labelEn: 'Socratic' },
+  'cooperative': { icon: '🤝', labelKm: 'សហការ (Jigsaw)', labelEn: 'Cooperative' },
+  'experimental': { icon: '🧪', labelKm: 'ពិសោធន៍ជាក់ស្ដែង', labelEn: 'Experimental' }
+};
+
+function getSmartSuggestedMethodsForSubject(subjectStr, presetId) {
+  const s = (subjectStr || '').toLowerCase();
+  const isFlipped = (presetId === 'flipped_learning_5step');
+
+  // 1. Experimental STEM Sciences (Physics, Chemistry, Biology, Earth Science, General Science)
+  if (
+    s.includes('រូបវិទ្យា') || s.includes('គីមី') || s.includes('ជីវវិទ្យា') ||
+    s.includes('វិទ្យាសាស្ត្រ') || s.includes('ផែនដី') || s.includes('បរិស្ថាន') ||
+    s.includes('physics') || s.includes('chemistry') || s.includes('biology') || s.includes('science')
+  ) {
+    return isFlipped ? ['5e', 'experimental', 'pbl'] : ['5e', 'experimental', 'ibl'];
+  }
+
+  // 2. Mathematics & ICT / Computer Science
+  if (
+    s.includes('គណិត') || s.includes('ព័ត៌មានវិទ្យា') || s.includes('កុំព្យូទ័រ') ||
+    s.includes('math') || s.includes('ict') || s.includes('computer') || s.includes('coding')
+  ) {
+    return isFlipped ? ['pbl', 'pjbl', '5e'] : ['pbl', 'direct', '5e'];
+  }
+
+  // 3. Languages & Literature (Khmer, English, French)
+  if (
+    s.includes('ភាសា') || s.includes('អក្សរសាស្ត្រ') || s.includes('ខ្មែរ') ||
+    s.includes('អង់គ្លេស') || s.includes('បារាំង') || s.includes('khmer') ||
+    s.includes('english') || s.includes('french') || s.includes('literature') || s.includes('language')
+  ) {
+    return isFlipped ? ['socratic', 'cooperative', 'pjbl'] : ['socratic', 'cooperative', 'direct'];
+  }
+
+  // 4. Social Studies, Humanities, Psychology, Pedagogy, Economics
+  if (
+    s.includes('ប្រវត្តិ') || s.includes('ភូមិ') || s.includes('សីលធម៌') ||
+    s.includes('ពលរដ្ឋ') || s.includes('សេដ្ឋកិច្ច') || s.includes('សង្គម') ||
+    s.includes('ចិត្តវិទ្យា') || s.includes('គរុកោសល្យ') || s.includes('អប់រំ') ||
+    s.includes('history') || s.includes('geography') || s.includes('civic') || s.includes('psych') || s.includes('econ')
+  ) {
+    return ['socratic', 'cooperative', 'pbl'];
+  }
+
+  // 5. Practical, Arts, Agriculture, Home Economics, PE, Engineering
+  if (
+    s.includes('កសិកម្ម') || s.includes('គេហវិទ្យា') || s.includes('សិល្បៈ') ||
+    s.includes('កីឡា') || s.includes('អប់រំកាយ') || s.includes('បច្ចេកទេស') ||
+    s.includes('បំណិនជីវិត') || s.includes('art') || s.includes('agricult') || s.includes('sport') || s.includes('tech')
+  ) {
+    return ['pjbl', 'experimental', 'cooperative'];
+  }
+
+  // Default fallback
+  return isFlipped ? ['pbl', 'cooperative', '5e'] : ['5e', 'pbl', 'cooperative'];
+}
+
+function renderSubjectMethodSuggestions() {
+  const bar = document.getElementById('subjectMethodSuggestBar');
+  if (!bar) return;
+
+  const subjectVal = (typeof getSubjectValue === 'function')
+    ? getSubjectValue()
+    : (document.getElementById('inputSubject')?.value || '');
+  const presetVal = document.getElementById('presetTemplateSelect')?.value || state.selectedPresetId || 'moeys_standard_5step';
+  const currentMethod = document.getElementById('inputMethod')?.value || '5e';
+  const isEn = (state.language === 'en');
+
+  const suggestedIds = getSmartSuggestedMethodsForSubject(subjectVal, presetVal);
+  const shortSubj = (subjectVal && subjectVal !== 'custom')
+    ? (subjectVal.length > 22 ? subjectVal.slice(0, 22) + '…' : subjectVal)
+    : (isEn ? 'this subject' : 'មុខវិជ្ជានេះ');
+
+  const labelHtml = `
+    <span class="subject-suggest-label">
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
+      ${isEn ? `Best for ${escapeHtml(shortSubj)}:` : `ណែនាំសម្រាប់ ${escapeHtml(shortSubj)}៖`}
+    </span>
+  `;
+
+  const pillsHtml = suggestedIds.map(id => {
+    const meta = SUBJECT_METHOD_META[id];
+    if (!meta) return '';
+    const isActive = (currentMethod === id);
+    const label = isEn ? meta.labelEn : meta.labelKm;
+    return `
+      <button type="button" class="btn-subject-suggest-pill ${isActive ? 'active' : ''}"
+        onclick="applySuggestedMethod('${id}')"
+        title="${isEn ? 'Click to apply this recommended teaching method' : 'ចុចដើម្បីជ្រើសរើសវិធីសាស្ត្រណែនាំនេះ និងតម្រឹមយុទ្ធវិធីស្វ័យប្រវត្តិ'}">
+        <span>${meta.icon}</span>
+        <span>${escapeHtml(label)}</span>
+        ${isActive ? '<i class="fa-solid fa-check" style="font-size: 0.65rem;"></i>' : ''}
+      </button>
+    `;
+  }).join('');
+
+  bar.innerHTML = labelHtml + pillsHtml;
+}
+window.renderSubjectMethodSuggestions = renderSubjectMethodSuggestions;
+
+function applySuggestedMethod(methodId) {
+  const select = document.getElementById('inputMethod');
+  if (!select) return;
+  select.value = methodId;
+  handleTeachingMethodChange(true);
+  renderSubjectMethodSuggestions();
+}
+window.applySuggestedMethod = applySuggestedMethod;
+
+// ==========================================================================
+// 🏅 2. LIVE PEDAGOGICAL QUALITY SCORE ENGINE (0–100 Real-Time Audit)
+// Evaluates Bloom's 3 Domains, Time Alignment, Techniques, Depth, Structure
+// ==========================================================================
+const TECHNIQUE_MATCH_ALIASES = {
+  'Muddiest Point': ['muddiest', 'ស្រពិចស្រពិល', 'ចំណុចមិនច្បាស់', 'ចម្ងល់'],
+  'Fist to Five': ['fist to five', 'ម្រាមដៃ', '១ ដល់ ៥', '1 ដល់ 5'],
+  'Interactive Quizzes': ['quiz', 'qcm', 'កម្រងសំណួរ', 'ក្ដារឆ្នួន', 'ក្តារឆ្នួន', 'ស្ទង់មតិ'],
+  'Spaced Retrieval Practice / Interleaving': ['spaced retrieval', 'interleaving', 'រំលឹក', 'ចងចាំ'],
+  'Brainstorming': ['brainstorm', 'បំផុសគំនិត', 'ស្រង់យោបល់'],
+  'Concept Cartoons': ['concept cartoon', 'គំនូរតុក្កតា', 'គំនូរ'],
+  'Think-Pair-Share': ['think-pair-share', 'think pair share', 'គិត-ដៃគូ-ចែករំលែក', 'ពិភាក្សាជាដៃគូ', 'គិតម្នាក់ឯង'],
+  'Jigsaw': ['jigsaw', 'ជីកសរ', 'ក្រុមអ្នកជំនាញ', 'ក្រុមដើម'],
+  'Learning Stations': ['learning station', 'station', 'ស្ថានីយ'],
+  'Gallery Walk': ['gallery walk', 'ដើរទស្សនា', 'តាំងបង្ហាញ', 'flipchart'],
+  'Numbered Heads Together': ['numbered head', 'លេខរៀង', 'ចាប់ឆ្នោត'],
+  'Six Thinking Hats': ['six thinking hats', 'មួកទាំង៦', 'មួកទាំង ៦', 'មួកគំនិត'],
+  'Role Play': ['role play', 'role-play', 'ដើរតួ', 'សម្តែង', 'សម្ដែង'],
+  'Fishbowl Discussion': ['fishbowl', 'រង្វង់ក្នុង', 'ដេញដោល'],
+  'Mind / Concept Map': ['mind map', 'concept map', 'ផែនទីគំនិត'],
+  'Concept Attainment': ['concept attainment', 'ឧទាហរណ៍ត្រូវ', 'ប្រៀបធៀបឧទាហរណ៍'],
+  'Four Corners': ['four corners', 'ជ្រុងទាំង៤', 'ជ្រុងទាំង ៤'],
+  'Case Study Analysis': ['case study', 'ករណីសិក្សា'],
+  'Socratic Seminar': ['socratic', 'សូក្រាត', 'សួរដេញដោល'],
+  'Exit Ticket 3-2-1': ['exit ticket', '3-2-1', '៣-២-១', 'កាតចេញ', 'ប័ណ្ណចេញ'],
+  'One-Minute Paper': ['one-minute', '១ នាទី', '1 នាទី'],
+  'Two Stars and a Wish': ['two stars', 'ផ្កាយពីរ', 'ផ្កាយ ២', 'វាយតម្លៃមិត្តភក្តិ'],
+  'K-W-L Chart': ['k-w-l', 'kwl', 'តារាង k-w-l'],
+  'Self-Assessment Rubric': ['rubric', 'រូបរិច', 'ស្វ័យវាយតម្លៃ']
+};
+
+function evaluatePedagogicalQuality(data) {
+  const isEn = (state.language === 'en');
+  if (!data || typeof data !== 'object') return null;
+
+  const isFlipped = (data.presetId === 'flipped_learning_5step' || data.templateType === 'flipped_learning');
+  const isOffline = Boolean(data.isOfflineDraft);
+  const steps = Array.isArray(data.steps) ? data.steps : [];
+
+  // 1. Bloom's Taxonomy 3 Domains (20 pts)
+  const obj = data.objectives || {};
+  const hasK = Array.isArray(obj.knowledge) && obj.knowledge.some(x => String(x || '').trim().length >= 16);
+  const hasS = Array.isArray(obj.skills) && obj.skills.some(x => String(x || '').trim().length >= 16);
+  const hasA = Array.isArray(obj.attitudes) && obj.attitudes.some(x => String(x || '').trim().length >= 16);
+  const bloomCount = (hasK ? 1 : 0) + (hasS ? 1 : 0) + (hasA ? 1 : 0);
+  const bloomScore = bloomCount === 3 ? 20 : (bloomCount === 2 ? 14 : (bloomCount === 1 ? 7 : 0));
+
+  // 2. Pedagogical Time Alignment (20 pts)
+  const totalTarget = (typeof parseDurationToMinutes === 'function') ? parseDurationToMinutes(data.duration || '60') : 60;
+  let stepSum = 0;
+  let coreMins = 0;
+  steps.forEach((st, idx) => {
+    const mins = (typeof parseDurationToMinutes === 'function') ? parseDurationToMinutes(st.duration || '0') : 0;
+    stepSum += mins;
+    const stepNo = st.stepNumber || (idx + 1);
+    if ((isFlipped && stepNo === 4) || (!isFlipped && stepNo === 3)) {
+      coreMins = mins;
+    }
+  });
+  const sumDiff = Math.abs(stepSum - totalTarget);
+  const coreRatio = totalTarget > 0 ? (coreMins / totalTarget) : 0;
+  const coreOk = isFlipped ? (coreRatio >= 0.55) : (coreRatio >= 0.45);
+  let timeScore = 0;
+  if (steps.length >= 5 && sumDiff <= 5 && coreOk) timeScore = 20;
+  else if (steps.length >= 3 && sumDiff <= 10) timeScore = 15;
+  else if (stepSum > 0) timeScore = 10;
+
+  // 3. Active Learning Techniques Integration (20 pts)
+  const selectedTechs = (Array.isArray(data.techniques) && data.techniques.length > 0)
+    ? data.techniques
+    : (typeof getSelectedTechniques === 'function' ? getSelectedTechniques() : []);
+  const combinedStepsText = steps.map(s =>
+    `${s.stepTitle || ''} ${s.teacherActivity || ''} ${s.contentSummary || ''} ${s.studentActivity || ''}`
+  ).join(' ').toLowerCase();
+
+  let matchedTechs = 0;
+  selectedTechs.forEach(tech => {
+    const tLower = String(tech || '').toLowerCase().trim();
+    if (!tLower) return;
+    const aliases = TECHNIQUE_MATCH_ALIASES[tech] || [tLower];
+    const hit = combinedStepsText.includes(tLower) || aliases.some(a => combinedStepsText.includes(a.toLowerCase()));
+    if (hit) matchedTechs++;
+  });
+  const techTotal = selectedTechs.length;
+  let techScore = 20;
+  if (techTotal > 0) {
+    techScore = Math.round((matchedTechs / techTotal) * 20);
+    // Give partial credit if AI used rich active group phrases even when naming softly
+    if (techScore < 12 && !isOffline && (combinedStepsText.includes('ក្រុម') || combinedStepsText.includes('group'))) {
+      techScore = Math.max(techScore, 14);
+    }
+  }
+
+  // 4. Instructional Depth & 3-Column Completeness (25 pts)
+  let richStepCount = 0;
+  let totalCharLen = 0;
+  steps.forEach(s => {
+    const tLen = String(s.teacherActivity || '').trim().length;
+    const cLen = String(s.contentSummary || '').trim().length;
+    const stLen = String(s.studentActivity || '').trim().length;
+    totalCharLen += (tLen + cLen + stLen);
+    if (tLen >= 25 && cLen >= 20 && stLen >= 25) richStepCount++;
+  });
+  let depthScore = 0;
+  if (isOffline) {
+    // Manual draft template honestly scores lower until edited or generated by real AI
+    depthScore = Math.min(12, Math.round((richStepCount / Math.max(1, steps.length)) * 12));
+  } else {
+    const stepRatio = Math.min(1, richStepCount / 5);
+    const lenBonus = totalCharLen >= 1600 ? 7 : (totalCharLen >= 900 ? 5 : 2);
+    depthScore = Math.min(25, Math.round(stepRatio * 18) + lenBonus);
+  }
+
+  // 5. Materials, Pre-Class / Assessment Completeness (15 pts)
+  const mat = data.materials || {};
+  const hasMatT = Array.isArray(mat.teacher) && mat.teacher.length > 0;
+  const hasMatS = Array.isArray(mat.student) && mat.student.length > 0;
+  const hasPreOrEval = isFlipped
+    ? Boolean(data.preClassPhase && (data.preClassPhase.video || data.preClassPhase.teacherActivity))
+    : Boolean(steps.length >= 5 && String(steps[4]?.teacherActivity || '').length >= 15);
+  let structScore = (hasMatT ? 5 : 0) + (hasMatS ? 5 : 0) + (hasPreOrEval ? 5 : 0);
+
+  const totalScore = Math.min(100, Math.max(0, bloomScore + timeScore + techScore + depthScore + structScore));
+
+  return {
+    totalScore,
+    isOffline,
+    bloomCount,
+    timeAligned: (sumDiff <= 5 && steps.length >= 5),
+    timePct: totalTarget > 0 ? Math.min(100, Math.round((Math.min(stepSum, totalTarget) / Math.max(stepSum, totalTarget)) * 100)) : 100,
+    matchedTechs,
+    techTotal,
+    stepsCount: steps.length,
+    criteria: [
+      {
+        title: isEn ? "Bloom's 3-Domain Objectives" : "វត្ថុបំណង Bloom's ៣ ផ្នែក",
+        score: bloomScore,
+        max: 20,
+        note: bloomCount === 3
+          ? (isEn ? 'Complete Knowledge, Skills, and Attitudes.' : 'មានគ្រប់ វិជ្ជាសម្បទា បំណិនសម្បទា និងចរិយាសម្បទា។')
+          : (isEn ? 'Missing one or more objective domains.' : 'ខ្វះផ្នែកណាមួយនៃវត្ថុបំណង ៣ ផ្នែក។')
+      },
+      {
+        title: isEn ? 'Pedagogical Time Ratio' : 'សមាមាត្រម៉ោងគរុកោសល្យ',
+        score: timeScore,
+        max: 20,
+        note: sumDiff <= 5
+          ? (isEn ? `Steps sum (${stepSum}m) matches ${totalTarget}m target.` : `ផលបូក ៥ ជំហាន (${toKhmerNumber(stepSum)} នាទី) ត្រូវគ្នានឹង ${toKhmerNumber(totalTarget)} នាទី។`)
+          : (isEn ? `Step total (${stepSum}m) differs from ${totalTarget}m.` : `ផលបូកជំហាន (${toKhmerNumber(stepSum)} នាទី) ល្អៀងពី ${toKhmerNumber(totalTarget)} នាទី។`)
+      },
+      {
+        title: isEn ? 'Active Techniques Weaving' : 'ការដោតយុទ្ធវិធីបង្រៀនគន្លឹះ',
+        score: techScore,
+        max: 20,
+        note: techTotal > 0
+          ? (isEn ? `Detected ${matchedTechs}/${techTotal} selected techniques inside activities.` : `រកឃើញយុទ្ធវិធី ${toKhmerNumber(matchedTechs)}/${toKhmerNumber(techTotal)} ដោតចូលក្នុងសកម្មភាពជាក់ស្ដែង។`)
+          : (isEn ? 'Standard active learning flow verified.' : 'មានលំហូរសកម្មភាពសិស្សមជ្ឈមណ្ឌលត្រឹមត្រូវ។')
+      },
+      {
+        title: isEn ? 'Content & 3-Column Depth' : 'ភាពស៊ីជម្រៅនៃខ្លឹមសារ ៣ ជួរ',
+        score: depthScore,
+        max: 25,
+        note: isOffline
+          ? (isEn ? 'Manual Fallback Draft — edit content or generate with Gemini AI for full depth.' : 'ទម្រង់ព្រាងដោយដៃ — សូមកែបំពេញខ្លឹមសារ ឬបង្កើតដោយ Gemini AI ដើម្បីបានពិន្ទុខ្ពស់។')
+          : (isEn ? `${richStepCount}/5 steps have complete Teacher, Content, and Student columns.` : `${toKhmerNumber(richStepCount)}/៥ ជំហានមានខ្លឹមសារគ្រូ-មេរៀន-សិស្សសម្បូរបែប។`)
+      },
+      {
+        title: isEn ? 'Materials & Assessment' : 'សម្ភារឧបទេស & រចនាសម្ព័ន្ធ',
+        score: structScore,
+        max: 15,
+        note: structScore === 15
+          ? (isEn ? 'Teacher/Student materials and assessment structure complete.' : 'មានសម្ភារគ្រូ-សិស្ស និងផ្នែកវាយតម្លៃ/កិច្ចការផ្ទះគ្រប់ជ្រុងជ្រោយ។')
+          : (isEn ? 'Consider enriching materials or assessment section.' : 'គួរបន្ថែមសម្ភារឧបទេស ឬផ្នែកវាយតម្លៃបន្ថែម។')
+      }
+    ]
+  };
+}
+window.evaluatePedagogicalQuality = evaluatePedagogicalQuality;
+
+function renderPedagogicalQualityScore(data) {
+  const strip = document.getElementById('pedagogicalQualityStrip');
+  if (!strip) return;
+  if (!data) {
+    strip.style.display = 'none';
+    return;
+  }
+
+  const report = evaluatePedagogicalQuality(data);
+  if (!report) {
+    strip.style.display = 'none';
+    return;
+  }
+
+  const isEn = (state.language === 'en');
+  const kNum = (typeof toKhmerNumber === 'function' && !isEn) ? toKhmerNumber : String;
+  const tierClass = report.totalScore >= 85 ? 'score-high' : (report.totalScore >= 70 ? 'score-mid' : 'score-low');
+  const scoreIcon = report.totalScore >= 85 ? '✅' : (report.totalScore >= 70 ? '🏅' : '📝');
+
+  const criteriaCardsHtml = report.criteria.map(c => {
+    const pct = Math.round((c.score / c.max) * 100);
+    const barColor = pct >= 85 ? '#10b981' : (pct >= 65 ? '#4f46e5' : '#f59e0b');
+    return `
+      <div class="quality-criterion-card">
+        <div class="quality-criterion-head">
+          <span>${escapeHtml(c.title)}</span>
+          <span style="color: ${barColor};">${kNum(c.score)}/${kNum(c.max)}</span>
+        </div>
+        <div class="quality-criterion-bar">
+          <div class="quality-criterion-fill" style="width: ${pct}%; background: ${barColor};"></div>
+        </div>
+        <div class="quality-criterion-note">${escapeHtml(c.note)}</div>
+      </div>
+    `;
+  }).join('');
+
+  strip.innerHTML = `
+    <div class="quality-strip-main">
+      <div class="quality-strip-left">
+        <span class="quality-score-badge ${tierClass}">
+          <span>${scoreIcon}</span>
+          <span>${isEn ? `Pedagogical Score ${report.totalScore}/100` : `ពិន្ទុគរុកោសល្យ ${kNum(report.totalScore)}/១០០`}</span>
+        </span>
+        <span class="quality-metric-chip ${report.bloomCount === 3 ? 'ok' : 'warn'}">
+          🎯 Bloom's ${kNum(report.bloomCount)}/${kNum(3)}
+        </span>
+        <span class="quality-metric-chip ${report.timeAligned ? 'ok' : 'warn'}">
+          ⏱️ ${isEn ? `Pacing ${report.timePct}%` : `ម៉ោង ${kNum(report.timePct)}%`}
+        </span>
+        ${report.techTotal > 0 ? `
+          <span class="quality-metric-chip ${report.matchedTechs === report.techTotal ? 'ok' : (report.matchedTechs > 0 ? '' : 'warn')}">
+            🧩 ${isEn ? `Techniques ${report.matchedTechs}/${report.techTotal}` : `យុទ្ធវិធី ${kNum(report.matchedTechs)}/${kNum(report.techTotal)}`}
+          </span>
+        ` : ''}
+        <span class="quality-metric-chip ${report.stepsCount >= 5 ? 'ok' : 'warn'}">
+          📋 ${isEn ? `${report.stepsCount} Steps` : `${kNum(report.stepsCount)} ជំហាន`}
+        </span>
+      </div>
+      <button type="button" class="btn-quality-details-toggle" id="btnToggleQualityDetails" onclick="toggleQualityScoreDetails()">
+        <i class="fa-solid fa-magnifying-glass-chart"></i>
+        <span>${isEn ? 'Details' : 'មើលលម្អិត'}</span>
+        <i class="fa-solid fa-chevron-down" id="qualityDetailsChevron" style="font-size: 0.65rem;"></i>
+      </button>
+    </div>
+    <div id="qualityScoreDetails" class="quality-details-panel" style="display: none;">
+      <div class="quality-criteria-grid">
+        ${criteriaCardsHtml}
+      </div>
+    </div>
+  `;
+
+  strip.style.display = 'block';
+}
+window.renderPedagogicalQualityScore = renderPedagogicalQualityScore;
+
+function toggleQualityScoreDetails() {
+  const panel = document.getElementById('qualityScoreDetails');
+  const chev = document.getElementById('qualityDetailsChevron');
+  if (!panel) return;
+  const open = (panel.style.display === 'none' || !panel.style.display);
+  panel.style.display = open ? 'block' : 'none';
+  if (chev) chev.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
+}
+window.toggleQualityScoreDetails = toggleQualityScoreDetails;
+
+// ==========================================================================
+// ☁️ 3. AUTO-SAVE DRAFT RECOVERY SYSTEM (Every ~3s to localStorage)
+// Protects form inputs & live A4 contenteditable edits against reload/crash
+// ==========================================================================
+const AUTOSAVE_DRAFT_STORAGE_KEY = 'lp_autosave_draft_v1';
+let _autoSaveTimer = null;
+let _autoSaveDocEdited = false;
+
+function formatAutoSaveClock(ts) {
+  try {
+    const d = new Date(ts || Date.now());
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return (state.language === 'en') ? `${hh}:${mm}` : `${toKhmerNumber(hh)}:${toKhmerNumber(mm)}`;
+  } catch (e) {
+    return '';
+  }
+}
+
+function updateAutoSavePillUI(status, ts = null) {
+  const pill = document.getElementById('autoSaveDraftPill');
+  const icon = document.getElementById('autoSaveDraftIcon');
+  const text = document.getElementById('autoSaveDraftText');
+  if (!pill || !text) return;
+
+  const isEn = (state.language === 'en');
+  if (status === 'hidden') {
+    pill.style.display = 'none';
+    return;
+  }
+
+  pill.style.display = 'inline-flex';
+  if (status === 'saving') {
+    pill.classList.add('saving');
+    if (icon) icon.className = 'fa-solid fa-spinner fa-spin';
+    text.textContent = isEn ? 'Saving draft...' : 'កំពុងរក្សាទុកព្រាង...';
+  } else if (status === 'restored') {
+    pill.classList.remove('saving');
+    if (icon) icon.className = 'fa-solid fa-cloud-arrow-down';
+    const clk = ts ? ` • ${formatAutoSaveClock(ts)}` : '';
+    text.textContent = isEn ? `Draft restored${clk}` : `បានស្ដារព្រាង${clk}`;
+  } else {
+    pill.classList.remove('saving');
+    if (icon) icon.className = 'fa-solid fa-cloud-check';
+    const clk = formatAutoSaveClock(ts || Date.now());
+    text.textContent = isEn ? `Auto-saved • ${clk}` : `រក្សាទុកព្រាង • ${clk}`;
+  }
+}
+
+function collectAutoSaveDraftSnapshot() {
+  const docEl = document.getElementById('printableDoc');
+  const docVisible = Boolean(docEl && docEl.style.display !== 'none' && docEl.innerHTML.trim().length > 80);
+
+  // Guard against oversized base64 pasted images exceeding localStorage quota
+  let editedDocHtml = null;
+  if (docVisible && _autoSaveDocEdited && docEl.innerHTML.length < 450000) {
+    editedDocHtml = docEl.innerHTML;
+  }
+
+  const lessonTitle = document.getElementById('inputLessonTitle')?.value?.trim() || '';
+  const lessonContent = document.getElementById('lessonContentText')?.value || '';
+  const customNotes = document.getElementById('inputCustomNotes')?.value || '';
+
+  // Only save if user has meaningful work (lesson title, content, or a generated plan)
+  if (!lessonTitle && lessonContent.trim().length < 5 && !state.currentPlan) {
+    return null;
+  }
+
+  return {
+    v: 1,
+    savedAt: Date.now(),
+    form: {
+      school: document.getElementById('inputSchool')?.value || '',
+      teacher: document.getElementById('inputTeacher')?.value || '',
+      degree: document.getElementById('inputStudyDegree')?.value || '',
+      grade: (typeof getGradeValue === 'function') ? getGradeValue() : (document.getElementById('inputGrade')?.value || ''),
+      subject: (typeof getSubjectValue === 'function') ? getSubjectValue() : (document.getElementById('inputSubject')?.value || ''),
+      duration: (typeof getDurationValue === 'function') ? getDurationValue() : (document.getElementById('inputDurationSelect')?.value || ''),
+      lessonTitle,
+      chapter: document.getElementById('inputChapter')?.value || '',
+      presetId: document.getElementById('presetTemplateSelect')?.value || state.selectedPresetId || 'moeys_standard_5step',
+      method: document.getElementById('inputMethod')?.value || '5e',
+      techniques: (typeof getSelectedTechniques === 'function') ? getSelectedTechniques() : [],
+      lessonContent: lessonContent.length < 120000 ? lessonContent : lessonContent.slice(0, 120000),
+      customNotes
+    },
+    currentPlan: state.currentPlan || null,
+    editedDocHtml
+  };
+}
+
+function saveAutoSaveDraftNow() {
+  if (_autoSaveTimer) {
+    clearTimeout(_autoSaveTimer);
+    _autoSaveTimer = null;
+  }
+  try {
+    const snap = collectAutoSaveDraftSnapshot();
+    if (!snap) return;
+    const serialized = JSON.stringify(snap);
+    if (serialized.length > 1800000) {
+      // Drop raw HTML snapshot if too large, keep structured plan & form safely
+      snap.editedDocHtml = null;
+      localStorage.setItem(AUTOSAVE_DRAFT_STORAGE_KEY, JSON.stringify(snap));
+    } else {
+      localStorage.setItem(AUTOSAVE_DRAFT_STORAGE_KEY, serialized);
+    }
+    updateAutoSavePillUI('saved', snap.savedAt);
+  } catch (e) {
+    console.warn('[AutoSave] Storage write skipped:', e.message);
+  }
+}
+window.saveAutoSaveDraftNow = saveAutoSaveDraftNow;
+
+function scheduleAutoSaveDraft(delayMs = 2600) {
+  const lessonTitle = document.getElementById('inputLessonTitle')?.value?.trim() || '';
+  const lessonContent = document.getElementById('lessonContentText')?.value?.trim() || '';
+  if (!lessonTitle && lessonContent.length < 5 && !state.currentPlan) return;
+
+  updateAutoSavePillUI('saving');
+  if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
+  _autoSaveTimer = setTimeout(() => {
+    saveAutoSaveDraftNow();
+  }, delayMs);
+}
+window.scheduleAutoSaveDraft = scheduleAutoSaveDraft;
+
+function clearAutoSaveDraft(showConfirmToast = true) {
+  try {
+    localStorage.removeItem(AUTOSAVE_DRAFT_STORAGE_KEY);
+    _autoSaveDocEdited = false;
+    if (_autoSaveTimer) {
+      clearTimeout(_autoSaveTimer);
+      _autoSaveTimer = null;
+    }
+    updateAutoSavePillUI('hidden');
+    if (showConfirmToast) {
+      showToast(
+        state.language === 'en' ? '🗑️ Auto-saved draft cleared.' : '🗑️ បានសម្អាតទិន្នន័យព្រាងស្វ័យប្រវត្តិរួចរាល់!',
+        'info'
+      );
+    }
+  } catch (e) { }
+}
+window.clearAutoSaveDraft = clearAutoSaveDraft;
+
+function restoreAutoSaveDraftIfAvailable() {
+  try {
+    const raw = localStorage.getItem(AUTOSAVE_DRAFT_STORAGE_KEY);
+    if (!raw) return false;
+    const snap = JSON.parse(raw);
+    if (!snap || !snap.savedAt) return false;
+
+    // Expire stale drafts older than 7 days
+    const ageMs = Date.now() - snap.savedAt;
+    if (ageMs > 7 * 24 * 60 * 60 * 1000) {
+      localStorage.removeItem(AUTOSAVE_DRAFT_STORAGE_KEY);
+      return false;
+    }
+
+    const f = snap.form || {};
+    if (f.lessonTitle && document.getElementById('inputLessonTitle')) {
+      document.getElementById('inputLessonTitle').value = f.lessonTitle;
+    }
+    if (f.chapter && document.getElementById('inputChapter')) {
+      document.getElementById('inputChapter').value = f.chapter;
+    }
+    if (f.customNotes && document.getElementById('inputCustomNotes')) {
+      document.getElementById('inputCustomNotes').value = f.customNotes;
+    }
+    if (f.lessonContent && document.getElementById('lessonContentText')) {
+      document.getElementById('lessonContentText').value = f.lessonContent;
+      state.lessonContent = f.lessonContent;
+      if (typeof updateWordCount === 'function') updateWordCount();
+    }
+    if (f.subject && typeof setSubjectValue === 'function') {
+      setSubjectValue(f.subject);
+    }
+    if (f.duration && typeof setDurationValue === 'function') {
+      setDurationValue(f.duration);
+    }
+    if (f.presetId) {
+      const presetSel = document.getElementById('presetTemplateSelect');
+      if (presetSel) presetSel.value = f.presetId;
+      state.selectedPresetId = f.presetId;
+      if (typeof syncPresetTemplateCards === 'function') syncPresetTemplateCards(f.presetId);
+      if (typeof populateTeachingMethodsSelect === 'function') {
+        populateTeachingMethodsSelect(state.language === 'en', f.method || '5e');
+      }
+    }
+    if (f.method && document.getElementById('inputMethod')) {
+      document.getElementById('inputMethod').value = f.method;
+    }
+    if (Array.isArray(f.techniques) && f.techniques.length > 0 && typeof saveSelectedTechniques === 'function') {
+      saveSelectedTechniques(f.techniques);
+      if (typeof renderTechniquesChips === 'function') renderTechniquesChips();
+    }
+    if (typeof updateDynamicPacingBar === 'function') updateDynamicPacingBar();
+    if (typeof renderSubjectMethodSuggestions === 'function') renderSubjectMethodSuggestions();
+
+    // Restore active A4 Lesson Plan (and manual inline edits if any)
+    if (snap.currentPlan && typeof renderLessonPlanToA4 === 'function') {
+      state.currentPlan = snap.currentPlan;
+      state.generatedPlanData = snap.currentPlan;
+      renderLessonPlanToA4(snap.currentPlan);
+      if (snap.editedDocHtml) {
+        const docEl = document.getElementById('printableDoc');
+        if (docEl) {
+          docEl.innerHTML = snap.editedDocHtml;
+          _autoSaveDocEdited = true;
+        }
+      }
+      const emptyEl = document.getElementById('emptyState');
+      const docEl = document.getElementById('printableDoc');
+      if (emptyEl) emptyEl.style.display = 'none';
+      if (docEl) docEl.style.display = 'block';
+    }
+
+    // Cancel any immediate timer triggered during restore so original draft timestamp stays accurate
+    if (_autoSaveTimer) {
+      clearTimeout(_autoSaveTimer);
+      _autoSaveTimer = null;
+    }
+    updateAutoSavePillUI('restored', snap.savedAt);
+    return true;
+  } catch (e) {
+    console.warn('[AutoSave] Restore skipped:', e);
+    return false;
+  }
+}
+window.restoreAutoSaveDraftIfAvailable = restoreAutoSaveDraftIfAvailable;
+
+function initAutoSaveDraftSystem() {
+  const watchedIds = [
+    'inputSchool', 'inputTeacher', 'inputStudyDegree', 'inputGrade', 'inputCustomGradeText',
+    'inputSubject', 'inputCustomSubjectText', 'inputDurationSelect', 'inputCustomDurationText',
+    'inputLessonTitle', 'inputChapter', 'inputCustomNotes', 'lessonContentText',
+    'presetTemplateSelect', 'inputMethod'
+  ];
+
+  watchedIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el || el._autoSaveBound) return;
+    el.addEventListener('input', () => scheduleAutoSaveDraft());
+    el.addEventListener('change', () => scheduleAutoSaveDraft());
+    el._autoSaveBound = true;
+  });
+
+  const docEl = document.getElementById('printableDoc');
+  if (docEl && !docEl._autoSaveBound) {
+    docEl.addEventListener('input', () => {
+      _autoSaveDocEdited = true;
+      scheduleAutoSaveDraft();
+    });
+    docEl._autoSaveBound = true;
+  }
+
+  window.addEventListener('beforeunload', () => {
+    if (_autoSaveTimer) saveAutoSaveDraftNow();
+  });
+}
+window.initAutoSaveDraftSystem = initAutoSaveDraftSystem;
+
 // Initialize on DOM Ready
 document.addEventListener('DOMContentLoaded', () => {
   try { initPdfJs(); } catch (e) { console.error('initPdfJs err:', e); }
@@ -3614,9 +4291,12 @@ document.addEventListener('DOMContentLoaded', () => {
   try { updateWordCount(); } catch (e) { console.error('updateWordCount err:', e); }
   try { loadCustomSubjectsFromStorage(); } catch (e) { console.error('loadCustomSubjectsFromStorage err:', e); }
   try { loadSavedAdminProfile(); } catch (e) { console.error('loadSavedAdminProfile err:', e); }
+  try { renderSubjectMethodSuggestions(); } catch (e) { console.error('renderSubjectMethodSuggestions err:', e); }
   try { loadSavedTemplates(); } catch (e) { console.error('loadSavedTemplates err:', e); }
   try { loadSavedLessons(); } catch (e) { console.error('loadSavedLessons err:', e); }
   try { loadSavedPlans(); } catch (e) { console.error('loadSavedPlans err:', e); }
+  try { initAutoSaveDraftSystem(); } catch (e) { console.error('initAutoSaveDraftSystem err:', e); }
+  try { restoreAutoSaveDraftIfAvailable(); } catch (e) { console.error('restoreAutoSaveDraftIfAvailable err:', e); }
   try { checkBackendHealth(); } catch (e) { console.error('checkBackendHealth err:', e); }
   try { checkLicenseStatus(); } catch (e) { console.error('checkLicenseStatus err:', e); }
 
@@ -10333,6 +11013,18 @@ function renderLessonPlanToA4(data) {
   data = normalizeLessonPlanData(data, Object.assign({}, data, { presetId }));
   state.currentPlan = data;
   state.generatedPlanData = data;
+  _autoSaveDocEdited = false;
+
+  try {
+    if (typeof renderPedagogicalQualityScore === 'function') {
+      renderPedagogicalQualityScore(data);
+    }
+    if (typeof scheduleAutoSaveDraft === 'function') {
+      scheduleAutoSaveDraft(1200);
+    }
+  } catch (qErr) {
+    console.warn('QualityScore / AutoSave hook error:', qErr);
+  }
 
   const isFlipped = (presetId === 'flipped_learning_5step') || (presetId !== 'moeys_standard_5step' && (data.templateType === 'flipped_learning' || isFlippedLearningRequest(data)));
   const isBd = !isFlipped && ((presetId === 'backward_design_ubd') || (presetId !== 'moeys_standard_5step' && (data.templateType === 'backward_design' || isBackwardDesignRequest(data) || Boolean(data.stage1))));

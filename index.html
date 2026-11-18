@@ -29,7 +29,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=20261118_v89">
+  <link rel="stylesheet" href="style.css?v=20261118_v90">
 
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -570,6 +570,10 @@
                 <option value="experimental">វិធីសាស្ត្រពិសោធន៍ និងអនុវត្តជាក់ស្តែង (Experimental Method)</option>
                 <option value="custom">✏️ ផ្សេងៗ / បន្ថែមវិធីសាស្ត្រផ្ទាល់ខ្លួន...</option>
               </select>
+              <!-- 🧠 Subject-to-Method Smart Auto-Suggest Pills -->
+              <div id="subjectMethodSuggestBar" class="subject-method-suggest-bar" aria-live="polite">
+                <!-- Populated dynamically by renderSubjectMethodSuggestions() -->
+              </div>
             </div>
 
             <!-- Custom Teaching Method Input Wrap (shown when 'custom' is selected) -->
@@ -1088,6 +1092,17 @@
           <span class="editable-indicator" title="អ្នកអាចចុច Edit កែប្រែផ្ទាល់លើសន្លឹកកិច្ចតែងការបាន"><i
               class="fa-solid fa-pen-to-square"></i> <span class="edit-hint-text" data-i18n="editHintText">Edit
               ផ្ទាល់លើសន្លឹកបាន</span></span>
+          <!-- ☁️ Auto-Save Draft Recovery Indicator -->
+          <span id="autoSaveDraftPill" class="autosave-draft-pill" style="display: none;"
+            data-tooltip-title="☁️ រក្សាទុកព្រាងស្វ័យប្រវត្តិ"
+            data-tooltip-desc="រក្សាទុកទម្រង់ និងអក្សរដែលបានកែលើ A4 រៀងរាល់ ៣ វិនាទី (មិនបាត់ពេល Refresh)">
+            <i class="fa-solid fa-cloud-arrow-up" id="autoSaveDraftIcon"></i>
+            <span id="autoSaveDraftText">រក្សាទុកព្រាង</span>
+            <button type="button" id="btnClearAutoSaveDraft" class="autosave-clear-btn"
+              onclick="clearAutoSaveDraft(true)" title="សម្អាតព្រាងស្វ័យប្រវត្តិ">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </span>
         </div>
 
         <div class="toolbar-right">
@@ -1320,6 +1335,11 @@
               } catch (e) { }
             })();
           </script>
+        </div>
+
+        <!-- 🏅 Live Pedagogical Quality Score Strip (Auto-hidden on Print) -->
+        <div id="pedagogicalQualityStrip" class="pedagogical-quality-strip no-print" style="display: none;">
+          <!-- Populated dynamically by renderPedagogicalQualityScore() -->
         </div>
 
         <!-- Printable A4 Paper Sheet -->
@@ -2564,7 +2584,7 @@
   <div id="smartHoverTooltip" class="smart-hover-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261118_v142"></script>
+  <script src="app.js?v=20261118_v143"></script>
 </body>
 
 </html>
