@@ -29,7 +29,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=20261118_v163">
+  <link rel="stylesheet" href="style.css?v=20261118_v164">
 
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -944,7 +944,7 @@
             <div id="uploadLessonWrapper">
 
               <!-- Hidden File Input & Container elements required by setupDropzone in app.js -->
-              <input type="file" id="lessonFileInput" accept=".docx,.pdf,.txt,.doc,.pptx,.ppt,.png,.jpg,.jpeg,.webp"
+              <input type="file" id="lessonFileInput" multiple accept=".docx,.pdf,.txt,.doc,.pptx,.ppt,.png,.jpg,.jpeg,.webp"
                 class="file-input-hidden">
               <div id="dropzoneContainerWrapper" style="display: none;">
                 <div class="dropzone" id="lessonDropzone">
@@ -968,6 +968,9 @@
                     <i class="fa-solid fa-xmark"></i>
                   </button>
                 </div>
+
+                <!-- Multi-File Lesson Attachments List (Supports 1, 2, 3+ files) -->
+                <div id="lessonMultiFileList" class="lesson-multi-file-list" style="display: none;"></div>
 
                 <!-- Lesson Text Box (Direct, always visible, drag & drop aware) -->
                 <div id="lessonTextareaWrapper" class="control-group">
@@ -2682,7 +2685,7 @@
   <div id="smartHoverTooltip" class="smart-hover-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261118_v163"></script>
+  <script src="app.js?v=20261118_v164"></script>
 </body>
 
 </html>

@@ -6856,44 +6856,210 @@ function initDropzones() {
     }
   );
 
-  // 2. Lesson Content Dropzone
-  setupDropzone(
-    'lessonDropzone',
-    'lessonFileInput',
-    'lessonFileStatus',
-    'btnRemoveLessonFile',
-    async (file) => {
-      showToast(`កំពុងអានឯកសារមេរៀន: ${file.name}...`, 'info');
-      const text = await extractTextFromFile(file);
-      if (text && text.trim().length > 0) {
-        state.lessonContent = text.trim();
-        state.lessonFileName = file.name;
-        const contentEl = document.getElementById('lessonContentText');
-        if (contentEl) contentEl.value = text.trim();
-        updateWordCount();
+  // 2. Lesson Content Multi-File Upload & Drag-Drop (Supports selecting or adding 1, 2, 3+ files!)
+  if (!Array.isArray(state.lessonFiles)) state.lessonFiles = [];
 
-        const baseName = file.name.replace(/\.[^/.]+$/, "");
-        const nameInput = document.getElementById('inputSaveLessonName');
-        if (nameInput) nameInput.value = baseName;
+  const getFileIconClass = (name = '') => {
+    const ext = String(name).split('.').pop().toLowerCase();
+    if (ext === 'pdf') return { icon: 'fa-file-pdf', color: '#dc2626' };
+    if (ext === 'doc' || ext === 'docx') return { icon: 'fa-file-word', color: '#2563eb' };
+    if (ext === 'ppt' || ext === 'pptx') return { icon: 'fa-file-powerpoint', color: '#ea580c' };
+    if (['png', 'jpg', 'jpeg', 'webp'].includes(ext)) return { icon: 'fa-file-image', color: '#9333ea' };
+    return { icon: 'fa-file-lines', color: '#4f46e5' };
+  };
 
-        // Auto-detect and populate Subject, Chapter, and Lesson Title in Section 3
-        autoDetectAndFillLessonMetadata(text, file.name, true);
+  window.renderAttachedLessonFiles = function renderAttachedLessonFiles() {
+    const listEl = document.getElementById('lessonMultiFileList');
+    const legacyPill = document.getElementById('lessonFileStatus');
+    if (legacyPill) legacyPill.style.display = 'none';
+    if (!listEl) return;
 
-        showToast(`✅ បានស្រង់ខ្លឹមសារពី ${file.name} (${text.trim().length} តួអក្សរ) ចូលប្រអប់រួចរាល់! AI នឹងប្រើប្រាស់ខ្លឹមសារនេះ!`, 'success');
-      } else {
-        showToast(`⚠️ មិនអាចស្រង់អត្ថបទពី ${file.name} បានទេ។ សូមពិនិត្យមើលឯកសារ ឬ Copy-Paste ខ្លឹមសារដោយផ្ទាល់!`, 'warning');
-      }
-    },
-    () => {
-      state.lessonFileName = '';
-      // keep current text or let user edit
+    const files = Array.isArray(state.lessonFiles) ? state.lessonFiles : [];
+    if (files.length === 0) {
+      listEl.style.display = 'none';
+      listEl.innerHTML = '';
+      return;
     }
-  );
 
-  // Direct Drag & Drop onto Lesson Content Textarea
+    const isEn = (state.language === 'en');
+    const kNum = (typeof toKhmerNumber === 'function' && !isEn) ? toKhmerNumber : String;
+    const rowsHtml = files.map((f, idx) => {
+      const ico = getFileIconClass(f.name);
+      const sizeKb = (f.size / 1024).toFixed(1);
+      const statusBadge = f.status === 'loading'
+        ? `<i class="fa-solid fa-spinner fa-spin" style="color: #2563eb;"></i>`
+        : (f.status === 'error'
+          ? `<span style="color: #dc2626; font-size: 0.7rem; font-weight: 700;">⚠️</span>`
+          : `<span class="lesson-file-chip-meta">${sizeKb} KB</span>`);
+      return `
+        <div class="lesson-file-chip-row ${f.status === 'loading' ? 'loading' : (f.status === 'error' ? 'error' : '')}">
+          <i class="fa-solid ${ico.icon}" style="color: ${ico.color}; font-size: 0.95rem; flex-shrink: 0;"></i>
+          <span class="lesson-file-chip-name" title="${escapeHtml(f.name)} (${sizeKb} KB)">${kNum(idx + 1)}. ${escapeHtml(f.name)}</span>
+          ${statusBadge}
+          <button type="button" class="btn-lesson-chip-remove" onclick="removeAttachedLessonFile('${f.id}')" title="${isEn ? 'Remove this file' : 'ដកឯកសារនេះចេញ'}">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      `;
+    }).join('');
+
+    listEl.innerHTML = `
+      <div class="lesson-multi-file-header">
+        <span><i class="fa-solid fa-paperclip"></i> ${isEn ? `Attached Files (${files.length})` : `ឯកសារបានភ្ជាប់ (${kNum(files.length)} ឯកសារ)`}</span>
+        <div class="lesson-multi-file-header-actions">
+          <button type="button" class="btn-lesson-add-more-file" onclick="document.getElementById('lessonFileInput').click()">
+            <i class="fa-solid fa-plus"></i> ${isEn ? 'Add More' : 'បន្ថែមឯកសារ'}
+          </button>
+          <button type="button" class="btn-lesson-clear-all-files" onclick="clearAllAttachedLessonFiles()">
+            <i class="fa-solid fa-trash-can"></i> ${isEn ? 'Clear All' : 'ដកទាំងអស់'}
+          </button>
+        </div>
+      </div>
+      ${rowsHtml}
+    `;
+    listEl.style.display = 'flex';
+  };
+
+  window.rebuildCombinedLessonContent = function rebuildCombinedLessonContent() {
+    const files = (state.lessonFiles || []).filter(f => f.status === 'ok' && f.text && f.text.trim().length > 0);
+    const contentEl = document.getElementById('lessonContentText');
+    let combined = '';
+    if (files.length === 1) {
+      combined = files[0].text.trim();
+    } else if (files.length > 1) {
+      combined = files.map((f, i) => `=== 📄 ឯកសារទី ${toKhmerNumber(i + 1)}៖ ${f.name} ===\n${f.text.trim()}`).join('\n\n');
+    }
+    state.lessonContent = combined;
+    state.lessonFileName = files.map(f => f.name).join(', ');
+    if (contentEl) contentEl.value = combined;
+    updateWordCount();
+    if (typeof scheduleAutoSaveDraft === 'function') scheduleAutoSaveDraft(900);
+  };
+
+  window.removeAttachedLessonFile = function removeAttachedLessonFile(fileId) {
+    if (!Array.isArray(state.lessonFiles)) return;
+    const removed = state.lessonFiles.find(f => f.id === fileId);
+    state.lessonFiles = state.lessonFiles.filter(f => f.id !== fileId);
+    renderAttachedLessonFiles();
+    rebuildCombinedLessonContent();
+    if (removed) showToast(`បានដកឯកសារ «${removed.name}» ចេញ`, 'info');
+  };
+
+  window.clearAllAttachedLessonFiles = function clearAllAttachedLessonFiles() {
+    state.lessonFiles = [];
+    const input = document.getElementById('lessonFileInput');
+    if (input) input.value = '';
+    renderAttachedLessonFiles();
+    rebuildCombinedLessonContent();
+    showToast('បានដកឯកសារភ្ជាប់ទាំងអស់ចេញ', 'info');
+  };
+
+  async function processMultipleLessonFiles(fileList) {
+    const incoming = Array.from(fileList || []).filter(Boolean);
+    if (incoming.length === 0) return;
+
+    const wasEmpty = (state.lessonFiles || []).length === 0;
+    const entries = incoming.map((file, idx) => ({
+      id: `lf_${Date.now()}_${idx}_${Math.random().toString(36).slice(2, 6)}`,
+      file,
+      name: file.name,
+      size: file.size || 0,
+      text: '',
+      status: 'loading'
+    }));
+
+    entries.forEach(ent => {
+      state.lessonFiles.push({ id: ent.id, name: ent.name, size: ent.size, text: '', status: 'loading' });
+    });
+    renderAttachedLessonFiles();
+
+    showToast(
+      incoming.length > 1
+        ? `📎 កំពុងអានឯកសារចំនួន ${toKhmerNumber(incoming.length)} ឯកសារ...`
+        : `កំពុងអានឯកសារមេរៀន: ${incoming[0].name}...`,
+      'info'
+    );
+
+    let successCount = 0;
+    let firstSuccessEntry = null;
+
+    for (const ent of entries) {
+      const target = state.lessonFiles.find(x => x.id === ent.id);
+      if (!target) continue;
+      try {
+        const text = await extractTextFromFile(ent.file);
+        if (text && text.trim().length > 0) {
+          target.text = text.trim();
+          target.status = 'ok';
+          successCount++;
+          if (!firstSuccessEntry) firstSuccessEntry = target;
+        } else {
+          target.status = 'error';
+          showToast(`⚠️ មិនអាចស្រង់អត្ថបទពី ${ent.name} បានទេ។`, 'warning');
+        }
+      } catch (err) {
+        console.warn('Error extracting file:', ent.name, err);
+        target.status = 'error';
+        showToast(`⚠️ មានបញ្ហាក្នុងការអានឯកសារ ${ent.name}`, 'warning');
+      }
+      renderAttachedLessonFiles();
+      rebuildCombinedLessonContent();
+    }
+
+    // Auto-detect metadata only when attaching the first batch (or if lesson title is still empty)
+    const titleEl = document.getElementById('inputLessonTitle');
+    if (firstSuccessEntry && (wasEmpty || !(titleEl && titleEl.value.trim()))) {
+      const baseName = firstSuccessEntry.name.replace(/\.[^/.]+$/, '');
+      const nameInput = document.getElementById('inputSaveLessonName');
+      if (nameInput && !nameInput.value.trim()) nameInput.value = baseName;
+      autoDetectAndFillLessonMetadata(firstSuccessEntry.text, firstSuccessEntry.name, true);
+    }
+
+    if (successCount > 0) {
+      const totalFiles = state.lessonFiles.filter(f => f.status === 'ok').length;
+      showToast(
+        totalFiles > 1
+          ? `✅ បានភ្ជាប់ និងរួមបញ្ចូលឯកសារសរុប ${toKhmerNumber(totalFiles)} ឯកសាររួចរាល់! AI នឹងប្រើខ្លឹមសារទាំងអស់!`
+          : `✅ បានស្រង់ខ្លឹមសារពី ${firstSuccessEntry.name} (${firstSuccessEntry.text.length} តួអក្សរ) ចូលប្រអប់រួចរាល់!`,
+        'success'
+      );
+    }
+  }
+
+  const lessonFileInputEl = document.getElementById('lessonFileInput');
+  const lessonDropzoneEl = document.getElementById('lessonDropzone');
+  if (lessonFileInputEl) {
+    lessonFileInputEl.addEventListener('change', async (e) => {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        await processMultipleLessonFiles(files);
+        lessonFileInputEl.value = ''; // Allow picking more files or re-selecting anytime
+      }
+    });
+  }
+  if (lessonDropzoneEl) {
+    lessonDropzoneEl.addEventListener('click', (e) => {
+      if (!e.target.closest('.file-status-pill') && lessonFileInputEl) lessonFileInputEl.click();
+    });
+    lessonDropzoneEl.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      lessonDropzoneEl.classList.add('dragover');
+    });
+    lessonDropzoneEl.addEventListener('dragleave', () => {
+      lessonDropzoneEl.classList.remove('dragover');
+    });
+    lessonDropzoneEl.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      lessonDropzoneEl.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        await processMultipleLessonFiles(e.dataTransfer.files);
+      }
+    });
+  }
+
+  // Direct Multi-File Drag & Drop onto Lesson Content Textarea
   const directTa = document.getElementById('lessonContentText');
-  const directStatusEl = document.getElementById('lessonFileStatus');
-  if (directTa && directStatusEl) {
+  if (directTa) {
     directTa.addEventListener('dragover', (e) => {
       e.preventDefault();
       directTa.classList.add('textarea-dragover');
@@ -6904,28 +7070,8 @@ function initDropzones() {
     directTa.addEventListener('drop', async (e) => {
       e.preventDefault();
       directTa.classList.remove('textarea-dragover');
-      const file = e.dataTransfer.files[0];
-      if (file) {
-        handleFileSelected(file, directStatusEl, async (f) => {
-          showToast(`កំពុងអានឯកសារមេរៀន: ${f.name}...`, 'info');
-          const text = await extractTextFromFile(f);
-          if (text && text.trim().length > 0) {
-            state.lessonContent = text.trim();
-            state.lessonFileName = f.name;
-            directTa.value = text.trim();
-            updateWordCount();
-            const baseName = f.name.replace(/\.[^/.]+$/, "");
-            const nameInput = document.getElementById('inputSaveLessonName');
-            if (nameInput) nameInput.value = baseName;
-
-            // Auto-detect and populate Subject, Chapter, and Lesson Title in Section 3
-            autoDetectAndFillLessonMetadata(text, f.name, true);
-
-            showToast(`✅ បានស្រង់ខ្លឹមសារពី ${f.name} រួចរាល់!`, 'success');
-          } else {
-            showToast(`⚠️ មិនអាចស្រង់អត្ថបទពី ${f.name} បានទេ`, 'warning');
-          }
-        });
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        await processMultipleLessonFiles(e.dataTransfer.files);
       }
     });
   }
@@ -13908,6 +14054,8 @@ function handleResetForm() {
   if (lessonFileInput) lessonFileInput.value = '';
   const lessonFileStatus = document.getElementById('lessonFileStatus');
   if (lessonFileStatus) lessonFileStatus.style.display = 'none';
+  state.lessonFiles = [];
+  if (typeof renderAttachedLessonFiles === 'function') renderAttachedLessonFiles();
 
   // Reset lesson content state
   state.lessonContent = '';
