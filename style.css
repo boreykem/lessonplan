@@ -5508,3 +5508,75 @@ tr.step-just-updated td {
   color: #a5b4fc;
   border-color: #6366f1;
 }
+
+.audit-fixes-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-audit-autofix-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  border-radius: 9px;
+  border: none;
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.77rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(16, 185, 129, 0.28);
+  transition: all 0.16s ease;
+}
+
+.btn-audit-autofix-all:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(16, 185, 129, 0.38);
+}
+
+.btn-audit-autofix-all:disabled {
+  opacity: 0.7;
+  cursor: wait;
+  transform: none;
+}
+
+.btn-audit-undo-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-family: inherit;
+  font-size: 0.73rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-audit-undo-all:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.audit-mastery-banner {
+  margin-top: 11px;
+  padding: 9px 13px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+  border: 1.5px solid #34d399;
+  color: #065f46;
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}

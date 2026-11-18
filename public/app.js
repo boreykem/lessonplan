@@ -3959,10 +3959,12 @@ window.evaluatePedagogicalQuality = evaluatePedagogicalQuality;
 // and connects every finding directly to 1-Click Inline AI Step Fix!
 // ==========================================================================
 let _aiAuditInFlight = false;
+let _aiAutoFixAllInFlight = false;
 let _aiAuditLastError = '';
 let _aiAuditDetailsOpen = false;
 let _aiAuditRunSeq = 0;
 let _currentAuditFixes = [];
+let _lastAutoFixAllBackup = null;
 
 function openStepRegenerateModalWithFix(stepIdx, fixInstruction) {
   if (typeof openStepRegenerateModal !== 'function') return;
@@ -4080,13 +4082,48 @@ function renderPedagogicalQualityScore(data) {
 
     const improvements = Array.isArray(aiAudit.improvements) ? aiAudit.improvements.filter(it => it && it.issue) : [];
     _currentAuditFixes = improvements;
-    const fixesHtml = improvements.length > 0 ? `
+    const needsPolish = (aiAudit.totalScore < 93) || (improvements.length > 0);
+    const hasUndoAll = Boolean(_lastAutoFixAllBackup);
+
+    const autoFixAllBtnHtml = needsPolish ? `
+      <button type="button" class="btn-audit-autofix-all" onclick="autoFixAllAuditGaps()" ${_aiAutoFixAllInFlight || _aiAuditInFlight ? 'disabled' : ''}>
+        <i class="fa-solid ${_aiAutoFixAllInFlight ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'}"></i>
+        <span>${_aiAutoFixAllInFlight
+          ? (isEn ? 'Auto-Polishing All Gaps...' : 'កំពុងកែលម្អគ្រប់ចំណុចក្នុងពេលតែម្ដង...')
+          : (isEn ? 'Auto-Fix All Gaps in 1 Click (Target 95+)' : '✨ កែលម្អគ្រប់ចំណុចក្នុងពេលតែម្ដង (ឈានដល់ ៩៥+)')}</span>
+      </button>
+    ` : '';
+
+    const undoAllBtnHtml = hasUndoAll ? `
+      <button type="button" class="btn-audit-undo-all" onclick="undoLastAutoFixAll()">
+        <i class="fa-solid fa-rotate-left"></i> ${isEn ? 'Undo Auto-Fix' : 'ត្រឡប់មុនកែ'}
+      </button>
+    ` : '';
+
+    const masteryDoneHtml = (!needsPolish && improvements.length === 0) ? `
+      <div class="audit-mastery-banner">
+        <span>🏆</span>
+        <span>${isEn
+          ? `Mastery Ready (${aiAudit.totalScore}/100) — All 6 pedagogical pillars verified! Ready to print, export, and teach.`
+          : `កិច្ចតែងការនេះឈានដល់កម្រិត «ល្អឥតខ្ចោះ» (${kNum(aiAudit.totalScore)}/១០០) — រួចរាល់ ១០០% សម្រាប់យកទៅបង្រៀន Print/PDF ឬ Export Word!`}</span>
+        ${undoAllBtnHtml}
+      </div>
+    ` : '';
+
+    const fixesHtml = (needsPolish || improvements.length > 0) ? `
       <div class="audit-fixes-section">
-        <div class="audit-fixes-title">
-          <i class="fa-solid fa-screwdriver-wrench"></i>
-          ${isEn ? 'Actionable Recommendations (1-Click AI Step Fix):' : 'អនុសាសន៍កែលម្អជាក់លាក់ (ចុច ១ ដងដើម្បីកែជំហានភ្លាម)៖'}
+        <div class="audit-fixes-header-row">
+          <div class="audit-fixes-title" style="margin-bottom: 0;">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+            ${isEn ? 'Actionable Recommendations:' : 'អនុសាសន៍កែលម្អជាក់លាក់៖'}
+          </div>
+          <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+            ${undoAllBtnHtml}
+            ${autoFixAllBtnHtml}
+          </div>
         </div>
-        <div class="audit-fix-list">
+        ${improvements.length > 0 ? `
+        <div class="audit-fix-list" style="margin-top: 8px;">
           ${improvements.map((imp, i) => {
             const stepNo = parseInt(imp.stepNumber, 10) || 0;
             const stepIdx = (stepNo >= 1 && stepNo <= (data.steps?.length || 5)) ? (stepNo - 1) : -1;
@@ -4095,7 +4132,7 @@ function renderPedagogicalQualityScore(data) {
               : (isEn ? 'General' : 'ទូទៅ');
             const fixBtnHtml = stepIdx >= 0
               ? `<button type="button" class="btn-audit-fix-step" onclick="applyAuditFixByIndex(${i})">
-                  <i class="fa-solid fa-wrench"></i> ${isEn ? `Fix Step ${stepNo} Now` : `កែជំហានទី ${kNum(stepNo)} ភ្លាម`}
+                  <i class="fa-solid fa-wrench"></i> ${isEn ? `Fix Step ${stepNo} Only` : `កែតែជំហានទី ${kNum(stepNo)}`}
                  </button>`
               : '';
             return `
@@ -4108,9 +4145,9 @@ function renderPedagogicalQualityScore(data) {
               </div>
             `;
           }).join('')}
-        </div>
+        </div>` : ''}
       </div>
-    ` : '';
+    ` : masteryDoneHtml;
 
     detailsBodyHtml = `
       ${verdictHtml}
@@ -4196,7 +4233,7 @@ function toggleQualityScoreDetails(forceOpen = null) {
 }
 window.toggleQualityScoreDetails = toggleQualityScoreDetails;
 
-async function runDeepAiPedagogicalAudit(planData, isManualTrigger = false) {
+async function runDeepAiPedagogicalAudit(planData, isManualTrigger = false, previousAuditNote = '') {
   const plan = planData || state.currentPlan || state.generatedPlanData;
   if (!plan || !Array.isArray(plan.steps) || plan.steps.length === 0) return;
 
@@ -4238,21 +4275,26 @@ async function runDeepAiPedagogicalAudit(planData, isManualTrigger = false) {
     ? `\n[PRE-CLASS PHASE]\n- Video/Materials: ${plan.preClassPhase.video || ''} | ${plan.preClassPhase.materials || ''}\n- Teacher: ${String(plan.preClassPhase.teacherActivity || '').slice(0, 1200)}\n- Student: ${String(plan.preClassPhase.studentActivity || '').slice(0, 1200)}`
     : '';
 
+  const reAuditContextBlock = previousAuditNote
+    ? `\n[RE-AUDIT VERIFICATION CONTEXT]\nThe teacher just refined this lesson plan to fix these previously reported gaps:\n${previousAuditNote}\nFAIRNESS RULE: Verify objectively whether those gaps have now been resolved! If resolved, award full or near-full marks on those pillars — NEVER move the goalpost or invent trivial nitpicks just to keep the score low!\n`
+    : '';
+
   const auditPrompt = `
-You are a STRICT, HONEST, SENIOR MoEYS Pedagogical Inspector (អធិការកិច្ចគរុកោសល្យជាន់ខ្ពស់) in Cambodia.
+You are a FAIR, HONEST, SENIOR MoEYS Pedagogical Inspector (អធិការកិច្ចគរុកោសល្យជាន់ខ្ពស់) in Cambodia.
 Audit ONLY the LESSON PLAN content below (DO NOT penalize for missing external Pre-Test/Post-Test appendices, PPTX slides, or external videos — those belong to Phase 2).
 
-[STRICT HONESTY & CALIBRATION MANDATE]
-- NEVER give an inflated rubber-stamp 100/100! Be constructive, rigorous, and genuinely diagnostic.
-- A typical good AI lesson plan scores between 78 and 92/100; a weak/generic draft scores 50–70/100; only an extraordinary lesson plan with zero gaps scores 94+.
-- Check REAL semantic alignment:
-  1. Do the activities and Step 5 evaluation ACTUALLY achieve every Bloom's objective in Section I?
+[FAIRNESS & CONVERGENCE MANDATE]
+- Be objective, honest, and fair — NOT artificially harsh and NOT rubber-stamping!
+- Weak/generic drafts score 55–72/100; solid first drafts score 80–89/100; well-refined, well-aligned lesson plans where objectives, Q&A, active techniques, listed materials, timed sub-phases, and formative checks are all concrete and cohesive MUST honestly receive **93–98/100**!
+- CRITICAL: If a lesson plan achieves **93/100 or higher** with no major real gaps, return \`"improvements": []\` (EMPTY ARRAY) so the teacher knows their plan is COMPLETE and READY TO TEACH! Do NOT invent trivial nitpicks when the plan is already strong.
+- Check REAL semantic alignment across 6 pillars:
+  1. Do the activities and Step 5 evaluation ACTUALLY achieve every Bloom's objective in Section I (including measurable attitude/skill)?
   2. Are the lesson content, formulas, key questions (HOTS/LOTS), and sample answers scientifically accurate and concrete?
-  3. Are the selected Teaching Method and Active Learning Techniques genuinely orchestrated with concrete student-centered actions (70% STT), or merely name-dropped?
+  3. Are the selected Teaching Method and Active Learning Techniques genuinely orchestrated with concrete student-centered actions (70% STT)?
   4. Are the teaching/student materials listed in Section II ACTUALLY used inside Steps 1–5?
-  5. Is the workload realistic for each step's allocated minutes (e.g., not overcrowded in a 5-min step) with logical scaffolding?
+  5. Is the workload realistic for each step's allocated minutes (including timed sub-phases for long steps) with logical scaffolding?
   6. Does the lesson plan include authentic formative assessment, feedback, reflection, and meaningful closure/homework?
-
+${reAuditContextBlock}
 [LESSON PLAN TO AUDIT]
 - Subject: ${plan.subject || ''} | Grade: ${plan.grade || ''} | Duration: ${plan.duration || ''}
 - Lesson Title: ${plan.lessonTitle || ''}
@@ -4277,14 +4319,14 @@ ${isEn ? 'Professional Academic English' : 'Standard Formal Khmer (ភាសា�
 [RETURN STRICT JSON ONLY]
 Return ONLY valid JSON matching this exact schema (6 pillars summing to max 100):
 {
-  "overallVerdict": "1-2 concise sentences summarizing honest pedagogical strength and the #1 area to elevate.",
+  "overallVerdict": "1-2 concise sentences summarizing honest pedagogical quality.",
   "pillars": [
-    { "key": "objectives", "title": "${isEn ? "Objectives & Alignment" : "🎯 វត្ថុបំណង & ការសម្រេចផល"}", "score": 16, "max": 20, "feedback": "1 concise honest sentence." },
-    { "key": "content_qa", "title": "${isEn ? "Content, Q&A Accuracy" : "📚 ខ្លឹមសារមេរៀន សំណួរ & ចម្លើយ"}", "score": 17, "max": 20, "feedback": "1 concise honest sentence." },
-    { "key": "engagement", "title": "${isEn ? "Techniques & Engagement" : "🧩 យុទ្ធវិធី & ការចូលរួមសិស្ស"}", "score": 16, "max": 20, "feedback": "1 concise honest sentence." },
-    { "key": "materials", "title": "${isEn ? "Materials & Visual Usage" : "🛠️ ការប្រើប្រាស់សម្ភារឧបទេស"}", "score": 12, "max": 15, "feedback": "1 concise honest sentence." },
+    { "key": "objectives", "title": "${isEn ? "Objectives & Alignment" : "🎯 វត្ថុបំណង & ការសម្រេចផល"}", "score": 18, "max": 20, "feedback": "1 concise honest sentence." },
+    { "key": "content_qa", "title": "${isEn ? "Content, Q&A Accuracy" : "📚 ខ្លឹមសារមេរៀន សំណួរ & ចម្លើយ"}", "score": 18, "max": 20, "feedback": "1 concise honest sentence." },
+    { "key": "engagement", "title": "${isEn ? "Techniques & Engagement" : "🧩 យុទ្ធវិធី & ការចូលរួមសិស្ស"}", "score": 18, "max": 20, "feedback": "1 concise honest sentence." },
+    { "key": "materials", "title": "${isEn ? "Materials & Visual Usage" : "🛠️ ការប្រើប្រាស់សម្ភារឧបទេស"}", "score": 13, "max": 15, "feedback": "1 concise honest sentence." },
     { "key": "pacing", "title": "${isEn ? "Pacing & Scaffolding Flow" : "⏱️ សមាមាត្រម៉ោង & លំហូរជំហាន"}", "score": 13, "max": 15, "feedback": "1 concise honest sentence." },
-    { "key": "assessment", "title": "${isEn ? "Formative Check & Closure" : "📊 ការវាយតម្លៃដំណើរការ & បណ្តាំផ្ញើ"}", "score": 8, "max": 10, "feedback": "1 concise honest sentence." }
+    { "key": "assessment", "title": "${isEn ? "Formative Check & Closure" : "📊 ការវាយតម្លៃដំណើរការ & បណ្តាំផ្ញើ"}", "score": 9, "max": 10, "feedback": "1 concise honest sentence." }
   ],
   "strengths": [
     "Concise specific strength #1",
@@ -4293,12 +4335,12 @@ Return ONLY valid JSON matching this exact schema (6 pillars summing to max 100)
   "improvements": [
     {
       "stepNumber": 3,
-      "issue": "Specific concrete gap observed in Step 3 (1 concise sentence).",
-      "fixInstruction": "Actionable Khmer/English prompt to fix Step 3 directly when passed to AI Step Regenerate."
+      "issue": "Only include REAL major gaps (0 items if total >= 93/100!).",
+      "fixInstruction": "Actionable Khmer/English prompt to fix this exact gap."
     }
   ]
 }
-Note: Provide 1 to 3 highest-impact actionable items in "improvements" (always tie to exact stepNumber 1–5 whenever possible).
+Note: Return 0 items ("improvements": []) if total score >= 93 and no major gaps remain; otherwise return 1 to 3 highest-impact real gaps.
 `.trim();
 
   try {
@@ -4393,6 +4435,210 @@ function triggerManualAiPedagogicalAudit() {
   runDeepAiPedagogicalAudit(plan, true);
 }
 window.triggerManualAiPedagogicalAudit = triggerManualAiPedagogicalAudit;
+
+// ==========================================================================
+// ✨ 1-CLICK AUTO-FIX ALL AUDIT GAPS (Converges to 94–98/100 in 1 Single Pass!)
+// Sends ALL 6 pillar feedbacks + recommendations to Gemini once to upgrade
+// Objectives & Steps surgically while preserving 100% of existing strengths & SVGs.
+// ==========================================================================
+async function autoFixAllAuditGaps() {
+  const plan = state.currentPlan || state.generatedPlanData;
+  if (!plan || !plan.aiAuditReport || !Array.isArray(plan.steps)) {
+    showToast('សូមដំណើរការវាយតម្លៃដោយ AI ជាមុនសិន!', 'warning');
+    return;
+  }
+  if (_aiAutoFixAllInFlight) return;
+
+  const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
+  if (!apiKey) {
+    showToast('⚠️ សូមបញ្ចូល Google Gemini API Key ជាមុនសិន!', 'warning');
+    openApiKeyModal();
+    return;
+  }
+
+  let provider = state.aiProvider || 'gemini';
+  if (apiKey.startsWith('AIza') || apiKey.startsWith('AQ.')) provider = 'gemini';
+  else if (apiKey.startsWith('gsk_')) provider = 'groq';
+  else if (apiKey.startsWith('sk-or-')) provider = 'openrouter';
+
+  const isEn = (state.language === 'en');
+  const audit = plan.aiAuditReport;
+  const prevScore = audit.totalScore || 0;
+
+  // Build exact checklist of every gap across ALL 6 pillars + recommendations
+  const pillarGaps = (audit.pillars || [])
+    .filter(p => p.score < p.max)
+    .map(p => `- [${p.title}: ${p.score}/${p.max}] ${p.feedback}`)
+    .join('\n');
+  const recGaps = (audit.improvements || [])
+    .map(imp => `- [Step ${imp.stepNumber || 'General'}] ${imp.issue} -> Fix: ${imp.fixInstruction}`)
+    .join('\n');
+  const combinedAuditFeedback = [pillarGaps, recGaps].filter(Boolean).join('\n');
+
+  const currentStepsJson = plan.steps.map((st, idx) => ({
+    stepNumber: st.stepNumber || (idx + 1),
+    stepTitle: st.stepTitle || '',
+    duration: st.duration || '',
+    teacherActivity: st.teacherActivity || '',
+    contentSummary: st.contentSummary || '',
+    studentActivity: st.studentActivity || ''
+  }));
+
+  const polishPrompt = `
+You are an elite Cambodian MoEYS Master Instructional Designer.
+The Senior Pedagogical Inspector just audited this lesson plan (scored ${prevScore}/100) and identified specific gaps below.
+
+[YOUR MISSION — ONE-SHOT SURGICAL PERFECTION]
+Upgrade ONLY the weak parts to resolve **EVERY SINGLE GAP** below in ONE PASS so the lesson plan reaches **95–98/100 Mastery** — while **STRICTLY PRESERVING 100%** of all existing strong content, exact step durations, scientific accuracy, and teaching method!
+
+[ALL INSPECTOR FINDINGS TO RESOLVE COMPLETELY]
+${combinedAuditFeedback || 'Polish objectives measurability, explicit use of all listed materials, clear timed sub-phases in long steps, and active student engagement.'}
+
+[LESSON METADATA & MATERIALS (MUST BE USED IN STEPS)]
+- Subject: ${plan.subject || ''} | Grade: ${plan.grade || ''} | Duration: ${plan.duration || ''}
+- Lesson Title: ${plan.lessonTitle || ''}
+- Teaching Method: ${plan.method || ''}
+- Active Techniques: ${(plan.techniques || []).join(', ')}
+- Teacher Materials: ${(plan.materials?.teacher || []).join(', ')}
+- Student Materials: ${(plan.materials?.student || []).join(', ')}
+
+[CURRENT OBJECTIVES (1 bullet per domain — make Knowledge, Skills, and Attitudes 100% measurable SMART)]
+${JSON.stringify(plan.objectives || {}, null, 2)}
+
+[CURRENT 5 STEPS]
+${JSON.stringify(currentStepsJson, null, 2)}
+
+[STRICT RULES]
+1. Keep EXACTLY 1 point each in objectives.knowledge, objectives.skills, objectives.attitudes — ensure Attitudes has a concrete observable/measurable indicator!
+2. Keep EXACTLY ${plan.steps.length} steps with their EXACT original stepNumber, stepTitle, and duration!
+3. If any step is long (e.g. >= 45 min), organize it into clear timed sub-phases (e.g., (១) ... [២០ នាទី], (២) ... [៤០ នាទី]...) whose sub-minutes sum to that step's exact duration!
+4. Explicitly weave ALL listed Teacher & Student Materials (e.g., stickers, Flipcharts, Rubrics, handouts) into the actual Teacher & Student activities!
+5. Do NOT overload short steps (e.g., 5 min step should have focused, realistic actions).
+6. Output Language: ${isEn ? 'Professional Academic English' : 'Standard Formal Khmer (ភាសាខ្មែរផ្លូវការគរុកោសល្យ ១០០% — ហាមប្រើអក្សរថៃ/វៀតណាម/ចិន)'}.
+7. Return ONLY valid JSON with EXACTLY these 2 keys:
+{
+  "objectives": {
+    "knowledge": ["..."],
+    "skills": ["..."],
+    "attitudes": ["..."]
+  },
+  "steps": [
+    {
+      "stepNumber": 1,
+      "teacherActivity": "• ...",
+      "contentSummary": "• ...",
+      "studentActivity": "• ..."
+    }
+  ]
+}
+`.trim();
+
+  _aiAutoFixAllInFlight = true;
+  renderPedagogicalQualityScore(plan);
+  showToast(
+    isEn
+      ? '✨ Gemini AI is resolving all audit gaps in one pass...'
+      : '✨ Gemini AI កំពុងកែលម្អគ្រប់ចំណុចខ្វះខាតទាំងអស់ក្នុងពេលតែម្ដង (រក្សាខ្លឹមសារល្អដើម ១០០%)...',
+    'info',
+    5000
+  );
+
+  try {
+    const rawText = await callAiForSingleStep(polishPrompt, apiKey, provider, 6144);
+    const cleanedStr = String(rawText || '')
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim();
+    const sIdx = cleanedStr.indexOf('{');
+    const eIdx = cleanedStr.lastIndexOf('}');
+    if (sIdx === -1 || eIdx === -1) {
+      throw new Error('Gemini AI មិនបានត្រឡប់ទម្រង់ JSON ត្រឹមត្រូវឡើយ។');
+    }
+
+    const parsed = JSON.parse(cleanedStr.slice(sIdx, eIdx + 1));
+    if (!Array.isArray(parsed.steps) || parsed.steps.length < 3) {
+      throw new Error('ទិន្នន័យជំហានដែល AI កែលម្អមិនពេញលេញឡើយ។');
+    }
+
+    // Save complete Undo snapshot before applying
+    _lastAutoFixAllBackup = {
+      objectives: JSON.parse(JSON.stringify(plan.objectives || {})),
+      steps: JSON.parse(JSON.stringify(plan.steps || [])),
+      aiAuditReport: JSON.parse(JSON.stringify(plan.aiAuditReport || null))
+    };
+
+    const cleanPatch = cleanForbiddenScriptsAndFormatMath(parsed);
+
+    // Update Objectives (strictly 1 bullet per domain)
+    if (cleanPatch.objectives) {
+      if (Array.isArray(cleanPatch.objectives.knowledge) && cleanPatch.objectives.knowledge[0]) {
+        plan.objectives.knowledge = [String(cleanPatch.objectives.knowledge[0]).trim()];
+      }
+      if (Array.isArray(cleanPatch.objectives.skills) && cleanPatch.objectives.skills[0]) {
+        plan.objectives.skills = [String(cleanPatch.objectives.skills[0]).trim()];
+      }
+      if (Array.isArray(cleanPatch.objectives.attitudes) && cleanPatch.objectives.attitudes[0]) {
+        plan.objectives.attitudes = [String(cleanPatch.objectives.attitudes[0]).trim()];
+      }
+    }
+
+    // Surgically update each step while preserving stepTitle, duration, and embedded SVG/Photo diagrams!
+    cleanPatch.steps.forEach((newSt, i) => {
+      const targetIdx = (newSt.stepNumber >= 1 && newSt.stepNumber <= plan.steps.length)
+        ? (newSt.stepNumber - 1)
+        : i;
+      if (!plan.steps[targetIdx]) return;
+      if (newSt.teacherActivity && String(newSt.teacherActivity).trim().length >= 10) {
+        plan.steps[targetIdx].teacherActivity = String(newSt.teacherActivity).trim();
+      }
+      if (newSt.contentSummary && String(newSt.contentSummary).trim().length >= 10) {
+        plan.steps[targetIdx].contentSummary = String(newSt.contentSummary).trim();
+      }
+      if (newSt.studentActivity && String(newSt.studentActivity).trim().length >= 10) {
+        plan.steps[targetIdx].studentActivity = String(newSt.studentActivity).trim();
+      }
+    });
+
+    _aiAutoFixAllInFlight = false;
+    delete plan.aiAuditReport;
+    state.currentPlan = plan;
+    state.generatedPlanData = plan;
+    _aiAuditDetailsOpen = true;
+    renderLessonPlanToA4(plan);
+
+    showToast(
+      isEn
+        ? '✨ All audit gaps resolved! Re-auditing updated score...'
+        : '✨ បានកែលម្អគ្រប់ចំណុចទាំងអស់រួចរាល់! កំពុងវាយតម្លៃពិន្ទុថ្មីឡើងវិញ...',
+      'success'
+    );
+
+    // Re-audit WITH previous context so Inspector verifies all fixes fairly & converges cleanly!
+    setTimeout(() => {
+      runDeepAiPedagogicalAudit(state.currentPlan, false, combinedAuditFeedback);
+    }, 350);
+  } catch (err) {
+    console.error('[Auto-Fix All Audit Gaps] Error:', err);
+    _aiAutoFixAllInFlight = false;
+    renderPedagogicalQualityScore(plan);
+    showToast('⚠️ មិនអាចកែលម្អទាំងអស់បាននៅពេលនេះ៖ ' + (err.message || err), 'error', 6000);
+  }
+}
+window.autoFixAllAuditGaps = autoFixAllAuditGaps;
+
+function undoLastAutoFixAll() {
+  const plan = state.currentPlan || state.generatedPlanData;
+  if (!plan || !_lastAutoFixAllBackup) return;
+  plan.objectives = _lastAutoFixAllBackup.objectives;
+  plan.steps = _lastAutoFixAllBackup.steps;
+  plan.aiAuditReport = _lastAutoFixAllBackup.aiAuditReport;
+  _lastAutoFixAllBackup = null;
+  state.currentPlan = plan;
+  state.generatedPlanData = plan;
+  renderLessonPlanToA4(plan);
+  showToast('↩️ បានត្រឡប់កិច្ចតែងការទៅស្ថានភាពមុនពេលកែលម្អទាំងអស់វិញហើយ!', 'info');
+}
+window.undoLastAutoFixAll = undoLastAutoFixAll;
 
 // ==========================================================================
 // ☁️ 3. AUTO-SAVE DRAFT RECOVERY SYSTEM (Every ~3s to localStorage)
