@@ -3953,6 +3953,27 @@ function evaluatePedagogicalQuality(data) {
 }
 window.evaluatePedagogicalQuality = evaluatePedagogicalQuality;
 
+// ==========================================================================
+// 🕵️ DEEP AI PEDAGOGICAL INSPECTOR ENGINE (Honest 6-Pillar 100-Pt Lesson Audit)
+// Evaluates ONLY the Lesson Plan itself (6 MoEYS pillars = 100 pts) via Gemini AI
+// and connects every finding directly to 1-Click Inline AI Step Fix!
+// ==========================================================================
+let _aiAuditInFlight = false;
+let _aiAuditLastError = '';
+let _aiAuditDetailsOpen = false;
+let _aiAuditRunSeq = 0;
+
+function openStepRegenerateModalWithFix(stepIdx, fixInstruction) {
+  if (typeof openStepRegenerateModal !== 'function') return;
+  openStepRegenerateModal(stepIdx);
+  const inputEl = document.getElementById('stepRegenInstructionInput');
+  if (inputEl && fixInstruction) {
+    inputEl.value = fixInstruction;
+    inputEl.focus();
+  }
+}
+window.openStepRegenerateModalWithFix = openStepRegenerateModalWithFix;
+
 function renderPedagogicalQualityScore(data) {
   const strip = document.getElementById('pedagogicalQualityStrip');
   if (!strip) return;
@@ -3961,66 +3982,190 @@ function renderPedagogicalQualityScore(data) {
     return;
   }
 
-  const report = evaluatePedagogicalQuality(data);
-  if (!report) {
+  const structReport = evaluatePedagogicalQuality(data);
+  if (!structReport) {
     strip.style.display = 'none';
     return;
   }
 
   const isEn = (state.language === 'en');
   const kNum = (typeof toKhmerNumber === 'function' && !isEn) ? toKhmerNumber : String;
-  const tierClass = report.totalScore >= 85 ? 'score-high' : (report.totalScore >= 70 ? 'score-mid' : 'score-low');
-  const scoreIcon = report.totalScore >= 85 ? '✅' : (report.totalScore >= 70 ? '🏅' : '📝');
+  const aiAudit = (data.aiAuditReport && typeof data.aiAuditReport === 'object' && Array.isArray(data.aiAuditReport.pillars))
+    ? data.aiAuditReport
+    : null;
 
-  const criteriaCardsHtml = report.criteria.map(c => {
-    const pct = Math.round((c.score / c.max) * 100);
-    const barColor = pct >= 85 ? '#10b981' : (pct >= 65 ? '#4f46e5' : '#f59e0b');
-    return `
-      <div class="quality-criterion-card">
-        <div class="quality-criterion-head">
-          <span>${escapeHtml(c.title)}</span>
-          <span style="color: ${barColor};">${kNum(c.score)}/${kNum(c.max)}</span>
+  // Build top left score badge honestly based on real AI Inspector state
+  let badgeHtml = '';
+  let extraSummaryChip = '';
+
+  if (_aiAuditInFlight) {
+    badgeHtml = `
+      <span class="quality-score-badge score-auditing">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <span>${isEn ? 'AI Pedagogical Inspector Auditing...' : '🕵️ អធិការកិច្ច AI កំពុងវាយតម្លៃស៊ីជម្រៅ...'}</span>
+      </span>
+    `;
+  } else if (aiAudit) {
+    const sc = aiAudit.totalScore;
+    const tierClass = sc >= 88 ? 'score-high' : (sc >= 75 ? 'score-mid' : 'score-low');
+    const scoreIcon = sc >= 88 ? '🏆' : (sc >= 75 ? '🏅' : '📝');
+    badgeHtml = `
+      <span class="quality-score-badge ${tierClass}">
+        <span>${scoreIcon}</span>
+        <span>${isEn ? `AI Pedagogical Audit: ${sc}/100` : `ពិន្ទុអធិការកិច្ច AI៖ ${kNum(sc)}/១០០`}</span>
+      </span>
+    `;
+    const fixCount = Array.isArray(aiAudit.improvements) ? aiAudit.improvements.length : 0;
+    extraSummaryChip = fixCount > 0
+      ? `<span class="quality-metric-chip warn" style="cursor: pointer;" onclick="toggleQualityScoreDetails(true)">🔧 ${isEn ? `${fixCount} Fixes Suggested` : `ចំណុចគួរកែ ${kNum(fixCount)}`}</span>`
+      : `<span class="quality-metric-chip ok">✨ ${isEn ? 'High Mastery' : 'ល្អប្រសើរ'}</span>`;
+  } else if (data.isOfflineDraft) {
+    badgeHtml = `
+      <span class="quality-score-badge score-low">
+        <span>📝</span>
+        <span>${isEn ? 'Manual Draft (Not AI-Audited)' : 'ទម្រង់ព្រាងដោយដៃ (មិនទាន់វាយតម្លៃ AI)'}</span>
+      </span>
+    `;
+  } else {
+    badgeHtml = `
+      <span class="quality-score-badge score-mid">
+        <span>📋</span>
+        <span>${isEn ? 'Ready for AI Audit' : 'រួចរាល់សម្រាប់វាយតម្លៃដោយ AI'}</span>
+      </span>
+    `;
+  }
+
+  // Build expandable details body (Real 6-pillar AI Inspector Report OR Honest Fallback/Error state)
+  let detailsBodyHtml = '';
+  if (aiAudit) {
+    const pillarCardsHtml = aiAudit.pillars.map(p => {
+      const pct = Math.min(100, Math.max(0, Math.round((p.score / p.max) * 100)));
+      const barColor = pct >= 85 ? '#10b981' : (pct >= 68 ? '#4f46e5' : '#f59e0b');
+      return `
+        <div class="quality-criterion-card">
+          <div class="quality-criterion-head">
+            <span>${escapeHtml(p.title)}</span>
+            <span style="color: ${barColor};">${kNum(p.score)}/${kNum(p.max)}</span>
+          </div>
+          <div class="quality-criterion-bar">
+            <div class="quality-criterion-fill" style="width: ${pct}%; background: ${barColor};"></div>
+          </div>
+          <div class="quality-criterion-note">${escapeHtml(p.feedback || '')}</div>
         </div>
-        <div class="quality-criterion-bar">
-          <div class="quality-criterion-fill" style="width: ${pct}%; background: ${barColor};"></div>
+      `;
+    }).join('');
+
+    const verdictHtml = aiAudit.overallVerdict
+      ? `<div class="audit-summary-verdict"><strong>🕵️ សេចក្តីវាយតម្លៃរួមពីអធិការកិច្ច AI៖</strong> ${escapeHtml(aiAudit.overallVerdict)}</div>`
+      : '';
+
+    const strengths = Array.isArray(aiAudit.strengths) ? aiAudit.strengths.filter(Boolean) : [];
+    const strengthsHtml = strengths.length > 0 ? `
+      <div class="audit-strengths-row">
+        ${strengths.map(st => `<span class="audit-strength-pill"><i class="fa-solid fa-circle-check"></i> ${escapeHtml(st)}</span>`).join('')}
+      </div>
+    ` : '';
+
+    const improvements = Array.isArray(aiAudit.improvements) ? aiAudit.improvements.filter(it => it && it.issue) : [];
+    const fixesHtml = improvements.length > 0 ? `
+      <div class="audit-fixes-section">
+        <div class="audit-fixes-title">
+          <i class="fa-solid fa-screwdriver-wrench"></i>
+          ${isEn ? 'Actionable Recommendations (1-Click AI Step Fix):' : 'អនុសាសន៍កែលម្អជាក់លាក់ (ចុច ១ ដងដើម្បីកែជំហានភ្លាម)៖'}
         </div>
-        <div class="quality-criterion-note">${escapeHtml(c.note)}</div>
+        <div class="audit-fix-list">
+          ${improvements.map((imp, i) => {
+            const stepNo = parseInt(imp.stepNumber, 10) || 0;
+            const stepIdx = (stepNo >= 1 && stepNo <= (data.steps?.length || 5)) ? (stepNo - 1) : -1;
+            const safeFixAttr = encodeURIComponent(imp.fixInstruction || imp.issue || '');
+            const tagText = stepNo > 0
+              ? (isEn ? `Step ${stepNo}` : `ជំហានទី ${kNum(stepNo)}`)
+              : (isEn ? 'General' : 'ទូទៅ');
+            const fixBtnHtml = stepIdx >= 0
+              ? `<button type="button" class="btn-audit-fix-step" onclick="openStepRegenerateModalWithFix(${stepIdx}, decodeURIComponent('${safeFixAttr}'))">
+                  <i class="fa-solid fa-wrench"></i> ${isEn ? `Fix Step ${stepNo} Now` : `កែជំហានទី ${kNum(stepNo)} ភ្លាម`}
+                 </button>`
+              : '';
+            return `
+              <div class="audit-fix-card">
+                <div class="audit-fix-info">
+                  <span class="audit-fix-step-tag">${tagText}</span>
+                  <strong>${escapeHtml(imp.issue)}</strong>
+                </div>
+                ${fixBtnHtml}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    ` : '';
+
+    detailsBodyHtml = `
+      ${verdictHtml}
+      <div class="quality-criteria-grid">
+        ${pillarCardsHtml}
+      </div>
+      ${strengthsHtml}
+      ${fixesHtml}
+      <div class="audit-scope-footnote">
+        💡 ${isEn
+          ? 'Scope: This score strictly evaluates the Lesson Plan content (6 MoEYS pillars = 100 pts). Additional teaching resources (Pre/Post-Test, PPTX, Video) will be evaluated separately in Phase 2.'
+          : 'វិសាលភាពវាយតម្លៃ៖ ពិន្ទុនេះវាយតម្លៃផ្ដោតលើគុណភាព «តួកិច្ចតែងការ» ១០០% តាមសសរស្ដម្ភគរុកោសល្យទាំង ៦ (ធនធានបន្ថែមដូចជា Pre/Post-Test, PPTX, វីដេអូ នឹងវាយតម្លៃដាច់ដោយឡែកនៅផ្នែកទី ២)។'}
       </div>
     `;
-  }).join('');
+  } else {
+    const errNote = _aiAuditLastError
+      ? `<div style="margin-bottom: 8px; padding: 7px 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 7px; color: #991b1b; font-size: 0.78rem;">
+          <strong>⚠️ មិនអាចវាយតម្លៃស៊ីជម្រៅដោយ AI បាននៅពេលនេះ៖</strong> ${escapeHtml(_aiAuditLastError)}
+        </div>`
+      : '';
+    detailsBodyHtml = `
+      ${errNote}
+      <div style="font-size: 0.8rem; color: #475569; line-height: 1.55;">
+        ${_aiAuditInFlight
+          ? (isEn ? 'Gemini AI Pedagogical Inspector is analyzing Objectives alignment, Q&A accuracy, Active Techniques orchestration, Materials usage, and Pacing...' : 'អធិការកិច្ចគរុកោសល្យ Gemini AI កំពុងពិនិត្យស៊ីជម្រៅលើ វត្ថុបំណង ខ្លឹមសារសំណួរ-ចម្លើយ ការចាត់ចែងយុទ្ធវិធី សម្ភារឧបទេស និងសមាមាត្រម៉ោង...')
+          : (isEn ? 'Click "🕵️ AI Deep Audit" to let Gemini Inspector rigorously score all 6 pedagogical pillars and suggest 1-click step improvements.' : 'ចុចប៊ូតុង <strong>«🕵️ វាយតម្លៃស៊ីជម្រៅដោយ AI»</strong> ដើម្បីឱ្យអធិការកិច្ច AI វាយតម្លៃដោយស្មោះត្រង់លើសសរស្ដម្ភគរុកោសល្យទាំង ៦ និងផ្ដល់ប៊ូតុងកែលម្អតាមជំហានភ្លាមៗ។')}
+      </div>
+    `;
+  }
+
+  const showDetails = _aiAuditDetailsOpen;
+  const auditBtnLabel = _aiAuditInFlight
+    ? (isEn ? 'Auditing...' : 'កំពុងវាយតម្លៃ...')
+    : (aiAudit
+      ? (isEn ? 'Re-Audit AI' : 'វាយតម្លៃម្ដងទៀត')
+      : (isEn ? 'AI Deep Audit' : 'វាយតម្លៃដោយ AI'));
 
   strip.innerHTML = `
     <div class="quality-strip-main">
       <div class="quality-strip-left">
-        <span class="quality-score-badge ${tierClass}">
-          <span>${scoreIcon}</span>
-          <span>${isEn ? `Pedagogical Score ${report.totalScore}/100` : `ពិន្ទុគរុកោសល្យ ${kNum(report.totalScore)}/១០០`}</span>
+        ${badgeHtml}
+        <span class="quality-metric-chip ${structReport.bloomCount === 3 ? 'ok' : 'warn'}">
+          🎯 Bloom's ${kNum(structReport.bloomCount)}/${kNum(3)}
         </span>
-        <span class="quality-metric-chip ${report.bloomCount === 3 ? 'ok' : 'warn'}">
-          🎯 Bloom's ${kNum(report.bloomCount)}/${kNum(3)}
+        <span class="quality-metric-chip ${structReport.timeAligned ? 'ok' : 'warn'}">
+          ⏱️ ${isEn ? `Pacing ${structReport.timePct}%` : `ម៉ោង ${kNum(structReport.timePct)}%`}
         </span>
-        <span class="quality-metric-chip ${report.timeAligned ? 'ok' : 'warn'}">
-          ⏱️ ${isEn ? `Pacing ${report.timePct}%` : `ម៉ោង ${kNum(report.timePct)}%`}
+        <span class="quality-metric-chip ${structReport.stepsCount >= 5 ? 'ok' : 'warn'}">
+          📋 ${isEn ? `${structReport.stepsCount} Steps` : `${kNum(structReport.stepsCount)} ជំហាន`}
         </span>
-        ${report.techTotal > 0 ? `
-          <span class="quality-metric-chip ${report.matchedTechs === report.techTotal ? 'ok' : (report.matchedTechs > 0 ? '' : 'warn')}">
-            🧩 ${isEn ? `Techniques ${report.matchedTechs}/${report.techTotal}` : `យុទ្ធវិធី ${kNum(report.matchedTechs)}/${kNum(report.techTotal)}`}
-          </span>
-        ` : ''}
-        <span class="quality-metric-chip ${report.stepsCount >= 5 ? 'ok' : 'warn'}">
-          📋 ${isEn ? `${report.stepsCount} Steps` : `${kNum(report.stepsCount)} ជំហាន`}
-        </span>
+        ${extraSummaryChip}
       </div>
-      <button type="button" class="btn-quality-details-toggle" id="btnToggleQualityDetails" onclick="toggleQualityScoreDetails()">
-        <i class="fa-solid fa-magnifying-glass-chart"></i>
-        <span>${isEn ? 'Details' : 'មើលលម្អិត'}</span>
-        <i class="fa-solid fa-chevron-down" id="qualityDetailsChevron" style="font-size: 0.65rem;"></i>
-      </button>
+      <div class="quality-audit-actions-right">
+        <button type="button" class="btn-ai-audit-run" onclick="triggerManualAiPedagogicalAudit()" ${_aiAuditInFlight ? 'disabled' : ''}
+          title="${isEn ? 'Run deep honest AI pedagogical audit on this lesson plan' : 'ឱ្យអធិការកិច្ច Gemini AI វាយតម្លៃគុណភាពកិច្ចតែងការស៊ីជម្រៅ'}">
+          <i class="fa-solid ${_aiAuditInFlight ? 'fa-spinner fa-spin' : 'fa-user-shield'}"></i>
+          <span>${auditBtnLabel}</span>
+        </button>
+        <button type="button" class="btn-quality-details-toggle" id="btnToggleQualityDetails" onclick="toggleQualityScoreDetails()">
+          <i class="fa-solid fa-magnifying-glass-chart"></i>
+          <span>${isEn ? 'Details' : 'មើលលម្អិត'}</span>
+          <i class="fa-solid fa-chevron-down" id="qualityDetailsChevron" style="font-size: 0.65rem; transform: ${showDetails ? 'rotate(180deg)' : 'rotate(0deg)'};"></i>
+        </button>
+      </div>
     </div>
-    <div id="qualityScoreDetails" class="quality-details-panel" style="display: none;">
-      <div class="quality-criteria-grid">
-        ${criteriaCardsHtml}
-      </div>
+    <div id="qualityScoreDetails" class="quality-details-panel" style="display: ${showDetails ? 'block' : 'none'};">
+      ${detailsBodyHtml}
     </div>
   `;
 
@@ -4028,15 +4173,214 @@ function renderPedagogicalQualityScore(data) {
 }
 window.renderPedagogicalQualityScore = renderPedagogicalQualityScore;
 
-function toggleQualityScoreDetails() {
+function toggleQualityScoreDetails(forceOpen = null) {
   const panel = document.getElementById('qualityScoreDetails');
   const chev = document.getElementById('qualityDetailsChevron');
   if (!panel) return;
-  const open = (panel.style.display === 'none' || !panel.style.display);
+  const open = (forceOpen !== null) ? Boolean(forceOpen) : (panel.style.display === 'none' || !panel.style.display);
+  _aiAuditDetailsOpen = open;
   panel.style.display = open ? 'block' : 'none';
   if (chev) chev.style.transform = open ? 'rotate(180deg)' : 'rotate(0deg)';
 }
 window.toggleQualityScoreDetails = toggleQualityScoreDetails;
+
+async function runDeepAiPedagogicalAudit(planData, isManualTrigger = false) {
+  const plan = planData || state.currentPlan || state.generatedPlanData;
+  if (!plan || !Array.isArray(plan.steps) || plan.steps.length === 0) return;
+
+  const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
+  if (!apiKey) {
+    _aiAuditLastError = 'មិនទាន់បានបញ្ចូល Google Gemini API Key ឡើយ។';
+    if (isManualTrigger) {
+      showToast('⚠️ សូមបញ្ចូល Gemini API Key ដើម្បីដំណើរការការវាយតម្លៃស៊ីជម្រៅដោយ AI!', 'warning');
+    }
+    renderPedagogicalQualityScore(plan);
+    return;
+  }
+
+  let provider = state.aiProvider || 'gemini';
+  if (apiKey.startsWith('AIza') || apiKey.startsWith('AQ.')) provider = 'gemini';
+  else if (apiKey.startsWith('gsk_')) provider = 'groq';
+  else if (apiKey.startsWith('sk-or-')) provider = 'openrouter';
+
+  const myRunSeq = ++_aiAuditRunSeq;
+  _aiAuditInFlight = true;
+  _aiAuditLastError = '';
+  renderPedagogicalQualityScore(plan);
+
+  const isEn = (state.language === 'en');
+  const isFlipped = (plan.presetId === 'flipped_learning_5step' || plan.templateType === 'flipped_learning');
+  const selectedTechs = (Array.isArray(plan.techniques) && plan.techniques.length > 0)
+    ? plan.techniques
+    : (typeof getSelectedTechniques === 'function' ? getSelectedTechniques() : []);
+
+  const stepsDigest = (plan.steps || []).map((st, idx) => {
+    const n = st.stepNumber || (idx + 1);
+    return `Step ${n} [${st.stepTitle || ''} | ${st.duration || ''}]:
+  - Teacher: ${String(st.teacherActivity || '').slice(0, 500)}
+  - Content: ${String(st.contentSummary || '').slice(0, 500)}
+  - Student: ${String(st.studentActivity || '').slice(0, 500)}${st.diagramSvg || st.diagramImageDataUrl ? `\n  - Visual Embedded: YES (${st.diagramCaption || 'diagram/image'})` : ''}`;
+  }).join('\n\n');
+
+  const preClassDigest = (isFlipped && plan.preClassPhase)
+    ? `\n[PRE-CLASS PHASE]\n- Video/Materials: ${plan.preClassPhase.video || ''} | ${plan.preClassPhase.materials || ''}\n- Teacher: ${String(plan.preClassPhase.teacherActivity || '').slice(0, 260)}\n- Student: ${String(plan.preClassPhase.studentActivity || '').slice(0, 260)}`
+    : '';
+
+  const auditPrompt = `
+You are a STRICT, HONEST, SENIOR MoEYS Pedagogical Inspector (អធិការកិច្ចគរុកោសល្យជាន់ខ្ពស់) in Cambodia.
+Audit ONLY the LESSON PLAN content below (DO NOT penalize for missing external Pre-Test/Post-Test appendices, PPTX slides, or external videos — those belong to Phase 2).
+
+[STRICT HONESTY & CALIBRATION MANDATE]
+- NEVER give an inflated rubber-stamp 100/100! Be constructive, rigorous, and genuinely diagnostic.
+- A typical good AI lesson plan scores between 78 and 92/100; a weak/generic draft scores 50–70/100; only an extraordinary lesson plan with zero gaps scores 94+.
+- Check REAL semantic alignment:
+  1. Do the activities and Step 5 evaluation ACTUALLY achieve every Bloom's objective in Section I?
+  2. Are the lesson content, formulas, key questions (HOTS/LOTS), and sample answers scientifically accurate and concrete?
+  3. Are the selected Teaching Method and Active Learning Techniques genuinely orchestrated with concrete student-centered actions (70% STT), or merely name-dropped?
+  4. Are the teaching/student materials listed in Section II ACTUALLY used inside Steps 1–5?
+  5. Is the workload realistic for each step's allocated minutes (e.g., not overcrowded in a 5-min step) with logical scaffolding?
+  6. Does the lesson plan include authentic formative assessment, feedback, reflection, and meaningful closure/homework?
+
+[LESSON PLAN TO AUDIT]
+- Subject: ${plan.subject || ''} | Grade: ${plan.grade || ''} | Duration: ${plan.duration || ''}
+- Lesson Title: ${plan.lessonTitle || ''}
+- Format: ${isFlipped ? 'Flipped Classroom (3%-7%-10%-75%-5%)' : 'MoEYS Standard 5-Step (5%-15%-60%-15%-5%)'}
+- Teaching Method: ${plan.method || ''}
+- Intended Active Techniques: ${selectedTechs.join(', ') || 'None specified'}
+- Objectives:
+  • Knowledge: ${(plan.objectives?.knowledge || []).join(' ')}
+  • Skills: ${(plan.objectives?.skills || []).join(' ')}
+  • Attitudes: ${(plan.objectives?.attitudes || []).join(' ')}
+- Materials:
+  • Teacher: ${(plan.materials?.teacher || []).join(', ')}
+  • Student: ${(plan.materials?.student || []).join(', ')}
+${preClassDigest}
+
+[5 TEACHING STEPS]
+${stepsDigest}
+
+[OUTPUT LANGUAGE]
+${isEn ? 'Professional Academic English' : 'Standard Formal Khmer (ភាសាខ្មែរផ្លូវការគរុកោសល្យ ១០០% — ខ្លី ច្បាស់ ស្មោះត្រង់ ងាយយល់)'}
+
+[RETURN STRICT JSON ONLY]
+Return ONLY valid JSON matching this exact schema (6 pillars summing to max 100):
+{
+  "overallVerdict": "1-2 concise sentences summarizing honest pedagogical strength and the #1 area to elevate.",
+  "pillars": [
+    { "key": "objectives", "title": "${isEn ? "Objectives & Alignment" : "🎯 វត្ថុបំណង & ការសម្រេចផល"}", "score": 16, "max": 20, "feedback": "1 concise honest sentence." },
+    { "key": "content_qa", "title": "${isEn ? "Content, Q&A Accuracy" : "📚 ខ្លឹមសារមេរៀន សំណួរ & ចម្លើយ"}", "score": 17, "max": 20, "feedback": "1 concise honest sentence." },
+    { "key": "engagement", "title": "${isEn ? "Techniques & Engagement" : "🧩 យុទ្ធវិធី & ការចូលរួមសិស្ស"}", "score": 16, "max": 20, "feedback": "1 concise honest sentence." },
+    { "key": "materials", "title": "${isEn ? "Materials & Visual Usage" : "🛠️ ការប្រើប្រាស់សម្ភារឧបទេស"}", "score": 12, "max": 15, "feedback": "1 concise honest sentence." },
+    { "key": "pacing", "title": "${isEn ? "Pacing & Scaffolding Flow" : "⏱️ សមាមាត្រម៉ោង & លំហូរជំហាន"}", "score": 13, "max": 15, "feedback": "1 concise honest sentence." },
+    { "key": "assessment", "title": "${isEn ? "Formative Check & Closure" : "📊 ការវាយតម្លៃដំណើរការ & បណ្តាំផ្ញើ"}", "score": 8, "max": 10, "feedback": "1 concise honest sentence." }
+  ],
+  "strengths": [
+    "Concise specific strength #1",
+    "Concise specific strength #2"
+  ],
+  "improvements": [
+    {
+      "stepNumber": 3,
+      "issue": "Specific concrete gap observed in Step 3 (1 concise sentence).",
+      "fixInstruction": "Actionable Khmer/English prompt to fix Step 3 directly when passed to AI Step Regenerate."
+    }
+  ]
+}
+Note: Provide 1 to 3 highest-impact actionable items in "improvements" (always tie to exact stepNumber 1–5 whenever possible).
+`.trim();
+
+  try {
+    const rawText = await callAiForSingleStep(auditPrompt, apiKey, provider, 2400);
+    if (myRunSeq !== _aiAuditRunSeq) return; // A newer audit superseded this one
+
+    const cleanedStr = String(rawText || '')
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim();
+    const sIdx = cleanedStr.indexOf('{');
+    const eIdx = cleanedStr.lastIndexOf('}');
+    if (sIdx === -1 || eIdx === -1) {
+      throw new Error('AI មិនបានត្រឡប់ទម្រង់ JSON វាយតម្លៃត្រឹមត្រូវឡើយ។');
+    }
+
+    const parsed = JSON.parse(cleanedStr.slice(sIdx, eIdx + 1));
+    if (!Array.isArray(parsed.pillars) || parsed.pillars.length < 4) {
+      throw new Error('លទ្ធផលវាយតម្លៃ AI មិនគ្រប់សសរស្ដម្ភគរុកោសល្យ។');
+    }
+
+    const expectedMaxes = [20, 20, 20, 15, 15, 10];
+    const cleanPillars = parsed.pillars.slice(0, 6).map((p, i) => {
+      const maxVal = Number(p.max) > 0 ? Number(p.max) : (expectedMaxes[i] || 15);
+      const scoreVal = Math.min(maxVal, Math.max(0, Math.round(Number(p.score) || 0)));
+      return {
+        key: p.key || `p${i + 1}`,
+        title: String(p.title || `សសរស្ដម្ភទី ${i + 1}`),
+        score: scoreVal,
+        max: maxVal,
+        feedback: String(p.feedback || '').trim()
+      };
+    });
+
+    const computedTotal = Math.min(100, Math.max(0, cleanPillars.reduce((acc, p) => acc + p.score, 0)));
+    const cleanReport = cleanForbiddenScriptsAndFormatMath({
+      auditedAt: Date.now(),
+      totalScore: computedTotal,
+      overallVerdict: String(parsed.overallVerdict || '').trim(),
+      pillars: cleanPillars,
+      strengths: Array.isArray(parsed.strengths) ? parsed.strengths.slice(0, 3).map(String) : [],
+      improvements: Array.isArray(parsed.improvements)
+        ? parsed.improvements.slice(0, 4).map(imp => ({
+            stepNumber: parseInt(imp.stepNumber, 10) || 0,
+            issue: String(imp.issue || '').trim(),
+            fixInstruction: String(imp.fixInstruction || imp.issue || '').trim()
+          })).filter(imp => imp.issue.length > 4)
+        : []
+    });
+
+    plan.aiAuditReport = cleanReport;
+    if (state.currentPlan && state.currentPlan === plan) {
+      state.currentPlan.aiAuditReport = cleanReport;
+    }
+    _aiAuditInFlight = false;
+    _aiAuditLastError = '';
+    if (isManualTrigger) {
+      _aiAuditDetailsOpen = true;
+    }
+    renderPedagogicalQualityScore(plan);
+    if (typeof scheduleAutoSaveDraft === 'function') {
+      scheduleAutoSaveDraft(1200);
+    }
+
+    if (isManualTrigger) {
+      showToast(
+        isEn
+          ? `🕵️ Deep AI Pedagogical Audit complete: ${computedTotal}/100`
+          : `🕵️ ការវាយតម្លៃស៊ីជម្រៅដោយអធិការកិច្ច AI រួចរាល់៖ ${toKhmerNumber(computedTotal)}/១០០!`,
+        'success'
+      );
+    }
+  } catch (err) {
+    if (myRunSeq !== _aiAuditRunSeq) return;
+    console.warn('[Deep AI Pedagogical Audit] Error:', err);
+    _aiAuditInFlight = false;
+    _aiAuditLastError = String(err.message || err).slice(0, 180);
+    renderPedagogicalQualityScore(plan);
+    if (isManualTrigger) {
+      showToast('⚠️ មិនអាចវាយតម្លៃស៊ីជម្រៅដោយ AI បាននៅពេលនេះ៖ ' + _aiAuditLastError, 'warning');
+    }
+  }
+}
+window.runDeepAiPedagogicalAudit = runDeepAiPedagogicalAudit;
+
+function triggerManualAiPedagogicalAudit() {
+  const plan = state.currentPlan || state.generatedPlanData;
+  if (!plan) {
+    showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
+    return;
+  }
+  runDeepAiPedagogicalAudit(plan, true);
+}
+window.triggerManualAiPedagogicalAudit = triggerManualAiPedagogicalAudit;
 
 // ==========================================================================
 // ☁️ 3. AUTO-SAVE DRAFT RECOVERY SYSTEM (Every ~3s to localStorage)
@@ -6140,9 +6484,16 @@ async function handleGenerateLessonPlan() {
     if (state.savedLearningGain && !planData.selfEvaluation) {
       planData.selfEvaluation = state.savedLearningGain;
     }
+    delete planData.aiAuditReport;
     state.currentPlan = planData;
     state.generatedPlanData = planData;
     renderLessonPlanToA4(planData);
+    // 🕵️ Automatically run Honest Deep AI Pedagogical Audit in the background (non-blocking)
+    setTimeout(() => {
+      if (typeof runDeepAiPedagogicalAudit === 'function' && state.currentPlan && !state.currentPlan.isOfflineDraft) {
+        runDeepAiPedagogicalAudit(state.currentPlan, false);
+      }
+    }, 350);
     try {
       if (typeof saveToHistory === 'function') {
         saveToHistory(planData);
@@ -12839,7 +13190,14 @@ function handleStepDirectImageUpload(files) {
     plan.steps[idx].diagramSvg = '';
     plan.steps[idx].diagramCaption = `រូបភាព៖ ${file.name.replace(/\.[^/.]+$/, '')}`;
     closeStepRegenerateModal();
+    delete plan.aiAuditReport;
     renderLessonPlanToA4(plan);
+    // 🕵️ Automatically re-run Deep AI Pedagogical Audit so the teacher sees the real score improvement!
+    setTimeout(() => {
+      if (typeof runDeepAiPedagogicalAudit === 'function' && state.currentPlan) {
+        runDeepAiPedagogicalAudit(state.currentPlan, false);
+      }
+    }, 450);
     showToast('🖼️ បានបញ្ចូលរូបភាពចូលជំហាននេះដោយជោគជ័យ!', 'success');
   };
   reader.readAsDataURL(file);
@@ -13137,7 +13495,14 @@ ${jsonSchemaBlock}
     }
 
     closeStepRegenerateModal();
+    delete plan.aiAuditReport;
     renderLessonPlanToA4(plan);
+    // 🕵️ Automatically re-run Deep AI Pedagogical Audit so the teacher sees the real score improvement!
+    setTimeout(() => {
+      if (typeof runDeepAiPedagogicalAudit === 'function' && state.currentPlan) {
+        runDeepAiPedagogicalAudit(state.currentPlan, false);
+      }
+    }, 450);
 
     // Scroll smoothly to updated step and flash emerald highlight
     setTimeout(() => {

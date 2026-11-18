@@ -5108,6 +5108,186 @@ tr.step-just-updated td {
   }
 }
 
+/* ==========================================================================
+   🕵️ 6. Deep AI Pedagogical Inspector & Actionable 1-Click Fix Cards
+   ========================================================================== */
+.quality-audit-actions-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn-ai-audit-run {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 8px;
+  border: 1px solid #6366f1;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.16s ease;
+  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.22);
+}
+
+.btn-ai-audit-run:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.32);
+}
+
+.btn-ai-audit-run:disabled {
+  opacity: 0.65;
+  cursor: wait;
+  transform: none;
+}
+
+.quality-score-badge.score-auditing {
+  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+  color: #3730a3;
+  border: 1px solid #a5b4fc;
+}
+
+.audit-summary-verdict {
+  font-size: 0.8rem;
+  color: #334155;
+  background: #ffffff;
+  border-left: 3.5px solid #4f46e5;
+  border-radius: 0 8px 8px 0;
+  padding: 7px 11px;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.audit-strengths-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.audit-strength-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  color: #065f46;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.audit-fixes-section {
+  margin-top: 11px;
+  padding-top: 10px;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.audit-fixes-title {
+  font-size: 0.79rem;
+  font-weight: 800;
+  color: #9a3412;
+  margin-bottom: 7px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.audit-fix-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.audit-fix-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 9px;
+  padding: 8px 11px;
+}
+
+.audit-fix-info {
+  flex: 1;
+  min-width: 220px;
+  font-size: 0.76rem;
+  color: #78350f;
+  line-height: 1.45;
+}
+
+.audit-fix-step-tag {
+  display: inline-block;
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #92400e;
+  font-size: 0.7rem;
+  font-weight: 800;
+  padding: 1px 7px;
+  border-radius: 999px;
+  margin-right: 5px;
+}
+
+.btn-audit-fix-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 8px;
+  border: 1px solid #6366f1;
+  background: #ffffff;
+  color: #4338ca;
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.16s ease;
+}
+
+.btn-audit-fix-step:hover {
+  background: #4f46e5;
+  color: #ffffff;
+  box-shadow: 0 3px 8px rgba(79, 70, 229, 0.25);
+}
+
+.audit-scope-footnote {
+  margin-top: 9px;
+  font-size: 0.71rem;
+  color: #64748b;
+  line-height: 1.4;
+}
+
+[data-theme="dark"] .audit-summary-verdict {
+  background: #1e293b;
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .audit-fix-card {
+  background: rgba(120, 53, 15, 0.22);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+[data-theme="dark"] .audit-fix-info {
+  color: #fde68a;
+}
+
+[data-theme="dark"] .btn-audit-fix-step {
+  background: #1e293b;
+  color: #a5b4fc;
+  border-color: #6366f1;
+}
+
 
 
 
