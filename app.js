@@ -13013,29 +13013,254 @@ async function handleExportWord() {
 function handlePrintPdf() {
   const activePlan = state.generatedPlanData || state.currentPlan;
   const docEl = document.getElementById('printableDoc');
-  if (!activePlan || !docEl) {
+  if (!activePlan || !docEl || docEl.innerHTML.trim().length < 50) {
     showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
     return;
   }
 
-  // Ensure A4 document is visible & un-zoomed before triggering native print/Save-as-PDF
-  const emptyEl = document.getElementById('emptyState');
-  if (emptyEl) emptyEl.style.display = 'none';
-  docEl.style.display = 'block';
+  // Clone ONLY the A4 lesson plan content and strip all non-printable UI buttons/banners
+  const clone = docEl.cloneNode(true);
+  clone.removeAttribute('contenteditable');
+  clone.removeAttribute('id');
+  clone.querySelectorAll('.no-print, .btn-inline-ai-regen, .offline-warning-banner, .step-diagram-actions, .appendix-page-divider, .doc-inserted-image-wrap button, button').forEach(el => {
+    el.remove();
+  });
 
-  const prevTransform = docEl.style.transform;
-  docEl.style.transform = 'none';
+  const docTitle = `កិច្ចតែងការ_${activePlan.subject || ''}_${activePlan.lessonTitle || ''}`.replace(/[\\/:*?"<>|]/g, '_');
 
-  const restoreZoom = () => {
-    docEl.style.transform = prevTransform;
-    window.removeEventListener('afterprint', restoreZoom);
+  // Remove any stale hidden print iframe
+  const oldFrame = document.getElementById('cleanLessonPrintIframe');
+  if (oldFrame) oldFrame.remove();
+
+  const iframe = document.createElement('iframe');
+  iframe.id = 'cleanLessonPrintIframe';
+  iframe.style.cssText = 'position:fixed; right:0; bottom:0; width:0; height:0; border:0; visibility:hidden;';
+  document.body.appendChild(iframe);
+
+  const printHtml = `<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8">
+  <title>${escapeHtml(docTitle)}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Inter:wght@400;600;700&family=Kantumruy+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Moul&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  <style>
+    @page {
+      size: A4 portrait;
+      margin: 12mm 12mm 14mm 12mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      color: #0f172a;
+      font-family: 'Kantumruy Pro', 'Battambang', 'Inter', sans-serif;
+      font-size: 10.5pt;
+      line-height: 1.6;
+    }
+    .print-a4-root {
+      width: 100%;
+      margin: 0 auto;
+    }
+    .doc-header-top {
+      text-align: center;
+      margin-bottom: 10px;
+      line-height: 1.45;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+    .doc-motto-kh {
+      font-family: 'Moul', 'Kantumruy Pro', serif;
+      font-size: 12pt;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .doc-motto-sub {
+      font-family: 'Moul', 'Kantumruy Pro', serif;
+      font-size: 10.5pt;
+      color: #0f172a;
+    }
+    .doc-meta-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      margin-bottom: 10px;
+      font-size: 10pt;
+      line-height: 1.55;
+    }
+    .doc-date-info { text-align: right; }
+    .doc-main-title {
+      text-align: center;
+      font-family: 'Moul', 'Kantumruy Pro', serif;
+      font-size: 13pt;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 8px 0 8px 0;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+    .doc-lesson-banner {
+      text-align: center;
+      margin-bottom: 12px;
+      padding: 6px 10px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+    }
+    .doc-section-title {
+      font-weight: 700;
+      font-size: 11pt;
+      color: #0f172a;
+      margin: 12px 0 6px 0;
+      padding-left: 8px;
+      border-left: 3.5px solid #334155;
+      page-break-after: avoid;
+      break-after: avoid;
+    }
+    .doc-list {
+      margin: 2px 0 6px 20px;
+      padding: 0;
+    }
+    .doc-list li { margin-bottom: 3px; }
+    .doc-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 6px 0 14px 0;
+      font-size: 9.8pt;
+      line-height: 1.55;
+    }
+    .doc-table thead { display: table-header-group; }
+    .doc-table th {
+      background: #f1f5f9;
+      color: #0f172a;
+      font-weight: 700;
+      padding: 7px 8px;
+      border: 1px solid #94a3b8;
+      text-align: center;
+    }
+    .doc-table td {
+      padding: 7px 9px;
+      border: 1px solid #94a3b8;
+      vertical-align: top;
+      word-wrap: break-word;
+    }
+    .doc-table tr {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .doc-footer-signatures {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-top: 22px;
+      padding: 0 12px;
+      font-size: 10pt;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .sig-box {
+      width: 44%;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .sig-space { height: 52px; }
+    .step-diagram-box {
+      margin-top: 7px;
+      padding: 6px;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      text-align: center;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .step-diagram-box svg,
+    .step-diagram-box img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+    .step-diagram-caption {
+      margin-top: 4px;
+      font-size: 8.5pt;
+      font-style: italic;
+      color: #475569;
+    }
+    .doc-appendix-wrapper {
+      page-break-before: always;
+      break-before: page;
+    }
+    .doc-pretest-container {
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+    }
+    .doc-pretest-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+    .doc-inserted-image-wrap {
+      text-align: center;
+      margin: 8px 0;
+      break-inside: avoid;
+    }
+    .doc-inserted-image-wrap img {
+      max-width: 100%;
+      height: auto;
+    }
+    .no-print, button { display: none !important; }
+  </style>
+</head>
+<body>
+  <div class="print-a4-root">${clone.innerHTML}</div>
+</body>
+</html>`;
+
+  const frameDoc = iframe.contentWindow.document;
+  frameDoc.open();
+  frameDoc.write(printHtml);
+  frameDoc.close();
+
+  const triggerIframePrint = () => {
+    try {
+      iframe.contentWindow.focus();
+      iframe.contentWindow.print();
+    } catch (e) {
+      console.warn('Iframe print fallback to window.print:', e);
+      window.print();
+    }
+    setTimeout(() => {
+      if (iframe && iframe.parentNode) iframe.parentNode.removeChild(iframe);
+    }, 3000);
   };
-  window.addEventListener('afterprint', restoreZoom);
 
-  setTimeout(() => {
-    window.print();
-    setTimeout(restoreZoom, 1500);
-  }, 80);
+  // Wait briefly for Khmer fonts in iframe to be ready before opening print preview
+  if (iframe.contentWindow.document.fonts && iframe.contentWindow.document.fonts.ready) {
+    Promise.race([
+      iframe.contentWindow.document.fonts.ready,
+      new Promise(r => setTimeout(r, 900))
+    ]).then(() => setTimeout(triggerIframePrint, 120));
+  } else {
+    setTimeout(triggerIframePrint, 500);
+  }
 }
 
 // Copy Text to Clipboard
