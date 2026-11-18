@@ -14591,11 +14591,27 @@ function handlePrintPdf() {
   const clone = docEl.cloneNode(true);
   clone.removeAttribute('contenteditable');
   clone.removeAttribute('id');
-  clone.querySelectorAll('.no-print, .btn-inline-ai-regen, .offline-warning-banner, .step-diagram-actions, .appendix-page-divider, .doc-inserted-image-wrap button, button').forEach(el => {
+  clone.querySelectorAll('.no-print, .test-audit-host, .btn-test-audit-trigger, .btn-inline-ai-regen, .offline-warning-banner, .step-diagram-actions, .appendix-page-divider, .doc-inserted-image-wrap button, button').forEach(el => {
     el.remove();
   });
 
-  const docTitle = `កិច្ចតែងការ_${activePlan.subject || ''}_${activePlan.lessonTitle || ''}`.replace(/[\\/:*?"<>|]/g, '_');
+  // Extract visible appendix so it breaks cleanly onto a fresh page inside the repeating-spacer print shell
+  let appendixHtml = '';
+  const appendixNode = clone.querySelector('#appendixSectionWrapper');
+  if (appendixNode) {
+    const isHidden = appendixNode.style && appendixNode.style.display === 'none';
+    if (!isHidden && appendixNode.textContent.trim().length > 10) {
+      appendixNode.style.pageBreakBefore = 'auto';
+      appendixNode.style.breakBefore = 'auto';
+      appendixNode.style.marginTop = '0';
+      appendixHtml = appendixNode.outerHTML;
+    }
+    appendixNode.remove();
+  }
+  const mainBodyHtml = clone.innerHTML;
+
+  const cleanLessonName = String(activePlan.lessonTitle || '').replace(/\.(docx?|pdf|pptx?|txt)$/i, '').trim();
+  const docTitle = `កិច្ចតែងការ_${activePlan.subject || ''}_${cleanLessonName}`.replace(/[\\/:*?"<>|]/g, '_');
 
   // Remove any stale hidden print iframe
   const oldFrame = document.getElementById('cleanLessonPrintIframe');
@@ -14616,17 +14632,20 @@ function handlePrintPdf() {
   <link href="https://fonts.googleapis.com/css2?family=Battambang:wght@400;700&family=Inter:wght@400;600;700&family=Kantumruy+Pro:ital,wght@0,400;0,600;0,700;1,400&family=Moul&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
   <style>
+    /* margin-top: 0mm physically eliminates Chrome/Edge built-in top date/title header overlap,
+       while table-header-group repeats a clean 13mm top margin on every page AND 17mm bottom margin holds our 3-column official footer! */
     @page {
       size: A4 portrait;
-      margin: 13mm 14mm 17mm 14mm;
-      @top-left { content: none; }
-      @top-center { content: none; }
-      @top-right { content: none; }
+      margin: 0mm 14mm 17mm 14mm;
+      @top-left { content: ""; }
+      @top-center { content: ""; }
+      @top-right { content: ""; }
       @bottom-left {
         content: "${footerDateText}";
         font-family: 'Kantumruy Pro', 'Battambang', sans-serif;
         font-size: 8.5pt;
         color: #475569;
+        background: #ffffff;
         border-top: 0.75pt solid #cbd5e1;
         padding-top: 2.5mm;
         margin-bottom: 5mm;
@@ -14638,6 +14657,7 @@ function handlePrintPdf() {
         font-size: 8.5pt;
         font-weight: 700;
         color: #4338ca;
+        background: #ffffff;
         border-top: 0.75pt solid #cbd5e1;
         padding-top: 2.5mm;
         margin-bottom: 5mm;
@@ -14649,11 +14669,34 @@ function handlePrintPdf() {
         font-size: 8.5pt;
         font-weight: 700;
         color: #334155;
+        background: #ffffff;
         border-top: 0.75pt solid #cbd5e1;
         padding-top: 2.5mm;
         margin-bottom: 5mm;
         vertical-align: top;
       }
+    }
+    .print-page-shell {
+      width: 100%;
+      border-collapse: collapse;
+      border: none;
+    }
+    .print-page-top-spacer {
+      display: table-header-group;
+    }
+    .print-page-top-spacer td {
+      height: 13mm;
+      padding: 0;
+      border: none;
+    }
+    .print-page-body-cell {
+      padding: 0;
+      border: none;
+      vertical-align: top;
+    }
+    .print-appendix-tbody {
+      page-break-before: always;
+      break-before: page;
     }
     * {
       box-sizing: border-box;
@@ -14834,7 +14877,19 @@ function handlePrintPdf() {
   </style>
 </head>
 <body>
-  <div class="print-a4-root">${clone.innerHTML}</div>
+  <table class="print-page-shell">
+    <thead class="print-page-top-spacer">
+      <tr><td></td></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="print-page-body-cell">
+          <div class="print-a4-root">${mainBodyHtml}</div>
+        </td>
+      </tr>
+    </tbody>
+    ${appendixHtml ? `<tbody class="print-appendix-tbody"><tr><td class="print-page-body-cell"><div class="print-a4-root">${appendixHtml}</div></td></tr></tbody>` : ''}
+  </table>
 </body>
 </html>`;
 
