@@ -29,7 +29,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=20261118_v92">
+  <link rel="stylesheet" href="style.css?v=20261118_v93">
 
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -1886,6 +1886,9 @@
           💡 ជ្រើសរើសសំណូមពររហ័ស (អាចចុចរើសបានច្រើន)៖
         </div>
         <div class="step-regen-chips-wrap" id="stepRegenChipsWrap">
+          <button type="button" class="step-regen-chip" onclick="applyStepRegenQuickChip('បន្ថែមរូបភាព ក្រាហ្វ ឬគំនូសតាងគំរូ (SVG Diagram) ឱ្យច្បាស់លាស់សមស្របតាមមេរៀន')">
+            📊 បន្ថែមរូបភាព / ក្រាហ្វ / គំនូសតាង (AI គូរ)
+          </button>
           <button type="button" class="step-regen-chip" onclick="applyStepRegenQuickChip('បន្ថែមលំហាត់គំរូ និងឧទាហរណ៍ជាក់ស្ដែងឱ្យកាន់តែច្បាស់')">
             🎯 បន្ថែមលំហាត់ / ឧទាហរណ៍
           </button>
@@ -1909,8 +1912,20 @@
             ✍️ សំណូមពរកែលម្អបន្ថែម (ទុកទំនេរក៏បាន ដើម្បីឱ្យ AI សរសេរថ្មីកាន់តែល្អ)៖
           </label>
           <textarea id="stepRegenInstructionInput" class="form-control" rows="3"
-            placeholder="ឧ. សុំបន្ថែមលំហាត់គណនា ២ លំហាត់មានដំណោះស្រាយ និងប្រើ Think-Pair-Share ក្នុងសកម្មភាពសិស្ស..."
+            placeholder="ឧ. សូមបន្ថែមរូបភាពក្រាហ្វ/គំនូសតាង ឬបន្ថែមលំហាត់គណនា ២ លំហាត់មានដំណោះស្រាយ..."
             style="font-size: 0.86rem; line-height: 1.5; resize: vertical;"></textarea>
+        </div>
+
+        <!-- Direct Photo Upload Option for this exact Step -->
+        <div style="margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; background: #fdf4ff; border: 1px dashed #e879f9; border-radius: 8px; padding: 7px 11px;">
+          <span style="font-size: 0.77rem; color: #86198f; line-height: 1.4;">
+            🖼️ <strong>ចង់ដាក់រូបថតពិត?</strong> AI អាចគូរក្រាហ្វ/គំនូសតាង (SVG) ឬអ្នកអាចបញ្ចូលរូបពីម៉ាស៊ីនផ្ទាល់៖
+          </span>
+          <button type="button" onclick="triggerStepDirectImageUpload()"
+            style="padding: 4px 10px; border-radius: 7px; border: 1px solid #d946ef; background: white; color: #a21caf; font-size: 0.76rem; font-weight: 700; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;">
+            <i class="fa-solid fa-image"></i> បញ្ចូលរូបពីម៉ាស៊ីន
+          </button>
+          <input type="file" id="stepDirectImageInput" accept="image/*" style="display: none;" onchange="handleStepDirectImageUpload(this.files)">
         </div>
 
         <!-- Inline Error Display (Strict Zero Silent Fallback) -->
@@ -2668,7 +2683,7 @@
   <div id="smartHoverTooltip" class="smart-hover-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261118_v146"></script>
+  <script src="app.js?v=20261118_v147"></script>
 </body>
 
 </html>

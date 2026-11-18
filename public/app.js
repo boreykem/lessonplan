@@ -9469,7 +9469,11 @@ function cleanForbiddenScriptsAndFormatMath(input) {
       const res = {};
       for (const k in input) {
         if (Object.prototype.hasOwnProperty.call(input, k)) {
-          res[k] = cleanForbiddenScriptsAndFormatMath(input[k]);
+          if (k === 'diagramSvg' || k === 'diagramImageDataUrl') {
+            res[k] = input[k];
+          } else {
+            res[k] = cleanForbiddenScriptsAndFormatMath(input[k]);
+          }
         }
       }
       return res;
@@ -10118,7 +10122,10 @@ function normalizeLessonPlanData(data, params = {}) {
         duration: existing.duration || defaultDur,
         teacherActivity: safeTeacher,
         contentSummary: safeContent,
-        studentActivity: safeStudent
+        studentActivity: safeStudent,
+        diagramSvg: existing.diagramSvg || '',
+        diagramCaption: existing.diagramCaption || '',
+        diagramImageDataUrl: existing.diagramImageDataUrl || ''
       });
     }
 
@@ -11166,7 +11173,7 @@ function renderLessonPlanToA4(data) {
         </tr>
         <tr data-step-body-idx="${idx}">
           <td style="width: 35%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.teacherActivity)}</td>
-          <td style="width: 35%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.contentSummary)}</td>
+          <td style="width: 35%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.contentSummary)}${renderStepDiagramHtml(step, idx, isEn)}</td>
           <td style="width: 30%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.studentActivity)}</td>
         </tr>
       `;
@@ -11480,7 +11487,7 @@ function renderLessonPlanToA4(data) {
       </tr>
       <tr data-step-body-idx="${idx}">
         <td style="width: 35%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.teacherActivity)}</td>
-        <td style="width: 35%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.contentSummary)}</td>
+        <td style="width: 35%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.contentSummary)}${renderStepDiagramHtml(step, idx, isEn)}</td>
         <td style="width: 30%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.studentActivity)}</td>
       </tr>
     `;
@@ -12745,6 +12752,111 @@ function applyStepRegenQuickChip(text) {
 }
 window.applyStepRegenQuickChip = applyStepRegenQuickChip;
 
+function sanitizeStepDiagramSvg(rawSvg) {
+  if (!rawSvg || typeof rawSvg !== 'string') return '';
+  const match = rawSvg.match(/<svg[\s\S]*?<\/svg>/i);
+  if (!match) return '';
+  let svg = match[0];
+  // Strictly strip any executable tags or event handlers
+  svg = svg
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, '')
+    .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
+    .replace(/\son[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '')
+    .replace(/javascript:/gi, '');
+  // Ensure clean xmlns & responsive width
+  if (!/xmlns\s*=/i.test(svg)) {
+    svg = svg.replace(/<svg/i, '<svg xmlns="http://www.w3.org/2000/svg"');
+  }
+  return svg;
+}
+
+function renderStepDiagramHtml(step, idx, isEn) {
+  if (!step) return '';
+  const safeSvg = step.diagramSvg ? sanitizeStepDiagramSvg(step.diagramSvg) : '';
+  const safeImg = (step.diagramImageDataUrl && /^data:image\/(png|jpeg|jpg|gif|webp|svg\+xml);base64,/i.test(step.diagramImageDataUrl))
+    ? step.diagramImageDataUrl
+    : '';
+  if (!safeSvg && !safeImg) return '';
+
+  const captionHtml = step.diagramCaption
+    ? `<div class="step-diagram-caption">${escapeHtml(step.diagramCaption)}</div>`
+    : '';
+  const mediaHtml = safeImg
+    ? `<img src="${safeImg}" alt="${escapeHtml(step.diagramCaption || 'Step diagram')}">`
+    : safeSvg;
+
+  return `
+    <div class="step-diagram-box" contenteditable="false">
+      ${mediaHtml}
+      ${captionHtml}
+      <div class="step-diagram-actions no-print">
+        <button type="button" class="btn-step-diagram-mini" onclick="removeStepDiagram(${idx})" title="${isEn ? 'Remove image/diagram' : 'លុបរូបភាព/គំនូសតាងនេះ'}">
+          <i class="fa-solid fa-trash-can"></i> ${isEn ? 'Remove' : 'លុបរូប'}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function triggerStepDirectImageUpload() {
+  const inp = document.getElementById('stepDirectImageInput');
+  if (inp) {
+    inp.value = '';
+    inp.click();
+  }
+}
+window.triggerStepDirectImageUpload = triggerStepDirectImageUpload;
+
+function handleStepDirectImageUpload(files) {
+  if (!files || !files[0]) return;
+  const plan = state.currentPlan || state.generatedPlanData;
+  const idx = _activeStepRegenIndex;
+  if (!plan || !Array.isArray(plan.steps) || !plan.steps[idx]) return;
+
+  const file = files[0];
+  if (file.size > 4 * 1024 * 1024) {
+    showToast('រូបភាពធំពេក (>4MB) សូមជ្រើសរើសរូបភាពទំហំតូចជាងនេះ!', 'warning');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const dataUrl = e.target?.result;
+    if (!dataUrl) return;
+    _lastRegeneratedStepBackup = {
+      index: idx,
+      previousStep: {
+        teacherActivity: plan.steps[idx].teacherActivity,
+        contentSummary: plan.steps[idx].contentSummary,
+        studentActivity: plan.steps[idx].studentActivity,
+        diagramSvg: plan.steps[idx].diagramSvg || '',
+        diagramCaption: plan.steps[idx].diagramCaption || '',
+        diagramImageDataUrl: plan.steps[idx].diagramImageDataUrl || ''
+      }
+    };
+    plan.steps[idx].diagramImageDataUrl = dataUrl;
+    plan.steps[idx].diagramSvg = '';
+    plan.steps[idx].diagramCaption = `រូបភាព៖ ${file.name.replace(/\.[^/.]+$/, '')}`;
+    closeStepRegenerateModal();
+    renderLessonPlanToA4(plan);
+    showToast('🖼️ បានបញ្ចូលរូបភាពចូលជំហាននេះដោយជោគជ័យ!', 'success');
+  };
+  reader.readAsDataURL(file);
+}
+window.handleStepDirectImageUpload = handleStepDirectImageUpload;
+
+function removeStepDiagram(stepIdx) {
+  const plan = state.currentPlan || state.generatedPlanData;
+  if (!plan || !Array.isArray(plan.steps) || !plan.steps[stepIdx]) return;
+  plan.steps[stepIdx].diagramSvg = '';
+  plan.steps[stepIdx].diagramCaption = '';
+  plan.steps[stepIdx].diagramImageDataUrl = '';
+  renderLessonPlanToA4(plan);
+  showToast('🗑️ បានលុបរូបភាព/គំនូសតាងចេញពីជំហាននេះរួចរាល់!', 'info');
+}
+window.removeStepDiagram = removeStepDiagram;
+
 function undoLastStepRegenerate() {
   const plan = state.currentPlan || state.generatedPlanData;
   if (!plan || !_lastRegeneratedStepBackup || !Array.isArray(plan.steps)) return;
@@ -12759,7 +12871,7 @@ function undoLastStepRegenerate() {
 }
 window.undoLastStepRegenerate = undoLastStepRegenerate;
 
-async function callAiForSingleStep(promptText, apiKey, provider) {
+async function callAiForSingleStep(promptText, apiKey, provider, maxTokens = 2048) {
   if (provider === 'groq' || apiKey.startsWith('gsk_')) {
     const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
@@ -12771,7 +12883,7 @@ async function callAiForSingleStep(promptText, apiKey, provider) {
         model: 'llama-3.3-70b-versatile',
         messages: [{ role: 'user', content: promptText }],
         temperature: 0.65,
-        max_tokens: 1800,
+        max_tokens: maxTokens,
         response_format: { type: 'json_object' }
       })
     });
@@ -12794,7 +12906,7 @@ async function callAiForSingleStep(promptText, apiKey, provider) {
         model: 'google/gemini-2.5-flash',
         messages: [{ role: 'user', content: promptText }],
         temperature: 0.65,
-        max_tokens: 1800
+        max_tokens: maxTokens
       })
     });
     if (!resp.ok) {
@@ -12811,7 +12923,7 @@ async function callAiForSingleStep(promptText, apiKey, provider) {
   for (const m of candidates) {
     const url = `https://generativelanguage.googleapis.com/${m.ver}/models/${m.name}:generateContent?key=${encodeURIComponent(apiKey)}`;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 35000);
+    const timer = setTimeout(() => controller.abort(), 40000);
     try {
       const resp = await fetch(url, {
         method: 'POST',
@@ -12821,7 +12933,7 @@ async function callAiForSingleStep(promptText, apiKey, provider) {
           contents: [{ parts: [{ text: promptText }] }],
           generationConfig: {
             temperature: 0.65,
-            maxOutputTokens: 2048,
+            maxOutputTokens: maxTokens,
             responseMimeType: 'application/json'
           }
         })
@@ -12896,6 +13008,35 @@ async function executeSingleStepRegenerate() {
     ? plan.techniques
     : (typeof getSelectedTechniques === 'function' ? getSelectedTechniques() : []);
 
+  // Detect if teacher specifically asked for an image / graph / diagram / chart / illustration
+  const wantsVisualDiagram = /(រូបភាព|គំនូសតាង|ក្រាហ្វ|ដ្យាក្រាម|រូបគំនូរ|តារាងរូប|គូររូប|diagram|graph|chart|figure|image|picture|visual|svg|plot|draw|illustration)/i.test(userInstruction);
+
+  const diagramPromptRules = wantsVisualDiagram ? `
+[MANDATORY VISUAL SVG DIAGRAM GENERATION]
+The teacher explicitly requested a VISUAL IMAGE / GRAPH / DIAGRAM!
+You MUST generate a clean, textbook-quality, self-contained inline SVG diagram inside the JSON field "diagramSvg" AND a short descriptive Khmer/English caption inside "diagramCaption":
+- Use <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" width="400" height="240"> with a clean white/light background (<rect width="400" height="240" fill="#ffffff" rx="6"/>).
+- Draw accurate, clear visuals matching "${plan.subject || ''} — ${plan.lessonTitle || ''}":
+  • For Math (functions, integrals, geometry): draw X/Y coordinate axes with arrows, crisp curve (<path>), shaded area under curve with soft opacity (e.g. fill="#6366f1" fill-opacity="0.22"), clear labels like f(x), a, b, O, x, y.
+  • For Physics/Chemistry/Biology: draw clean labeled vector components, circuits, cells, cycles, or arrows.
+  • For Social/Language/Pedagogy: draw a clean labeled flowchart, timeline, or concept map with rounded boxes and arrows.
+- Keep all SVG text readable (font-size="12", fill="#1e293b", font-family="sans-serif"), well-spaced with NO overlapping labels, and NO <script> tags.
+` : '';
+
+  const jsonSchemaBlock = wantsVisualDiagram
+    ? `{
+  "teacherActivity": "• ...",
+  "contentSummary": "• ...",
+  "studentActivity": "• ...",
+  "diagramSvg": "<svg xmlns=\\"http://www.w3.org/2000/svg\\" viewBox=\\"0 0 400 240\\">...</svg>",
+  "diagramCaption": "រូបភាព៖ ..."
+}`
+    : `{
+  "teacherActivity": "• ...",
+  "contentSummary": "• ...",
+  "studentActivity": "• ..."
+}`;
+
   const promptText = `
 You are an elite Cambodian Master Educator & MoEYS Curriculum Specialist.
 Your task is to SURGICALLY REGENERATE ONLY ONE SINGLE STEP of an existing lesson plan — do NOT generate other steps.
@@ -12907,7 +13048,7 @@ Your task is to SURGICALLY REGENERATE ONLY ONE SINGLE STEP of an existing lesson
 - Template Format: ${isFlipped ? 'Flipped Classroom (3%-7%-10%-75%-5%)' : 'MoEYS Standard 5-Step (5%-15%-60%-15%-5%)'}
 - Teaching Method: ${plan.method || '5E Instructional Model'}
 - Selected Active Learning Techniques: ${selectedTechs.join(', ') || 'Think-Pair-Share, Gallery Walk'}
-- Output Language: ${isEn ? 'Professional Academic English' : 'Standard Formal Khmer (ភាសាខ្មែរផ្លូវការគរុកោសល្យ ១០០% — ហាមប្រើអក្សរថៃ/វៀតណាម/ចិនដាច់ខាត)'}
+- Output Language: ${isEn ? 'Professional Academic English' : 'Standard Formal Khmer (ភាសាខ្មែរផ្លូវការគរុកោសល្យ ១០០% — ពិនិត្យអក្ខរាវិរុទ្ធខ្មែរឱ្យត្រឹមត្រូវ ១០០% ដូចជា អនុគមន៍, អាំងតេក្រាល, ដេរីវេ — ហាមប្រើអក្សរថៃ/វៀតណាម/ចិនដាច់ខាត)'}
 
 [TARGET STEP TO REGENERATE]
 - Step Number: ${step.stepNumber || (idx + 1)} of ${plan.steps.length}
@@ -12925,25 +13066,25 @@ Your task is to SURGICALLY REGENERATE ONLY ONE SINGLE STEP of an existing lesson
 
 [TEACHER'S SPECIFIC REFINEMENT REQUEST]
 ${userInstruction || 'សូមសរសេរជំហាននេះឡើងវិញឱ្យកាន់តែស៊ីជម្រៅ ជាក់ស្ដែង មានសកម្មភាពគ្រូ-ខ្លឹមសារ-សិស្សស៊ីចង្វាក់គ្នា ១០០% និងដោតយុទ្ធវិធីបង្រៀនឱ្យរស់រវើកតាមមុខវិជ្ជានេះ។'}
-
+${diagramPromptRules}
 [STRICT RULES]
 1. Keep exact fidelity to the subject "${plan.subject || ''}" and lesson "${plan.lessonTitle || ''}" (include concrete examples, formulas, questions, or text analysis as appropriate for this subject).
 2. Ensure the 3 columns align 1-to-1 (each teacher action matches the lesson content and student action).
 3. Use clean bullet points (• ...) with newlines (\\n).
-4. Return ONLY valid JSON with EXACTLY these 3 string keys:
-{
-  "teacherActivity": "• ...",
-  "contentSummary": "• ...",
-  "studentActivity": "• ..."
-}
+4. Return ONLY valid JSON with EXACTLY these keys:
+${jsonSchemaBlock}
 `.trim();
 
   if (errBox) errBox.style.display = 'none';
   if (submitBtn) submitBtn.disabled = true;
-  if (submitText) submitText.textContent = isEn ? 'Refining with Gemini AI...' : 'កំពុងកែសម្រួលដោយ Gemini AI...';
+  if (submitText) {
+    submitText.textContent = wantsVisualDiagram
+      ? (isEn ? 'Drawing Diagram & Refining...' : 'កំពុងគូររូបភាព/ក្រាហ្វ & កែសម្រួល...')
+      : (isEn ? 'Refining with Gemini AI...' : 'កំពុងកែសម្រួលដោយ Gemini AI...');
+  }
 
   try {
-    const rawText = await callAiForSingleStep(promptText, apiKey, provider);
+    const rawText = await callAiForSingleStep(promptText, apiKey, provider, wantsVisualDiagram ? 3600 : 2048);
     const cleanedJsonStr = String(rawText || '')
       .replace(/^```(?:json)?\s*/i, '')
       .replace(/\s*```$/i, '')
@@ -12958,6 +13099,8 @@ ${userInstruction || 'សូមសរសេរជំហាននេះឡើង�
     const newT = String(parsed.teacherActivity || '').trim();
     const newC = String(parsed.contentSummary || '').trim();
     const newS = String(parsed.studentActivity || '').trim();
+    const safeSvg = wantsVisualDiagram ? sanitizeStepDiagramSvg(parsed.diagramSvg || '') : '';
+    const newCaption = wantsVisualDiagram ? String(parsed.diagramCaption || '').trim() : '';
 
     if (newT.length < 10 || newC.length < 10 || newS.length < 10) {
       throw new Error('ទិន្នន័យដែល Gemini AI ផ្ដល់មកខ្លីពេក ឬមិនគ្រប់ ៣ ជួរ។ សូមចុចសាកល្បងម្ដងទៀត។');
@@ -12969,19 +13112,29 @@ ${userInstruction || 'សូមសរសេរជំហាននេះឡើង�
       previousStep: {
         teacherActivity: step.teacherActivity,
         contentSummary: step.contentSummary,
-        studentActivity: step.studentActivity
+        studentActivity: step.studentActivity,
+        diagramSvg: step.diagramSvg || '',
+        diagramCaption: step.diagramCaption || '',
+        diagramImageDataUrl: step.diagramImageDataUrl || ''
       }
     };
 
     const cleanedPatch = cleanForbiddenScriptsAndFormatMath({
       teacherActivity: newT,
       contentSummary: newC,
-      studentActivity: newS
+      studentActivity: newS,
+      diagramCaption: newCaption
     });
 
     plan.steps[idx].teacherActivity = cleanedPatch.teacherActivity;
     plan.steps[idx].contentSummary = cleanedPatch.contentSummary;
     plan.steps[idx].studentActivity = cleanedPatch.studentActivity;
+
+    if (wantsVisualDiagram && safeSvg) {
+      plan.steps[idx].diagramSvg = safeSvg;
+      plan.steps[idx].diagramCaption = cleanedPatch.diagramCaption || (isEn ? `Diagram: ${plan.lessonTitle || ''}` : `រូបភាពគំនូសតាង៖ ${plan.lessonTitle || ''}`);
+      plan.steps[idx].diagramImageDataUrl = '';
+    }
 
     closeStepRegenerateModal();
     renderLessonPlanToA4(plan);
@@ -12999,12 +13152,28 @@ ${userInstruction || 'សូមសរសេរជំហាននេះឡើង�
       }
     }, 80);
 
-    showToast(
-      isEn
-        ? `✨ Step ${idx + 1} refined successfully by Gemini AI!`
-        : `✨ បានកែសម្រួល «${localizeStepTitle(step.stepTitle, false)}» ឡើងវិញដោយជោគជ័យ!`,
-      'success'
-    );
+    if (wantsVisualDiagram && safeSvg) {
+      showToast(
+        isEn
+          ? `📊 Step ${idx + 1} updated with an AI-drawn SVG diagram!`
+          : `📊 បានគូររូបភាពគំនូសតាង (SVG) និងកែសម្រួល «${localizeStepTitle(step.stepTitle, false)}» រួចរាល់!`,
+        'success'
+      );
+    } else if (wantsVisualDiagram && !safeSvg) {
+      showToast(
+        isEn
+          ? `✨ Step ${idx + 1} updated! Tip: For real photos, click "🖼️ បញ្ចូលរូបពីម៉ាស៊ីន" inside Refine Step.`
+          : `✨ បានកែខ្លឹមសាររួចរាល់! 💡 បើចង់ដាក់រូបថតពិត សូមចុច «✨ កែដោយ AI» ➔ «🖼️ បញ្ចូលរូបពីម៉ាស៊ីន» ឬប៊ូតុងរូបភាពលើ Toolbar។`,
+        'info'
+      );
+    } else {
+      showToast(
+        isEn
+          ? `✨ Step ${idx + 1} refined successfully by Gemini AI!`
+          : `✨ បានកែសម្រួល «${localizeStepTitle(step.stepTitle, false)}» ឡើងវិញដោយជោគជ័យ!`,
+        'success'
+      );
+    }
   } catch (err) {
     console.error('[Inline Step Regenerate] Error:', err);
     // Strict Zero-Silent-Fallback: keep original step intact and show exact Gemini reason
