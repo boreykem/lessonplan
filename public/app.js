@@ -6055,8 +6055,8 @@ ${getMethodPedagogicalPrompt(params.method, true, false, params.lessonTitle, par
 CRITICAL INSTRUCTIONS FOR AI GENERATION:
 1. Deep Content Analysis: Thoroughly examine the provided lesson content. Extract real definitions, terms, rules, formulas, and examples. Use them everywhere in the plan.
 2. Objectives: Strictly format every single objective statement using the 3 components: [Action] + [Content] + [Condition: តាមរយៈ...] + [Standard: បានត្រឹមត្រូវ/ច្បាស់លាស់...]!
-3. Core Focus: Focus 100% of your pedagogical output on Objectives, Materials, and the 5-Step Teaching Process (5%-10%-10%-70%-5%). Do NOT generate pre-test or post-test question arrays in this JSON (they are generated separately on-demand).
-4. Step 4 (Active Learning Core 70%): You MUST strictly apply the chosen primary teaching method («${(params.method && !params.method.includes('សិស្សមជ្ឈមណ្ឌល') && !params.method.toLowerCase().includes('student-centered')) ? params.method : 'វិធីសាស្ត្រ 5E Instructional Model'}») in Step 4 with rich, concrete classroom tasks, collaborative phases, and direct alignment with the lesson content.
+3. Core Focus: Focus 100% of your pedagogical output on Objectives, Materials, and the 5-Step Teaching Process (3%-7%-10%-75%-5%). Do NOT generate pre-test or post-test question arrays in this JSON (they are generated separately on-demand).
+4. Step 4 (Active Learning Core 75%): You MUST strictly apply the chosen primary teaching method («${(params.method && !params.method.includes('សិស្សមជ្ឈមណ្ឌល') && !params.method.toLowerCase().includes('student-centered')) ? params.method : 'វិធីសាស្ត្រ 5E Instructional Model'}») in Step 4 with rich, concrete classroom tasks, collaborative phases, and direct alignment with the lesson content.
 
 Return ONLY valid JSON matching this schema:
 {
@@ -7347,16 +7347,16 @@ function synthesizeLessonPlanOffline(params) {
       flippedStep4Student = `• ដំណើរការ Jigsaw ៤ ដំណាក់កាល៖\n  (១) ក្រុមអ្នកជំនាញវិភាគស៊ីជម្រៅលើឯកសារ [ការគិតស៊ីជម្រៅ]\n  (២) ត្រឡប់ទៅក្រុមដើមបង្រៀនគ្នាទៅវិញទៅមក (Jigsaw Sharing) [ការប្រាស្រ័យទាក់ទង]\n  (៣) សហការចងក្រង Concept Map លើ Flipchart A0 [ការសហការ & ភាពច្នៃប្រឌិត]\n  (៤) ចូលរួម Gallery Walk វាយតម្លៃគ្នាទៅវិញទៅមកតាម Rubric`;
     } else if (methodType === '5e') {
       flippedStep3Teacher = `• ដំណាក់កាល Explore (រុករក/ពិសោធន៍): គ្រូប្រគល់សន្លឹកបេសកកម្ម Challenge Scenario / សម្ភារពិសោធន៍ STEM ទាក់ទងនឹង «${lessonTitle}» ឱ្យក្រុមសិស្សរុករក\n• គ្រូដើរសម្របសម្រួល និងចោទសួរបំផុស`;
-      flippedStep4Teacher = `• ដំណើរការ 5E ដំណាក់កាល Explain & Elaborate (៧០% STT)៖\n  (១) Explain (ពន្យល់): គ្រូឱ្យតំណាងក្រុមឡើងពន្យល់របកគំហើញ រួចគ្រូបូកសរុបគោលការណ៍គន្លឹះ\n  (២) Elaborate (ពង្រីកចំណេះដឹង): គ្រូដាក់ស្ថានភាពបញ្ហាប្រឈមថ្មី ឱ្យសិស្សយកចំណេះដឹងទៅពង្រីកអនុវត្តលើ Flipchart A0\n  (៣) Evaluate (វាយតម្លៃ): គ្រូដឹកនាំការវាយតម្លៃលទ្ធផលតាម Rubric ៤ កម្រិត`;
+      flippedStep4Teacher = `• ដំណើរការ 5E ដំណាក់កាល Explain & Elaborate (៧៥% សកម្មភាពសិស្ស)៖\n  (១) Explain (ពន្យល់): គ្រូឱ្យតំណាងក្រុមឡើងពន្យល់របកគំហើញ រួចគ្រូបូកសរុបគោលការណ៍គន្លឹះ\n  (២) Elaborate (ពង្រីកចំណេះដឹង): គ្រូដាក់ស្ថានភាពបញ្ហាប្រឈមថ្មី ឱ្យសិស្សយកចំណេះដឹងទៅពង្រីកអនុវត្តលើ Flipchart A0\n  (៣) Evaluate (វាយតម្លៃ): គ្រូដឹកនាំការវាយតម្លៃលទ្ធផលតាម Rubric ៤ កម្រិត`;
       flippedStep4Student = `• ដំណើរការ 5E (Explain & Elaborate)៖\n  (១) Explain: ក្រុមសិស្សឡើងពន្យល់ទិន្នន័យ និងការពាររបកគំហើញដែលបានរកឃើញ [ការប្រាស្រ័យទាក់ទង]\n  (២) Elaborate: សហការយកចំណេះដឹងទៅពង្រីកអនុវត្តដោះស្រាយបញ្ហាប្រឈមថ្មីលើ Flipchart A0 [ការគិតស៊ីជម្រៅ]\n  (៣) Evaluate: ចូលរួមវាយតម្លៃស្នាដៃតាម Rubric ៤ កម្រិត និងឆ្លុះបញ្ចាំងការយល់ដឹង`;
     } else if (methodType === 'direct') {
       flippedStep3Teacher = `• ដំណាក់កាល Guided Practice (We Do): ដោយសារទ្រឹស្តី "I Do" បានរៀនតាមវីដេអូរួចហើយ គ្រូនាំសិស្សអនុវត្តលំហាត់គំរូគន្លឹះ ៤ សំណួររួមគ្នាលើក្តារខៀនដើម្បីពង្រឹងក្បួនខ្នាតនៃ «${lessonTitle}»\n• គ្រូផ្ទៀងផ្ទាត់ការយល់ដឹងមុនឱ្យសិស្សអនុវត្តផ្ទាល់`;
-      flippedStep4Teacher = `• ដំណាក់កាល Intensive Practice (You Do ៧០%) ៤ ជំហាន៖\n  (១) អនុវត្តជាដៃគូ: គ្រូដាក់លំហាត់កម្រិតមធ្យមឱ្យសិស្សដោះស្រាយជាគូ\n  (២) អនុវត្តជាក្រុម: គ្រូដាក់លំហាត់ស្មុគស្មាញលើ Flipchart A0 ឱ្យក្រុមសហការដោះស្រាយ\n  (៣) បង្ហាញ & វិភាគកែកំហុស (Error Analysis): គ្រូហៅឡើងកែលើក្តារខៀន និងវិភាគចំណុចខុសទូទៅ\n  (៤) ស្វ័យវាយតម្លៃ: គ្រូឱ្យសិស្សផ្ទៀងផ្ទាត់ចម្លើយ និងកែតម្រូវឱ្យបាន ១០០%`;
-      flippedStep4Student = `• ដំណាក់កាល "Intensive You Do" (សិស្សអនុវត្តផ្ទាល់ ៧០%)៖\n  (១) អនុវត្តជាដៃគូ: ដោះស្រាយលំហាត់កម្រិតមធ្យមជាគូ និងផ្ទៀងផ្ទាត់ចម្លើយគ្នា [ការសហការ]\n  (២) អនុវត្តជាក្រុម: សហការដោះស្រាយលំហាត់ស្មុគស្មាញលើ Flipchart A0 [ការគិតស៊ីជម្រៅ]\n  (៣) បង្ហាញ & វិភាគកែកំហុស: ឡើងកែលើក្តារខៀន ចូលរួមវិភាគកំហុសទូទៅ (Error Analysis)\n  (៤) ស្វ័យវាយតម្លៃ: ផ្ទៀងផ្ទាត់ចម្លើយ និងកែតម្រូវឱ្យបាន ១០០% ត្រឹមត្រូវ [ភាពស្ទាត់ជំនាញ]`;
+      flippedStep4Teacher = `• ដំណាក់កាល Intensive Practice (You Do ៧៥%) ៤ ជំហាន៖\n  (១) អនុវត្តជាដៃគូ: គ្រូដាក់លំហាត់កម្រិតមធ្យមឱ្យសិស្សដោះស្រាយជាគូ\n  (២) អនុវត្តជាក្រុម: គ្រូដាក់លំហាត់ស្មុគស្មាញលើ Flipchart A0 ឱ្យក្រុមសហការដោះស្រាយ\n  (៣) បង្ហាញ & វិភាគកែកំហុស (Error Analysis): គ្រូហៅឡើងកែលើក្តារខៀន និងវិភាគចំណុចខុសទូទៅ\n  (៤) ស្វ័យវាយតម្លៃ: គ្រូឱ្យសិស្សផ្ទៀងផ្ទាត់ចម្លើយ និងកែតម្រូវឱ្យបាន ១០០%`;
+      flippedStep4Student = `• ដំណាក់កាល "Intensive You Do" (សិស្សអនុវត្តផ្ទាល់ ៧៥%)៖\n  (១) អនុវត្តជាដៃគូ: ដោះស្រាយលំហាត់កម្រិតមធ្យមជាគូ និងផ្ទៀងផ្ទាត់ចម្លើយគ្នា [ការសហការ]\n  (២) អនុវត្តជាក្រុម: សហការដោះស្រាយលំហាត់ស្មុគស្មាញលើ Flipchart A0 [ការគិតស៊ីជម្រៅ]\n  (៣) បង្ហាញ & វិភាគកែកំហុស: ឡើងកែលើក្តារខៀន ចូលរួមវិភាគកំហុសទូទៅ (Error Analysis)\n  (៤) ស្វ័យវាយតម្លៃ: ផ្ទៀងផ្ទាត់ចម្លើយ និងកែតម្រូវឱ្យបាន ១០០% ត្រឹមត្រូវ [ភាពស្ទាត់ជំនាញ]`;
     } else {
       flippedStep3Teacher = `• គ្រូសង្ខេបក្របខណ្ឌទ្រឹស្តីគន្លឹះ និងគំនិតស្នូលនៃ «${lessonTitle}» រយៈពេលខ្លី\n• គ្រូចោទសួរ ៤ សំណួរដាស់ការត្រិះរិះ និងប្រគល់កិច្ចការស្វ័យសិក្សាជាក្រុម`;
-      flippedStep4Teacher = `• ដំណើរការរៀនសកម្មដោយស្វ័យភាព (Learner Autonomy ៧០%) ៤ ដំណាក់កាល៖\n  (១) រិះរកដោយស្វ័យភាព: ក្រុមសិស្សពិភាក្សា វិភាគទិន្នន័យ និងស្រង់ខ្លឹមសារដោយសេរី [ការគិតស៊ីជម្រៅ]\n  (២) សហការផលិតស្នាដៃ: ផលិតលទ្ធផលរួមលើ Flipchart A0 ដោយបែងចែកតួនាទីច្បាស់លាស់ [ការសហការ]\n  (៣) បទបង្ហាញដឹកនាំដោយសិស្ស: សិស្សដឹកនាំការធ្វើបទបង្ហាញ និងសួរសំណួរដេញដោលគ្នា [ការប្រាស្រ័យទាក់ទង]\n  (៤) ការឆ្លុះបញ្ចាំងរួម: ឆ្លុះបញ្ចាំងលើដំណើរការរៀន (Metacognition) និងវាយតម្លៃតាម Rubric`;
-      flippedStep4Student = `• ដំណើរការរៀនសកម្មដោយស្វ័យភាព (Learner Autonomy ៧០%)៖\n  (១) រិះរកដោយស្វ័យភាព: ក្រុមពិភាក្សា វិភាគទិន្នន័យ និងស្រង់ខ្លឹមសារដោយសេរី [ការគិតស៊ីជម្រៅ]\n  (២) សហការផលិតស្នាដៃ: ផលិតលទ្ធផលរួមលើ Flipchart A0 ដោយបែងចែកតួនាទី [ការសហការ]\n  (៣) បទបង្ហាញដឹកនាំដោយសិស្ស: សិស្សដឹកនាំការធ្វើបទបង្ហាញ និងដេញដោល [ការប្រាស្រ័យទាក់ទង]\n  (៤) ឆ្លុះបញ្ចាំងរួម: ឆ្លុះបញ្ចាំង Metacognition និងវាយតម្លៃតាម Rubric`;
+      flippedStep4Teacher = `• ដំណើរការរៀនសកម្មដោយស្វ័យភាព (Learner Autonomy ៧៥%) ៤ ដំណាក់កាល៖\n  (១) រិះរកដោយស្វ័យភាព: ក្រុមសិស្សពិភាក្សា វិភាគទិន្នន័យ និងស្រង់ខ្លឹមសារដោយសេរី [ការគិតស៊ីជម្រៅ]\n  (២) សហការផលិតស្នាដៃ: ផលិតលទ្ធផលរួមលើ Flipchart A0 ដោយបែងចែកតួនាទីច្បាស់លាស់ [ការសហការ]\n  (៣) បទបង្ហាញដឹកនាំដោយសិស្ស: សិស្សដឹកនាំការធ្វើបទបង្ហាញ និងសួរសំណួរដេញដោលគ្នា [ការប្រាស្រ័យទាក់ទង]\n  (៤) ការឆ្លុះបញ្ចាំងរួម: ឆ្លុះបញ្ចាំងលើដំណើរការរៀន (Metacognition) និងវាយតម្លៃតាម Rubric`;
+      flippedStep4Student = `• ដំណើរការរៀនសកម្មដោយស្វ័យភាព (Learner Autonomy ៧៥%)៖\n  (១) រិះរកដោយស្វ័យភាព: ក្រុមពិភាក្សា វិភាគទិន្នន័យ និងស្រង់ខ្លឹមសារដោយសេរី [ការគិតស៊ីជម្រៅ]\n  (២) សហការផលិតស្នាដៃ: ផលិតលទ្ធផលរួមលើ Flipchart A0 ដោយបែងចែកតួនាទី [ការសហការ]\n  (៣) បទបង្ហាញដឹកនាំដោយសិស្ស: សិស្សដឹកនាំការធ្វើបទបង្ហាញ និងដេញដោល [ការប្រាស្រ័យទាក់ទង]\n  (៤) ឆ្លុះបញ្ចាំងរួម: ឆ្លុះបញ្ចាំង Metacognition និងវាយតម្លៃតាម Rubric`;
     }
 
     const flippedSteps = [
@@ -9183,15 +9183,15 @@ function normalizeLessonPlanData(data, params = {}) {
               : `• ដំណើរការដោះស្រាយបញ្ហាជាក្រុម (PBL ៧០% STT)៖\n• គ្រូបែងចែកក្រុមការងារ ដាក់សេណារីយ៉ូបញ្ហាជាក់ស្តែងនៃ «${lessonTitle}» ឱ្យក្រុមសិស្សដោះស្រាយលើ Flipchart ឬក្ដារឆ្នួន\n• គ្រូសម្របសម្រួលការឡើងការពារដំណោះស្រាយ និងវាយតម្លៃតាម Rubric ៤ កម្រិត`;
           } else if (methodType === '5e') {
             safeTeacher = isFlipped
-              ? `• ដំណើរការ 5E ដំណាក់កាល Explain & Elaborate (៧០% STT)៖\n  (១) Explain (ពន្យល់): គ្រូឱ្យតំណាងក្រុមឡើងពន្យល់របកគំហើញ រួចគ្រូបូកសរុបគោលការណ៍គន្លឹះ\n  (២) Elaborate (ពង្រីកចំណេះដឹង): គ្រូដាក់ស្ថានភាពបញ្ហាប្រឈមថ្មី ឱ្យសិស្សយកចំណេះដឹងទៅពង្រីកអនុវត្តលើ Flipchart A0\n  (៣) Evaluate (វាយតម្លៃ): គ្រូដឹកនាំការវាយតម្លៃលទ្ធផលតាម Rubric ៤ កម្រិត`
+              ? `• ដំណើរការ 5E ដំណាក់កាល Explain & Elaborate (៧៥% សកម្មភាពសិស្ស)៖\n  (១) Explain (ពន្យល់): គ្រូឱ្យតំណាងក្រុមឡើងពន្យល់របកគំហើញ រួចគ្រូបូកសរុបគោលការណ៍គន្លឹះ\n  (២) Elaborate (ពង្រីកចំណេះដឹង): គ្រូដាក់ស្ថានភាពបញ្ហាប្រឈមថ្មី ឱ្យសិស្សយកចំណេះដឹងទៅពង្រីកអនុវត្តលើ Flipchart A0\n  (៣) Evaluate (វាយតម្លៃ): គ្រូដឹកនាំការវាយតម្លៃលទ្ធផលតាម Rubric ៤ កម្រិត`
               : `• ដំណាក់កាល Elaborate (ពង្រីកចំណេះដឹង ៧០% STT)៖\n• គ្រូដាក់លំហាត់/ស្ថានភាពស្មុគស្មាញថ្មីនៃ «${lessonTitle}» ឱ្យសិស្សយកចំណេះដឹងទៅពង្រីកអនុវត្តជាក្រុមលើ Flipchart ឬក្ដារឆ្នួន\n• គ្រូដើរសម្របសម្រួល ផ្តល់ការគាំទ្រ និងវាយតម្លៃការយល់ដឹង`;
           } else if (methodType === 'direct') {
             safeTeacher = isFlipped
-              ? `• ដំណាក់កាល Intensive Practice (You Do ៧០%) ៤ ជំហាន៖\n  (១) អនុវត្តជាដៃគូ: គ្រូដាក់លំហាត់កម្រិតមធ្យមឱ្យសិស្សដោះស្រាយជាគូ\n  (២) អនុវត្តជាក្រុម: គ្រូដាក់លំហាត់ស្មុគស្មាញលើ Flipchart A0 ឱ្យក្រុមសហការដោះស្រាយ\n  (៣) បង្ហាញ & វិភាគកែកំហុស (Error Analysis): គ្រូហៅឡើងកែលើក្តារខៀន និងវិភាគចំណុចខុសទូទៅ\n  (៤) ស្វ័យវាយតម្លៃ: គ្រូឱ្យសិស្សផ្ទៀងផ្ទាត់ចម្លើយ និងកែតម្រូវឱ្យបាន ១០០%`
+              ? `• ដំណាក់កាល Intensive Practice (You Do ៧៥%) ៤ ជំហាន៖\n  (១) អនុវត្តជាដៃគូ: គ្រូដាក់លំហាត់កម្រិតមធ្យមឱ្យសិស្សដោះស្រាយជាគូ\n  (២) អនុវត្តជាក្រុម: គ្រូដាក់លំហាត់ស្មុគស្មាញលើ Flipchart A0 ឱ្យក្រុមសហការដោះស្រាយ\n  (៣) បង្ហាញ & វិភាគកែកំហុស (Error Analysis): គ្រូហៅឡើងកែលើក្តារខៀន និងវិភាគចំណុចខុសទូទៅ\n  (៤) ស្វ័យវាយតម្លៃ: គ្រូឱ្យសិស្សផ្ទៀងផ្ទាត់ចម្លើយ និងកែតម្រូវឱ្យបាន ១០០%`
               : `• ដំណាក់កាល "You Do" (៧០% STT)៖\n• គ្រូដាក់កម្រងលំហាត់អនុវត្តពីងាយទៅពិបាកនៃ «${lessonTitle}» ឱ្យសិស្សដោះស្រាយដោយឯករាជ្យ ឬជាដៃគូ\n• គ្រូដើរត្រួតពិនិត្យ ផ្តល់ Feedback ភ្លាមៗ (Immediate Scaffolding) និងហៅសិស្សឡើងកែលើក្តារខៀន`;
           } else {
             safeTeacher = isFlipped
-              ? `• ដំណើរការរៀនសកម្មដោយស្វ័យភាព (Learner Autonomy ៧០%) ៤ ដំណាក់កាល៖\n  (១) រិះរកដោយស្វ័យភាព: ក្រុមសិស្សពិភាក្សា វិភាគទិន្នន័យ និងស្រង់ខ្លឹមសារដោយសេរី [ការគិតស៊ីជម្រៅ]\n  (២) សហការផលិតស្នាដៃ: ផលិតលទ្ធផលរួមលើ Flipchart A0 ដោយបែងចែកតួនាទីច្បាស់លាស់ [ការសហការ]\n  (៣) បទបង្ហាញដឹកនាំដោយសិស្ស: សិស្សដឹកនាំការធ្វើបទបង្ហាញ និងសួរសំណួរដេញដោលគ្នា [ការប្រាស្រ័យទាក់ទង]\n  (៤) ការឆ្លុះបញ្ចាំងរួម: ឆ្លុះបញ្ចាំងលើដំណើរការរៀន (Metacognition) និងវាយតម្លៃតាម Rubric`
+              ? `• ដំណើរការរៀនសកម្មដោយស្វ័យភាព (Learner Autonomy ៧៥%) ៤ ដំណាក់កាល៖\n  (១) រិះរកដោយស្វ័យភាព: ក្រុមសិស្សពិភាក្សា វិភាគទិន្នន័យ និងស្រង់ខ្លឹមសារដោយសេរី [ការគិតស៊ីជម្រៅ]\n  (២) សហការផលិតស្នាដៃ: ផលិតលទ្ធផលរួមលើ Flipchart A0 ដោយបែងចែកតួនាទីច្បាស់លាស់ [ការសហការ]\n  (៣) បទបង្ហាញដឹកនាំដោយសិស្ស: សិស្សដឹកនាំការធ្វើបទបង្ហាញ និងសួរសំណួរដេញដោលគ្នា [ការប្រាស្រ័យទាក់ទង]\n  (៤) ការឆ្លុះបញ្ចាំងរួម: ឆ្លុះបញ្ចាំងលើដំណើរការរៀន (Metacognition) និងវាយតម្លៃតាម Rubric`
               : `• ការអនុវត្តសកម្មជាក្រុម (TTT 30% / STT 70%)៖\n• គ្រូប្រគល់កិច្ចការអនុវត្តជាក់ស្តែងនៃ «${lessonTitle}» ឱ្យក្រុមសិស្សធ្វើការរួមគ្នាលើ Flipchart ឬក្ដារឆ្នួន\n• គ្រូដើរសម្របសម្រួល មិនជ្រៀតជ្រែកការគិត និងដឹកនាំការធ្វើបទបង្ហាញការពារ`;
           }
         } else {
@@ -10455,7 +10455,7 @@ function renderLessonPlanToA4(data) {
 
       <!-- Section 5: In-Class Process (3 Columns) -->
       <div class="doc-section-title">
-        ${isEn ? 'V. IN-CLASS TEACHING & LEARNING ACTIVITIES' : '៥. ដំណើរការបង្រៀនក្នុងថ្នាក់ (In-Class Active Learning ៧០%)'} (${escapeHtml(durVal)})
+        ${isEn ? 'V. IN-CLASS TEACHING & LEARNING ACTIVITIES (Active Learning 75%)' : '៥. ដំណើរការបង្រៀនក្នុងថ្នាក់ (In-Class Active Learning ៧៥%)'} (${escapeHtml(durVal)})
       </div>
       <table class="doc-table">
         <thead>
@@ -11449,7 +11449,7 @@ async function handleExportWord() {
           ]
         }),
         new Paragraph({ text: "" }),
-        new Paragraph({ children: [new TextRun({ text: `៥. ដំណើរការបង្រៀនក្នុងថ្នាក់ (In-Class Active Learning ៧០%) (${data.duration || '១៨០ នាទី'})`, bold: true, size: 24 })] }),
+        new Paragraph({ children: [new TextRun({ text: `៥. ដំណើរការបង្រៀនក្នុងថ្នាក់ (In-Class Active Learning ៧៥%) (${data.duration || '១៨០ នាទី'})`, bold: true, size: 24 })] }),
         new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
           rows: flippedDocxRows

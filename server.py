@@ -3514,41 +3514,41 @@ def export_docx():
         m_title = data.get("method") or "ការរៀនបែបត្រឡប់"
         m_type = detect_method_type(m_title)
         doc.add_paragraph(f"• វិធីសាស្រ្តបង្រៀន៖ {m_title}").runs[0].bold = True
-        doc.add_paragraph("• គំរូ និងទម្រង់រៀបចំការរៀន៖ ការរៀនបែបត្រឡប់ (Flipped Learning Model ៥ ជំហាន: ៥% - ១០% - ១០% - ៧០% - ៥%) — ផ្សារភ្ជាប់ការស្វ័យសិក្សាត្រៀមមុនម៉ោង (Pre-Class តាមវីដេអូបង្រៀន Micro-Lecture NotebookLM និងបុរេតេស្ត Pre-Test QCM) ជាមួយការរៀនសកម្មក្នុងថ្នាក់ (In-Class Active Learning ៧០%)។")
+        doc.add_paragraph("• គំរូ និងទម្រង់រៀបចំការរៀន៖ ការរៀនបែបត្រឡប់ (Flipped Learning Model ៥ ជំហាន: ៣% - ៧% - ១០% - ៧៥% - ៥%) — ផ្សារភ្ជាប់ការស្វ័យសិក្សាត្រៀមមុនម៉ោង (Pre-Class តាមវីដេអូបង្រៀន Micro-Lecture NotebookLM និងបុរេតេស្ត Pre-Test QCM) ជាមួយការរៀនសកម្មក្នុងថ្នាក់ (In-Class Active Learning ៧៥%)។")
         doc.add_paragraph("• ដំណាក់កាលអនុវត្តវិធីសាស្ត្រក្នុងថ្នាក់៖")
         if m_type == "pbl":
             phases = [
-                "ជំហានទី ២ (១០%): ពិនិត្យការយល់ដឹងពីផ្ទះ ស្រាយចម្ងល់ Muddiest Points និងភ្ជាប់ទ្រឹស្តីទៅបញ្ហាជាក់ស្តែង",
+                "ជំហានទី ២ (៧%): ពិនិត្យការយល់ដឹងពីផ្ទះ ស្រាយចម្ងល់ Muddiest Points និងភ្ជាប់ទ្រឹស្តីទៅបញ្ហាជាក់ស្តែង",
                 "ជំហានទី ៣ (១០%): គ្រូចោទសំណួរតម្រង់ទិស និងប្រគល់ «សន្លឹកបេសកកម្មដោះស្រាយបញ្ហា (Challenge Scenario)»",
-                "ជំហានទី ៤ (៧០% - Core Active Learning): PBL ៤ ដំណាក់កាល (វិភាគបញ្ហា, សហការដោះស្រាយលើ Flipchart, ការពារដំណោះស្រាយ, វាយតម្លៃតាម Rubric)",
+                "ជំហានទី ៤ (៧៥% - Core Active Learning): PBL ៤ ដំណាក់កាល (វិភាគបញ្ហា, សហការដោះស្រាយលើ Flipchart, ការពារដំណោះស្រាយ, វាយតម្លៃតាម Rubric)",
                 "ជំហានទី ៥ (៥%): ឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 និងដាក់កិច្ចការបញ្ហាស្រាវជ្រាវបន្ត"
             ]
-        elif m_type == "jigsaw":
+        elif m_type in ("jigsaw", "cooperative"):
             phases = [
-                "ជំហានទី ២ (១០%): ពិនិត្យ Pre-Test ស្រាយចម្ងល់ Muddiest Points ពីការស្វ័យសិក្សាតាមវីដេអូ",
+                "ជំហានទី ២ (៧%): ពិនិត្យ Pre-Test ស្រាយចម្ងល់ Muddiest Points ពីការស្វ័យសិក្សាតាមវីដេអូ",
                 "ជំហានទី ៣ (១០%): បែងចែកក្រុមដើម (Home Groups) និងចាត់តាំងក្រុមអ្នកជំនាញ (Expert Groups)",
-                "ជំហានទី ៤ (៧០% - Core Active Learning): Jigsaw ៤ ដំណាក់កាល (ក្រុមអ្នកជំនាញវិភាគស៊ីជម្រៅ, ត្រឡប់ទៅក្រុមដើមបង្រៀនគ្នា, ចងក្រង Concept Map លើ Flipchart, Gallery Walk)",
+                "ជំហានទី ៤ (៧៥% - Core Active Learning): Jigsaw ៤ ដំណាក់កាល (ក្រុមអ្នកជំនាញវិភាគស៊ីជម្រៅ, ត្រឡប់ទៅក្រុមដើមបង្រៀនគ្នា, ចងក្រង Concept Map លើ Flipchart, Gallery Walk)",
                 "ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 សង្ខេបចំណេះដឹង និងកិច្ចការផ្ទះ"
             ]
         elif m_type == "5e":
             phases = [
-                "Engage (ជំហានទី ១ & ២): ស្វ័យសិក្សាតាមវីដេអូ Micro-Lecture, Pre-Test QCM, និងដោះស្រាយ Muddiest Points",
-                "Explore (ជំហានទី ៣): សិស្សធ្វើការជាក្រុម អនុវត្តបេសកកម្ម Challenge Scenario / ពិសោធន៍ជាក់ស្តែង",
-                "Explain & Elaborate (ជំហានទី ៤ - ៧០%): ក្រុមសិស្សពន្យល់របកគំហើញ និងពង្រីកចំណេះដឹងដោះស្រាយបញ្ហាថ្មីលើ Flipchart A0",
-                "Evaluate (ជំហានទី ៥): Exit Ticket 3-2-1, Rubric សហការ ៤ កម្រិត និងកម្រងសំណួរ Post-Test MCQ"
+                "Engage (ជំហានទី ១ ៣% & ជំហានទី ២ ៧%): ស្វ័យសិក្សាតាមវីដេអូ Micro-Lecture, Pre-Test QCM, និងដោះស្រាយ Muddiest Points",
+                "Explore (ជំហានទី ៣ - ១០%): សិស្សធ្វើការជាក្រុម អនុវត្តបេសកកម្ម Challenge Scenario / ពិសោធន៍ជាក់ស្តែង",
+                "Explain & Elaborate (ជំហានទី ៤ - ៧៥%): ក្រុមសិស្សពន្យល់របកគំហើញ និងពង្រីកចំណេះដឹងដោះស្រាយបញ្ហាថ្មីលើ Flipchart A0",
+                "Evaluate (ជំហានទី ៥ - ៥%): Exit Ticket 3-2-1, Rubric សហការ ៤ កម្រិត និងកម្រងសំណួរ Post-Test MCQ"
             ]
         elif m_type == "direct":
             phases = [
-                "Pre-Class & ជំហានទី ២ (១០%): I Do ផ្នែកទ្រឹស្តីមូលដ្ឋានបានរៀនតាមវីដេអូពីផ្ទះ; គ្រូបំភ្លឺចំណុចពិបាក (Mini-Modeling) តាម Muddiest Points",
+                "Pre-Class & ជំហានទី ២ (៧%): I Do ផ្នែកទ្រឹស្តីមូលដ្ឋានបានរៀនតាមវីដេអូពីផ្ទះ; គ្រូបំភ្លឺចំណុចពិបាក (Mini-Modeling) តាម Muddiest Points",
                 "ជំហានទី ៣ (១០%): We Do (គ្រូនាំធ្វើ) — គ្រូនាំសិស្សអនុវត្តលំហាត់គំរូគន្លឹះរួមគ្នាដើម្បីពង្រឹងក្បួនខ្នាត",
-                "ជំហានទី ៤ (៧០% - Core Active Learning): Intensive You Do (អនុវត្តជាដៃគូ, អនុវត្តជាក្រុមលើស្ថានភាពស្មុគស្មាញ, បង្ហាញ & កែកំហុស, ស្វ័យវាយតម្លៃ)",
+                "ជំហានទី ៤ (៧៥% - Core Active Learning): Intensive You Do (អនុវត្តជាដៃគូ, អនុវត្តជាក្រុមលើស្ថានភាពស្មុគស្មាញ, បង្ហាញ & កែកំហុស, ស្វ័យវាយតម្លៃ)",
                 "ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 ស្ទង់ភាពស្ទាត់ជំនាញ និងលំហាត់ពង្រឹងសមត្ថភាពបន្ត"
             ]
         else:
             phases = [
-                "ជំហានទី ២ (១០%): សិស្សលើកឡើង Muddiest Points ពីផ្ទះ គ្រូដើរតួជា Facilitator សម្របសម្រួលបំភ្លឺ",
+                "ជំហានទី ២ (៧%): សិស្សលើកឡើង Muddiest Points ពីផ្ទះ គ្រូដើរតួជា Facilitator សម្របសម្រួលបំភ្លឺ",
                 "ជំហានទី ៣ (១០%): គ្រូចោទ ៤ សំណួរដាស់ការត្រិះរិះ និងប្រគល់កិច្ចការស្វ័យសិក្សាជាក្រុម",
-                "ជំហានទី ៤ (៧០% - Core Active Learning): សិស្សរៀនដោយស្វ័យភាព (TTT 30% / STT 70%, សហការផលិតស្នាដៃលើ Flipchart, ការពារ និងឆ្លុះបញ្ចាំង Metacognition)",
+                "ជំហានទី ៤ (៧៥% - Core Active Learning): សិស្សរៀនដោយស្វ័យភាព (TTT 30% / STT 70%, សហការផលិតស្នាដៃលើ Flipchart, ការពារ និងឆ្លុះបញ្ចាំង Metacognition)",
                 "ជំហានទី ៥ (៥%): Exit Ticket 3-2-1 ស្ទង់មតិសិស្សលើការយល់ដឹង និងកិច្ចការស្វ័យសិក្សា"
             ]
         for ph in phases:
