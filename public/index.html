@@ -30,7 +30,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=20261118_v181">
+  <link rel="stylesheet" href="style.css?v=20261118_v182">
 
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -556,21 +556,22 @@
             <!-- 1B. Delivery Mode Selector (In-Person vs Online vs Hybrid) -->
             <div id="deliveryModeWrapper" class="control-group mb-2">
               <label data-i18n="deliveryModeLabel" style="margin-bottom: 5px; display: block;">
-                <i class="fa-solid fa-laptop-file text-primary" style="margin-right: 4px; color: #0284c7;"></i> របៀបបង្រៀន (Delivery Mode)៖
+                <i class="fa-solid fa-laptop-file text-primary" style="margin-right: 4px; color: #0284c7;"></i>
+                របៀបបង្រៀន (Delivery Mode)៖
               </label>
               <input type="hidden" id="inputDeliveryMode" value="in_person">
               <div class="delivery-mode-pills" id="deliveryModePills" role="radiogroup" aria-label="របៀបបង្រៀន">
                 <button type="button" class="delivery-pill active" id="deliveryPillInPerson" data-mode="in_person"
                   onclick="selectDeliveryMode('in_person')" role="radio" aria-checked="true">
-                  <span>🏫</span> <span data-i18n="deliveryInPerson">ផ្ទាល់ក្នុងថ្នាក់</span>
+                  <span>🏫</span> <span data-i18n="deliveryInPerson">ក្នុងថ្នាក់</span>
                 </button>
                 <button type="button" class="delivery-pill" id="deliveryPillOnline" data-mode="online"
                   onclick="selectDeliveryMode('online')" role="radio" aria-checked="false">
-                  <span>💻</span> <span data-i18n="deliveryOnline">អនឡាញ (Online)</span>
+                  <span>💻</span> <span data-i18n="deliveryOnline">អនឡាញ</span>
                 </button>
                 <button type="button" class="delivery-pill" id="deliveryPillHybrid" data-mode="hybrid"
                   onclick="selectDeliveryMode('hybrid')" role="radio" aria-checked="false">
-                  <span>🔀</span> <span data-i18n="deliveryHybrid">ចម្រុះ (Hybrid)</span>
+                  <span>🔀</span> <span data-i18n="deliveryHybrid">ចម្រុះ</span>
                 </button>
               </div>
 
@@ -580,16 +581,17 @@
                   <label for="inputOnlinePlatform" class="online-platform-label" data-i18n="onlinePlatformLabel">
                     <i class="fa-solid fa-video" style="color: #0284c7;"></i> កម្មវិធីបង្រៀន Online៖
                   </label>
-                  <select id="inputOnlinePlatform" class="form-control form-control-sm" style="flex: 1; min-width: 150px;">
+                  <select id="inputOnlinePlatform" class="form-control form-control-sm" style="width: 100%;">
                     <option value="Zoom / Google Meet" selected>Zoom / Google Meet</option>
-                    <option value="Zoom">Zoom (Breakout Rooms, Poll, Chat)</option>
-                    <option value="Google Meet">Google Meet (Breakout Rooms, Jamboard/Docs)</option>
-                    <option value="Microsoft Teams">Microsoft Teams (Channels, Whiteboard)</option>
-                    <option value="Telegram Live / Group">Telegram Live / Group (Voice/Video + Poll)</option>
+                    <option value="Zoom">Zoom (Breakout Rooms &amp; Poll)</option>
+                    <option value="Google Meet">Google Meet (Rooms &amp; Docs)</option>
+                    <option value="Microsoft Teams">Microsoft Teams</option>
+                    <option value="Telegram Live / Group">Telegram Live / Group</option>
                   </select>
                 </div>
                 <div id="onlineFlippedTipBar" class="online-flipped-tip" style="display: none;">
-                  <span>💡 <b>ណែនាំសម្រាប់ Online៖</b> ទម្រង់ <b>Flipped Classroom (៧៥%) + PBL/Socratic</b> ជួយឱ្យសិស្សសកម្មជាង!</span>
+                  <span>💡 <b>ណែនាំសម្រាប់ Online៖</b> ទម្រង់ <b>Flipped Classroom (៧៥%) + PBL/Socratic</b>
+                    ជួយឱ្យសិស្សសកម្មជាង!</span>
                   <button type="button" class="btn-online-tip-apply" onclick="applyRecommendedOnlineSetup()">
                     ⚡ ប្ដូរទៅ Flipped
                   </button>
@@ -638,7 +640,8 @@
             </div>
 
             <!-- 🎯 Real-Time Dynamic Pacing Bar (Hidden visually — runs automatically in background) -->
-            <div id="dynamicPacingBarWrap" class="dynamic-pacing-wrap mt-2" style="display: none !important;" aria-hidden="true">
+            <div id="dynamicPacingBarWrap" class="dynamic-pacing-wrap mt-2" style="display: none !important;"
+              aria-hidden="true">
               <div class="pacing-header">
                 <span class="pacing-title"><i class="fa-solid fa-chart-pie text-primary"></i>
                   បែងចែកពេលវេលាគរុកោសល្យ៖</span>
@@ -987,8 +990,8 @@
             <div id="uploadLessonWrapper">
 
               <!-- Hidden File Input & Container elements required by setupDropzone in app.js -->
-              <input type="file" id="lessonFileInput" multiple accept=".docx,.pdf,.txt,.doc,.pptx,.ppt,.png,.jpg,.jpeg,.webp"
-                class="file-input-hidden">
+              <input type="file" id="lessonFileInput" multiple
+                accept=".docx,.pdf,.txt,.doc,.pptx,.ppt,.png,.jpg,.jpeg,.webp" class="file-input-hidden">
               <div id="dropzoneContainerWrapper" style="display: none;">
                 <div class="dropzone" id="lessonDropzone">
                   <div class="dropzone-content">
@@ -1116,9 +1119,11 @@
             </div>
           </div>
           <div style="text-align: center; margin-top: 8px; font-size: 0.72rem; color: #94a3b8;">
-            <a href="/privacy.html" target="_blank" rel="noopener" style="color: #64748b; text-decoration: none;">Privacy Policy</a>
+            <a href="/privacy.html" target="_blank" rel="noopener"
+              style="color: #64748b; text-decoration: none;">Privacy Policy</a>
             <span style="margin: 0 6px;">•</span>
-            <a href="/terms.html" target="_blank" rel="noopener" style="color: #64748b; text-decoration: none;">Terms of Service</a>
+            <a href="/terms.html" target="_blank" rel="noopener" style="color: #64748b; text-decoration: none;">Terms of
+              Service</a>
           </div>
         </footer>
       </div>
@@ -1387,7 +1392,8 @@
   <!-- 📁 Lesson Folders Studio Modal (Upgraded Library: Lesson Plan + Slides + Tests + Materials + .zip Export) -->
   <div id="savedPlansModal" class="modal-overlay" style="display: none;">
     <div class="modal-card modal-lg" style="max-width: 980px; width: 95%;">
-      <div class="modal-header" style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-bottom: 1px solid #bae6fd;">
+      <div class="modal-header"
+        style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-bottom: 1px solid #bae6fd;">
         <div class="modal-title-wrap">
           <i class="fa-solid fa-folder-open" style="color: #0284c7; font-size: 1.25rem;"></i>
           <h4 data-i18n="modalSavedPlansTitle" style="color: #0c4a6e;">ថតមេរៀន (Lesson Folders Studio)</h4>
@@ -1404,8 +1410,10 @@
             <div class="pc-folder-sync-left">
               <span class="pc-folder-sync-icon"><i class="fa-solid fa-computer"></i></span>
               <div style="min-width: 0;">
-                <div id="pcFolderSyncTitle" class="pc-folder-sync-title">ភ្ជាប់ថតពិតលើកុំព្យូទ័រ (ឧ. D:\My_Lessons)</div>
-                <div id="pcFolderSyncSub" class="pc-folder-sync-sub">រក្សាទុកជា Folder ពិតៗ (.docx + .pptx + ឯកសារ) លើ Drive កុំព្យូទ័រ — មិនបាត់ទោះ Clear Browser ទាំងអស់!</div>
+                <div id="pcFolderSyncTitle" class="pc-folder-sync-title">ភ្ជាប់ថតពិតលើកុំព្យូទ័រ (ឧ. D:\My_Lessons)
+                </div>
+                <div id="pcFolderSyncSub" class="pc-folder-sync-sub">រក្សាទុកជា Folder ពិតៗ (.docx + .pptx + ឯកសារ) លើ
+                  Drive កុំព្យូទ័រ — មិនបាត់ទោះ Clear Browser ទាំងអស់!</div>
               </div>
             </div>
             <div id="pcFolderSyncActions" class="pc-folder-sync-actions">
@@ -1450,7 +1458,8 @@
             <i class="fa-regular fa-folder-open empty-icon" style="color: #0284c7;"></i>
             <p style="font-size: 1.05rem; font-weight: 700; color: #0f172a;">មិនទាន់មានថតមេរៀននៅឡើយទេ</p>
             <p style="color: var(--text-muted); font-size: 0.88rem; max-width: 480px; margin: 6px auto 14px;">
-              ចុចប៊ូតុង <b>«📁 រក្សាទុកចូលថតមេរៀន»</b> ដើម្បីប្រមូល កិច្ចតែងការ, ស្លាយ (.pptx), Pre/Post-Test និងឯកសារបន្ថែមដាក់ចូលថតតែមួយតាមឈ្មោះមេរៀន។
+              ចុចប៊ូតុង <b>«📁 រក្សាទុកចូលថតមេរៀន»</b> ដើម្បីប្រមូល កិច្ចតែងការ, ស្លាយ (.pptx), Pre/Post-Test
+              និងឯកសារបន្ថែមដាក់ចូលថតតែមួយតាមឈ្មោះមេរៀន។
             </p>
             <button type="button" class="btn-folder-primary" onclick="openSaveToFolderModal('library')">
               <i class="fa-solid fa-folder-plus"></i> បង្កើតថតមេរៀនដំបូង
@@ -1469,7 +1478,8 @@
 
       <div class="modal-footer flex-between" style="flex-wrap: wrap; gap: 10px;">
         <div class="footer-backup-actions" style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <span id="lessonFolderStorageMeter" class="folder-storage-pill" title="ទិន្នន័យរក្សាទុកលើឧបករណ៍ផ្ទាល់របស់លោកគ្រូ (មិនស៊ីទំហំ Server)">
+          <span id="lessonFolderStorageMeter" class="folder-storage-pill"
+            title="ទិន្នន័យរក្សាទុកលើឧបករណ៍ផ្ទាល់របស់លោកគ្រូ (មិនស៊ីទំហំ Server)">
             <i class="fa-solid fa-hard-drive"></i> ទំហំប្រើប្រាស់៖ 0 KB
           </span>
           <button type="button" id="btnExportAllPlansJson" class="btn-ghost btn-sm"
@@ -1490,16 +1500,19 @@
   <!-- 📁 Quick Save-to-Lesson-Folder Dialog (Auto-named from Lesson Input!) -->
   <div id="saveToFolderModal" class="modal-overlay" style="display: none; z-index: 10040;">
     <div class="modal-card" style="max-width: 520px; width: 94%;">
-      <div class="modal-header" style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-bottom: 1px solid #a7f3d0;">
+      <div class="modal-header"
+        style="background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-bottom: 1px solid #a7f3d0;">
         <div class="modal-title-wrap">
           <i class="fa-solid fa-folder-plus" style="color: #059669; font-size: 1.2rem;"></i>
           <h4 style="color: #065f46; margin: 0;">រក្សាទុកចូលថតមេរៀន (Save to Lesson Folder)</h4>
         </div>
-        <button type="button" class="btn-close-modal" onclick="closeSaveToFolderModal()"><i class="fa-solid fa-xmark"></i></button>
+        <button type="button" class="btn-close-modal" onclick="closeSaveToFolderModal()"><i
+            class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="modal-body" style="padding: 18px 20px;">
         <div class="form-group" style="margin-bottom: 12px;">
-          <label for="inputSaveFolderName" style="font-weight: 700; font-size: 0.9rem; color: #1e293b; display: block; margin-bottom: 5px;">
+          <label for="inputSaveFolderName"
+            style="font-weight: 700; font-size: 0.9rem; color: #1e293b; display: block; margin-bottom: 5px;">
             <i class="fa-solid fa-tag" style="color: #059669;"></i> ឈ្មោះថតមេរៀន (ដាក់ស្វ័យប្រវត្តិតាមឈ្មោះមេរៀន)៖
           </label>
           <input type="text" id="inputSaveFolderName" class="form-control"
@@ -1508,10 +1521,12 @@
         </div>
 
         <div class="form-group" style="margin-bottom: 12px;">
-          <label for="selectExistingTargetFolder" style="font-weight: 600; font-size: 0.84rem; color: #475569; display: block; margin-bottom: 5px;">
+          <label for="selectExistingTargetFolder"
+            style="font-weight: 600; font-size: 0.84rem; color: #475569; display: block; margin-bottom: 5px;">
             ឬជ្រើសរើសថតដែលមានស្រាប់ដើម្បីបញ្ចូលបន្ថែម៖
           </label>
-          <select id="selectExistingTargetFolder" class="form-control" onchange="onSelectExistingTargetFolder(this.value)">
+          <select id="selectExistingTargetFolder" class="form-control"
+            onchange="onSelectExistingTargetFolder(this.value)">
             <option value="">✨ បង្កើតថតថ្មី (ឬ Update តាមឈ្មោះដូចគ្នា)</option>
           </select>
         </div>
@@ -1520,9 +1535,11 @@
           <!-- Populated dynamically with checkboxes for Plan / Slides / Notes -->
         </div>
       </div>
-      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
+      <div class="modal-footer"
+        style="display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px; background: #f8fafc; border-top: 1px solid #e2e8f0;">
         <button type="button" class="btn-secondary" onclick="closeSaveToFolderModal()">បោះបង់</button>
-        <button type="button" class="btn-folder-primary" onclick="confirmSaveToLessonFolder()" style="background: linear-gradient(135deg, #059669, #10b981);">
+        <button type="button" class="btn-folder-primary" onclick="confirmSaveToLessonFolder()"
+          style="background: linear-gradient(135deg, #059669, #10b981);">
           <i class="fa-solid fa-floppy-disk"></i> រក្សាទុកចូលថតមេរៀន
         </button>
       </div>
@@ -2509,7 +2526,8 @@
         style="padding: 16px 20px; border-bottom: 1px solid #e0e7ff; background: linear-gradient(135deg, #eef2ff, #e0e7ff); display: flex; align-items: center; justify-content: space-between;">
         <div class="modal-title"
           style="color: #3730a3; font-weight: 800; font-size: 1.08rem; display: flex; align-items: center; gap: 9px;">
-          <i class="fa-solid fa-display" style="color: #4f46e5;"></i> <span data-i18n="modalPptxTitle">បង្កើតស្លាយបង្រៀន AI (Slide Studio ក្នុងកម្មវិធី)</span>
+          <i class="fa-solid fa-display" style="color: #4f46e5;"></i> <span data-i18n="modalPptxTitle">បង្កើតស្លាយបង្រៀន
+            AI (Slide Studio ក្នុងកម្មវិធី)</span>
         </div>
         <div style="display: flex; align-items: center; gap: 6px;">
           <button class="modal-close" onclick="closePptxModal()"
@@ -2535,16 +2553,21 @@
         <div
           style="font-size: 9pt; color: #312e81; margin-bottom: 12px; line-height: 1.55; background: #eef2ff; padding: 10px 13px; border-radius: 9px; border: 1px solid #c7d2fe;"
           data-i18n="modalPptxDesc">
-          <i class="fa-solid fa-circle-check" style="color: #4f46e5;"></i> ប្រព័ន្ធ AI នឹងបង្កើតស្លាយបង្រៀនដោយស្វ័យប្រវត្តិ រួចបើកបង្ហាញភ្លាមៗ<b>ក្នុងកម្មវិធីនេះ</b> (មិនបាច់ចូលគណនី Google ឡើយ!) — លោកគ្រូអាចកែអក្សរ ប្ដូររូបភាព បញ្ចាំងពេញអេក្រង់ ឬទាញយក <b>.pptx / PDF</b> បានភ្លាមៗ!
+          <i class="fa-solid fa-circle-check" style="color: #4f46e5;"></i> ប្រព័ន្ធ AI
+          នឹងបង្កើតស្លាយបង្រៀនដោយស្វ័យប្រវត្តិ រួចបើកបង្ហាញភ្លាមៗ<b>ក្នុងកម្មវិធីនេះ</b> (មិនបាច់ចូលគណនី Google ឡើយ!) —
+          លោកគ្រូអាចកែអក្សរ ប្ដូររូបភាព បញ្ចាំងពេញអេក្រង់ ឬទាញយក <b>.pptx / PDF</b> បានភ្លាមៗ!
         </div>
 
         <!-- 🎬 Quick Re-Open Last Generated In-App Slide Deck Banner -->
-        <div id="lastInAppDeckBanner" style="display: none; margin-bottom: 12px; padding: 10px 13px; border-radius: 10px; background: #ecfdf5; border: 1.5px solid #6ee7b7; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+        <div id="lastInAppDeckBanner"
+          style="display: none; margin-bottom: 12px; padding: 10px 13px; border-radius: 10px; background: #ecfdf5; border: 1.5px solid #6ee7b7; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
           <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
             <i class="fa-solid fa-circle-check" style="color: #10b981; font-size: 1.05rem;"></i>
-            <span id="lastInAppDeckBannerText" style="font-size: 8.8pt; font-weight: 700; color: #065f46; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">មានស្លាយដែលទើបបង្កើតរួចហើយ!</span>
+            <span id="lastInAppDeckBannerText"
+              style="font-size: 8.8pt; font-weight: 700; color: #065f46; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">មានស្លាយដែលទើបបង្កើតរួចហើយ!</span>
           </div>
-          <button type="button" onclick="openInAppSlideStudio()" style="background: linear-gradient(135deg, #059669, #10b981); color: #ffffff; border: none; border-radius: 8px; padding: 6px 13px; font-size: 8.5pt; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-family: inherit;">
+          <button type="button" onclick="openInAppSlideStudio()"
+            style="background: linear-gradient(135deg, #059669, #10b981); color: #ffffff; border: none; border-radius: 8px; padding: 6px 13px; font-size: 8.5pt; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-family: inherit;">
             <i class="fa-solid fa-play"></i> បើកមើលស្លាយមុន
           </button>
         </div>
@@ -2557,10 +2580,12 @@
               <span>ភ្ជាប់គណនី Google ដើម្បីបង្កើតផ្ទាល់ក្នុង Google Slides</span>
             </div>
             <div class="gslides-auth-btns">
-              <button type="button" id="btnConnectGoogleSlides" class="btn-gslides-connect" onclick="connectGoogleSlidesAccount()">
+              <button type="button" id="btnConnectGoogleSlides" class="btn-gslides-connect"
+                onclick="connectGoogleSlidesAccount()">
                 <i class="fa-brands fa-google"></i> <span>ភ្ជាប់គណនី Google</span>
               </button>
-              <button type="button" id="btnDisconnectGoogleSlides" class="btn-gslides-disconnect" onclick="disconnectGoogleSlidesAccount()" style="display: none;">
+              <button type="button" id="btnDisconnectGoogleSlides" class="btn-gslides-disconnect"
+                onclick="disconnectGoogleSlidesAccount()" style="display: none;">
                 <i class="fa-solid fa-right-from-bracket"></i> <span>ចាកចេញ</span>
               </button>
             </div>
@@ -2571,8 +2596,12 @@
             <div style="font-size: 8.6pt; color: #334155; line-height: 1.55; margin-bottom: 8px;">
               <strong>⚙️ ការកំណត់ Google OAuth Client ID (ធ្វើតែម្ដងគត់ — ២ នាទី)៖</strong>
               <ol style="margin: 4px 0 6px 18px; padding: 0;">
-                <li>ចូល <a href="https://console.cloud.google.com/apis/library/slides.googleapis.com" target="_blank" rel="noopener" style="color: #2563eb; font-weight: 700; text-decoration: underline;">Google Cloud Console → Enable «Google Slides API»</a></li>
-                <li>ចូល <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color: #2563eb; font-weight: 700; text-decoration: underline;">Credentials → Create Credentials → OAuth client ID (Web application)</a></li>
+                <li>ចូល <a href="https://console.cloud.google.com/apis/library/slides.googleapis.com" target="_blank"
+                    rel="noopener" style="color: #2563eb; font-weight: 700; text-decoration: underline;">Google Cloud
+                    Console → Enable «Google Slides API»</a></li>
+                <li>ចូល <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener"
+                    style="color: #2563eb; font-weight: 700; text-decoration: underline;">Credentials → Create
+                    Credentials → OAuth client ID (Web application)</a></li>
                 <li>ដាក់ <b>Authorized JavaScript origins</b> ខាងក្រោមនេះ៖</li>
               </ol>
               <div class="gslides-origin-bar">
@@ -2596,9 +2625,11 @@
           <div id="lastGoogleSlidesResultCard" class="gslides-result-banner" style="display: none;">
             <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
               <i class="fa-solid fa-circle-check" style="color: #16a34a; font-size: 1rem;"></i>
-              <span id="lastGoogleSlidesTitleText" style="font-size: 8.5pt; font-weight: 700; color: #14532d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">ស្លាយថ្មីត្រូវបានបង្កើតរួចរាល់!</span>
+              <span id="lastGoogleSlidesTitleText"
+                style="font-size: 8.5pt; font-weight: 700; color: #14532d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">ស្លាយថ្មីត្រូវបានបង្កើតរួចរាល់!</span>
             </div>
-            <a id="lastGoogleSlidesOpenLink" href="https://docs.google.com/presentation" target="_blank" rel="noopener" class="btn-gslides-open-link">
+            <a id="lastGoogleSlidesOpenLink" href="https://docs.google.com/presentation" target="_blank" rel="noopener"
+              class="btn-gslides-open-link">
               <i class="fa-solid fa-arrow-up-right-from-square"></i> បើកក្នុង Google Slides
             </a>
           </div>
@@ -2763,7 +2794,8 @@
           data-i18n="modalPptxBtnCancel">បោះបង់</button>
         <button type="button" class="btn-primary" onclick="generatePptxSlides('studio')"
           style="background: linear-gradient(135deg, #4f46e5, #7c3aed); border: none; padding: 10px 22px; font-weight: 800; border-radius: 9px; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.38); font-size: 9.2pt;">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> <span data-i18n="modalPptxBtnGenerate">បង្កើតស្លាយក្នុងកម្មវិធី</span>
+          <i class="fa-solid fa-wand-magic-sparkles"></i> <span
+            data-i18n="modalPptxBtnGenerate">បង្កើតស្លាយក្នុងកម្មវិធី</span>
         </button>
       </div>
 
@@ -2859,38 +2891,48 @@
 
         <!-- Live Theme Switcher -->
         <div class="slide-studio-themes" title="ប្ដូររចនាបទពណ៌ភ្លាមៗ">
-          <button type="button" class="studio-theme-pill active" data-theme="modern_blue" onclick="setStudioTheme('modern_blue')" title="Modern Blue">
+          <button type="button" class="studio-theme-pill active" data-theme="modern_blue"
+            onclick="setStudioTheme('modern_blue')" title="Modern Blue">
             <span class="theme-dot" style="background: #2563eb;"></span> <span>ខៀវ</span>
           </button>
-          <button type="button" class="studio-theme-pill" data-theme="eco_green" onclick="setStudioTheme('eco_green')" title="Eco Green">
+          <button type="button" class="studio-theme-pill" data-theme="eco_green" onclick="setStudioTheme('eco_green')"
+            title="Eco Green">
             <span class="theme-dot" style="background: #059669;"></span> <span>បៃតង</span>
           </button>
-          <button type="button" class="studio-theme-pill" data-theme="dark_mode" onclick="setStudioTheme('dark_mode')" title="Dark Mode">
+          <button type="button" class="studio-theme-pill" data-theme="dark_mode" onclick="setStudioTheme('dark_mode')"
+            title="Dark Mode">
             <span class="theme-dot" style="background: #0f172a; border: 1px solid #94a3b8;"></span> <span>ងងឹត</span>
           </button>
-          <button type="button" class="studio-theme-pill" data-theme="simple_light" onclick="setStudioTheme('simple_light')" title="Simple Light">
+          <button type="button" class="studio-theme-pill" data-theme="simple_light"
+            onclick="setStudioTheme('simple_light')" title="Simple Light">
             <span class="theme-dot" style="background: #ffffff; border: 1px solid #cbd5e1;"></span> <span>ភ្លឺ</span>
           </button>
         </div>
 
         <!-- Primary Actions -->
         <div class="slide-studio-actions">
-          <button type="button" class="studio-btn studio-btn-present" onclick="startSlideStudioPresent()" title="បញ្ចាំងពេញអេក្រង់ក្នុងថ្នាក់រៀន">
+          <button type="button" class="studio-btn studio-btn-present" onclick="startSlideStudioPresent()"
+            title="បញ្ចាំងពេញអេក្រង់ក្នុងថ្នាក់រៀន">
             <i class="fa-solid fa-play"></i> <span>បញ្ចាំង</span>
           </button>
-          <button type="button" class="studio-btn studio-btn-folder" onclick="openSaveToFolderModal('studio')" title="រក្សាទុកស្លាយនេះចូលថតមេរៀន">
+          <button type="button" class="studio-btn studio-btn-folder" onclick="openSaveToFolderModal('studio')"
+            title="រក្សាទុកស្លាយនេះចូលថតមេរៀន">
             <i class="fa-solid fa-folder-plus"></i> <span>ដាក់ចូលថត</span>
           </button>
-          <button type="button" class="studio-btn studio-btn-pptx" onclick="exportStudioDeckToPptx()" title="ទាញយកឯកសារ PowerPoint (.pptx)">
+          <button type="button" class="studio-btn studio-btn-pptx" onclick="exportStudioDeckToPptx()"
+            title="ទាញយកឯកសារ PowerPoint (.pptx)">
             <i class="fa-solid fa-file-powerpoint"></i> <span>ទាញយក .pptx</span>
           </button>
-          <button type="button" class="studio-btn studio-btn-pdf" onclick="printStudioSlideDeck()" title="បោះពុម្ព ឬរក្សាទុកជា PDF">
+          <button type="button" class="studio-btn studio-btn-pdf" onclick="printStudioSlideDeck()"
+            title="បោះពុម្ព ឬរក្សាទុកជា PDF">
             <i class="fa-solid fa-print"></i> <span>PDF</span>
           </button>
-          <button type="button" class="studio-btn studio-btn-regen" onclick="reopenPptxGeneratorFromStudio()" title="បង្កើតស្លាយថ្មី">
+          <button type="button" class="studio-btn studio-btn-regen" onclick="reopenPptxGeneratorFromStudio()"
+            title="បង្កើតស្លាយថ្មី">
             <i class="fa-solid fa-wand-magic-sparkles"></i> <span>បង្កើតថ្មី</span>
           </button>
-          <button type="button" class="studio-btn studio-btn-close" onclick="closeInAppSlideStudio()" title="បិទ Slide Studio">
+          <button type="button" class="studio-btn studio-btn-close" onclick="closeInAppSlideStudio()"
+            title="បិទ Slide Studio">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
@@ -2904,7 +2946,8 @@
             <button type="button" class="studio-side-btn studio-side-add" onclick="addStudioSlide()">
               <i class="fa-solid fa-plus"></i> បន្ថែមស្លាយ
             </button>
-            <button type="button" class="studio-side-btn studio-side-del" onclick="deleteCurrentStudioSlide()" title="លុបស្លាយនេះ">
+            <button type="button" class="studio-side-btn studio-side-del" onclick="deleteCurrentStudioSlide()"
+              title="លុបស្លាយនេះ">
               <i class="fa-solid fa-trash-can"></i>
             </button>
           </div>
@@ -2923,7 +2966,8 @@
               <button type="button" class="studio-mini-btn" onclick="triggerStudioSlideImageUpload()">
                 <i class="fa-solid fa-upload"></i> ផ្ទុករូបខ្លួនឯង
               </button>
-              <button type="button" class="studio-mini-btn" id="btnStudioToggleImage" onclick="removeCurrentStudioSlideImage()">
+              <button type="button" class="studio-mini-btn" id="btnStudioToggleImage"
+                onclick="removeCurrentStudioSlideImage()">
                 <i class="fa-solid fa-eye-slash"></i> ដករូបចេញ
               </button>
             </div>
@@ -3006,7 +3050,8 @@
       <button type="button" onclick="navigateStudioPresent(1)" title="ស្លាយបន្ទាប់ (→)">
         <i class="fa-solid fa-chevron-right"></i>
       </button>
-      <button type="button" onclick="exitSlideStudioPresent()" title="ចាកចេញ (Esc)" style="background: rgba(239,68,68,0.85);">
+      <button type="button" onclick="exitSlideStudioPresent()" title="ចាកចេញ (Esc)"
+        style="background: rgba(239,68,68,0.85);">
         <i class="fa-solid fa-compress"></i> ចាកចេញ
       </button>
     </div>
@@ -3046,7 +3091,7 @@
   <div id="smartHoverTooltip" class="smart-hover-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261118_v181"></script>
+  <script src="app.js?v=20261118_v182"></script>
 </body>
 
 </html>

@@ -7915,8 +7915,10 @@ tr.step-just-updated td {
    ========================================================================== */
 .delivery-mode-pills {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .delivery-pill {
@@ -7924,7 +7926,9 @@ tr.step-just-updated td {
   align-items: center;
   justify-content: center;
   gap: 5px;
-  padding: 7px 8px;
+  min-width: 0;
+  width: 100%;
+  padding: 7px 6px;
   border-radius: 9px;
   border: 1.5px solid #cbd5e1;
   background: #ffffff;
@@ -7935,6 +7939,9 @@ tr.step-just-updated td {
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
 }
 
 .delivery-pill:hover {
@@ -7963,9 +7970,9 @@ tr.step-just-updated td {
 
 .online-platform-row {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
 }
 
 .online-platform-label {
