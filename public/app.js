@@ -5287,16 +5287,41 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', t
 // ==========================================================================
 
 // 🛡️ Strict Validation: Ensure lesson plan is 100% genuine AI-generated, NEVER a dummy placeholder template
+function validateRawAiLessonPlan(rawPlan) {
+  if (!rawPlan || typeof rawPlan !== 'object') {
+    throw new Error('មិនទទួលបានទិន្នន័យ JSON ពី Gemini AI ឡើយ (Empty / Invalid AI Response)។');
+  }
+  if (rawPlan.isOfflineDraft) {
+    throw new Error('ប្រព័ន្ធមិនអនុញ្ញាតឱ្យបង្ហាញ Fallback Template ដោយស្វ័យប្រវត្តិឡើយ។');
+  }
+  const rawSteps = rawPlan.steps || rawPlan.learningActivities || rawPlan.stage3?.learningActivities || [];
+  if (!Array.isArray(rawSteps) || rawSteps.length < 3) {
+    throw new Error('Gemini AI មិនបានបង្កើតជំហានបង្រៀនពេញលេញឡើយ (ទិន្នន័យជំហានមិនគ្រប់គ្រាន់)។');
+  }
+  // Ensure core steps actually contain real AI text BEFORE normalizeLessonPlanData runs
+  const nonEmptySteps = rawSteps.filter(s => {
+    if (!s || typeof s !== 'object') return false;
+    const t = String(s.teacherActivity || s.teacher || '').trim();
+    const c = String(s.contentSummary || s.content || '').trim();
+    const st = String(s.studentActivity || s.student || '').trim();
+    return (t.length + c.length + st.length) >= 25;
+  });
+  if (nonEmptySteps.length < 3) {
+    throw new Error('Gemini AI បានបញ្ជូនទិន្នន័យជំហានបង្រៀនមិនគ្រប់ជ្រុងជ្រោយ (Incomplete AI Steps)។');
+  }
+  return true;
+}
+
 function validateGenuineAiLessonPlan(plan) {
   if (!plan || typeof plan !== 'object') {
     throw new Error('ទិន្នន័យកិច្ចតែងការមិនត្រឹមត្រូវ (Invalid Plan Data)។');
   }
   if (plan.isOfflineDraft) {
-    throw new Error('ប្រព័ន្ធបដិសេធមិនបង្ហាញ Template ព្រាងក្លែងក្លាយឡើយ។ សូមផ្ទៀងផ្ទាត់ការតភ្ជាប់ Google Gemini AI។');
+    throw new Error('ប្រព័ន្ធបដិសេធមិនបង្ហាញ Template ព្រាងដោយស្វ័យប្រវត្តិឡើយ។ សូមផ្ទៀងផ្ទាត់ការតភ្ជាប់ Google Gemini AI។');
   }
   const steps = plan.steps || plan.learningActivities || [];
   if (!Array.isArray(steps) || steps.length < 3) {
-    throw new Error('AI Gemini មិនបានបង្កើតជំហានបង្រៀនពេញលេញឡើយ (ចំនួនជំហានមិនគ្រប់គ្រាន់)។ សូមចុច «សាកល្បងម្ដងទៀត»។');
+    throw new Error('AI Gemini មិនបានបង្កើតជំហានបង្រៀនពេញលេញឡើយ (ចំនួនជំហានមិនគ្រប់គ្រាន់)។');
   }
   // Check Step 3 (Core new lesson content)
   const step3 = steps.find(s => s && (s.stepNumber === 3 || s.step_number === 3)) || steps[2];
@@ -5304,7 +5329,7 @@ function validateGenuineAiLessonPlan(plan) {
   const isGenericDummy = s3Content.includes('ខ្លឹមសារស្នូល និយមន័យ និងទ្រឹស្តីគន្លឹះដែលសិស្សត្រូវក្តាប់បាន') ||
                          s3Content.includes('ឧទាហរណ៍ជាក់ស្តែង និងរូបមន្ត/ក្បួនខ្នាតសំខាន់ៗ');
   if (isGenericDummy || s3Content.trim().length < 15) {
-    throw new Error('ខ្លឹមសារមេរៀនក្នុងជំហានទី ៣ មិនទាន់ឆ្លងកាត់ការវិភាគស៊ីជម្រៅពី AI ពេញលេញនៅឡើយ (បានត្រឹមតែគ្រោងគំរូទូទៅ)។ ដើម្បីធានាគុណភាពគរុកោសល្យខ្ពស់បំផុត ប្រព័ន្ធមិនអនុញ្ញាតឱ្យបង្ហាញឡើយ។ សូមរង់ចាំបន្តិច ហើយចុច «សាកល្បងម្ដងទៀត»។');
+    throw new Error('ខ្លឹមសារមេរៀនក្នុងជំហានទី ៣ មិនទាន់ឆ្លងកាត់ការវិភាគស៊ីជម្រៅពី AI ពេញលេញនៅឡើយ។');
   }
   return true;
 }
@@ -5388,11 +5413,13 @@ async function handleGenerateLessonPlan() {
     }
 
     if (planData) {
+      // 🛡️ STRICT ZERO-SILENT-FALLBACK: Verify raw AI output BEFORE normalization fills any fields
+      validateRawAiLessonPlan(planData);
       planData = normalizeLessonPlanData(planData, genParams);
-      // 🛡️ STRICT VALIDATION: Ensure the plan is genuine AI-generated, NEVER an empty/dummy placeholder template
+      // Double-check post-normalized plan is genuine AI-generated
       validateGenuineAiLessonPlan(planData);
     } else {
-      throw new Error('មិនទទួលបានទិន្នន័យពី AI ឡើយ (Empty AI response)។');
+      throw new Error('មិនទទួលបានទិន្នន័យពី Gemini AI ឡើយ (Empty AI response)។');
     }
 
     if (state.savedLearningGain && !planData.selfEvaluation) {
@@ -5439,8 +5466,9 @@ async function handleGenerateLessonPlan() {
   }
 }
 
-// Global state for pending generation parameters
+// Global state for pending generation parameters & last error diagnosis
 let pendingGenParams = null;
+let lastAiErrorShortReason = '';
 
 function escapeHtml(str) {
   if (!str) return '';
@@ -5453,7 +5481,7 @@ function escapeHtml(str) {
 }
 window.escapeHtml = escapeHtml;
 
-// 🤖 AI Troubleshooting & Error Notification Modal Handlers
+// 🤖 AI Troubleshooting & 2-Choice User Decision Modal (Strict Zero Silent Fallback Mandate)
 function openAiErrorModal(errOrType, genParams) {
   pendingGenParams = genParams;
   const loadingOverlay = document.getElementById('loadingOverlay');
@@ -5462,6 +5490,7 @@ function openAiErrorModal(errOrType, genParams) {
   const modal = document.getElementById('aiErrorModal');
   const titleEl = document.getElementById('aiErrorModalTitle');
   const reasonEl = document.getElementById('aiErrorReasonText');
+  const choice1ReasonEl = document.getElementById('aiErrorChoice1Reason');
   const logEl = document.getElementById('aiErrorTechnicalLog');
 
   let rawMsg = '';
@@ -5505,138 +5534,100 @@ function openAiErrorModal(errOrType, genParams) {
 
   if (logEl) logEl.textContent = rawMsg || 'Unknown Error';
 
+  let shortReason = '';
+
   if (isNoKey) {
+    shortReason = 'មិនទាន់បានបញ្ចូល Google Gemini API Key នៅក្នុងកម្មវិធីនៅឡើយទេ (ឥតគិតថ្លៃ ១០០% ពី Google AI Studio)។';
     if (titleEl) titleEl.textContent = '⚠️ មិនទាន់បានបញ្ចូល Google Gemini API Key';
     if (reasonEl) {
       reasonEl.innerHTML = `
-        <div style="margin-bottom: 10px; font-size: 0.92rem; line-height: 1.6;">
-          <strong>🔍 មូលហេតុ៖</strong> កម្មវិធីមិនទាន់រកឃើញ <strong>Google Gemini API Key</strong> នៅក្នុងប្រព័ន្ធនៅឡើយទេ។
+        <div style="margin-bottom: 6px;">
+          កម្មវិធីមិនទាន់រកឃើញ <strong>Google Gemini API Key</strong> ដើម្បីភ្ជាប់ទៅបញ្ញាសិប្បនិម្មិត Gemini AI នៅឡើយទេ។
         </div>
-        <div style="margin-bottom: 10px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; padding: 10px 14px; font-size: 0.88rem; color: #1e40af; line-height: 1.6;">
-          <strong>💡 ហេតុអ្វីត្រូវមាន API Key?</strong><br>
-          ដើម្បីឱ្យបញ្ញាសិប្បនិម្មិត <strong>Google Gemini AI (3.5 Flash / Pro)</strong> អាចវិភាគចំណងជើង និងបង្កើតខ្លឹមសារកិច្ចតែងការ MoEYS ៥ ជំហានពេញលេញ មានគុណភាពខ្ពស់ និងឆ្លើយតបត្រូវតាមមុខវិជ្ជាជាក់ស្ដែង។
-        </div>
-        <div style="margin-bottom: 6px; font-size: 0.88rem; color: #166534; line-height: 1.5;">
-          <strong>✨ តើ API Key គិតថ្លៃទេ?</strong><br>
-          <strong>ឥតគិតថ្លៃ ១០០% (Free 100%)</strong> ពី Google AI Studio ដោយប្រើត្រឹមតែគណនី Gmail ធម្មតារបស់លោកគ្រូ/អ្នកគ្រូប៉ុណ្ណោះ (ចំណាយពេលត្រឹម ៣០ វិនាទី)។
+        <div style="font-size: 0.82rem; color: #166534;">
+          💡 លោកគ្រូ/អ្នកគ្រូអាចបង្កើត Key <strong>ឥតគិតថ្លៃ ១០០%</strong> ពី <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #2563eb; text-decoration: underline;">aistudio.google.com/app/apikey</a> (ប្រើត្រឹមគណនី Gmail ធម្មតា)។
         </div>
       `;
     }
   } else if (isInvalidKey) {
-    if (titleEl) titleEl.textContent = 'Google Gemini API Key មិនត្រឹមត្រូវ (Invalid Key)';
+    shortReason = 'Google Gemini API Key មិនត្រឹមត្រូវ ឬផុតសុពលភាព (HTTP 401/403: API_KEY_INVALID)។';
+    if (titleEl) titleEl.textContent = '🔑 Google Gemini API Key មិនត្រឹមត្រូវ (Invalid Key)';
     if (reasonEl) {
       reasonEl.innerHTML = `
-        <div style="margin-bottom: 8px;">
-          <strong>🔍 មូលហេតុ៖</strong> Google បានបដិសេធ API Key (HTTP 400/401/403: API_KEY_INVALID)។ API Key អាចមានការចម្លងខ្វះតួអក្សរ ផុតសុពលភាព ឬត្រូវបាន Revoke។
+        <div style="margin-bottom: 6px;">
+          Google បានបដិសេធ API Key បច្ចុប្បន្ន (អាចចម្លងខ្វះតួអក្សរ ផុតសុពលភាព ឬត្រូវបាន Revoke)។
         </div>
-        <div style="margin-bottom: 8px; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; color: #991b1b; line-height: 1.5;">
-          <strong>🛡️ ការកំណត់ដាច់ខាត (Strict Mandate)៖</strong><br>
-          ប្រព័ន្ធបដិសេធដាច់ខាត <strong>មិនដាក់បង្ហាញកិច្ចតែងការគំរូទូទៅ (Dummy Template) ជាដាច់ខាត</strong> ក្នុងករណី AI មិនបានផ្ដល់ទិន្នន័យ។
-        </div>
-        <div>
-          <strong>🛠️ អ្វីដែលលោកគ្រូ អ្នកគ្រូត្រូវធ្វើ៖</strong> 
-          សូមចូលទៅកាន់ <strong><a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #2563eb; text-decoration: underline;">aistudio.google.com/app/apikey</a></strong> បង្កើត ឬចម្លង Key ថ្មី រួចចុចប៊ូតុង <strong>«🔑 ពិនិត្យ / បញ្ចូល Gemini API Key ថ្មី»</strong> ខាងក្រោម។
+        <div style="font-size: 0.82rem; color: #334155;">
+          🛠️ សូមចូល <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #2563eb; text-decoration: underline;">aistudio.google.com/app/apikey</a> បង្កើត Key ថ្មី រួចចុច <strong>«ពិនិត្យ / បញ្ចូល API Key»</strong>។
         </div>
       `;
     }
   } else if (isQuotaReached) {
-    if (titleEl) titleEl.textContent = '🚫 Google Gemini ជាប់កម្រិតកំណត់កូតា (Quota Reached / 429)';
+    shortReason = 'គណនី Google Gemini API អស់កូតាប្រើប្រាស់បណ្តោះអាសន្ន (Quota Reached / HTTP 429)។';
+    if (titleEl) titleEl.textContent = '🚫 Google Gemini អស់កូតាបណ្តោះអាសន្ន (Quota Reached / 429)';
     if (reasonEl) {
       reasonEl.innerHTML = `
-        <div style="margin-bottom: 10px; font-size: 0.92rem; line-height: 1.6;">
-          <strong>🔍 មូលហេតុពិតប្រាកដ (True Cause)៖</strong><br>
-          គណនី Google Gemini API Key របស់លោកគ្រូ/អ្នកគ្រូបានប្រើប្រាស់ដល់កម្រិតកំណត់កូតា (<strong>Reach Quota / Rate Limit</strong>) ពី Google AI Studio។
+        <div style="margin-bottom: 6px;">
+          គណនី Google Gemini API Key របស់លោកគ្រូ/អ្នកគ្រូបានប្រើដល់កម្រិតកំណត់កូតា (<strong>Rate Limit / Daily Quota</strong>)។
         </div>
-        <div style="margin-bottom: 10px; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; color: #991b1b; line-height: 1.5;">
-          <strong>🛡️ ការកំណត់ដាច់ខាត (Strict Mandate)៖</strong><br>
-          ដើម្បីធានាគុណភាពគរុកោសល្យខ្ពស់បំផុត ប្រព័ន្ធបដិសេធដាច់ខាត <strong>មិនដាក់បង្ហាញកិច្ចតែងការគំរូទូទៅ (Dummy Template) ជាដាច់ខាត</strong> ក្នុងករណី AI មិនបានផ្ដល់កិច្ចតែងការ។ រាល់កិច្ចតែងការទាំងអស់ត្រូវតែបង្កើតចេញពីបញ្ញាសិប្បនិម្មិត Gemini AI ពិតប្រាកដ ១០០%។
-        </div>
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; line-height: 1.6;">
-          <strong>🛠️ ដំណោះស្រាយដែលលោកគ្រូ អ្នកគ្រូត្រូវធ្វើ (Action Required)៖</strong>
-          <ul style="margin: 6px 0 0 16px; padding: 0; color: #334155;">
-            <li style="margin-bottom: 6px;">
-              <strong>ជម្រើសទី ១ (ណែនាំ):</strong> <strong>Please change Gemini account API key</strong> — សូមផ្លាស់ប្តូរ ឬបញ្ចូល Gemini API Key ថ្មីពីគណនី Google ផ្សេងទៀត (<a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #2563eb; text-decoration: underline;">aistudio.google.com</a>) ដើម្បីបន្តបង្កើតភ្លាមៗដោយមិនបាច់រង់ចាំ។
-            </li>
-            <li style="margin-bottom: 6px;">
-              <strong>ជម្រើសទី ២:</strong> <strong>Wait until the next quota of usable</strong> — សូមរង់ចាំរហូតដល់ Google Reset កូតាប្រើប្រាស់ឡើងវិញនៅវដ្តបន្ទាប់ (ជាទូទៅប្រមាណពីរបីនាទី ឬថ្ងៃបន្ទាប់)។
-            </li>
-            <li>
-              <strong>ជម្រើសទី ៣:</strong> ចុចប្តូរទៅកាន់ <strong>«⚡ Gemini 3.5 Flash»</strong> ដែលមានកូតាធំទូលាយ និងកម្រិតកំណត់ខ្ពស់ជាងម៉ូដែល Pro។
-            </li>
-          </ul>
+        <div style="font-size: 0.82rem; color: #334155;">
+          🛠️ លោកគ្រូអាច <strong>រង់ចាំប៉ុន្មាននាទី</strong> ឱ្យ Google Reset កូតាឡើងវិញ ឬ <strong>ប្តូរ API Key ពីគណនី Gmail ផ្សេង</strong>។
         </div>
       `;
     }
   } else if (isHighDemand) {
-    if (titleEl) titleEl.textContent = '⚠️ ម៉ាស៊ីនបម្រើ Google Gemini កំពុងមមាញឹកខ្លាំង (High Demand / Spikes)';
+    shortReason = 'ម៉ាស៊ីនបម្រើ Google Gemini កំពុងមមាញឹកខ្លាំង (High Demand / HTTP 503)។';
+    if (titleEl) titleEl.textContent = '⏳ ម៉ាស៊ីនបម្រើ Google Gemini កំពុងមមាញឹកខ្លាំង (503)';
     if (reasonEl) {
       reasonEl.innerHTML = `
-        <div style="margin-bottom: 10px; font-size: 0.92rem; line-height: 1.6;">
-          <strong>🔍 មូលហេតុពិតប្រាកដពី Google AI Studio៖</strong><br>
-          ម៉ាស៊ីនបម្រើ Google Gemini កំពុងមានអ្នកប្រើប្រាស់កកស្ទះខ្លាំងទូទាំងពិភពលោក (<strong>This model is currently experiencing high demand. Spikes in demand are usually temporary.</strong>)។
+        <div style="margin-bottom: 6px;">
+          ម៉ាស៊ីនបម្រើ Google Gemini កំពុងមានអ្នកប្រើប្រាស់កកស្ទះខ្លាំងទូទាំងពិភពលោកបណ្តោះអាសន្ន (<strong>Service Overloaded / High Demand</strong>)។
         </div>
-        <div style="margin-bottom: 10px; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; color: #991b1b; line-height: 1.5;">
-          <strong>🛡️ ការកំណត់ដាច់ខាត (Strict Mandate)៖</strong><br>
-          ប្រព័ន្ធបដិសេធដាច់ខាត <strong>មិនដាក់បង្ហាញកិច្ចតែងការគំរូទូទៅ (Dummy Template) ជាដាច់ខាត</strong> ក្នុងករណី AI មិនបានផ្ដល់កិច្ចតែងការ។
-        </div>
-        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; line-height: 1.6;">
-          <strong>🛠️ អ្វីដែលលោកគ្រូ អ្នកគ្រូត្រូវធ្វើ៖</strong>
-          <ul style="margin: 6px 0 0 16px; padding: 0; color: #334155;">
-            <li style="margin-bottom: 6px;">
-              សូមរង់ចាំប្រមាណ <strong>៣០ វិនាទី ទៅ ១ នាទី</strong> រួចចុចប៊ូតុង <strong>«🔄 សាកល្បងបង្កើតម្ដងទៀត»</strong> ខាងក្រោម។
-            </li>
-            <li>
-              ឬចុចប្តូរទៅកាន់ <strong>«⚡ Gemini 3.5 Flash»</strong> (Ultra Fast) ដែលមានល្បឿនលឿន និងកម្រិតផ្ទុកធំជាង។
-            </li>
-          </ul>
+        <div style="font-size: 0.82rem; color: #334155;">
+          🛠️ សូមរង់ចាំប្រមាណ <strong>៣០ វិនាទី ទៅ ១ នាទី</strong> រួចព្យាយាមបង្កើតម្ដងទៀត។
         </div>
       `;
     }
   } else if (isNetworkOrTimeout) {
-    if (titleEl) titleEl.textContent = 'ការតភ្ជាប់ទៅ Google Gemini ដាច់ចង្វាក់ ឬលើសពេល (Timeout)';
+    shortReason = 'ការតភ្ជាប់អ៊ីនធឺណិតរអាក់រអួល ឬការឆ្លើយតបពី Google Gemini លើសពេលកំណត់ (Network / Timeout)។';
+    if (titleEl) titleEl.textContent = '📡 ការតភ្ជាប់ទៅ Google Gemini ដាច់ចង្វាក់ ឬលើសពេល (Timeout)';
     if (reasonEl) {
       reasonEl.innerHTML = `
-        <div style="margin-bottom: 8px;">
-          <strong>🔍 មូលហេតុ៖</strong> ការតភ្ជាប់បណ្តាញអ៊ីនធឺណិតមានការរអាក់រអួល ឬម៉ាស៊ីនបម្រើ Google Gemini មិនបានឆ្លើយតបក្នុងរយៈពេលកំណត់។
+        <div style="margin-bottom: 6px;">
+          ការតភ្ជាប់បណ្តាញអ៊ីនធឺណិតមានការរអាក់រអួល ឬម៉ាស៊ីនបម្រើ Google Gemini មិនបានឆ្លើយតបទាន់ពេលកំណត់។
         </div>
-        <div style="margin-bottom: 8px; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; color: #991b1b; line-height: 1.5;">
-          <strong>🛡️ ការកំណត់ដាច់ខាត (Strict Mandate)៖</strong><br>
-          ប្រព័ន្ធបដិសេធដាច់ខាត <strong>មិនដាក់បង្ហាញកិច្ចតែងការគំរូទូទៅ (Dummy Template) ជាដាច់ខាត</strong>។
-        </div>
-        <div>
-          <strong>🛠️ អ្វីដែលលោកគ្រូ អ្នកគ្រូត្រូវធ្វើ៖</strong> 
-          សូមពិនិត្យមើលខ្សែបណ្តាញ Wi-Fi / អ៊ីនធឺណិតរបស់អ្នក រួចចុចប៊ូតុង <strong>«🔄 សាកល្បងបង្កើតម្ដងទៀត»</strong>។
+        <div style="font-size: 0.82rem; color: #334155;">
+          🛠️ សូមពិនិត្យ Wi-Fi / អ៊ីនធឺណិតរបស់លោកគ្រូ រួចចុចសាកល្បងម្ដងទៀត។
         </div>
       `;
     }
   } else {
-    if (titleEl) titleEl.textContent = 'មិនអាចដំណើរការតាម Google Gemini AI បានឡើយ';
+    shortReason = `Google Gemini AI មិនអាចឆ្លើយតបបាននៅពេលនេះ (${rawMsg.substring(0, 140)})។`;
+    if (titleEl) titleEl.textContent = '⚠️ មានបញ្ហាជាមួយ Google Gemini AI API';
     if (reasonEl) {
       reasonEl.innerHTML = `
-        <div style="margin-bottom: 8px;">
-          <strong>🔍 មូលហេតុពិតប្រាកដ៖</strong> ម៉ាស៊ីនបម្រើ Google Gemini បានឆ្លើយតប៖ <em>${escapeHtml(rawMsg.substring(0, 180))}</em>
+        <div style="margin-bottom: 6px;">
+          ម៉ាស៊ីនបម្រើ Google Gemini បានឆ្លើយតបបញ្ហា៖ <em>${escapeHtml(rawMsg.substring(0, 220))}</em>
         </div>
-        <div style="margin-bottom: 8px; background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; color: #991b1b; line-height: 1.5;">
-          <strong>🛡️ ការកំណត់ដាច់ខាត (Strict Mandate)៖</strong><br>
-          ប្រព័ន្ធបដិសេធដាច់ខាត <strong>មិនដាក់បង្ហាញកិច្ចតែងការគំរូទូទៅ (Dummy Template) ជាដាច់ខាត</strong> ក្នុងករណី AI មិនបានផ្ដល់កិច្ចតែងការ។
-        </div>
-        <div>
-          <strong>🛠️ អ្វីដែលលោកគ្រូ អ្នកគ្រូត្រូវធ្វើ៖</strong> 
-          សូមចុចប៊ូតុង <strong>«🔄 សាកល្បងបង្កើតម្ដងទៀត»</strong> ឬពិនិត្យ API Key និងការតភ្ជាប់អ៊ីនធឺណិតរបស់អ្នកឡើងវិញ។
+        <div style="font-size: 0.82rem; color: #334155;">
+          🛡️ <strong>កម្មវិធីនឹងមិនដាក់បង្ហាញ Fallback Template ដោយស្វ័យប្រវត្តិឡើយ</strong> ដើម្បីរក្សាគុណភាពកិច្ចតែងការរបស់លោកគ្រូ/អ្នកគ្រូ។
         </div>
       `;
     }
   }
 
-  // Adjust button styles and visibility based on error type
+  lastAiErrorShortReason = shortReason;
+  if (choice1ReasonEl) {
+    choice1ReasonEl.textContent = shortReason;
+  }
+
+  // Adjust button visibility based on error type — Choice 2 (Manual Fallback) is ALWAYS explicitly offered to the user
   const btnRetry = document.getElementById('btnAiErrorRetry');
   const btnSwitchFlash = document.getElementById('btnAiErrorSwitchFlash');
   const btnKey = document.getElementById('btnAiErrorKey');
   const btnOffline = document.getElementById('btnAiErrorOffline');
-  const btnClearKey = document.getElementById('btnAiErrorClearKey');
 
-  if (btnOffline) btnOffline.style.display = 'none';
-  if (btnClearKey) btnClearKey.style.display = 'none';
+  if (btnOffline) btnOffline.style.display = 'flex';
 
   const tier = getActiveGeminiModelTier();
   if (btnSwitchFlash) {
@@ -5648,26 +5639,11 @@ function openAiErrorModal(errOrType, genParams) {
   if (btnKey) {
     btnKey.style.display = 'flex';
     if (isNoKey) {
-      btnKey.style.background = 'linear-gradient(135deg, #2563eb, #4f46e5)';
-      btnKey.style.color = '#ffffff';
-      btnKey.style.border = 'none';
-      btnKey.style.fontWeight = '700';
-      btnKey.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.3)';
-      btnKey.innerHTML = '<i class="fa-solid fa-key" style="color: #fde047;"></i> 🔑 បញ្ចូល Gemini API Key ឥឡូវនេះ (ឥតគិតថ្លៃ Free)';
-    } else if (isQuotaReached) {
-      btnKey.style.background = 'linear-gradient(135deg, #2563eb, #4f46e5)';
-      btnKey.style.color = '#ffffff';
-      btnKey.style.border = 'none';
-      btnKey.style.fontWeight = '700';
-      btnKey.style.boxShadow = '0 4px 12px rgba(37, 99, 235, 0.25)';
-      btnKey.innerHTML = '<i class="fa-solid fa-key" style="color: #fde047;"></i> 🔑 ប្តូរគណនី Gemini API Key ថ្មី (Change Account / Key)';
+      btnKey.innerHTML = '<i class="fa-solid fa-key" style="color: #d97706;"></i> បញ្ចូល API Key (ឥតគិតថ្លៃ)';
+    } else if (isQuotaReached || isInvalidKey) {
+      btnKey.innerHTML = '<i class="fa-solid fa-key" style="color: #d97706;"></i> ប្តូរ Gemini API Key ថ្មី';
     } else {
-      btnKey.style.background = 'white';
-      btnKey.style.color = '#1e293b';
-      btnKey.style.border = '1.5px solid #cbd5e1';
-      btnKey.style.fontWeight = '600';
-      btnKey.style.boxShadow = 'none';
-      btnKey.innerHTML = '<i class="fa-solid fa-key" style="color: #f59e0b;"></i> 🔑 ពិនិត្យ / បញ្ចូល API Key ថ្មី (Google AI Studio)';
+      btnKey.innerHTML = '<i class="fa-solid fa-key" style="color: #f59e0b;"></i> ពិនិត្យ / បញ្ចូល API Key';
     }
   }
 
@@ -5717,10 +5693,39 @@ function clearKeyAndRetry() {
 }
 window.clearKeyAndRetry = clearKeyAndRetry;
 
+// Option 2: ONLY invoked when the user explicitly clicks "ប្រើ Fallback Template សិន ដើម្បីយកទម្រង់ទៅកែតម្រូវដោយដៃ"
 function proceedOfflineDeliberately() {
   closeAiErrorModal();
-  showToast('⚠️ ដើម្បីធានាគុណភាពគរុកោសល្យពិតប្រាកដ ប្រព័ន្ធមិនផ្ដល់កិច្ចតែងការគំរូទូទៅ (Template) ឡើយ។ សូមភ្ជាប់ API Key ឬព្យាយាមបង្កើតម្តងទៀតនៅពេលក្រោយ។', 'warning');
-  openApiKeyModal();
+  if (!pendingGenParams) {
+    showToast('មិនមានព័ត៌មានមេរៀនសម្រាប់បង្កើតទម្រង់ព្រាងឡើយ។ សូមបំពេញទម្រង់ជាមុនសិន។', 'warning');
+    return;
+  }
+
+  try {
+    let draftPlan = synthesizeLessonPlanOffline(pendingGenParams);
+    draftPlan.isOfflineDraft = true;
+    draftPlan.isManualFallbackDraft = true;
+    draftPlan.manualFallbackReason = lastAiErrorShortReason || 'Google Gemini AI API មានបញ្ហាបណ្តោះអាសន្ន';
+
+    draftPlan = normalizeLessonPlanData(draftPlan, pendingGenParams);
+    draftPlan.isOfflineDraft = true;
+    draftPlan.isManualFallbackDraft = true;
+    draftPlan.manualFallbackReason = lastAiErrorShortReason || 'Google Gemini AI API មានបញ្ហាបណ្តោះអាសន្ន';
+
+    state.currentPlan = draftPlan;
+    state.generatedPlanData = draftPlan;
+    renderLessonPlanToA4(draftPlan);
+
+    const emptyEl = document.getElementById('emptyState');
+    const docEl = document.getElementById('printableDoc');
+    if (emptyEl) emptyEl.style.display = 'none';
+    if (docEl) docEl.style.display = 'block';
+
+    showToast('📝 បានបង្កើតទម្រង់ព្រាងបម្រុង (Fallback Template) សម្រាប់លោកគ្រូ/អ្នកគ្រូយកទៅកែសម្រួលដោយដៃហើយ! (ចុចលើអក្សរដើម្បីកែផ្ទាល់)', 'warning');
+  } catch (e) {
+    console.error('Manual fallback template error:', e);
+    showToast('មានបញ្ហាក្នុងការបង្កើតទម្រង់ព្រាង៖ ' + e.message, 'error');
+  }
 }
 window.proceedOfflineDeliberately = proceedOfflineDeliberately;
 
@@ -10334,23 +10339,33 @@ function renderLessonPlanToA4(data) {
 
   const isEn = (state.language === 'en');
 
-  // Offline Draft Warning Banner
+  // Manual Fallback Template Notice Banner (auto-hidden when printing via .offline-warning-banner @media print)
+  const fallbackReasonText = data.manualFallbackReason
+    ? escapeHtml(data.manualFallbackReason)
+    : (isEn ? 'Google Gemini AI API was temporarily unavailable.' : 'Google Gemini AI API មានបញ្ហាបណ្តោះអាសន្ន។');
   const offlineWarningBanner = data.isOfflineDraft ? `
     <div class="offline-warning-banner" id="offlineDraftWarningBanner">
       <div style="display: flex; align-items: flex-start; gap: 12px;">
-        <span style="font-size: 1.6rem; line-height: 1;">⚠️</span>
+        <span style="font-size: 1.5rem; line-height: 1;">📝</span>
         <div>
           <div style="font-weight: 700; color: #92400e; font-size: 10.5pt; margin-bottom: 3px;">
-            ${isEn ? 'Offline Draft Template — Not yet generated by real AI' : 'គ្រោងគំរូសេចក្ដីព្រាង (Offline Draft Template) — មិនទាន់បង្កើតដោយ AI ពិតប្រាកដនៅឡើយទេ'}
+            ${isEn ? 'Manual Fallback Template (For Hand Editing) — Not AI-Generated' : 'ទម្រង់ព្រាងបម្រុងសម្រាប់កែដោយដៃ (Manual Fallback Template) — មិនមែនបង្កើតដោយ Gemini AI ទេ'}
           </div>
           <div style="font-size: 9pt; color: #78350f; line-height: 1.45;">
-            ${isEn ? 'The document below is a generic offline draft template because no <strong>Gemini API Key</strong> was provided. Click the button to connect a free API key and generate authentic detailed lesson plans.' : 'ឯកសារខាងក្រោមនេះជាគ្រោងគំរូទូទៅ (Offline Template) ដោយសារមិនទាន់បានបញ្ចូល <strong>Gemini API Key</strong>។ សូមចុចប៊ូតុងខាងស្ដាំដើម្បីភ្ជាប់ Key ឥតគិតថ្លៃ (Free 100%) រួចបង្កើតខ្លឹមសារលម្អិតតាម AI Gemini ពិតប្រាកដ។'}
+            ${isEn
+              ? `Opened by your choice because: <strong>${fallbackReasonText}</strong>. You may edit text directly on the page (this notice disappears when printing), or retry Gemini AI anytime.`
+              : `បើកតាមការជ្រើសរើសរបស់លោកគ្រូ/អ្នកគ្រូ ដោយមូលហេតុ៖ <strong>${fallbackReasonText}</strong> លោកគ្រូអាចចុចកែអក្សរដោយដៃផ្ទាល់លើក្រដាស (ស្លាកនេះនឹងបាត់ស្វ័យប្រវត្តិពេល Print/PDF) ឬចុចបង្កើតដោយ AI ម្ដងទៀតពេលក្រោយ។`}
           </div>
         </div>
       </div>
-      <button type="button" onclick="openApiKeyModal()" style="white-space: nowrap; padding: 8px 14px; background: linear-gradient(135deg, #d97706, #b45309); color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 9pt; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(217, 119, 6, 0.3);">
-        <i class="fa-solid fa-key" style="color: #fef08a;"></i> ${isEn ? 'Connect API Key Now' : 'ភ្ជាប់ API Key ឥឡូវនេះ'}
-      </button>
+      <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0; flex-wrap: wrap;">
+        <button type="button" onclick="handleGenerateLessonPlan()" style="white-space: nowrap; padding: 7px 12px; background: linear-gradient(135deg, #2563eb, #4f46e5); color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 8.8pt; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);">
+          <i class="fa-solid fa-rotate-right"></i> ${isEn ? 'Retry Gemini AI' : 'បង្កើតដោយ AI វិញ'}
+        </button>
+        <button type="button" onclick="openApiKeyModal()" style="white-space: nowrap; padding: 7px 11px; background: white; color: #92400e; border: 1.5px solid #d97706; border-radius: 6px; font-weight: 700; font-size: 8.8pt; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+          <i class="fa-solid fa-key" style="color: #d97706;"></i> API Key
+        </button>
+      </div>
     </div>
   ` : '';
 
