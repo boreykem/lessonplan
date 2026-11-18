@@ -4055,6 +4055,12 @@ function renderPedagogicalQualityScore(data) {
     const pillarCardsHtml = aiAudit.pillars.map(p => {
       const pct = Math.min(100, Math.max(0, Math.round((p.score / p.max) * 100)));
       const barColor = pct >= 85 ? '#10b981' : (pct >= 68 ? '#4f46e5' : '#f59e0b');
+      const evHtml = p.evidence
+        ? `<div class="quality-criterion-evidence"><i class="fa-solid fa-quote-left"></i> <strong>${isEn ? 'Evidence:' : 'ភស្តុតាង៖'}</strong> ${escapeHtml(p.evidence)}</div>`
+        : '';
+      const guardHtml = p.guardrailNote
+        ? `<div class="quality-criterion-guardrail"><i class="fa-solid fa-shield-halved"></i> ${escapeHtml(p.guardrailNote)}</div>`
+        : '';
       return `
         <div class="quality-criterion-card">
           <div class="quality-criterion-head">
@@ -4065,6 +4071,8 @@ function renderPedagogicalQualityScore(data) {
             <div class="quality-criterion-fill" style="width: ${pct}%; background: ${barColor};"></div>
           </div>
           <div class="quality-criterion-note">${escapeHtml(p.feedback || '')}</div>
+          ${evHtml}
+          ${guardHtml}
         </div>
       `;
     }).join('');
@@ -4157,9 +4165,9 @@ function renderPedagogicalQualityScore(data) {
       ${strengthsHtml}
       ${fixesHtml}
       <div class="audit-scope-footnote">
-        💡 ${isEn
-          ? 'Scope: This score strictly evaluates the Lesson Plan content (6 MoEYS pillars = 100 pts). Additional teaching resources (Pre/Post-Test, PPTX, Video) will be evaluated separately in Phase 2.'
-          : 'វិសាលភាពវាយតម្លៃ៖ ពិន្ទុនេះវាយតម្លៃផ្ដោតលើគុណភាព «តួកិច្ចតែងការ» ១០០% តាមសសរស្ដម្ភគរុកោសល្យទាំង ៦ (ធនធានបន្ថែមដូចជា Pre/Post-Test, PPTX, វីដេអូ នឹងវាយតម្លៃដាច់ដោយឡែកនៅផ្នែកទី ២)។'}
+        🛡️ ${isEn
+          ? 'Anti-Bias 2-Layer Verified: Evidence-Based AI Inspection + Deterministic Code Guardrails (Scope: Lesson Plan 6 Pillars = 100 pts; external resources evaluated in Phase 2).'
+          : 'ផ្ទៀងផ្ទាត់ ២ ជាន់គ្មានលំអៀង (Anti-Bias Verified)៖ អធិការកិច្ច AI ផ្អែកលើភស្តុតាងជាក់ស្ដែង + រនាំងពិនិត្យកូដសត្យានុម័ត (វាយតម្លៃតែ «តួកិច្ចតែងការ» ១០០% — ធនធានបន្ថែមវាយតម្លៃនៅផ្នែកទី ២)។'}
       </div>
     `;
   } else {
@@ -4233,6 +4241,133 @@ function toggleQualityScoreDetails(forceOpen = null) {
 }
 window.toggleQualityScoreDetails = toggleQualityScoreDetails;
 
+// Layer 2: Deterministic Code-Enforced Objective Guardrails (prevents AI sycophancy / score inflation)
+function enforceObjectiveAuditGuardrails(plan, pillars, isEn) {
+  const struct = evaluatePedagogicalQuality(plan);
+  if (!struct || !Array.isArray(pillars)) return { pillars, totalScore: 0, guardrailTriggered: false };
+
+  const steps = Array.isArray(plan.steps) ? plan.steps : [];
+  let richSteps = 0;
+  steps.forEach(s => {
+    const tLen = String(s.teacherActivity || '').trim().length;
+    const cLen = String(s.contentSummary || '').trim().length;
+    const stLen = String(s.studentActivity || '').trim().length;
+    if (tLen >= 25 && cLen >= 20 && stLen >= 25) richSteps++;
+  });
+
+  const hasMatT = Array.isArray(plan.materials?.teacher) && plan.materials.teacher.length > 0;
+  const hasMatS = Array.isArray(plan.materials?.student) && plan.materials.student.length > 0;
+  const hasStep5Closure = steps.length >= 5 &&
+    (String(steps[4]?.teacherActivity || '').trim().length >= 20) &&
+    (String(steps[4]?.studentActivity || '').trim().length >= 15);
+
+  let guardrailTriggered = false;
+
+  const checkedPillars = pillars.map((p, i) => {
+    const out = Object.assign({}, p, { guardrailNote: '' });
+    const key = String(p.key || '').toLowerCase();
+
+    // 1. Objectives hard check
+    if (key === 'objectives' || i === 0) {
+      if (struct.bloomCount < 3) {
+        const cap = struct.bloomCount === 2 ? 14 : (struct.bloomCount === 1 ? 8 : 0);
+        if (out.score > cap) {
+          out.score = cap;
+          guardrailTriggered = true;
+          out.guardrailNote = isEn
+            ? `Code check: Only ${struct.bloomCount}/3 Bloom's domains found (capped at ${cap}/20).`
+            : `រនាំងកូដ៖ រកឃើញវត្ថុបំណងតែ ${toKhmerNumber(struct.bloomCount)}/៣ ផ្នែក (កំណត់អតិបរមា ${toKhmerNumber(cap)}/២០)។`;
+        }
+      }
+    }
+
+    // 2. Content & Q&A depth hard check
+    if (key === 'content_qa' || i === 1) {
+      if (plan.isOfflineDraft && out.score > 10) {
+        out.score = 10;
+        guardrailTriggered = true;
+        out.guardrailNote = isEn
+          ? 'Code check: Manual draft template (capped at 10/20 until AI-authored or enriched).'
+          : 'រនាំងកូដ៖ ទម្រង់ព្រាងដោយដៃ (កំណត់អតិបរមា ១០/២០)។';
+      } else if (richSteps < 4 && out.score > 14) {
+        out.score = 14;
+        guardrailTriggered = true;
+        out.guardrailNote = isEn
+          ? `Code check: Only ${richSteps}/5 steps have full 3-column detail (capped at 14/20).`
+          : `រនាំងកូដ៖ មានតែ ${toKhmerNumber(richSteps)}/៥ ជំហានប៉ុណ្ណោះដែលមានខ្លឹមសារគ្រប់ ៣ ជួរ (កំណត់អតិបរមា ១៤/២០)។`;
+      }
+    }
+
+    // 3. Techniques & Engagement hard check
+    if (key === 'engagement' || i === 2) {
+      if (struct.techTotal > 0 && struct.matchedTechs === 0 && out.score > 12) {
+        out.score = 12;
+        guardrailTriggered = true;
+        out.guardrailNote = isEn
+          ? `Code check: 0/${struct.techTotal} selected active techniques detected in steps (capped at 12/20).`
+          : `រនាំងកូដ៖ មិនទាន់រកឃើញយុទ្ធវិធីដែលបានរើស (០/${toKhmerNumber(struct.techTotal)}) ក្នុងជំហាន (កំណត់អតិបរមា ១២/២០)។`;
+      } else if (struct.techTotal > 0 && struct.matchedTechs < struct.techTotal) {
+        const cap = Math.min(20, 14 + Math.round((struct.matchedTechs / struct.techTotal) * 5));
+        if (out.score > cap) {
+          out.score = cap;
+          guardrailTriggered = true;
+          out.guardrailNote = isEn
+            ? `Code check: ${struct.matchedTechs}/${struct.techTotal} selected techniques detected (capped at ${cap}/20).`
+            : `រនាំងកូដ៖ រកឃើញយុទ្ធវិធី ${toKhmerNumber(struct.matchedTechs)}/${toKhmerNumber(struct.techTotal)} ក្នុងជំហាន (កំណត់អតិបរមា ${toKhmerNumber(cap)}/២០)។`;
+        }
+      }
+    }
+
+    // 4. Materials hard check
+    if (key === 'materials' || i === 3) {
+      if ((!hasMatT || !hasMatS) && out.score > 9) {
+        out.score = 9;
+        guardrailTriggered = true;
+        out.guardrailNote = isEn
+          ? 'Code check: Teacher or student materials list is empty (capped at 9/15).'
+          : 'រនាំងកូដ៖ ខ្វះបញ្ជីសម្ភារគ្រូ ឬសិស្ស (កំណត់អតិបរមា ៩/១៥)។';
+      }
+    }
+
+    // 5. Pacing hard check
+    if (key === 'pacing' || i === 4) {
+      if ((!struct.timeAligned || struct.stepsCount < 5) && out.score > 10) {
+        out.score = 10;
+        guardrailTriggered = true;
+        out.guardrailNote = isEn
+          ? `Code check: Step durations (${struct.timePct}%) do not align with total class duration (capped at 10/15).`
+          : `រនាំងកូដ៖ ផលបូកនាទីជំហាន (${toKhmerNumber(struct.timePct)}%) មិនទាន់ត្រូវនឹងម៉ោងសរុប (កំណត់អតិបរមា ១០/១៥)។`;
+      }
+    }
+
+    // 6. Assessment / Step 5 closure hard check
+    if (key === 'assessment' || i === 5) {
+      if (!hasStep5Closure && out.score > 5) {
+        out.score = 5;
+        guardrailTriggered = true;
+        out.guardrailNote = isEn
+          ? 'Code check: Step 5 closure/assessment is incomplete (capped at 5/10).'
+          : 'រនាំងកូដ៖ ជំហានទី ៥ វាយតម្លៃ/បណ្តាំផ្ញើនៅខ្លីពេក (កំណត់អតិបរមា ៥/១០)។';
+      }
+    }
+
+    // Require concrete evidence string for high pillar scores (>= 85% of max)
+    if (out.score >= Math.ceil(out.max * 0.85) && (!out.evidence || out.evidence.trim().length < 6)) {
+      out.score = Math.max(0, out.score - 1);
+    }
+
+    return out;
+  });
+
+  let totalScore = checkedPillars.reduce((acc, p) => acc + p.score, 0);
+  if (plan.isOfflineDraft) {
+    totalScore = Math.min(65, totalScore);
+  }
+  totalScore = Math.min(100, Math.max(0, totalScore));
+
+  return { pillars: checkedPillars, totalScore, guardrailTriggered };
+}
+
 async function runDeepAiPedagogicalAudit(planData, isManualTrigger = false, previousAuditNote = '') {
   const plan = planData || state.currentPlan || state.generatedPlanData;
   if (!plan || !Array.isArray(plan.steps) || plan.steps.length === 0) return;
@@ -4276,24 +4411,29 @@ async function runDeepAiPedagogicalAudit(planData, isManualTrigger = false, prev
     : '';
 
   const reAuditContextBlock = previousAuditNote
-    ? `\n[RE-AUDIT VERIFICATION CONTEXT]\nThe teacher just refined this lesson plan to fix these previously reported gaps:\n${previousAuditNote}\nFAIRNESS RULE: Verify objectively whether those gaps have now been resolved! If resolved, award full or near-full marks on those pillars — NEVER move the goalpost or invent trivial nitpicks just to keep the score low!\n`
+    ? `\n[RE-AUDIT EVIDENCE VERIFICATION — STRICT ANTI-SYCOPHANCY]\nPreviously reported gaps:\n${previousAuditNote}\nSTRICT RULE: Check the actual text below for REAL VERBATIM EVIDENCE that each gap was fixed!
+- If a gap IS genuinely resolved with clear concrete proof in the text, cite that exact proof in "evidence" and award the deserved higher score (do NOT invent new trivial nitpicks).
+- If a gap is STILL missing or only vaguely touched, DO NOT inflate the score out of politeness — keep the deduction honest and explain what is still missing!\n`
     : '';
 
   const auditPrompt = `
-You are a FAIR, HONEST, SENIOR MoEYS Pedagogical Inspector (អធិការកិច្ចគរុកោសល្យជាន់ខ្ពស់) in Cambodia.
+You are an INDEPENDENT, ZERO-BIAS, SENIOR MoEYS Pedagogical Inspector (អធិការកិច្ចគរុកោសល្យឯករាជ្យ) in Cambodia.
 Audit ONLY the LESSON PLAN content below (DO NOT penalize for missing external Pre-Test/Post-Test appendices, PPTX slides, or external videos — those belong to Phase 2).
 
-[FAIRNESS & CONVERGENCE MANDATE]
-- Be objective, honest, and fair — NOT artificially harsh and NOT rubber-stamping!
-- Weak/generic drafts score 55–72/100; solid first drafts score 80–89/100; well-refined, well-aligned lesson plans where objectives, Q&A, active techniques, listed materials, timed sub-phases, and formative checks are all concrete and cohesive MUST honestly receive **93–98/100**!
-- CRITICAL: If a lesson plan achieves **93/100 or higher** with no major real gaps, return \`"improvements": []\` (EMPTY ARRAY) so the teacher knows their plan is COMPLETE and READY TO TEACH! Do NOT invent trivial nitpicks when the plan is already strong.
+[EVIDENCE-BASED ANTI-BIAS MANDATE]
+- NEVER inflate scores out of politeness (NO sycophancy) AND NEVER invent trivial nitpicks when all 6 pillars are genuinely strong!
+- For EVERY pillar, you MUST provide a short, concrete "evidence" snippet pointing to specific text/step in the lesson plan (e.g., "ជំ.៤៖ បែងចែក ៤ ដំណាក់កាលរង (២០+៤០+៤៥+៣០ នាទី) + ប្រើ Six Thinking Hats").
+- Scoring calibration:
+  • Weak/generic draft: 55–72/100
+  • Solid draft with real gaps: 78–89/100
+  • Rigorously refined, cohesive, evidence-verified plan with zero major gaps: 93–98/100 (and return "improvements": [] ONLY when genuinely >= 93 with no real gaps left!)
 - Check REAL semantic alignment across 6 pillars:
-  1. Do the activities and Step 5 evaluation ACTUALLY achieve every Bloom's objective in Section I (including measurable attitude/skill)?
-  2. Are the lesson content, formulas, key questions (HOTS/LOTS), and sample answers scientifically accurate and concrete?
-  3. Are the selected Teaching Method and Active Learning Techniques genuinely orchestrated with concrete student-centered actions (70% STT)?
-  4. Are the teaching/student materials listed in Section II ACTUALLY used inside Steps 1–5?
-  5. Is the workload realistic for each step's allocated minutes (including timed sub-phases for long steps) with logical scaffolding?
-  6. Does the lesson plan include authentic formative assessment, feedback, reflection, and meaningful closure/homework?
+  1. Objectives & Constructive Alignment (20 pts): Are Knowledge, Skills, AND Attitudes SMART/measurable and actually achieved by activities & Step 5?
+  2. Content & Q&A Accuracy (20 pts): Are concepts, formulas/examples, key HOTS questions, and answers scientifically accurate and concrete?
+  3. Techniques & Engagement (20 pts): Are the Teaching Method and selected Active Techniques truly orchestrated with concrete 70% STT actions (not just name-dropped)?
+  4. Materials & Visual Usage (15 pts): Are the Teacher & Student materials listed in Section II ACTUALLY used inside Steps 1–5?
+  5. Pacing & Scaffolding Flow (15 pts): Is workload realistic for each step's minutes (including timed sub-phases for long steps) with logical progression?
+  6. Formative Assessment & Closure (10 pts): Quality of in-class understanding checks, feedback, reflection, and meaningful closure/homework.
 ${reAuditContextBlock}
 [LESSON PLAN TO AUDIT]
 - Subject: ${plan.subject || ''} | Grade: ${plan.grade || ''} | Duration: ${plan.duration || ''}
@@ -4319,14 +4459,14 @@ ${isEn ? 'Professional Academic English' : 'Standard Formal Khmer (ភាសា�
 [RETURN STRICT JSON ONLY]
 Return ONLY valid JSON matching this exact schema (6 pillars summing to max 100):
 {
-  "overallVerdict": "1-2 concise sentences summarizing honest pedagogical quality.",
+  "overallVerdict": "1-2 concise sentences summarizing honest evidence-based pedagogical quality.",
   "pillars": [
-    { "key": "objectives", "title": "${isEn ? "Objectives & Alignment" : "🎯 វត្ថុបំណង & ការសម្រេចផល"}", "score": 18, "max": 20, "feedback": "1 concise honest sentence." },
-    { "key": "content_qa", "title": "${isEn ? "Content, Q&A Accuracy" : "📚 ខ្លឹមសារមេរៀន សំណួរ & ចម្លើយ"}", "score": 18, "max": 20, "feedback": "1 concise honest sentence." },
-    { "key": "engagement", "title": "${isEn ? "Techniques & Engagement" : "🧩 យុទ្ធវិធី & ការចូលរួមសិស្ស"}", "score": 18, "max": 20, "feedback": "1 concise honest sentence." },
-    { "key": "materials", "title": "${isEn ? "Materials & Visual Usage" : "🛠️ ការប្រើប្រាស់សម្ភារឧបទេស"}", "score": 13, "max": 15, "feedback": "1 concise honest sentence." },
-    { "key": "pacing", "title": "${isEn ? "Pacing & Scaffolding Flow" : "⏱️ សមាមាត្រម៉ោង & លំហូរជំហាន"}", "score": 13, "max": 15, "feedback": "1 concise honest sentence." },
-    { "key": "assessment", "title": "${isEn ? "Formative Check & Closure" : "📊 ការវាយតម្លៃដំណើរការ & បណ្តាំផ្ញើ"}", "score": 9, "max": 10, "feedback": "1 concise honest sentence." }
+    { "key": "objectives", "title": "${isEn ? "Objectives & Alignment" : "🎯 វត្ថុបំណង & ការសម្រេចផល"}", "score": 17, "max": 20, "feedback": "1 concise honest sentence.", "evidence": "Short concrete citation from the lesson plan." },
+    { "key": "content_qa", "title": "${isEn ? "Content, Q&A Accuracy" : "📚 ខ្លឹមសារមេរៀន សំណួរ & ចម្លើយ"}", "score": 18, "max": 20, "feedback": "1 concise honest sentence.", "evidence": "Short concrete citation from the lesson plan." },
+    { "key": "engagement", "title": "${isEn ? "Techniques & Engagement" : "🧩 យុទ្ធវិធី & ការចូលរួមសិស្ស"}", "score": 17, "max": 20, "feedback": "1 concise honest sentence.", "evidence": "Short concrete citation from the lesson plan." },
+    { "key": "materials", "title": "${isEn ? "Materials & Visual Usage" : "🛠️ ការប្រើប្រាស់សម្ភារឧបទេស"}", "score": 13, "max": 15, "feedback": "1 concise honest sentence.", "evidence": "Short concrete citation from the lesson plan." },
+    { "key": "pacing", "title": "${isEn ? "Pacing & Scaffolding Flow" : "⏱️ សមាមាត្រម៉ោង & លំហូរជំហាន"}", "score": 13, "max": 15, "feedback": "1 concise honest sentence.", "evidence": "Short concrete citation from the lesson plan." },
+    { "key": "assessment", "title": "${isEn ? "Formative Check & Closure" : "📊 ការវាយតម្លៃដំណើរការ & បណ្តាំផ្ញើ"}", "score": 9, "max": 10, "feedback": "1 concise honest sentence.", "evidence": "Short concrete citation from the lesson plan." }
   ],
   "strengths": [
     "Concise specific strength #1",
@@ -4340,11 +4480,11 @@ Return ONLY valid JSON matching this exact schema (6 pillars summing to max 100)
     }
   ]
 }
-Note: Return 0 items ("improvements": []) if total score >= 93 and no major gaps remain; otherwise return 1 to 3 highest-impact real gaps.
+Note: Return "improvements": [] ONLY if total score >= 93 AND all real gaps are truly resolved with evidence; otherwise return 1 to 3 highest-impact real gaps.
 `.trim();
 
   try {
-    const rawText = await callAiForSingleStep(auditPrompt, apiKey, provider, 2400);
+    const rawText = await callAiForSingleStep(auditPrompt, apiKey, provider, 2800);
     if (myRunSeq !== _aiAuditRunSeq) return; // A newer audit superseded this one
 
     const cleanedStr = String(rawText || '')
@@ -4363,7 +4503,7 @@ Note: Return 0 items ("improvements": []) if total score >= 93 and no major gaps
     }
 
     const expectedMaxes = [20, 20, 20, 15, 15, 10];
-    const cleanPillars = parsed.pillars.slice(0, 6).map((p, i) => {
+    const rawPillars = parsed.pillars.slice(0, 6).map((p, i) => {
       const maxVal = Number(p.max) > 0 ? Number(p.max) : (expectedMaxes[i] || 15);
       const scoreVal = Math.min(maxVal, Math.max(0, Math.round(Number(p.score) || 0)));
       return {
@@ -4371,16 +4511,20 @@ Note: Return 0 items ("improvements": []) if total score >= 93 and no major gaps
         title: String(p.title || `សសរស្ដម្ភទី ${i + 1}`),
         score: scoreVal,
         max: maxVal,
-        feedback: String(p.feedback || '').trim()
+        feedback: String(p.feedback || '').trim(),
+        evidence: String(p.evidence || '').trim()
       };
     });
 
-    const computedTotal = Math.min(100, Math.max(0, cleanPillars.reduce((acc, p) => acc + p.score, 0)));
+    // Apply Layer 2 Deterministic Hard-Check Guardrails (Anti-Bias Enforcement)
+    const guarded = enforceObjectiveAuditGuardrails(plan, rawPillars, isEn);
+    const computedTotal = guarded.totalScore;
     const cleanReport = cleanForbiddenScriptsAndFormatMath({
       auditedAt: Date.now(),
       totalScore: computedTotal,
+      guardrailTriggered: guarded.guardrailTriggered,
       overallVerdict: String(parsed.overallVerdict || '').trim(),
-      pillars: cleanPillars,
+      pillars: guarded.pillars,
       strengths: Array.isArray(parsed.strengths) ? parsed.strengths.slice(0, 3).map(String) : [],
       improvements: Array.isArray(parsed.improvements)
         ? parsed.improvements.slice(0, 4).map(imp => ({

@@ -5580,3 +5580,36 @@ tr.step-just-updated td {
   gap: 8px;
   flex-wrap: wrap;
 }
+
+.quality-criterion-evidence {
+  margin-top: 5px;
+  padding: 4px 7px;
+  border-radius: 6px;
+  background: #f0fdf4;
+  border-left: 2.5px solid #10b981;
+  font-size: 0.69rem;
+  color: #166534;
+  line-height: 1.4;
+}
+
+.quality-criterion-guardrail {
+  margin-top: 4px;
+  padding: 4px 7px;
+  border-radius: 6px;
+  background: #fef2f2;
+  border-left: 2.5px solid #ef4444;
+  font-size: 0.69rem;
+  font-weight: 600;
+  color: #991b1b;
+  line-height: 1.4;
+}
+
+[data-theme="dark"] .quality-criterion-evidence {
+  background: rgba(6, 78, 59, 0.35);
+  color: #6ee7b7;
+}
+
+[data-theme="dark"] .quality-criterion-guardrail {
+  background: rgba(127, 29, 29, 0.35);
+  color: #fca5a5;
+}
