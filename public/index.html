@@ -30,7 +30,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=20261118_v176">
+  <link rel="stylesheet" href="style.css?v=20261118_v177">
 
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -1355,6 +1355,22 @@
       <div class="modal-body" style="padding: 18px 20px; max-height: 74vh; overflow-y: auto;">
         <!-- VIEW 1: All Lesson Folders Grid -->
         <div id="lessonFoldersGridView">
+          <!-- 💻 Real PC Folder Connection Banner (File System Access API — Zero Data Loss even if Browser Cleared!) -->
+          <div id="pcFolderSyncBanner" class="pc-folder-sync-banner">
+            <div class="pc-folder-sync-left">
+              <span class="pc-folder-sync-icon"><i class="fa-solid fa-computer"></i></span>
+              <div style="min-width: 0;">
+                <div id="pcFolderSyncTitle" class="pc-folder-sync-title">ភ្ជាប់ថតពិតលើកុំព្យូទ័រ (ឧ. D:\My_Lessons)</div>
+                <div id="pcFolderSyncSub" class="pc-folder-sync-sub">រក្សាទុកជា Folder ពិតៗ (.docx + .pptx + ឯកសារ) លើ Drive កុំព្យូទ័រ — មិនបាត់ទោះ Clear Browser ទាំងអស់!</div>
+              </div>
+            </div>
+            <div id="pcFolderSyncActions" class="pc-folder-sync-actions">
+              <button type="button" class="btn-pc-connect" onclick="connectLocalPcRootFolder()">
+                <i class="fa-solid fa-folder-tree"></i> ភ្ជាប់ថតកុំព្យូទ័រ
+              </button>
+            </div>
+          </div>
+
           <!-- Top Action + Search & Filter Bar -->
           <div class="plans-filter-bar" style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
             <div class="input-icon-wrap" style="flex: 1; min-width: 200px;">
@@ -2986,7 +3002,7 @@
   <div id="smartHoverTooltip" class="smart-hover-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261118_v176"></script>
+  <script src="app.js?v=20261118_v177"></script>
 </body>
 
 </html>

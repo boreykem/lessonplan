@@ -16171,13 +16171,16 @@ function deleteSavedLesson(id) {
 // ==========================================================================
 
 const LESSON_FOLDERS_DB_NAME = 'ALPS_LessonFoldersDB';
-const LESSON_FOLDERS_DB_VERSION = 1;
+const LESSON_FOLDERS_DB_VERSION = 2;
 const LESSON_FOLDERS_STORE = 'folders';
+const LESSON_FOLDERS_META_STORE = 'meta';
+const PC_ROOT_HANDLE_META_KEY = 'pc_root_dir_handle';
 const LESSON_FOLDER_MAX_FILE_BYTES = 15 * 1024 * 1024; // 15 MB per attachment
 
 let _lessonFoldersDbPromise = null;
 let _activeLessonFolderId = null;
 let _saveFolderContextMode = 'plan';
+let _pcRootDirHandle = null;
 
 state.lessonFolders = state.lessonFolders || [];
 
@@ -16195,6 +16198,9 @@ function openLessonFoldersDb() {
         if (!db.objectStoreNames.contains(LESSON_FOLDERS_STORE)) {
           db.createObjectStore(LESSON_FOLDERS_STORE, { keyPath: 'id' });
         }
+        if (!db.objectStoreNames.contains(LESSON_FOLDERS_META_STORE)) {
+          db.createObjectStore(LESSON_FOLDERS_META_STORE, { keyPath: 'key' });
+        }
       };
       req.onsuccess = (e) => resolve(e.target.result);
       req.onerror = () => resolve(null);
@@ -16204,6 +16210,366 @@ function openLessonFoldersDb() {
   });
   return _lessonFoldersDbPromise;
 }
+
+async function idbGetMeta(key) {
+  const db = await openLessonFoldersDb();
+  if (!db || !db.objectStoreNames.contains(LESSON_FOLDERS_META_STORE)) return null;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(LESSON_FOLDERS_META_STORE, 'readonly');
+      const req = tx.objectStore(LESSON_FOLDERS_META_STORE).get(key);
+      req.onsuccess = () => resolve(req.result ? req.result.value : null);
+      req.onerror = () => resolve(null);
+    } catch (_) {
+      resolve(null);
+    }
+  });
+}
+
+async function idbSetMeta(key, value) {
+  const db = await openLessonFoldersDb();
+  if (!db || !db.objectStoreNames.contains(LESSON_FOLDERS_META_STORE)) return false;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(LESSON_FOLDERS_META_STORE, 'readwrite');
+      tx.objectStore(LESSON_FOLDERS_META_STORE).put({ key, value });
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    } catch (_) {
+      resolve(false);
+    }
+  });
+}
+
+async function idbDeleteMeta(key) {
+  const db = await openLessonFoldersDb();
+  if (!db || !db.objectStoreNames.contains(LESSON_FOLDERS_META_STORE)) return false;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(LESSON_FOLDERS_META_STORE, 'readwrite');
+      tx.objectStore(LESSON_FOLDERS_META_STORE).delete(key);
+      tx.oncomplete = () => resolve(true);
+      tx.onerror = () => resolve(false);
+    } catch (_) {
+      resolve(false);
+    }
+  });
+}
+
+// ==========================================================================
+// 💻 REAL PC FOLDER DIRECT SYNC ENGINE (File System Access API — Chrome/Edge)
+// Writes real .docx, .pptx, Worksheet, Links/Notes, Attachments, and JSON
+// backup directly into a real PC folder (e.g. D:\My_Lessons\<LessonName>\)!
+// ==========================================================================
+function isPcFolderApiSupported() {
+  return typeof window !== 'undefined' && typeof window.showDirectoryPicker === 'function';
+}
+
+async function loadSavedPcRootHandle() {
+  if (_pcRootDirHandle) return _pcRootDirHandle;
+  try {
+    const saved = await idbGetMeta(PC_ROOT_HANDLE_META_KEY);
+    if (saved && typeof saved.getDirectoryHandle === 'function') {
+      _pcRootDirHandle = saved;
+    }
+  } catch (_) { }
+  return _pcRootDirHandle;
+}
+
+async function ensurePcDirPermission(handle, mode = 'readwrite') {
+  if (!handle) return false;
+  try {
+    if (typeof handle.queryPermission === 'function') {
+      const status = await handle.queryPermission({ mode });
+      if (status === 'granted') return true;
+    }
+    if (typeof handle.requestPermission === 'function') {
+      const status = await handle.requestPermission({ mode });
+      return status === 'granted';
+    }
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function refreshPcFolderBannerUI() {
+  const banner = document.getElementById('pcFolderSyncBanner');
+  const titleEl = document.getElementById('pcFolderSyncTitle');
+  const subEl = document.getElementById('pcFolderSyncSub');
+  const actEl = document.getElementById('pcFolderSyncActions');
+  if (!banner) return;
+
+  if (!isPcFolderApiSupported()) {
+    banner.classList.remove('connected');
+    if (titleEl) titleEl.textContent = 'ទាញយកជាថត .zip ទុកលើឧបករណ៍ផ្ទាល់';
+    if (subEl) subEl.textContent = 'ការភ្ជាប់ថត Drive ផ្ទាល់ដំណើរការលើ Chrome/Edge លើកុំព្យូទ័រ — លើឧបករណ៍នេះសូមប្រើប៊ូតុង 📦 .zip។';
+    if (actEl) actEl.innerHTML = '';
+    return;
+  }
+
+  if (_pcRootDirHandle) {
+    banner.classList.add('connected');
+    if (titleEl) titleEl.innerHTML = `✅ បានភ្ជាប់ថតកុំព្យូទ័រ៖ <span style="background:#ffffff;padding:1px 8px;border-radius:6px;border:1px solid #6ee7b7;">📁 ${escapeHtml(_pcRootDirHandle.name)}</span>`;
+    if (subEl) subEl.textContent = 'រក្សាទុកផ្ទាល់ជា Folder ពិតៗ (.docx + .pptx + ឯកសារ) លើកុំព្យូទ័រ — មិនបាត់ទោះ Clear Browser ទាំងអស់!';
+    if (actEl) {
+      actEl.innerHTML = `
+        <button type="button" class="btn-pc-sync" onclick="syncAllFoldersToPc()" title="រក្សាទុកថតមេរៀនទាំងអស់ទៅកាន់ថតកុំព្យូទ័រ">
+          <i class="fa-solid fa-rotate"></i> Sync ទាំងអស់ទៅ PC
+        </button>
+        <button type="button" class="btn-pc-sub" onclick="importAllFoldersFromPcRoot(false)" title="អាន និងស្តារថតមេរៀនពីថតកុំព្យូទ័រ">
+          <i class="fa-solid fa-folder-arrow-up"></i> ស្តារពី PC
+        </button>
+        <button type="button" class="btn-pc-sub" onclick="connectLocalPcRootFolder()" title="ប្ដូរថតកុំព្យូទ័រផ្សេង">
+          ប្ដូរថត
+        </button>
+        <button type="button" class="btn-pc-sub" onclick="disconnectLocalPcRootFolder()" title="ផ្ដាច់ការភ្ជាប់ថតកុំព្យូទ័រ">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      `;
+    }
+  } else {
+    banner.classList.remove('connected');
+    if (titleEl) titleEl.textContent = 'ភ្ជាប់ថតពិតលើកុំព្យូទ័រ (ឧ. D:\\My_Lessons)';
+    if (subEl) subEl.textContent = 'រក្សាទុកជា Folder ពិតៗ (.docx + .pptx + ឯកសារ) លើ Drive កុំព្យូទ័រ — មិនបាត់ទោះ Clear Browser ទាំងអស់!';
+    if (actEl) {
+      actEl.innerHTML = `
+        <button type="button" class="btn-pc-connect" onclick="connectLocalPcRootFolder()">
+          <i class="fa-solid fa-folder-tree"></i> ភ្ជាប់ថតកុំព្យូទ័រ
+        </button>
+      `;
+    }
+  }
+}
+
+function sanitizePcFolderName(name) {
+  return String(name || 'Lesson_Folder')
+    .replace(/[\\/:*?"<>|]/g, '_')
+    .replace(/\s+/g, ' ')
+    .replace(/\.+$/, '')
+    .trim()
+    .slice(0, 80) || 'Lesson_Folder';
+}
+
+async function writeBlobToPcFile(dirHandle, fileName, content) {
+  const fileHandle = await dirHandle.getFileHandle(fileName, { create: true });
+  const writable = await fileHandle.createWritable();
+  await writable.write(content);
+  await writable.close();
+}
+
+function dataUrlToUint8Array(dataUrl) {
+  const commaIdx = String(dataUrl || '').indexOf(',');
+  if (commaIdx < 0) return null;
+  const binStr = atob(dataUrl.slice(commaIdx + 1));
+  const bytes = new Uint8Array(binStr.length);
+  for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+  return bytes;
+}
+
+async function writeLessonFolderToPcDir(folder, rootHandle) {
+  if (!folder || !rootHandle) return 0;
+  const subName = sanitizePcFolderName(folder.name);
+  const subDir = await rootHandle.getDirectoryHandle(subName, { create: true });
+  let writtenCount = 0;
+
+  // 1. Lesson Plan (.docx) + Worksheet (.docx)
+  if (folder.planData) {
+    const docxRes = await handleExportWord({ dataOverride: folder.planData, returnBlob: true });
+    if (docxRes && docxRes.blob) {
+      await writeBlobToPcFile(subDir, `01_Lesson_Plan.docx`, docxRes.blob);
+      writtenCount++;
+    }
+    try {
+      const wsRes = await exportWorksheetDocx({ dataOverride: folder.planData, returnBlob: true });
+      if (wsRes && wsRes.blob) {
+        await writeBlobToPcFile(subDir, `03_Student_Worksheet.docx`, wsRes.blob);
+        writtenCount++;
+      }
+    } catch (_) { }
+  }
+
+  // 2. Teaching Slides (.pptx)
+  if (folder.slideDeck && Array.isArray(folder.slideDeck.slides) && folder.slideDeck.slides.length > 0) {
+    const pptxRes = await buildPptxPresentation(
+      folder.slideDeck.slides,
+      folder.slideDeck.meta || { lessonTitle: folder.name, subject: folder.subject, grade: folder.grade },
+      {
+        theme: folder.slideDeck.theme || 'modern_blue',
+        imageMode: folder.slideDeck.imageMode || 'ai',
+        returnBlob: true
+      }
+    );
+    if (pptxRes && pptxRes.blob) {
+      await writeBlobToPcFile(subDir, `02_Teaching_Slides.pptx`, pptxRes.blob);
+      writtenCount++;
+    }
+  }
+
+  // 3. Links & Teacher Notes (.txt)
+  const hasLinks = Array.isArray(folder.links) && folder.links.length > 0;
+  const hasNotes = Boolean((folder.notes || '').trim());
+  if (hasLinks || hasNotes) {
+    let txt = `📁 ថតមេរៀន៖ ${folder.name}\nមុខវិជ្ជា៖ ${folder.subject || '-'} | ថ្នាក់៖ ${folder.grade || '-'}\n========================================\n\n`;
+    if (hasLinks) {
+      txt += `🔗 តំណភ្ជាប់យោង:\n`;
+      folder.links.forEach((l, i) => { txt += `${i + 1}. ${l.title || l.url}\n   ${l.url}\n`; });
+      txt += '\n';
+    }
+    if (hasNotes) {
+      txt += `🗒️ កំណត់ចំណាំគ្រូ:\n${folder.notes}\n`;
+    }
+    await writeBlobToPcFile(subDir, `04_Links_and_Notes.txt`, new Blob([txt], { type: 'text/plain;charset=utf-8' }));
+    writtenCount++;
+  }
+
+  // 4. Attachments inside real subfolder 05_Materials/
+  if (Array.isArray(folder.attachments) && folder.attachments.length > 0) {
+    const matDir = await subDir.getDirectoryHandle('05_Materials', { create: true });
+    for (let i = 0; i < folder.attachments.length; i++) {
+      const att = folder.attachments[i];
+      const bytes = dataUrlToUint8Array(att.dataUrl);
+      if (!bytes) continue;
+      const safeFile = sanitizePcFolderName(att.name || `material_${i + 1}`);
+      await writeBlobToPcFile(matDir, safeFile, bytes);
+      writtenCount++;
+    }
+  }
+
+  // 5. Full JSON backup snapshot inside the real PC folder (enables 1-click restore after Browser Wipe!)
+  const backupJson = JSON.stringify({ version: '3.0', folder }, null, 2);
+  await writeBlobToPcFile(subDir, 'lesson_folder_backup.json', new Blob([backupJson], { type: 'application/json' }));
+
+  return writtenCount;
+}
+
+window.connectLocalPcRootFolder = async function () {
+  if (!isPcFolderApiSupported()) {
+    showToast('⚠️ មុខងារភ្ជាប់ថត PC ផ្ទាល់ដំណើរការលើ Chrome / Edge លើកុំព្យូទ័រ។ សូមប្រើប៊ូតុង 📦 .zip ជំនួស!', 'warning', 6000);
+    return null;
+  }
+  try {
+    const handle = await window.showDirectoryPicker({ mode: 'readwrite', id: 'alps-lessons-root' });
+    _pcRootDirHandle = handle;
+    await idbSetMeta(PC_ROOT_HANDLE_META_KEY, handle);
+    refreshPcFolderBannerUI();
+    showToast(`💻 បានភ្ជាប់ថតកុំព្យូទ័រ «📁 ${handle.name}» ជោគជ័យ!`, 'success', 4500);
+
+    // Auto-check if this PC folder already contains saved lesson folders (e.g., after Clear Browser!)
+    await importAllFoldersFromPcRoot(true);
+    return handle;
+  } catch (err) {
+    if (err && err.name === 'AbortError') return null;
+    showToast('⚠️ មិនអាចភ្ជាប់ថតកុំព្យូទ័របានទេ: ' + (err.message || err), 'warning', 5000);
+    return null;
+  }
+};
+
+window.disconnectLocalPcRootFolder = async function () {
+  _pcRootDirHandle = null;
+  await idbDeleteMeta(PC_ROOT_HANDLE_META_KEY);
+  refreshPcFolderBannerUI();
+  showToast('បានផ្ដាច់ការភ្ជាប់ថតកុំព្យូទ័រ (ឯកសារលើ PC នៅតែគង់វង្សដដែល)។', 'info');
+};
+
+window.saveSingleFolderToPc = async function (folderId) {
+  const folder = (state.lessonFolders || []).find(f => f.id === folderId);
+  if (!folder) return;
+  if (!isPcFolderApiSupported()) {
+    showToast('📦 កំពុងប្រើប៊ូតុង .zip ជំនួសលើ Browser នេះ...', 'info');
+    await exportLessonFolderZip(folderId);
+    return;
+  }
+
+  let root = await loadSavedPcRootHandle();
+  if (!root) {
+    root = await connectLocalPcRootFolder();
+    if (!root) return;
+  }
+  const ok = await ensurePcDirPermission(root, 'readwrite');
+  if (!ok) {
+    showToast('⚠️ សូមចុច Allow ដើម្បីអនុញ្ញាតឱ្យរក្សាទុកចូលថតកុំព្យូទ័រ!', 'warning', 5000);
+    return;
+  }
+
+  showToast(`💻 កំពុងរក្សាទុកថត «${folder.name}» ទៅក្នុង 📁 ${root.name}...`, 'info', 7000);
+  try {
+    const count = await writeLessonFolderToPcDir(folder, root);
+    showToast(`✅ បានរក្សាទុកថត «${folder.name}» (${count} ឯកសារ) ផ្ទាល់លើ PC ក្នុង 📁 ${root.name} រួចរាល់!`, 'success', 6000);
+  } catch (err) {
+    console.error('Save folder to PC error:', err);
+    showToast('❌ បរាជ័យរក្សាទុកទៅ PC: ' + (err.message || err), 'error');
+  }
+};
+
+window.syncAllFoldersToPc = async function () {
+  const folders = state.lessonFolders || [];
+  if (folders.length === 0) {
+    showToast('មិនទាន់មានថតមេរៀនសម្រាប់ Sync ទេ!', 'warning');
+    return;
+  }
+  let root = await loadSavedPcRootHandle();
+  if (!root) {
+    root = await connectLocalPcRootFolder();
+    if (!root) return;
+  }
+  const ok = await ensurePcDirPermission(root, 'readwrite');
+  if (!ok) {
+    showToast('⚠️ សូមអនុញ្ញាតសិទ្ធិ Edit លើថតកុំព្យូទ័រជាមុនសិន!', 'warning');
+    return;
+  }
+
+  showToast(`🔄 កំពុង Sync ថតមេរៀនទាំង ${folders.length} ទៅកាន់ 📁 ${root.name}...`, 'info', 10000);
+  let synced = 0;
+  for (const folder of folders) {
+    try {
+      await writeLessonFolderToPcDir(folder, root);
+      synced++;
+    } catch (e) {
+      console.warn('Sync folder error:', folder.name, e);
+    }
+  }
+  showToast(`✅ បាន Sync ថតមេរៀនទាំង ${synced}/${folders.length} ទៅកាន់ 📁 ${root.name} លើកុំព្យូទ័រជោគជ័យ!`, 'success', 6500);
+};
+
+window.importAllFoldersFromPcRoot = async function (silentIfEmpty = false) {
+  let root = await loadSavedPcRootHandle();
+  if (!root) {
+    if (!silentIfEmpty) root = await connectLocalPcRootFolder();
+    if (!root) return;
+  }
+  const ok = await ensurePcDirPermission(root, 'read');
+  if (!ok) return;
+
+  try {
+    const existingIds = new Set((state.lessonFolders || []).map(f => f.id));
+    let restored = 0;
+    for await (const [, entry] of root.entries()) {
+      if (entry.kind !== 'directory') continue;
+      try {
+        const fh = await entry.getFileHandle('lesson_folder_backup.json');
+        const file = await fh.getFile();
+        const text = await file.text();
+        const parsed = JSON.parse(text);
+        const f = parsed?.folder || (parsed?.id ? parsed : null);
+        if (f && f.id && !existingIds.has(f.id)) {
+          await idbPutLessonFolder(f);
+          existingIds.add(f.id);
+          restored++;
+        }
+      } catch (_) { }
+    }
+    if (restored > 0) {
+      await loadSavedPlans();
+      showLessonFoldersGridView();
+      showToast(`📂 បានស្តារថតមេរៀនចំនួន ${restored} ពីថតកុំព្យូទ័រ «📁 ${root.name}» ជោគជ័យ!`, 'success', 6000);
+    } else if (!silentIfEmpty) {
+      showToast(`✅ ថតមេរៀនទាំងអស់ក្នុង 📁 ${root.name} មានក្នុងកម្មវិធីរួចហើយ!`, 'info', 4000);
+    }
+  } catch (err) {
+    if (!silentIfEmpty) showToast('⚠️ មិនអាចអានថតកុំព្យូទ័របានទេ: ' + (err.message || err), 'warning');
+  }
+};
 
 async function idbGetAllLessonFolders() {
   const db = await openLessonFoldersDb();
@@ -16347,6 +16713,8 @@ async function loadSavedPlans() {
 
 async function openSavedPlansModal(openFolderId = null) {
   await loadSavedPlans();
+  await loadSavedPcRootHandle();
+  refreshPcFolderBannerUI();
   const modal = document.getElementById('savedPlansModal');
   if (modal) modal.style.display = 'flex';
   if (typeof openFolderId === 'string' && openFolderId.trim()) {
@@ -16398,6 +16766,7 @@ window.openSaveToFolderModal = async function (contextMode = 'plan') {
   }
 
   const hasTests = Boolean(hasPlan && ((state.generatedPlanData.preTestMCQ?.length > 0) || (state.generatedPlanData.postTestMCQ?.length > 0)));
+  const pcHandle = await loadSavedPcRootHandle();
   if (checklist) {
     checklist.innerHTML = `
       <div style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 2px;">ឯកសារដែលនឹងរក្សាទុកចូលថតនេះ៖</div>
@@ -16414,6 +16783,22 @@ window.openSaveToFolderModal = async function (contextMode = 'plan') {
         <input type="checkbox" id="chkSaveFolderSourceNote" checked>
         <span>📎 កំណត់ត្រាឯកសារមេរៀនដើម (${escapeHtml(state.lessonFileName)})</span>
       </label>` : ''}
+      ${isPcFolderApiSupported() ? `
+      <div style="border-top: 1px dashed #cbd5e1; margin-top: 4px; padding-top: 7px;">
+        ${pcHandle ? `
+          <label class="save-folder-check-item" style="color: #047857;">
+            <input type="checkbox" id="chkSaveFolderAlsoPc" checked>
+            <span>💻 រក្សាទុកជា Folder ពិតលើកុំព្យូទ័រផងដែរ (<b>📁 ${escapeHtml(pcHandle.name)}</b>)</span>
+          </label>
+        ` : `
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+            <span style="font-size: 0.8rem; color: #475569;">💻 ចង់រក្សាទុកផ្ទាល់លើ Drive កុំព្យូទ័រផងទេ?</span>
+            <button type="button" class="btn-pc-sub" onclick="connectLocalPcRootFolder().then(() => openSaveToFolderModal(_saveFolderContextMode))">
+              <i class="fa-solid fa-folder-tree"></i> ភ្ជាប់ថត PC
+            </button>
+          </div>
+        `}
+      </div>` : ''}
     `;
   }
 
@@ -16492,6 +16877,8 @@ window.confirmSaveToLessonFolder = async function () {
     }
   }
 
+  const alsoSaveToPc = Boolean(document.getElementById('chkSaveFolderAlsoPc')?.checked);
+
   await idbPutLessonFolder(folder);
   await loadSavedPlans();
   closeSaveToFolderModal();
@@ -16506,7 +16893,11 @@ window.confirmSaveToLessonFolder = async function () {
     }
   }
 
-  showToast(`📁 បានរក្សាទុកចូលថតមេរៀន «${folder.name}» ជោគជ័យ!`, 'success', 4500);
+  if (alsoSaveToPc && _pcRootDirHandle) {
+    await saveSingleFolderToPc(folder.id);
+  } else {
+    showToast(`📁 បានរក្សាទុកចូលថតមេរៀន «${folder.name}» ជោគជ័យ!`, 'success', 4500);
+  }
 };
 
 window.createEmptyLessonFolderPrompt = async function () {
@@ -16611,6 +17002,10 @@ function renderSavedPlansGrid(searchQuery = '', filterSubject = '') {
           <button type="button" class="btn-folder-mini" onclick="openLessonFolderDetail('${folder.id}')">
             <i class="fa-solid fa-folder-open"></i> បើកថត
           </button>
+          ${isPcFolderApiSupported() ? `
+          <button type="button" class="btn-folder-mini btn-folder-mini-pc" onclick="saveSingleFolderToPc('${folder.id}')" title="រក្សាទុកជា Folder ពិតលើកុំព្យូទ័រ (Drive D)">
+            <i class="fa-solid fa-computer"></i> PC
+          </button>` : ''}
           <button type="button" class="btn-folder-mini btn-folder-mini-zip" onclick="exportLessonFolderZip('${folder.id}')" title="ទាញយកថតទាំងមូលជាឯកសារ .zip">
             <i class="fa-solid fa-file-zipper"></i> .zip
           </button>
@@ -16707,8 +17102,12 @@ function renderLessonFolderDetail(folderId) {
         <button type="button" class="btn-folder-secondary" onclick="renameLessonFolder('${folder.id}')">
           <i class="fa-solid fa-pen"></i> ប្ដូរឈ្មោះ
         </button>
+        ${isPcFolderApiSupported() ? `
+        <button type="button" class="btn-folder-primary" onclick="saveSingleFolderToPc('${folder.id}')">
+          <i class="fa-solid fa-computer"></i> រក្សាទុកទៅ PC
+        </button>` : ''}
         <button type="button" class="btn-folder-primary" onclick="exportLessonFolderZip('${folder.id}')" style="background: linear-gradient(135deg, #059669, #10b981);">
-          <i class="fa-solid fa-file-zipper"></i> ទាញយកថតទាំងមូល (.zip)
+          <i class="fa-solid fa-file-zipper"></i> ទាញយក .zip
         </button>
       </div>
     </div>
