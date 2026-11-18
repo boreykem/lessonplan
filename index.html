@@ -29,7 +29,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=20261118_v86">
+  <link rel="stylesheet" href="style.css?v=20261118_v87">
 
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -512,38 +512,64 @@
               </label>
             </div>
 
-            <!-- 1. Preset Selector & Main Teaching Method Side-by-Side (User Request 1) -->
-            <div class="form-grid-2">
-              <div id="presetTemplateWrapper" class="control-group">
-                <label for="presetTemplateSelect" data-i18n="labelPresetTemplate">
-                  <i class="fa-solid fa-award text-primary" style="margin-right: 4px;"></i> ប្រភេទកិច្ចតែងការ
-                </label>
-                <select id="presetTemplateSelect" class="form-control"
-                  onchange="handlePresetTemplateChange(this.value)">
-                  <option value="moeys_standard_5step" selected>កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)
-                  </option>
-                  <option value="flipped_learning_5step">⚡ កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់ (Flipped Classroom)</option>
-                </select>
-              </div>
+            <!-- 1. Modern Pedagogical Template Radio Cards (MoEYS Standard vs Flipped Classroom) -->
+            <div id="presetTemplateWrapper" class="control-group mb-2">
+              <label data-i18n="labelPresetTemplate" style="margin-bottom: 6px; display: block;">
+                <i class="fa-solid fa-award text-primary" style="margin-right: 4px;"></i> ប្រភេទកិច្ចតែងការ៖
+              </label>
 
-              <div class="control-group">
-                <label for="inputMethod" data-i18n="methodLabel">
-                  <i class="fa-solid fa-lightbulb text-warning" style="margin-right: 4px; color: #f59e0b;"></i>
-                  វិធីសាស្រ្តបង្រៀន៖
-                </label>
-                <select id="inputMethod" class="form-control" onchange="handleTeachingMethodChange()">
-                  <option value="5e">វិធីសាស្ត្រ 5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)
-                  </option>
-                  <option value="pbl">វិធីសាស្ត្រដោះស្រាយបញ្ហា (Problem-Based Learning - PBL)</option>
-                  <option value="pjbl">វិធីសាស្ត្របង្កើតគម្រោង (Project-Based Learning - PjBL)</option>
-                  <option value="ibl">វិធីសាស្ត្ររិះរក និងស៊ើបអង្កេត (Inquiry-Based Learning - IBL)</option>
-                  <option value="flipped">វិធីសាស្ត្ររៀនបែបត្រឡប់ (Flipped Learning Model)</option>
-                  <option value="socratic">វិធីសាស្ត្រសួរដេញដោលតាមបែបសូក្រាត (Socratic / Inquiry Questioning)</option>
-                  <option value="cooperative">វិធីសាស្ត្រសហការ (Cooperative Learning Method)</option>
-                  <option value="experimental">វិធីសាស្ត្រពិសោធន៍ និងអនុវត្តជាក់ស្តែង (Experimental Method)</option>
-                  <option value="custom">✏️ ផ្សេងៗ / បន្ថែមវិធីសាស្ត្រផ្ទាល់ខ្លួន...</option>
-                </select>
+              <!-- Hidden native select kept for 100% backward compatibility -->
+              <select id="presetTemplateSelect" class="form-control" style="display: none;"
+                onchange="handlePresetTemplateChange(this.value)">
+                <option value="moeys_standard_5step" selected>កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)</option>
+                <option value="flipped_learning_5step">⚡ កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់ (Flipped Classroom)</option>
+              </select>
+
+              <!-- Visual Modern Radio Cards -->
+              <div class="tpl-radio-cards-grid" id="presetTemplateRadioCards" role="radiogroup"
+                aria-label="ប្រភេទកិច្ចតែងការ">
+                <button type="button" class="tpl-radio-card tpl-card-moeys active" id="tplCardMoeys"
+                  data-preset="moeys_standard_5step" onclick="selectPresetTemplateCard('moeys_standard_5step')"
+                  role="radio" aria-checked="true">
+                  <div class="tpl-card-top">
+                    <span class="tpl-card-icon">🏛️</span>
+                    <span class="tpl-card-check"><i class="fa-solid fa-circle-check"></i></span>
+                  </div>
+                  <div class="tpl-card-title">ស្តង់ដារក្រសួង (MoEYS)</div>
+                  <div class="tpl-card-ratio">៥% • ១៥% • ៦០% • ១៥% • ៥%</div>
+                </button>
+
+                <button type="button" class="tpl-radio-card tpl-card-flipped" id="tplCardFlipped"
+                  data-preset="flipped_learning_5step" onclick="selectPresetTemplateCard('flipped_learning_5step')"
+                  role="radio" aria-checked="false">
+                  <div class="tpl-card-top">
+                    <span class="tpl-card-icon">⚡</span>
+                    <span class="tpl-card-check"><i class="fa-solid fa-circle-check"></i></span>
+                  </div>
+                  <div class="tpl-card-title">ថ្នាក់រៀនត្រឡប់ (Flipped)</div>
+                  <div class="tpl-card-ratio">៣% • ៧% • ១០% • ៧៥% • ៥%</div>
+                </button>
               </div>
+            </div>
+
+            <!-- 2. Full-Width Teaching Method Dropdown -->
+            <div class="control-group">
+              <label for="inputMethod" data-i18n="methodLabel">
+                <i class="fa-solid fa-lightbulb text-warning" style="margin-right: 4px; color: #f59e0b;"></i>
+                វិធីសាស្រ្តបង្រៀន៖
+              </label>
+              <select id="inputMethod" class="form-control" onchange="handleTeachingMethodChange()">
+                <option value="5e">វិធីសាស្ត្រ 5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)
+                </option>
+                <option value="pbl">វិធីសាស្ត្រដោះស្រាយបញ្ហា (Problem-Based Learning - PBL)</option>
+                <option value="pjbl">វិធីសាស្ត្របង្កើតគម្រោង (Project-Based Learning - PjBL)</option>
+                <option value="ibl">វិធីសាស្ត្ររិះរក និងស៊ើបអង្កេត (Inquiry-Based Learning - IBL)</option>
+                <option value="flipped">វិធីសាស្ត្ររៀនបែបត្រឡប់ (Flipped Learning Model)</option>
+                <option value="socratic">វិធីសាស្ត្រសួរដេញដោលតាមបែបសូក្រាត (Socratic / Inquiry Questioning)</option>
+                <option value="cooperative">វិធីសាស្ត្រសហការ (Cooperative Learning Method)</option>
+                <option value="experimental">វិធីសាស្ត្រពិសោធន៍ និងអនុវត្តជាក់ស្តែង (Experimental Method)</option>
+                <option value="custom">✏️ ផ្សេងៗ / បន្ថែមវិធីសាស្ត្រផ្ទាល់ខ្លួន...</option>
+              </select>
             </div>
 
             <!-- Custom Teaching Method Input Wrap (shown when 'custom' is selected) -->
@@ -2713,7 +2739,7 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261118_v132"></script>
+  <script src="app.js?v=20261118_v133"></script>
 </body>
 
 </html>

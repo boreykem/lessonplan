@@ -623,8 +623,35 @@ function populateTeachingMethodsSelect(isEn = false, preserveVal = null) {
   setSelectedTeachingMethod(currentVal);
 }
 
+function syncPresetTemplateCards(val) {
+  const activeVal = val || (document.getElementById('presetTemplateSelect')?.value) || 'moeys_standard_5step';
+  const isFlipped = (activeVal === 'flipped_learning_5step');
+  const moeysCard = document.getElementById('tplCardMoeys');
+  const flippedCard = document.getElementById('tplCardFlipped');
+  if (moeysCard) {
+    moeysCard.classList.toggle('active', !isFlipped);
+    moeysCard.setAttribute('aria-checked', String(!isFlipped));
+  }
+  if (flippedCard) {
+    flippedCard.classList.toggle('active', isFlipped);
+    flippedCard.setAttribute('aria-checked', String(isFlipped));
+  }
+}
+window.syncPresetTemplateCards = syncPresetTemplateCards;
+
+function selectPresetTemplateCard(val) {
+  const select = document.getElementById('presetTemplateSelect');
+  if (select) {
+    select.value = val;
+  }
+  syncPresetTemplateCards(val);
+  handlePresetTemplateChange(val);
+}
+window.selectPresetTemplateCard = selectPresetTemplateCard;
+
 function handlePresetTemplateChange(val) {
   state.selectedPresetId = val;
+  syncPresetTemplateCards(val);
   if (state.currentPlan) {
     state.currentPlan.presetId = val;
     state.currentPlan.templateType = (val === 'flipped_learning_5step') ? 'flipped_learning' : '5_steps';
@@ -949,40 +976,84 @@ function populateTechniquesOptionsList() {
   let itemsHtml = '';
   let matchCount = 0;
 
-  // 1. Built-in techniques
-  BUILTIN_TEACHING_TECHNIQUES.forEach(t => {
-    const nameStr = isEn ? t.name : (t.kmLabel || t.name);
-    const descStr = isEn ? (t.descEn || t.name) : (t.descKm || t.kmLabel || t.name);
-    const searchHaystack = `${t.name} ${t.kmLabel || ''} ${descStr}`.toLowerCase();
-
-    if (query && !searchHaystack.includes(query)) {
-      return;
+  // 1. Built-in techniques grouped into 3 color-coded pedagogical categories
+  const categoryDefs = [
+    {
+      key: 'warmup',
+      headerKm: '🌅 ក្រុមទី ១៖ ដើមម៉ោង (Warm-up & Retrieval)',
+      headerEn: '🌅 Phase 1: Warm-up & Retrieval (Step 2)',
+      badgeKm: 'ដើមម៉ោង',
+      badgeEn: 'Warm-up',
+      badgeClass: 'cat-badge-warmup'
+    },
+    {
+      key: 'practice',
+      headerKm: '⚡ ក្រុមទី ២៖ កណ្តាលម៉ោង / អនុវត្តសកម្ម (Core Practice)',
+      headerEn: '⚡ Phase 2: Core Active Practice (Step 3/4)',
+      badgeKm: 'កណ្តាលម៉ោង',
+      badgeEn: 'Practice',
+      badgeClass: 'cat-badge-practice'
+    },
+    {
+      key: 'reflection',
+      headerKm: '🎯 ក្រុមទី ៣៖ ចុងម៉ោង / ឆ្លុះបញ្ចាំង (Reflection & Closure)',
+      headerEn: '🎯 Phase 3: Reflection & Closure (Step 5)',
+      badgeKm: 'ចុងម៉ោង',
+      badgeEn: 'Closure',
+      badgeClass: 'cat-badge-reflection'
     }
-    matchCount++;
+  ];
 
-    const isAct = selected.includes(t.name) || selected.includes(t.id);
+  categoryDefs.forEach(catDef => {
+    const groupItems = BUILTIN_TEACHING_TECHNIQUES.filter(t => {
+      if ((t.category || 'practice') !== catDef.key) return false;
+      const descStr = isEn ? (t.descEn || t.name) : (t.descKm || t.kmLabel || t.name);
+      const searchHaystack = `${t.name} ${t.kmLabel || ''} ${descStr}`.toLowerCase();
+      return !query || searchHaystack.includes(query);
+    });
+
+    if (groupItems.length === 0) return;
+
     itemsHtml += `
-      <div class="technique-option-row ${isAct ? 'selected' : ''}" onclick="event.stopPropagation(); toggleTechniqueSelection('${escapeHtml(t.name)}', event)" title="${escapeHtml(descStr)}">
-        <span class="technique-custom-checkbox">
-          <i class="fa-solid fa-check"></i>
-        </span>
-        <i class="fa-solid ${t.icon} technique-option-icon"></i>
-        <div class="technique-option-content">
-          <div class="technique-option-name">
-            <span>${escapeHtml(nameStr)}</span>
-          </div>
-          <div class="technique-option-desc">${escapeHtml(descStr)}</div>
-        </div>
+      <div class="technique-category-header ${catDef.badgeClass}">
+        <span>${isEn ? catDef.headerEn : catDef.headerKm}</span>
       </div>
     `;
+
+    groupItems.forEach(t => {
+      const nameStr = isEn ? t.name : (t.kmLabel || t.name);
+      const descStr = isEn ? (t.descEn || t.name) : (t.descKm || t.kmLabel || t.name);
+      matchCount++;
+
+      const isAct = selected.includes(t.name) || selected.includes(t.id);
+      itemsHtml += `
+        <div class="technique-option-row ${isAct ? 'selected' : ''}" onclick="event.stopPropagation(); toggleTechniqueSelection('${escapeHtml(t.name)}', event)" title="${escapeHtml(descStr)}">
+          <span class="technique-custom-checkbox">
+            <i class="fa-solid fa-check"></i>
+          </span>
+          <i class="fa-solid ${t.icon} technique-option-icon"></i>
+          <div class="technique-option-content">
+            <div class="technique-option-name" style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+              <span>${escapeHtml(nameStr)}</span>
+              <span class="tech-phase-pill ${catDef.badgeClass}">${isEn ? catDef.badgeEn : catDef.badgeKm}</span>
+            </div>
+            <div class="technique-option-desc">${escapeHtml(descStr)}</div>
+          </div>
+        </div>
+      `;
+    });
   });
 
   // 2. Custom techniques
-  customTechs.forEach(ct => {
-    const searchHaystack = ct.toLowerCase();
-    if (query && !searchHaystack.includes(query)) {
-      return;
-    }
+  const filteredCustoms = customTechs.filter(ct => !query || ct.toLowerCase().includes(query));
+  if (filteredCustoms.length > 0) {
+    itemsHtml += `
+      <div class="technique-category-header">
+        <span>✏️ ${isEn ? 'Custom Techniques' : 'យុទ្ធវិធីផ្ទាល់ខ្លួន'}</span>
+      </div>
+    `;
+  }
+  filteredCustoms.forEach(ct => {
     matchCount++;
 
     const isAct = selected.includes(ct);
@@ -2772,6 +2843,7 @@ function updateDynamicPacingBar() {
 
   const presetSelect = document.getElementById('presetTemplateSelect');
   const presetType = presetSelect ? presetSelect.value : 'moeys_standard_5step';
+  if (typeof syncPresetTemplateCards === 'function') syncPresetTemplateCards(presetType);
   const isFlipped = (presetType === 'flipped_learning_5step');
   const isUbD = (presetType === 'backward_design_3stage');
 
