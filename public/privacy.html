@@ -70,8 +70,8 @@
 
     <h2>3. Google Slides API &amp; Google User Data (ការប្រើប្រាស់ Google Slides API)</h2>
     <p>
-      When you choose to sign in with Google to export a lesson presentation to <code>docs.google.com/presentation</code>, AI Lesson Plan Studio requests only the minimal permission scope:
-      <code>https://www.googleapis.com/auth/presentations</code>.
+      When you choose to sign in with Google to export a lesson presentation to <code>docs.google.com/presentation</code>, AI Lesson Plan Studio requests only the minimal non-sensitive per-file scope:
+      <code>https://www.googleapis.com/auth/drive.file</code> (access limited strictly to presentations created by this app).
     </p>
     <ul>
       <li><strong>Purpose:</strong> Strictly to create a new Google Slides presentation containing the lesson slides and speaker notes that you explicitly requested.</li>

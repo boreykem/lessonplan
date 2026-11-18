@@ -20533,7 +20533,7 @@ window.closePptxWidget = closePptxWidget;
 // ==========================================================================
 const GOOGLE_SLIDES_CLIENT_ID_STORAGE_KEY = 'google_slides_oauth_client_id';
 const GOOGLE_SLIDES_LAST_DECK_STORAGE_KEY = 'google_slides_last_created_deck';
-const GOOGLE_SLIDES_OAUTH_SCOPE = 'https://www.googleapis.com/auth/presentations';
+const GOOGLE_SLIDES_OAUTH_SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const DEFAULT_GOOGLE_SLIDES_CLIENT_ID = '187362338910-tfc1lo8f2obvhha26cn89dnaosp42gn8.apps.googleusercontent.com';
 let _googleSlidesAccessToken = '';
 let _googleSlidesTokenExpiry = 0;
