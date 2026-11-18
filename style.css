@@ -4505,6 +4505,46 @@ textarea.form-control {
   color: #c4b5fd;
 }
 
+/* Spacious Icon-Only Preview Toolbar Buttons */
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px !important;
+}
+
+.btn-tool-action.btn-toolbar-icon-only {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  padding: 0 !important;
+  border-radius: 10px !important;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0 !important;
+  font-size: 0.96rem;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.btn-tool-action.btn-toolbar-icon-only i {
+  margin: 0 !important;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.btn-tool-action.btn-toolbar-icon-only:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 12px rgba(15, 23, 42, 0.16);
+  filter: brightness(1.04);
+}
+
+.btn-tool-action.btn-toolbar-icon-only:active {
+  transform: translateY(0);
+}
+
+
 
 
 
