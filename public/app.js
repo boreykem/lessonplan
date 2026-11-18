@@ -7234,13 +7234,19 @@ function handleFileSelected(file, statusEl, callback) {
   callback(file);
 }
 
-// Check if Python backend is active
+// Check if Python backend is active & read optional Google OAuth Client ID
 let isBackendAvailable = false;
+let _serverGoogleClientId = '';
 async function checkBackendHealth() {
   try {
     const res = await fetch('/api/health');
     if (res.ok) {
       isBackendAvailable = true;
+      const health = await res.json().catch(() => ({}));
+      if (health && health.googleClientId && typeof health.googleClientId === 'string') {
+        _serverGoogleClientId = health.googleClientId.trim();
+      }
+      if (typeof refreshGoogleSlidesAuthUI === 'function') refreshGoogleSlidesAuthUI();
       console.log('Python Backend connected successfully!');
     }
   } catch (e) {
@@ -20026,7 +20032,7 @@ window.pasteFromClipboardToPptxImport = async function () {
   }
 };
 
-window.convertPastedGeminiToPptx = async function () {
+window.convertPastedGeminiToPptx = async function (targetFormat = 'google_slides') {
   if (state.isPptxGenerating) {
     showToast('⚠️ កំពុងមានដំណើរការបង្កើតស្លាយមួយរួចហើយ សូមរង់ចាំបន្តិច...', 'warning');
     return;
@@ -20051,24 +20057,47 @@ window.convertPastedGeminiToPptx = async function () {
     return;
   }
 
+  // Request Google OAuth access token synchronously inside user gesture BEFORE closing modal/async work
+  let googleAccessToken = null;
+  if (targetFormat === 'google_slides') {
+    if (!getGoogleSlidesClientId()) {
+      switchPptxTab('direct');
+      toggleGoogleClientIdPanel(true);
+      showToast('⚙️ សូមបញ្ចូល Google OAuth Client ID ជាមុនសិន ដើម្បីបង្កើតក្នុង Google Slides!', 'warning', 7000);
+      return;
+    }
+    try {
+      googleAccessToken = await requestGoogleSlidesAccessToken(false);
+    } catch (authErr) {
+      showToast('⚠️ ' + (authErr.message || 'មិនអាចភ្ជាប់គណនី Google បានឡើយ។'), 'warning', 6000);
+      return;
+    }
+  }
+
   closePptxModal();
   state.isPptxGenerating = true;
-  showPptxWidget(`🎬 កំពុងបម្លែង ${slidesData.length} ស្លាយទៅជា PPTX...`);
+  showPptxWidget(targetFormat === 'google_slides'
+    ? `📊 កំពុងបង្កើត ${slidesData.length} ស្លាយក្នុង Google Slides...`
+    : `🎬 កំពុងបម្លែង ${slidesData.length} ស្លាយទៅជា PPTX...`);
   updatePptxWidgetStatus(`🧠 បានស្រង់ឃើញ ${slidesData.length} ស្លាយ... កំពុងរៀបចំរូបភាព & Layout`, 35);
 
   const originalDocTitle = document.title;
   document.title = `⏳ (កំពុងបម្លែង ${slidesData.length} ស្លាយ...) ` + originalDocTitle.replace(/^\[.*?\]\s*/, '').replace(/^⏳\s*\(.*?\)\s*/, '');
 
   try {
-    const defaultTitle = (document.getElementById('lessonTitleInput')?.value || '').trim();
+    const defaultTitle = (document.getElementById('lessonTitleInput')?.value || document.getElementById('inputLessonTitle')?.value || '').trim();
     const meta = {
       lessonTitle: slidesData[0]?.title || defaultTitle || 'Lesson Presentation',
-      subject: (document.getElementById('subjectSelect')?.value || 'ទូទៅ').trim(),
-      grade: (document.getElementById('gradeSelect')?.value || 'ទូទៅ').trim()
+      subject: (document.getElementById('inputSubject')?.value || document.getElementById('subjectSelect')?.value || 'ទូទៅ').trim(),
+      grade: (document.getElementById('inputGrade')?.value || document.getElementById('gradeSelect')?.value || 'ទូទៅ').trim()
     };
-    await buildPptxPresentation(slidesData, meta, { theme, imageMode });
+    if (targetFormat === 'google_slides') {
+      await buildGoogleSlidesPresentation(slidesData, meta, { theme, imageMode, accessToken: googleAccessToken });
+    } else {
+      await buildPptxPresentation(slidesData, meta, { theme, imageMode });
+    }
   } catch (err) {
-    console.error('Convert PPTX error:', err);
+    console.error('Convert Slides error:', err);
     finishPptxWidgetError('បរាជ័យ: ' + err.message);
     showToast('❌ បរាជ័យក្នុងការបម្លែងស្លាយ: ' + err.message, 'error');
   } finally {
@@ -20249,6 +20278,7 @@ window.openPptxModal = function () {
     m.classList.add('active');
     updatePptxAttachmentOptions();
     if (typeof switchPptxTab === 'function') switchPptxTab('direct');
+    if (typeof refreshGoogleSlidesAuthUI === 'function') refreshGoogleSlidesAuthUI();
   }
 };
 
@@ -20412,10 +20442,903 @@ function closePptxWidget() {
 }
 window.closePptxWidget = closePptxWidget;
 
-window.generatePptxSlides = async function () {
+// ==========================================================================
+// 📊 GOOGLE SLIDES API (docs.google.com/presentation) OAUTH SIGN-IN ENGINE
+// Direct 1-click native presentation creation via Google Identity Services +
+// Google Slides REST API v1 (with Khmer Kantumruy Pro typography, styled cards,
+// zero-duplicate context-matched visuals, and full Teacher Speaker Notes!)
+// ==========================================================================
+const GOOGLE_SLIDES_CLIENT_ID_STORAGE_KEY = 'google_slides_oauth_client_id';
+const GOOGLE_SLIDES_LAST_DECK_STORAGE_KEY = 'google_slides_last_created_deck';
+const GOOGLE_SLIDES_OAUTH_SCOPE = 'https://www.googleapis.com/auth/presentations';
+let _googleSlidesAccessToken = '';
+let _googleSlidesTokenExpiry = 0;
+
+function getGoogleSlidesClientId() {
+  try {
+    const saved = (localStorage.getItem(GOOGLE_SLIDES_CLIENT_ID_STORAGE_KEY) || '').trim();
+    if (saved) return saved;
+  } catch (_) { }
+  if (typeof window !== 'undefined' && window.GOOGLE_SLIDES_CLIENT_ID) {
+    return String(window.GOOGLE_SLIDES_CLIENT_ID).trim();
+  }
+  return (_serverGoogleClientId || '').trim();
+}
+window.getGoogleSlidesClientId = getGoogleSlidesClientId;
+
+function isGoogleSlidesTokenValid() {
+  return Boolean(_googleSlidesAccessToken && Date.now() < (_googleSlidesTokenExpiry - 30000));
+}
+
+function toggleGoogleClientIdPanel(forceOpen = null) {
+  const box = document.getElementById('googleClientIdSetupBox');
+  if (!box) return;
+  const open = (forceOpen !== null) ? Boolean(forceOpen) : (box.style.display === 'none' || !box.style.display);
+  box.style.display = open ? 'block' : 'none';
+  const originEl = document.getElementById('googleSlidesOriginDisplay');
+  if (originEl && window.location && window.location.origin) {
+    originEl.textContent = window.location.origin;
+  }
+  const inp = document.getElementById('inputGoogleSlidesClientId');
+  if (inp && !inp.value) {
+    inp.value = getGoogleSlidesClientId();
+  }
+}
+window.toggleGoogleClientIdPanel = toggleGoogleClientIdPanel;
+
+async function copyCurrentOriginForGoogleCloud() {
+  const origin = (window.location && window.location.origin) ? window.location.origin : 'https://lessonplan-kh.vercel.app';
+  try {
+    await navigator.clipboard.writeText(origin);
+    showToast(`📋 បានកូពី Origin (${origin}) រួចរាល់!`, 'success');
+  } catch (_) {
+    showToast(`Origin: ${origin}`, 'info');
+  }
+}
+window.copyCurrentOriginForGoogleCloud = copyCurrentOriginForGoogleCloud;
+
+function refreshGoogleSlidesAuthUI() {
+  const statusEl = document.getElementById('googleSlidesAuthStatusText');
+  const btnConnect = document.getElementById('btnConnectGoogleSlides');
+  const btnDisconnect = document.getElementById('btnDisconnectGoogleSlides');
+  const setupBox = document.getElementById('googleClientIdSetupBox');
+  const originEl = document.getElementById('googleSlidesOriginDisplay');
+  const inp = document.getElementById('inputGoogleSlidesClientId');
+  const lastCard = document.getElementById('lastGoogleSlidesResultCard');
+  const lastTitle = document.getElementById('lastGoogleSlidesTitleText');
+  const lastLink = document.getElementById('lastGoogleSlidesOpenLink');
+
+  const clientId = getGoogleSlidesClientId();
+  const connected = isGoogleSlidesTokenValid();
+
+  if (originEl && window.location && window.location.origin) {
+    originEl.textContent = window.location.origin;
+  }
+  if (inp && !inp.value && clientId) {
+    inp.value = clientId;
+  }
+
+  if (statusEl) {
+    if (connected) {
+      statusEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #16a34a;"></i> <span style="color: #15803d;">បានភ្ជាប់គណនី Google Slides API រួចរាល់ (1-Click Ready)</span>`;
+    } else if (clientId) {
+      statusEl.innerHTML = `<i class="fa-brands fa-google" style="color: #2563eb;"></i> <span>បានកំណត់ Client ID រួច — ចុច «ភ្ជាប់គណនី Google» ដើម្បីអនុញ្ញាត</span>`;
+    } else {
+      statusEl.innerHTML = `<i class="fa-solid fa-key" style="color: #d97706;"></i> <span style="color: #b45309;">សូមកំណត់ Google OAuth Client ID (ធ្វើតែម្ដងគត់)</span>`;
+    }
+  }
+
+  if (btnConnect) btnConnect.style.display = connected ? 'none' : 'inline-flex';
+  if (btnDisconnect) btnDisconnect.style.display = connected ? 'inline-flex' : 'none';
+  if (setupBox && !clientId) {
+    setupBox.style.display = 'block';
+  }
+
+  // Show last created Google Slides deck link if available
+  if (lastCard && lastLink && lastTitle) {
+    try {
+      const savedLast = JSON.parse(localStorage.getItem(GOOGLE_SLIDES_LAST_DECK_STORAGE_KEY) || 'null');
+      if (savedLast && savedLast.url) {
+        lastTitle.textContent = savedLast.title || 'Google Slides Presentation';
+        lastLink.href = savedLast.url;
+        lastCard.style.display = 'flex';
+      } else {
+        lastCard.style.display = 'none';
+      }
+    } catch (_) {
+      lastCard.style.display = 'none';
+    }
+  }
+}
+window.refreshGoogleSlidesAuthUI = refreshGoogleSlidesAuthUI;
+
+async function saveGoogleSlidesClientId() {
+  const inp = document.getElementById('inputGoogleSlidesClientId');
+  const val = (inp ? inp.value : '').trim();
+  if (!val || !val.includes('.apps.googleusercontent.com')) {
+    showToast('⚠️ Client ID មិនត្រឹមត្រូវទេ (ត្រូវបញ្ចប់ដោយ .apps.googleusercontent.com)។', 'warning', 6000);
+    return;
+  }
+  try {
+    localStorage.setItem(GOOGLE_SLIDES_CLIENT_ID_STORAGE_KEY, val);
+  } catch (_) { }
+  _googleSlidesAccessToken = '';
+  _googleSlidesTokenExpiry = 0;
+  toggleGoogleClientIdPanel(false);
+  refreshGoogleSlidesAuthUI();
+  showToast('✅ បានរក្សាទុក Google Client ID! កំពុងបើកផ្ទាំងភ្ជាប់គណនី Google...', 'success');
+  try {
+    await requestGoogleSlidesAccessToken(true);
+    refreshGoogleSlidesAuthUI();
+    showToast('✅ ភ្ជាប់គណនី Google Slides ជោគជ័យ!', 'success');
+  } catch (err) {
+    showToast('⚠️ ' + (err.message || 'មិនទាន់ភ្ជាប់គណនី Google បានទេ'), 'warning', 6000);
+  }
+}
+window.saveGoogleSlidesClientId = saveGoogleSlidesClientId;
+
+function requestGoogleSlidesAccessToken(forceConsent = false) {
+  return new Promise((resolve, reject) => {
+    if (!forceConsent && isGoogleSlidesTokenValid()) {
+      resolve(_googleSlidesAccessToken);
+      return;
+    }
+
+    const clientId = getGoogleSlidesClientId();
+    if (!clientId) {
+      reject(new Error('មិនទាន់បានកំណត់ Google OAuth Client ID ឡើយ។'));
+      return;
+    }
+
+    if (!window.google || !window.google.accounts || !window.google.accounts.oauth2) {
+      reject(new Error('Google Sign-In SDK មិនទាន់ផ្ទុករួចរាល់ទេ។ សូមពិនិត្យអ៊ីនធឺណិត រួចសាកម្ដងទៀត!'));
+      return;
+    }
+
+    try {
+      const tokenClient = window.google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: GOOGLE_SLIDES_OAUTH_SCOPE,
+        callback: (resp) => {
+          if (resp && resp.access_token) {
+            _googleSlidesAccessToken = resp.access_token;
+            const expiresInSec = parseInt(resp.expires_in, 10) || 3500;
+            _googleSlidesTokenExpiry = Date.now() + expiresInSec * 1000;
+            refreshGoogleSlidesAuthUI();
+            resolve(_googleSlidesAccessToken);
+          } else {
+            const errCode = resp && (resp.error_description || resp.error) ? (resp.error_description || resp.error) : 'ការភ្ជាប់គណនី Google ត្រូវបានបោះបង់។';
+            reject(new Error(errCode));
+          }
+        },
+        error_callback: (err) => {
+          const msg = (err && err.type === 'popup_closed')
+            ? 'ផ្ទាំងចូលគណនី Google ត្រូវបានបិទមុនពេលបញ្ចប់។'
+            : ((err && err.message) || 'Browser បានរាំងខ្ទប់ Popup Google Sign-In។ សូមអនុញ្ញាត Popup រួចសាកម្ដងទៀត!');
+          reject(new Error(msg));
+        }
+      });
+      tokenClient.requestAccessToken({ prompt: forceConsent ? 'consent' : '' });
+    } catch (e) {
+      reject(new Error(e.message || 'មិនអាចបើក Google OAuth Sign-In បានទេ។'));
+    }
+  });
+}
+
+async function connectGoogleSlidesAccount() {
+  if (!getGoogleSlidesClientId()) {
+    toggleGoogleClientIdPanel(true);
+    showToast('⚙️ សូមបញ្ចូល Google OAuth Client ID ជាមុនសិន!', 'warning');
+    return;
+  }
+  try {
+    await requestGoogleSlidesAccessToken(true);
+    showToast('✅ បានភ្ជាប់គណនី Google Slides API រួចរាល់! លោកគ្រូអាចចុច «បង្កើតក្នុង Google Slides» បានភ្លាម!', 'success');
+  } catch (err) {
+    showToast('⚠️ ' + (err.message || 'ការភ្ជាប់ Google បរាជ័យ'), 'warning', 6000);
+  }
+}
+window.connectGoogleSlidesAccount = connectGoogleSlidesAccount;
+
+function disconnectGoogleSlidesAccount() {
+  try {
+    if (_googleSlidesAccessToken && window.google?.accounts?.oauth2?.revoke) {
+      window.google.accounts.oauth2.revoke(_googleSlidesAccessToken, () => { });
+    }
+  } catch (_) { }
+  _googleSlidesAccessToken = '';
+  _googleSlidesTokenExpiry = 0;
+  refreshGoogleSlidesAuthUI();
+  showToast('បានចាកចេញពីគណនី Google Slides រួចរាល់', 'info');
+}
+window.disconnectGoogleSlidesAccount = disconnectGoogleSlidesAccount;
+
+function hexToSlidesRgb(hex) {
+  const clean = String(hex || 'FFFFFF').replace('#', '').trim();
+  const full = clean.length === 3 ? clean.split('').map(c => c + c).join('') : clean.padEnd(6, '0').slice(0, 6);
+  return {
+    red: parseInt(full.slice(0, 2), 16) / 255,
+    green: parseInt(full.slice(2, 4), 16) / 255,
+    blue: parseInt(full.slice(4, 6), 16) / 255
+  };
+}
+
+function finishPptxWidgetGoogleSlides(slideUrl, deckTitle) {
+  if (pptxWidgetTimerInterval) clearInterval(pptxWidgetTimerInterval);
+  const titleEl = document.getElementById('pptxWidgetTitle');
+  if (titleEl) titleEl.innerHTML = '✅ ស្លាយ Google Slides រួចរាល់!';
+
+  const barEl = document.getElementById('pptxWidgetProgressBar');
+  if (barEl) {
+    barEl.style.background = '#10b981';
+    barEl.style.width = '100%';
+  }
+
+  const statusEl = document.getElementById('pptxWidgetStatus');
+  if (statusEl) {
+    statusEl.innerHTML = `<span style="color: #059669; font-weight: 700;">📊 បានបង្កើតក្នុង docs.google.com/presentation រួចរាល់!</span>`;
+  }
+
+  const btnArea = document.getElementById('pptxWidgetActionBtnArea');
+  if (btnArea) {
+    btnArea.innerHTML = `
+      <a href="${escapeHtml(slideUrl)}" target="_blank" rel="noopener" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border: none; padding: 5px 11px; border-radius: 6px; font-size: 0.78rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+        <i class="fa-solid fa-arrow-up-right-from-square"></i> បើក Google Slides
+      </a>
+    `;
+  }
+
+  try {
+    localStorage.setItem(GOOGLE_SLIDES_LAST_DECK_STORAGE_KEY, JSON.stringify({
+      title: deckTitle,
+      url: slideUrl,
+      createdAt: Date.now()
+    }));
+  } catch (_) { }
+  refreshGoogleSlidesAuthUI();
+
+  const prevTitle = document.title;
+  document.title = '✅ [Google Slides រួចរាល់] ' + prevTitle.replace(/^\[.*?\]\s*/, '').replace(/^⏳\s*\(.*?\)\s*/, '');
+  setTimeout(() => { document.title = prevTitle; }, 10000);
+
+  if (typeof playSuccessChime === 'function') playSuccessChime();
+}
+
+async function googleSlidesApiFetch(url, token, method = 'GET', bodyObj = null) {
+  const opts = {
+    method,
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    }
+  };
+  if (bodyObj) opts.body = JSON.stringify(bodyObj);
+  const resp = await fetch(url, opts);
+  const json = await resp.json().catch(() => ({}));
+  if (!resp.ok) {
+    if (resp.status === 401) {
+      _googleSlidesAccessToken = '';
+      _googleSlidesTokenExpiry = 0;
+      refreshGoogleSlidesAuthUI();
+      throw new Error('សិទ្ធិចូលប្រើ Google Slides ផុតកំណត់។ សូមភ្ជាប់គណនី Google ម្ដងទៀត!');
+    }
+    const apiMsg = json?.error?.message || `Google Slides API HTTP ${resp.status}`;
+    if (/Slides API has not been used|not enabled/i.test(apiMsg)) {
+      throw new Error('Google Slides API មិនទាន់បាន Enable ក្នុង Google Cloud Project របស់លោកគ្រូឡើយ។ សូមចុច Enable Google Slides API ជាមុនសិន!');
+    }
+    throw new Error(apiMsg);
+  }
+  return json;
+}
+
+window.buildGoogleSlidesPresentation = async function (slidesData, meta, options) {
+  meta = meta || {};
+  options = options || {};
+  const imageMode = options.imageMode || 'ai';
+  const theme = options.theme || 'modern_blue';
+  const token = options.accessToken || _googleSlidesAccessToken;
+  if (!token) throw new Error('មិនទាន់បានភ្ជាប់គណនី Google Slides ឡើយ។');
+
+  const cleanLessonTitle = String(meta.lessonTitle || slidesData[0]?.title || 'មេរៀនបង្រៀន').replace(/\.(docx?|pdf|pptx?|txt)$/i, '').trim();
+  const deckTitle = `កិច្ចតែងការ - ${meta.subject || 'បង្រៀន'} - ${cleanLessonTitle}`.slice(0, 120);
+
+  updatePptxWidgetStatus(`📊 កំពុងបង្កើតឯកសារថ្មីក្នុង docs.google.com/presentation...`, 58);
+
+  // 1. Create fresh Google Slides deck in user's Google Drive
+  const created = await googleSlidesApiFetch('https://slides.googleapis.com/v1/presentations', token, 'POST', {
+    title: deckTitle
+  });
+  const presentationId = created.presentationId;
+  if (!presentationId) throw new Error('Google Slides មិនបានត្រឡប់ presentationId ឡើយ។');
+  const initialSlideId = created.slides?.[0]?.objectId || null;
+
+  // Theme palettes matching PPTX Studio
+  let bg = 'F8FAFC', titleColor = '1E3A8A', bodyColor = '334155', accentPrimary = '2563EB', accentSecondary = 'D97706', cardBg = 'FFFFFF', cardBorder = 'CBD5E1', coverBg = '0F172A';
+  if (theme === 'eco_green') {
+    bg = 'F0FDF4'; titleColor = '14532D'; bodyColor = '1E293B'; accentPrimary = '059669'; accentSecondary = 'D97706'; cardBg = 'FFFFFF'; cardBorder = 'BBF7D0'; coverBg = '064E3B';
+  } else if (theme === 'dark_mode') {
+    bg = '0F172A'; titleColor = 'F8FAFC'; bodyColor = 'CBD5E1'; accentPrimary = '38BDF8'; accentSecondary = 'F59E0B'; cardBg = '1E293B'; cardBorder = '334155'; coverBg = '020617';
+  } else if (theme === 'simple_light') {
+    bg = 'FFFFFF'; titleColor = '1E293B'; bodyColor = '475569'; accentPrimary = '4F46E5'; accentSecondary = 'EA580C'; cardBg = 'F8FAFC'; cardBorder = 'E2E8F0'; coverBg = '1E293B';
+  }
+
+  const bulletIcons = ['✦', '◆', '●', '★', '►', '❖'];
+  const kNum = (typeof toKhmerNumber === 'function' && state.language !== 'en') ? toKhmerNumber : String;
+  const officialSite = (typeof getOfficialAppWebsiteUrl === 'function') ? getOfficialAppWebsiteUrl() : 'https://lessonplan-kh.vercel.app';
+
+  // Helper: Clean bullet into { heading, desc }
+  const parseBulletClean = (rawText, idx) => {
+    let clean = String(rawText || '').trim().replace(/^[-•*▪➢➤\s]+/, '');
+    let heading = '';
+    let desc = '';
+    const boldMatch = clean.match(/^\*\*(.+?)\*\*\s*[:៖\-–—]?\s*(.*)/);
+    if (boldMatch) {
+      heading = boldMatch[1].replace(/\*\*/g, '').replace(/[:៖]$/, '').trim();
+      desc = boldMatch[2].replace(/\*\*/g, '').trim();
+    } else {
+      const colonIdx = clean.search(/[:៖]/);
+      if (colonIdx > 0 && colonIdx < 65) {
+        heading = clean.slice(0, colonIdx).replace(/\*\*/g, '').trim();
+        desc = clean.slice(colonIdx + 1).replace(/\*\*/g, '').trim();
+      } else {
+        desc = clean.replace(/\*\*/g, '').trim();
+      }
+    }
+    const badge = bulletIcons[idx % bulletIcons.length];
+    return { badge, heading, desc };
+  };
+
+  // Pre-select ZERO-DUPLICATE context-matched HTTPS image URLs for every slide!
+  const usedUrls = new Set();
+  const slideImagePlans = slidesData.map((sl, idx) => {
+    if (imageMode === 'no') return null;
+    const det = detectSlideTopic(sl, meta, idx + 1);
+    const url = pickUniqueCuratedImageUrl(det.category, idx + 1, usedUrls);
+    if (url) usedUrls.add(url);
+    return url ? { url, category: det.category } : null;
+  });
+
+  // 2. Build Pass 1: Create all blank slides + backgrounds + cover photo placeholder order
+  updatePptxWidgetStatus(`🎨 កំពុងរៀបចំស្លាយទាំង ${slidesData.length} និងបញ្ជូនរូបភាពចូល Google Slides...`, 70);
+
+  const createSlideReqs = [];
+  const slideIds = [];
+  slidesData.forEach((sl, idx) => {
+    const sid = `gslide_${idx + 1}`;
+    slideIds.push(sid);
+    createSlideReqs.push({
+      createSlide: {
+        objectId: sid,
+        insertionIndex: idx,
+        slideLayoutReference: { predefinedLayout: 'BLANK' }
+      }
+    });
+    createSlideReqs.push({
+      updatePageProperties: {
+        objectId: sid,
+        pageProperties: {
+          pageBackgroundFill: {
+            solidFill: { color: { rgbColor: hexToSlidesRgb(sl.type === 'title' ? coverBg : bg) } }
+          }
+        },
+        fields: 'pageBackgroundFill.solidFill.color'
+      }
+    });
+  });
+  if (initialSlideId) {
+    createSlideReqs.push({ deleteObject: { objectId: initialSlideId } });
+  }
+  await googleSlidesApiFetch(`https://slides.googleapis.com/v1/presentations/${presentationId}:batchUpdate`, token, 'POST', {
+    requests: createSlideReqs
+  });
+
+  // 3. Build Pass 2 (Cover Photo FIRST so it sits behind the dark scrim & title text!)
+  if (slidesData[0]?.type === 'title' && slideImagePlans[0]?.url) {
+    try {
+      await googleSlidesApiFetch(`https://slides.googleapis.com/v1/presentations/${presentationId}:batchUpdate`, token, 'POST', {
+        requests: [{
+          createImage: {
+            objectId: 'gcover_img_1',
+            url: slideImagePlans[0].url,
+            elementProperties: {
+              pageObjectId: slideIds[0],
+              size: { width: { magnitude: 720, unit: 'PT' }, height: { magnitude: 405, unit: 'PT' } },
+              transform: { scaleX: 1, scaleY: 1, translateX: 0, translateY: 0, unit: 'PT' }
+            }
+          }
+        }]
+      });
+    } catch (coverImgErr) {
+      console.warn('[Google Slides] Cover image skipped:', coverImgErr);
+    }
+  }
+
+  // 4. Build Pass 3: Layout Shapes, Styled Cards & Khmer Typography across ALL slides!
+  updatePptxWidgetStatus(`✍️ កំពុងរៀបចំអក្សរខ្មែរ (Kantumruy Pro) & កាតខ្លឹមសារទាំង ${slidesData.length} ស្លាយ...`, 80);
+  const contentReqs = [];
+
+  slidesData.forEach((sl, idx) => {
+    const sid = slideIds[idx];
+    const hasImg = Boolean(slideImagePlans[idx]?.url);
+
+    if (sl.type === 'title') {
+      // Dark semi-transparent scrim over cover photo for sharp white text legibility
+      const scrimId = `gscrim_${idx + 1}`;
+      contentReqs.push(
+        {
+          createShape: {
+            objectId: scrimId,
+            shapeType: 'RECTANGLE',
+            elementProperties: {
+              pageObjectId: sid,
+              size: { width: { magnitude: 720, unit: 'PT' }, height: { magnitude: 405, unit: 'PT' } },
+              transform: { scaleX: 1, scaleY: 1, translateX: 0, translateY: 0, unit: 'PT' }
+            }
+          }
+        },
+        {
+          updateShapeProperties: {
+            objectId: scrimId,
+            shapeProperties: {
+              shapeBackgroundFill: { solidFill: { color: { rgbColor: hexToSlidesRgb('0A0F1D') }, alpha: 0.62 } },
+              outline: { propertyState: 'NOT_RENDERED' }
+            },
+            fields: 'shapeBackgroundFill.solidFill,outline'
+          }
+        }
+      );
+
+      // Gold Accent Pill Bar
+      const accentBarId = `gcoverbar_${idx + 1}`;
+      contentReqs.push(
+        {
+          createShape: {
+            objectId: accentBarId,
+            shapeType: 'ROUND_RECTANGLE',
+            elementProperties: {
+              pageObjectId: sid,
+              size: { width: { magnitude: 110, unit: 'PT' }, height: { magnitude: 5, unit: 'PT' } },
+              transform: { scaleX: 1, scaleY: 1, translateX: 305, translateY: 96, unit: 'PT' }
+            }
+          }
+        },
+        {
+          updateShapeProperties: {
+            objectId: accentBarId,
+            shapeProperties: {
+              shapeBackgroundFill: { solidFill: { color: { rgbColor: hexToSlidesRgb('F59E0B') } } },
+              outline: { propertyState: 'NOT_RENDERED' }
+            },
+            fields: 'shapeBackgroundFill.solidFill,outline'
+          }
+        }
+      );
+
+      // Main Cover Title
+      const titleBoxId = `gcovertitle_${idx + 1}`;
+      const titleText = String(sl.title || cleanLessonTitle).trim();
+      contentReqs.push(
+        {
+          createShape: {
+            objectId: titleBoxId,
+            shapeType: 'TEXT_BOX',
+            elementProperties: {
+              pageObjectId: sid,
+              size: { width: { magnitude: 600, unit: 'PT' }, height: { magnitude: 120, unit: 'PT' } },
+              transform: { scaleX: 1, scaleY: 1, translateX: 60, translateY: 112, unit: 'PT' }
+            }
+          }
+        },
+        { insertText: { objectId: titleBoxId, insertionIndex: 0, text: titleText } },
+        {
+          updateTextStyle: {
+            objectId: titleBoxId,
+            textRange: { type: 'ALL' },
+            style: {
+              fontFamily: 'Kantumruy Pro',
+              fontSize: { magnitude: titleText.length > 55 ? 24 : 30, unit: 'PT' },
+              bold: true,
+              foregroundColor: { opaqueColor: { rgbColor: hexToSlidesRgb('FFFFFF') } }
+            },
+            fields: 'fontFamily,fontSize,bold,foregroundColor'
+          }
+        },
+        {
+          updateParagraphStyle: {
+            objectId: titleBoxId,
+            textRange: { type: 'ALL' },
+            style: { alignment: 'CENTER', lineSpacing: 125 },
+            fields: 'alignment,lineSpacing'
+          }
+        }
+      );
+
+      // Subtitle
+      const subText = String(sl.subtitle || [meta.subject, meta.grade].filter(Boolean).join(' • ') || 'កិច្ចតែងការបង្រៀន').trim();
+      if (subText) {
+        const subBoxId = `gcoversub_${idx + 1}`;
+        contentReqs.push(
+          {
+            createShape: {
+              objectId: subBoxId,
+              shapeType: 'TEXT_BOX',
+              elementProperties: {
+                pageObjectId: sid,
+                size: { width: { magnitude: 560, unit: 'PT' }, height: { magnitude: 55, unit: 'PT' } },
+                transform: { scaleX: 1, scaleY: 1, translateX: 80, translateY: 244, unit: 'PT' }
+              }
+            }
+          },
+          { insertText: { objectId: subBoxId, insertionIndex: 0, text: subText } },
+          {
+            updateTextStyle: {
+              objectId: subBoxId,
+              textRange: { type: 'ALL' },
+              style: {
+                fontFamily: 'Kantumruy Pro',
+                fontSize: { magnitude: 16, unit: 'PT' },
+                bold: true,
+                foregroundColor: { opaqueColor: { rgbColor: hexToSlidesRgb('FDE68A') } }
+              },
+              fields: 'fontFamily,fontSize,bold,foregroundColor'
+            }
+          },
+          {
+            updateParagraphStyle: {
+              objectId: subBoxId,
+              textRange: { type: 'ALL' },
+              style: { alignment: 'CENTER' },
+              fields: 'alignment'
+            }
+          }
+        );
+      }
+
+      // Cover Footer
+      const coverFootId = `gcoverfoot_${idx + 1}`;
+      const footLabel = [meta.teacher ? `គ្រូបង្រៀន៖ ${meta.teacher}` : '', officialSite].filter(Boolean).join('  •  ');
+      contentReqs.push(
+        {
+          createShape: {
+            objectId: coverFootId,
+            shapeType: 'TEXT_BOX',
+            elementProperties: {
+              pageObjectId: sid,
+              size: { width: { magnitude: 600, unit: 'PT' }, height: { magnitude: 24, unit: 'PT' } },
+              transform: { scaleX: 1, scaleY: 1, translateX: 60, translateY: 364, unit: 'PT' }
+            }
+          }
+        },
+        { insertText: { objectId: coverFootId, insertionIndex: 0, text: footLabel } },
+        {
+          updateTextStyle: {
+            objectId: coverFootId,
+            textRange: { type: 'ALL' },
+            style: {
+              fontFamily: 'Kantumruy Pro',
+              fontSize: { magnitude: 10, unit: 'PT' },
+              foregroundColor: { opaqueColor: { rgbColor: hexToSlidesRgb('CBD5E1') } }
+            },
+            fields: 'fontFamily,fontSize,foregroundColor'
+          }
+        },
+        {
+          updateParagraphStyle: {
+            objectId: coverFootId,
+            textRange: { type: 'ALL' },
+            style: { alignment: 'CENTER' },
+            fields: 'alignment'
+          }
+        }
+      );
+      return;
+    }
+
+    // === CONTENT SLIDES (2..N) ===
+    // Top Accent Strip
+    const topStripId = `gstrip_${idx + 1}`;
+    contentReqs.push(
+      {
+        createShape: {
+          objectId: topStripId,
+          shapeType: 'RECTANGLE',
+          elementProperties: {
+            pageObjectId: sid,
+            size: { width: { magnitude: 720, unit: 'PT' }, height: { magnitude: 6, unit: 'PT' } },
+            transform: { scaleX: 1, scaleY: 1, translateX: 0, translateY: 0, unit: 'PT' }
+          }
+        }
+      },
+      {
+        updateShapeProperties: {
+          objectId: topStripId,
+          shapeProperties: {
+            shapeBackgroundFill: { solidFill: { color: { rgbColor: hexToSlidesRgb(accentPrimary) } } },
+            outline: { propertyState: 'NOT_RENDERED' }
+          },
+          fields: 'shapeBackgroundFill.solidFill,outline'
+        }
+      }
+    );
+
+    // Slide Title
+    const stitleId = `gtitle_${idx + 1}`;
+    const stitleText = String(sl.title || `ស្លាយទី ${idx + 1}`).trim();
+    contentReqs.push(
+      {
+        createShape: {
+          objectId: stitleId,
+          shapeType: 'TEXT_BOX',
+          elementProperties: {
+            pageObjectId: sid,
+            size: { width: { magnitude: 648, unit: 'PT' }, height: { magnitude: 44, unit: 'PT' } },
+            transform: { scaleX: 1, scaleY: 1, translateX: 36, translateY: 16, unit: 'PT' }
+          }
+        }
+      },
+      { insertText: { objectId: stitleId, insertionIndex: 0, text: stitleText } },
+      {
+        updateTextStyle: {
+          objectId: stitleId,
+          textRange: { type: 'ALL' },
+          style: {
+            fontFamily: 'Kantumruy Pro',
+            fontSize: { magnitude: stitleText.length > 52 ? 17 : 20, unit: 'PT' },
+            bold: true,
+            foregroundColor: { opaqueColor: { rgbColor: hexToSlidesRgb(titleColor) } }
+          },
+          fields: 'fontFamily,fontSize,bold,foregroundColor'
+        }
+      }
+    );
+
+    // Subtle Divider
+    const divId = `gdiv_${idx + 1}`;
+    contentReqs.push(
+      {
+        createShape: {
+          objectId: divId,
+          shapeType: 'RECTANGLE',
+          elementProperties: {
+            pageObjectId: sid,
+            size: { width: { magnitude: 648, unit: 'PT' }, height: { magnitude: 1.5, unit: 'PT' } },
+            transform: { scaleX: 1, scaleY: 1, translateX: 36, translateY: 64, unit: 'PT' }
+          }
+        }
+      },
+      {
+        updateShapeProperties: {
+          objectId: divId,
+          shapeProperties: {
+            shapeBackgroundFill: { solidFill: { color: { rgbColor: hexToSlidesRgb(cardBorder) } } },
+            outline: { propertyState: 'NOT_RENDERED' }
+          },
+          fields: 'shapeBackgroundFill.solidFill,outline'
+        }
+      }
+    );
+
+    // Styled Content Cards (Left Column or Full-Width)
+    const rawBullets = Array.isArray(sl.bullets) ? sl.bullets.filter(Boolean).slice(0, 4) : [];
+    const bullets = rawBullets.length > 0 ? rawBullets : [stitleText];
+    const cardW = hasImg ? 388 : 648;
+    const totalAvailH = 292;
+    const gap = 10;
+    const cardH = Math.max(54, Math.floor((totalAvailH - gap * (bullets.length - 1)) / bullets.length));
+
+    bullets.forEach((bText, bIdx) => {
+      const parsed = parseBulletClean(bText, bIdx);
+      const cardId = `gcard_${idx + 1}_${bIdx}`;
+      const yPos = 76 + bIdx * (cardH + gap);
+      const prefix = `${parsed.badge} `;
+      const fullCardText = parsed.heading
+        ? (parsed.desc ? `${prefix}${parsed.heading}៖ ${parsed.desc}` : `${prefix}${parsed.heading}`)
+        : `${prefix}${parsed.desc}`;
+      const fontSizePt = fullCardText.length > 155 ? 10.5 : (fullCardText.length > 105 ? 11.5 : 12.5);
+
+      contentReqs.push(
+        {
+          createShape: {
+            objectId: cardId,
+            shapeType: 'ROUND_RECTANGLE',
+            elementProperties: {
+              pageObjectId: sid,
+              size: { width: { magnitude: cardW, unit: 'PT' }, height: { magnitude: cardH, unit: 'PT' } },
+              transform: { scaleX: 1, scaleY: 1, translateX: 36, translateY: yPos, unit: 'PT' }
+            }
+          }
+        },
+        {
+          updateShapeProperties: {
+            objectId: cardId,
+            shapeProperties: {
+              shapeBackgroundFill: { solidFill: { color: { rgbColor: hexToSlidesRgb(cardBg) } } },
+              outline: {
+                outlineFill: { solidFill: { color: { rgbColor: hexToSlidesRgb(cardBorder) } } },
+                weight: { magnitude: 1, unit: 'PT' }
+              }
+            },
+            fields: 'shapeBackgroundFill.solidFill,outline'
+          }
+        },
+        { insertText: { objectId: cardId, insertionIndex: 0, text: fullCardText } },
+        {
+          updateTextStyle: {
+            objectId: cardId,
+            textRange: { type: 'ALL' },
+            style: {
+              fontFamily: 'Kantumruy Pro',
+              fontSize: { magnitude: fontSizePt, unit: 'PT' },
+              bold: false,
+              foregroundColor: { opaqueColor: { rgbColor: hexToSlidesRgb(bodyColor) } }
+            },
+            fields: 'fontFamily,fontSize,bold,foregroundColor'
+          }
+        },
+        {
+          updateParagraphStyle: {
+            objectId: cardId,
+            textRange: { type: 'ALL' },
+            style: { alignment: 'START', lineSpacing: 118 },
+            fields: 'alignment,lineSpacing'
+          }
+        }
+      );
+
+      if (parsed.heading) {
+        const headingEnd = prefix.length + parsed.heading.length + (parsed.desc ? 1 : 0);
+        if (headingEnd > 0 && headingEnd <= fullCardText.length) {
+          contentReqs.push({
+            updateTextStyle: {
+              objectId: cardId,
+              textRange: { type: 'FIXED_RANGE', startIndex: 0, endIndex: headingEnd },
+              style: {
+                bold: true,
+                foregroundColor: { opaqueColor: { rgbColor: hexToSlidesRgb(accentPrimary) } }
+              },
+              fields: 'bold,foregroundColor'
+            }
+          });
+        }
+      }
+    });
+
+    // Slide Footer
+    const footId = `gfoot_${idx + 1}`;
+    const footText = `${officialSite}    •    ទំព័រទី ${kNum(idx + 1)} / ${kNum(slidesData.length)}`;
+    contentReqs.push(
+      {
+        createShape: {
+          objectId: footId,
+          shapeType: 'TEXT_BOX',
+          elementProperties: {
+            pageObjectId: sid,
+            size: { width: { magnitude: 648, unit: 'PT' }, height: { magnitude: 18, unit: 'PT' } },
+            transform: { scaleX: 1, scaleY: 1, translateX: 36, translateY: 380, unit: 'PT' }
+          }
+        }
+      },
+      { insertText: { objectId: footId, insertionIndex: 0, text: footText } },
+      {
+        updateTextStyle: {
+          objectId: footId,
+          textRange: { type: 'ALL' },
+          style: {
+            fontFamily: 'Kantumruy Pro',
+            fontSize: { magnitude: 8.5, unit: 'PT' },
+            foregroundColor: { opaqueColor: { rgbColor: hexToSlidesRgb('64748B') } }
+          },
+          fields: 'fontFamily,fontSize,foregroundColor'
+        }
+      },
+      {
+        updateParagraphStyle: {
+          objectId: footId,
+          textRange: { type: 'ALL' },
+          style: { alignment: 'END' },
+          fields: 'alignment'
+        }
+      }
+    );
+  });
+
+  if (contentReqs.length > 0) {
+    await googleSlidesApiFetch(`https://slides.googleapis.com/v1/presentations/${presentationId}:batchUpdate`, token, 'POST', {
+      requests: contentReqs
+    });
+  }
+
+  // 5. Build Pass 4: Resilient Per-Slide Image Insertion on Content Slides (Right Column)
+  if (imageMode !== 'no') {
+    updatePptxWidgetStatus(`🖼️ កំពុងបញ្ចូលរូបភាពស្របតាមបរិបថ (គ្មានរូបជាន់គ្នា) ទៅក្នុង Google Slides...`, 88);
+    const imgReqs = [];
+    slidesData.forEach((sl, idx) => {
+      if (sl.type === 'title') return;
+      const planImg = slideImagePlans[idx];
+      if (!planImg || !planImg.url) return;
+      imgReqs.push({
+        createImage: {
+          objectId: `gimg_${idx + 1}`,
+          url: planImg.url,
+          elementProperties: {
+            pageObjectId: slideIds[idx],
+            size: { width: { magnitude: 244, unit: 'PT' }, height: { magnitude: 280, unit: 'PT' } },
+            transform: { scaleX: 1, scaleY: 1, translateX: 440, translateY: 78, unit: 'PT' }
+          }
+        }
+      });
+    });
+
+    if (imgReqs.length > 0) {
+      try {
+        await googleSlidesApiFetch(`https://slides.googleapis.com/v1/presentations/${presentationId}:batchUpdate`, token, 'POST', {
+          requests: imgReqs
+        });
+      } catch (batchImgErr) {
+        console.warn('[Google Slides] Batch image error, retrying per-slide safely:', batchImgErr);
+        for (const req of imgReqs) {
+          try {
+            await googleSlidesApiFetch(`https://slides.googleapis.com/v1/presentations/${presentationId}:batchUpdate`, token, 'POST', {
+              requests: [req]
+            });
+          } catch (_) { }
+        }
+      }
+    }
+  }
+
+  // 6. Build Pass 5: Inject Rich Khmer Teacher Speaker Notes into Official Notes Pane
+  try {
+    updatePptxWidgetStatus(`🗣️ កំពុងបញ្ចូល Speaker Notes សម្រាប់គ្រូបង្រៀន...`, 95);
+    const notesMeta = await googleSlidesApiFetch(
+      `https://slides.googleapis.com/v1/presentations/${presentationId}?fields=slides(objectId,slideProperties/notesPage/notesProperties/speakerNotesObjectId)`,
+      token,
+      'GET'
+    );
+    const noteReqs = [];
+    (notesMeta.slides || []).forEach((sObj, idx) => {
+      const noteText = String(slidesData[idx]?.speakerNotes || '').trim();
+      const notesId = sObj?.slideProperties?.notesPage?.notesProperties?.speakerNotesObjectId;
+      if (noteText && notesId) {
+        noteReqs.push({ insertText: { objectId: notesId, insertionIndex: 0, text: noteText } });
+      }
+    });
+    if (noteReqs.length > 0) {
+      await googleSlidesApiFetch(`https://slides.googleapis.com/v1/presentations/${presentationId}:batchUpdate`, token, 'POST', {
+        requests: noteReqs
+      });
+    }
+  } catch (notesErr) {
+    console.warn('[Google Slides] Speaker notes insert skipped:', notesErr);
+  }
+
+  const slideUrl = `https://docs.google.com/presentation/d/${presentationId}/edit`;
+  finishPptxWidgetGoogleSlides(slideUrl, deckTitle);
+  showToast('🎉 បានបង្កើតស្លាយក្នុង Google Slides (docs.google.com/presentation) ជោគជ័យ! កំពុងបើកផ្ទាំងថ្មី...', 'success', 8000);
+  window.open(slideUrl, '_blank');
+  return slideUrl;
+};
+
+window.generatePptxSlides = async function (targetFormat = 'google_slides') {
   if (state.isPptxGenerating) {
     showToast('⚠️ កំពុងមានដំណើរការបង្កើតស្លាយមួយរួចហើយ សូមរង់ចាំបន្តិច...', 'warning');
     return;
+  }
+
+  // Request Google OAuth access token synchronously right inside the user click gesture (prevents popup blocker!)
+  let googleAccessToken = null;
+  if (targetFormat === 'google_slides') {
+    if (!getGoogleSlidesClientId()) {
+      toggleGoogleClientIdPanel(true);
+      showToast('⚙️ សូមបញ្ចូល Google OAuth Client ID ជាមុនសិន ដើម្បីបង្កើតក្នុង docs.google.com/presentation!', 'warning', 7000);
+      return;
+    }
+    try {
+      googleAccessToken = await requestGoogleSlidesAccessToken(false);
+    } catch (authErr) {
+      showToast('⚠️ ' + (authErr.message || 'មិនអាចភ្ជាប់គណនី Google បានឡើយ។'), 'warning', 6000);
+      return;
+    }
   }
 
   const sourceChoice = document.getElementById('pptxSourceSelect')?.value || 'current_plan';
@@ -20521,7 +21444,9 @@ window.generatePptxSlides = async function () {
   state.isPptxGenerating = true;
 
   // 🚀 Start Floating Background Task (Does NOT lock teacher's screen!)
-  showPptxWidget(`🎬 កំពុងបង្កើត ${numSlides} ស្លាយ PowerPoint...`);
+  showPptxWidget(targetFormat === 'google_slides'
+    ? `📊 កំពុងបង្កើត ${numSlides} ស្លាយ Google Slides...`
+    : `🎬 កំពុងបង្កើត ${numSlides} ស្លាយ PowerPoint...`);
   updatePptxWidgetStatus('🧠 Gemini AI កំពុងវិភាគឯកសារ និងរៀបចំខ្លឹមសារស្លាយកម្រិតខ្ពស់... (រហូតដល់ ៥ នាទី)', 12);
   showToast('🚀 កំពុងដំណើរការបង្កើតស្លាយនៅផ្ទៃខាងក្រោយ... លោកគ្រូអាចបន្តធ្វើការងារផ្សេងៗបានដោយសេរី!', 'info', 7000);
 
@@ -20724,7 +21649,11 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
       return; // Exit cleanly without creating fake/repetitive dummy presentation!
     }
 
-    await buildPptxPresentation(slidesData, data, { theme, imageMode });
+    if (targetFormat === 'google_slides') {
+      await buildGoogleSlidesPresentation(slidesData, data, { theme, imageMode, accessToken: googleAccessToken });
+    } else {
+      await buildPptxPresentation(slidesData, data, { theme, imageMode });
+    }
 
   } catch (error) {
     console.error('PPTX error:', error);

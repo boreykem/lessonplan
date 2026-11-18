@@ -16,20 +16,21 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <!-- Docx & PDF & Mammoth & JSZip (PowerPoint) Libraries -->
+  <!-- Docx & PDF & Mammoth & JSZip (PowerPoint) + Google Identity Services (Google Slides API) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
 
   <!-- KaTeX for Clean Mathematics & Scientific STEM Notation -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=20261118_v164">
+  <link rel="stylesheet" href="style.css?v=20261118_v167">
 
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -2368,17 +2369,16 @@
 
 
 
-  <!-- PPTX Generator Modal -->
+  <!-- Google Slides (docs.google.com/presentation) & PPTX Generator Modal -->
   <div id="pptxModal" class="modal-overlay modal-backdrop"
     style="display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.8); backdrop-filter: blur(6px); z-index: 10000; align-items: center; justify-content: center;">
     <div class="modal modal-card"
-      style="max-width: 600px; width: 95%; background: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);">
+      style="max-width: 630px; width: 95%; background: #ffffff; border-radius: 14px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.4);">
       <div class="modal-header"
-        style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between;">
+        style="padding: 16px 20px; border-bottom: 1px solid #fde68a; background: linear-gradient(135deg, #fffbeb, #fef3c7); display: flex; align-items: center; justify-content: space-between;">
         <div class="modal-title"
-          style="color: #e11d48; font-weight: 700; font-size: 1.15rem; display: flex; align-items: center; gap: 8px;">
-          <i class="fa-solid fa-file-powerpoint"></i> <span data-i18n="modalPptxTitle">បង្កើតស្លាយ PowerPoint (.pptx) -
-            AI Studio</span>
+          style="color: #b45309; font-weight: 800; font-size: 1.08rem; display: flex; align-items: center; gap: 9px;">
+          <i class="fa-brands fa-google" style="color: #d97706;"></i> <span data-i18n="modalPptxTitle">បង្កើតស្លាយ Google Slides (docs.google.com/presentation)</span>
         </div>
         <button class="modal-close" onclick="closePptxModal()"
           style="font-size: 1.3rem; background: none; border: none; cursor: pointer; color: #64748b;"><i
@@ -2388,22 +2388,79 @@
       <!-- Tab Navigation -->
       <div style="display: flex; border-bottom: 2px solid #e2e8f0; background: #f8fafc; padding: 0 16px;">
         <button type="button" id="tabBtnPptxDirect" onclick="switchPptxTab('direct')"
-          style="padding: 11px 16px; font-weight: 700; font-size: 9pt; border: none; background: transparent; border-bottom: 3px solid #e11d48; color: #e11d48; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: 'Kantumruy Pro', sans-serif;">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> <span>បង្កើតដោយ AI ស្វ័យប្រវត្តិ (Direct PPTX)</span>
+          style="padding: 11px 16px; font-weight: 700; font-size: 9pt; border: none; background: transparent; border-bottom: 3px solid #d97706; color: #b45309; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: 'Kantumruy Pro', sans-serif;">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> <span>បង្កើតក្នុង Google Slides (API ផ្ទាល់)</span>
         </button>
         <button type="button" id="tabBtnPptxImport" onclick="switchPptxTab('import')"
           style="padding: 11px 16px; font-weight: 600; font-size: 9pt; border: none; background: transparent; border-bottom: 3px solid transparent; color: #64748b; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: 'Kantumruy Pro', sans-serif;">
-          <i class="fa-solid fa-paste"></i> <span>បម្លែងអត្ថបទពី Gemini Web ទៅជា PPTX</span>
+          <i class="fa-solid fa-paste"></i> <span>បម្លែងអត្ថបទពី Gemini Web ទៅស្លាយ</span>
         </button>
       </div>
 
-      <!-- Tab 1: AI Direct Generation & PPTX Download -->
-      <div id="pptxTabDirect" class="pptx-tab-content" style="padding: 20px; max-height: 72vh; overflow-y: auto;">
+      <!-- Tab 1: AI Direct Generation into Google Slides (docs.google.com/presentation) -->
+      <div id="pptxTabDirect" class="pptx-tab-content" style="padding: 18px 20px; max-height: 72vh; overflow-y: auto;">
         <div
-          style="font-size: 9.2pt; color: #475569; margin-bottom: 14px; line-height: 1.5; background: #fff1f2; padding: 10px 14px; border-radius: 8px; border: 1px solid #ffe4e6;"
+          style="font-size: 9pt; color: #78350f; margin-bottom: 12px; line-height: 1.55; background: #fffbeb; padding: 10px 13px; border-radius: 9px; border: 1px solid #fde68a;"
           data-i18n="modalPptxDesc">
-          <i class="fa-solid fa-circle-check" style="color: #e11d48;"></i> ប្រព័ន្ធ AI នឹងអានកិច្ចតែងការ ឬឯកសារយោង
-          រួចបង្កើត និងទាញយកជាឯកសារ PowerPoint (.pptx) ស្វ័យប្រវត្តិតាមស្តង់ដារ MoEYS ជាមួយរូបភាព និង Speaker Notes។
+          <i class="fa-solid fa-circle-check" style="color: #d97706;"></i> ប្រព័ន្ធនឹងបង្កើតស្លាយបង្រៀនដោយ AI រួចផ្ញើចូល <b>Google Drive (docs.google.com/presentation)</b> របស់លោកគ្រូដោយផ្ទាល់ — ស្អាត ពុម្ពអក្សរខ្មែរច្បាស់ មាន Speaker Notes និងអាចប្ដូររូបភាព/Theme ក្នុង Google Slides ភ្លាមៗ!
+        </div>
+
+        <!-- 🔐 Google Slides API OAuth Sign-In & Client ID Card -->
+        <div id="googleSlidesAuthCard" class="gslides-auth-card">
+          <div class="gslides-auth-row">
+            <div class="gslides-auth-status" id="googleSlidesAuthStatusText">
+              <i class="fa-brands fa-google" style="color: #d97706;"></i>
+              <span>កំពុងពិនិត្យការភ្ជាប់ Google Slides API...</span>
+            </div>
+            <div class="gslides-auth-btns">
+              <button type="button" id="btnConnectGoogleSlides" class="btn-gslides-connect" onclick="connectGoogleSlidesAccount()">
+                <i class="fa-brands fa-google"></i> <span>ភ្ជាប់គណនី Google</span>
+              </button>
+              <button type="button" id="btnDisconnectGoogleSlides" class="btn-gslides-disconnect" onclick="disconnectGoogleSlidesAccount()" style="display: none;">
+                <i class="fa-solid fa-right-from-bracket"></i> <span>ចាកចេញ</span>
+              </button>
+              <button type="button" class="btn-gslides-config" onclick="toggleGoogleClientIdPanel()" title="កំណត់ Google OAuth Client ID">
+                <i class="fa-solid fa-gear"></i> <span>Client ID</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Collapsible 3-Step OAuth Client ID Setup Panel -->
+          <div id="googleClientIdSetupBox" class="gslides-setup-box" style="display: none;">
+            <div style="font-size: 8.6pt; color: #334155; line-height: 1.55; margin-bottom: 8px;">
+              <strong>⚙️ ការកំណត់ Google OAuth Client ID (ធ្វើតែម្ដងគត់ — ២ នាទី)៖</strong>
+              <ol style="margin: 4px 0 6px 18px; padding: 0;">
+                <li>ចូល <a href="https://console.cloud.google.com/apis/library/slides.googleapis.com" target="_blank" rel="noopener" style="color: #2563eb; font-weight: 700; text-decoration: underline;">Google Cloud Console → Enable «Google Slides API»</a></li>
+                <li>ចូល <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener" style="color: #2563eb; font-weight: 700; text-decoration: underline;">Credentials → Create Credentials → OAuth client ID (Web application)</a></li>
+                <li>ដាក់ <b>Authorized JavaScript origins</b> ខាងក្រោមនេះ៖</li>
+              </ol>
+              <div class="gslides-origin-bar">
+                <code id="googleSlidesOriginDisplay">https://lessonplan-kh.vercel.app</code>
+                <button type="button" onclick="copyCurrentOriginForGoogleCloud()" class="btn-gslides-copy-origin">
+                  <i class="fa-regular fa-copy"></i> កូពី Origin
+                </button>
+              </div>
+            </div>
+            <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+              <input type="text" id="inputGoogleSlidesClientId" class="form-control form-control-sm"
+                placeholder="បិទភ្ជាប់ Client ID (ឧ. 123456789-abc...apps.googleusercontent.com)"
+                style="flex: 1; min-width: 220px; font-size: 8.5pt;">
+              <button type="button" class="btn-gslides-save-id" onclick="saveGoogleSlidesClientId()">
+                <i class="fa-solid fa-floppy-disk"></i> រក្សាទុក & ភ្ជាប់
+              </button>
+            </div>
+          </div>
+
+          <!-- Last Created Google Slides Quick-Open Link -->
+          <div id="lastGoogleSlidesResultCard" class="gslides-result-banner" style="display: none;">
+            <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
+              <i class="fa-solid fa-circle-check" style="color: #16a34a; font-size: 1rem;"></i>
+              <span id="lastGoogleSlidesTitleText" style="font-size: 8.5pt; font-weight: 700; color: #14532d; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">ស្លាយថ្មីត្រូវបានបង្កើតរួចរាល់!</span>
+            </div>
+            <a id="lastGoogleSlidesOpenLink" href="https://docs.google.com/presentation" target="_blank" rel="noopener" class="btn-gslides-open-link">
+              <i class="fa-solid fa-arrow-up-right-from-square"></i> បើកក្នុង Google Slides
+            </a>
+          </div>
         </div>
 
         <!-- Attachment / Reference Source Dropdown & Upload Button -->
@@ -2557,33 +2614,39 @@
         </div>
       </div>
 
-      <!-- Footer for Tab 1 (Direct Generation) -->
+      <!-- Footer for Tab 1 (Direct Google Slides API + Optional Offline PPTX) -->
       <div id="pptxFooterDirect" class="modal-footer"
-        style="justify-content: space-between; background: #fff1f2; padding: 14px 20px; border-top: 1px solid #ffe4e6; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+        style="justify-content: space-between; background: #fffbeb; padding: 14px 20px; border-top: 1px solid #fde68a; display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
         <button type="button" class="btn-tool-action" onclick="generateGeminiSlidePrompt()"
-          style="background: #ffffff; color: #1e40af; border: 1px solid #93c5fd; padding: 8px 12px; font-size: 8.5pt; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-weight: 600;"
+          style="background: #ffffff; color: #1e40af; border: 1px solid #93c5fd; padding: 8px 11px; font-size: 8.3pt; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-weight: 600;"
           title="ចម្លង Master Prompt សម្រាប់យកទៅប្រើក្នុង gemini.google.com">
-          <i class="fa-brands fa-google" style="color: #2563eb;"></i> <span>ចម្លង Prompt ទៅ Gemini Web</span>
+          <i class="fa-brands fa-google" style="color: #2563eb;"></i> <span>Prompt ទៅ Gemini Web</span>
         </button>
-        <div style="display: flex; gap: 8px; align-items: center;">
-          <button class="btn-secondary" onclick="closePptxModal()" style="border-color: #fda4af; color: #e11d48;"
-            data-i18n="modalPptxBtnCancel">បោះបង់</button>
-          <button class="btn-primary" onclick="generatePptxSlides()"
-            style="background: linear-gradient(135deg, #e11d48, #be123c); border: none; padding: 9px 20px; font-weight: 700; border-radius: 8px; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(225,29,72,0.35);">
-            <i class="fa-solid fa-file-powerpoint"></i> <span data-i18n="modalPptxBtnGenerate">បង្កើត និងទាញយកស្លាយ PPTX
-              (.pptx)</span>
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <button type="button" class="btn-secondary" onclick="generatePptxSlides('pptx')"
+            style="border-color: #fda4af; color: #be123c; background: #fff1f2; padding: 8px 12px; font-size: 8.5pt; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;"
+            title="ទាញយកជាឯកសារ Microsoft PowerPoint (.pptx) ដោយផ្ទាល់">
+            <i class="fa-solid fa-file-powerpoint"></i> <span>.pptx</span>
+          </button>
+          <button type="button" class="btn-primary" onclick="generatePptxSlides('google_slides')"
+            style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none; padding: 9px 18px; font-weight: 800; border-radius: 9px; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(217, 119, 6, 0.38); font-size: 9pt;">
+            <i class="fa-brands fa-google"></i> <span data-i18n="modalPptxBtnGenerate">បង្កើតក្នុង Google Slides</span>
           </button>
         </div>
       </div>
 
       <!-- Footer for Tab 2 (Import / Convert from Gemini Text) -->
       <div id="pptxFooterImport" class="modal-footer"
-        style="display: none; justify-content: flex-end; background: #eff6ff; padding: 14px 20px; border-top: 1px solid #bfdbfe; gap: 10px; align-items: center;">
+        style="display: none; justify-content: flex-end; background: #eff6ff; padding: 14px 20px; border-top: 1px solid #bfdbfe; gap: 8px; align-items: center; flex-wrap: wrap;">
         <button class="btn-secondary" onclick="closePptxModal()"
           style="border-color: #cbd5e1; color: #64748b;">បោះបង់</button>
-        <button class="btn-primary" onclick="convertPastedGeminiToPptx()"
-          style="background: linear-gradient(135deg, #2563eb, #1d4ed8); border: none; padding: 9px 22px; font-weight: 700; border-radius: 8px; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(37,99,235,0.35);">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> <span>បម្លែងជាឯកសារ PPTX & ទាញយកភ្លាមៗ</span>
+        <button type="button" class="btn-secondary" onclick="convertPastedGeminiToPptx('pptx')"
+          style="border-color: #fda4af; color: #be123c; background: #fff1f2; padding: 8px 12px; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-size: 8.6pt;">
+          <i class="fa-solid fa-file-powerpoint"></i> <span>ទាញយក .pptx</span>
+        </button>
+        <button type="button" class="btn-primary" onclick="convertPastedGeminiToPptx('google_slides')"
+          style="background: linear-gradient(135deg, #f59e0b, #d97706); border: none; padding: 9px 18px; font-weight: 800; border-radius: 9px; color: white; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(217, 119, 6, 0.36); font-size: 9pt;">
+          <i class="fa-brands fa-google"></i> <span>បម្លែងចូល Google Slides</span>
         </button>
       </div>
     </div>
@@ -2683,7 +2746,7 @@
   <div id="smartHoverTooltip" class="smart-hover-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261118_v166"></script>
+  <script src="app.js?v=20261118_v167"></script>
 </body>
 
 </html>

@@ -2285,7 +2285,8 @@ def health_check():
     return jsonify({
         "status": "ok", 
         "service": "AI Lesson Plan Studio (Python/Flask)",
-        "version": APP_VERSION
+        "version": APP_VERSION,
+        "googleClientId": os.environ.get("GOOGLE_CLIENT_ID", "").strip()
     })
 
 

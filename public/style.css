@@ -6250,3 +6250,176 @@ tr.step-just-updated td {
 [data-theme="dark"] .lesson-multi-file-header {
   color: #a5b4fc;
 }
+
+/* ==========================================================================
+   📊 Google Slides API (docs.google.com/presentation) OAuth Studio Card
+   ========================================================================== */
+.gslides-auth-card {
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+
+.gslides-auth-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.gslides-auth-status {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 8.6pt;
+  font-weight: 700;
+  color: #334155;
+  flex: 1;
+  min-width: 190px;
+}
+
+.gslides-auth-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.btn-gslides-connect {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 7px;
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 8.2pt;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+.btn-gslides-connect:hover {
+  background: linear-gradient(135deg, #1d4ed8, #1e40af);
+}
+
+.btn-gslides-disconnect {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 7px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #dc2626;
+  font-family: inherit;
+  font-size: 8pt;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-gslides-config {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 7px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-family: inherit;
+  font-size: 8pt;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-gslides-config:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.gslides-setup-box {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.gslides-origin-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 5px 9px;
+  margin-bottom: 6px;
+}
+
+.gslides-origin-bar code {
+  font-size: 8.2pt;
+  color: #1e40af;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-gslides-copy-origin {
+  border: 1px solid #93c5fd;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-radius: 5px;
+  padding: 2px 8px;
+  font-size: 7.8pt;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-gslides-save-id {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 7px;
+  border: none;
+  background: linear-gradient(135deg, #059669, #10b981);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 8.2pt;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.gslides-result-banner {
+  margin-top: 10px;
+  padding: 8px 11px;
+  border-radius: 8px;
+  background: #ecfdf5;
+  border: 1.5px solid #6ee7b7;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-gslides-open-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border-radius: 7px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff !important;
+  font-size: 8.2pt;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
