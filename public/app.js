@@ -4197,15 +4197,6 @@ function renderPedagogicalQualityScore(data) {
     <div class="quality-strip-main">
       <div class="quality-strip-left">
         ${badgeHtml}
-        <span class="quality-metric-chip ${structReport.bloomCount === 3 ? 'ok' : 'warn'}">
-          🎯 Bloom's ${kNum(structReport.bloomCount)}/${kNum(3)}
-        </span>
-        <span class="quality-metric-chip ${structReport.timeAligned ? 'ok' : 'warn'}">
-          ⏱️ ${isEn ? `Pacing ${structReport.timePct}%` : `ម៉ោង ${kNum(structReport.timePct)}%`}
-        </span>
-        <span class="quality-metric-chip ${structReport.stepsCount >= 5 ? 'ok' : 'warn'}">
-          📋 ${isEn ? `${structReport.stepsCount} Steps` : `${kNum(structReport.stepsCount)} ជំហាន`}
-        </span>
         ${extraSummaryChip}
       </div>
       <div class="quality-audit-actions-right">
