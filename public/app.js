@@ -2597,19 +2597,25 @@ function parseDurationToMinutes(durationStr) {
   if (!durationStr) return 60;
   const cleanStr = khmerToEnDigits(durationStr).toLowerCase();
 
-  // If contains hours e.g. "2 ម៉ោង" or "01 ម៉ោង" or "2 hours" or "1.5 ម៉ោង"
+  // 1. Combo hours + minutes e.g. "1 ម៉ោង 30 នាទី" or "2h 30m"
+  const comboMatch = cleanStr.match(/(\d+(?:\.\d+)?)\s*(?:ម៉ោង|hour|h|hr)[\s\S]*?(\d+)\s*(?:នាទី|mn|min|m)/);
+  if (comboMatch) {
+    return Math.round(parseFloat(comboMatch[1]) * 60) + parseInt(comboMatch[2], 10);
+  }
+
+  // 2. Pure hours e.g. "2 ម៉ោង" or "01 ម៉ោង" or "1.5 ម៉ោង"
   const hourMatch = cleanStr.match(/(\d+(?:\.\d+)?)\s*(?:ម៉ោង|hour|h|hr)/);
-  if (hourMatch && !cleanStr.includes('នាទី') && !cleanStr.includes('min')) {
+  if (hourMatch) {
     return Math.round(parseFloat(hourMatch[1]) * 60);
   }
 
-  // Look for minutes e.g. "90 នាទី", "40 នាទី", "100 នាទី", "45mn"
+  // 3. Pure minutes e.g. "90 នាទី", "50 នាទី", "45mn"
   const minMatch = cleanStr.match(/(\d+)\s*(?:នាទី|mn|min|m)/);
   if (minMatch) {
     return parseInt(minMatch[1], 10);
   }
 
-  // Extract first integer
+  // 4. Standalone integer (1-6 interpreted as hours, >6 as minutes)
   const numMatch = cleanStr.match(/\d+/);
   if (numMatch) {
     const val = parseInt(numMatch[0], 10);
@@ -2618,6 +2624,8 @@ function parseDurationToMinutes(durationStr) {
   }
   return 60;
 }
+window.parseDurationToMinutes = parseDurationToMinutes;
+window.getActiveDurationString = getDurationValue;
 
 // Calculate proportional minutes for each step based on total duration & pedagogical percentage
 function calculateStepDurations(durationStr, mode = 'flipped') {
@@ -2685,8 +2693,8 @@ function updateDynamicPacingBar() {
   const badge = document.getElementById('pacingModeBadge');
   if (!container || !legend) return;
 
-  const durationStr = (typeof getActiveDurationString === 'function')
-    ? getActiveDurationString()
+  const durationStr = (typeof getDurationValue === 'function')
+    ? getDurationValue()
     : (document.getElementById('inputDurationSelect')?.value || '០១ ម៉ោង');
 
   const presetSelect = document.getElementById('presetTemplateSelect');
@@ -5553,14 +5561,28 @@ CRITICAL DURATION & ACTIVITY SCALING (${totalMin} MINUTES TOTAL):
 - ជំហានទី ៤ (អនុវត្តសកម្មជាក្រុម & ដោះស្រាយបញ្ហា ៧៥% - CORE ACTIVE LEARNING): ${stepTimeHints.step4}
 - ជំហានទី ៥ (ឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 & បណ្តាំផ្ញើ ៥%): ${stepTimeHints.step5}
 
-2. DURATION-REFLECTIVE ACTIVITIES & STUDY MATERIALS:
-${isLongSession ? `• This is an EXTENDED ${totalMin}-minute block (Multi-hour / Workshop / Deep Learning Session).
-• Study Materials MUST include: Comprehensive Case Studies, Group Flipcharts (ក្រដាសផ្ទាំងធំ A0/A1), Color Markers (ប៊ិចហ្វឺតពណ៌), Mission Worksheets (សន្លឹកបេសកកម្មក្រុម), Digital Tools / Simulation, Rubric Assessment Sheets.
-• Step 4 (${stepTimeHints.step4}) MUST be rich, detailed, and structured into progressive phases:
+2. DURATION-REFLECTIVE ACTIVITIES & STUDY MATERIALS (${totalMin} MINUTES):
+${totalMin >= 150 ? `• This is an EXTENDED 3-HOUR / WORKSHOP SESSION (${totalMin} minutes).
+• Study Materials MUST include: Comprehensive Case Studies, Team Mission Flipcharts (ក្រដាសផ្ទាំងធំ A0), Color Markers, Authentic Rubric Sheets, Prototyping materials.
+• Step 4 (${stepTimeHints.step4}) MUST be structured into 5 in-depth iterative phases:
+  - ដំណាក់កាលទី ១ : ការពិភាក្សា & វិភាគបញ្ហាស៊ីជម្រៅក្នុងក្រុម (Deep Case Analysis)
+  - ដំណាក់កាលទី ២ : ការសហការផលិតស្នាដៃគម្រោងលើផ្ទាំងក្រដាសធំ A0 (Collaborative Artifact Creation)
+  - ដំណាក់កាលទី ៣ : ការធ្វើ Gallery Walk ឬការឡើងការពារបទបង្ហាញ និងដេញដោលតទល់ (Defense & Peer Critique)
+  - ដំណាក់កាលទី ៤ : ការកែលម្អស្នាដៃ និងវាយតម្លៃតាម Rubric ៤ កម្រិត (Iterative Refinement & Rubric Scoring)
+  - ដំណាក់កាលទី ៥ : ការបូកសរុបទាញក្បួនគន្លឹះរួមថ្នាក់ (រួមបញ្ចូលលំហាត់ Brain Break ២ នាទី ចំនួន ២ លើក)` : (totalMin >= 90 ? `• This is a 2-HOUR EXTENDED BLOCK (${totalMin} minutes).
+• Study Materials MUST include: Case Studies, Group Flipcharts (ក្រដាសផ្ទាំងធំ A0/A1), Color Markers, Mission Worksheets, Rubric Assessment Sheets.
+• Step 4 (${stepTimeHints.step4}) MUST be structured into 4 progressive phases:
   - ដំណាក់កាលទី ១ : ការពិភាក្សា និងវិភាគបញ្ហាស៊ីជម្រៅក្នុងក្រុម
-  - ដំណាក់កាលទី ២ : ការអនុវត្តជាក់ស្តែង ការគណនា ឬការធ្វើពិសោធន៍លើផ្ទាំងក្រដាសធំ
+  - ដំណាក់កាលទី ២ : ការអនុវត្តជាក់ស្តែង ការគណនា ឬការធ្វើពិសោធន៍លើផ្ទាំងក្រដាសធំ A0
   - ដំណាក់កាលទី ៣ : ការធ្វើ Gallery Walk ឬការឡើងការពារបទបង្ហាញ និងដេញដោល
-  - ដំណាក់កាលទី ៤ : ការបូកសរុបទាញក្បួនគន្លឹះរួមថ្នាក់${totalMin >= 120 ? ' (រួមទាំងលំហាត់បំផុសស្មារតី Brain Break ២ នាទី)' : ''}` : `• Tailor the depth of activities and study materials proportionally to standard class time.`}
+  - ដំណាក់កាលទី ៤ : ការបូកសរុបទាញក្បួនគន្លឹះរួមថ្នាក់ (រួមទាំងលំហាត់បំផុសស្មារតី Brain Break ២ នាទី)` : `• This is a STANDARD 1-HOUR CLASS (${totalMin} minutes).
+• Step 4 (${stepTimeHints.step4}) MUST be focused, intensive, and action-packed without wasted moments.`)}
+
+3. PEDAGOGICAL CONTINUITY & SCAFFOLDING CHAIN (ទំនាក់ទំនងរវាងជំហាននីមួយៗ):
+   - ជំហានទី ១ ➔ ជំហានទី ២: ពិនិត្យវត្តមាន និងរៀបចំសណ្ដាប់ធ្នាប់ ➔ ឈានចូលពិនិត្យការត្រៀមខ្លួន ស្រាយចម្ងល់ Muddiest Points ឬរំលឹកចំណេះចាស់។
+   - ជំហានទី ២ ➔ ជំហានទី ៣: គ្រូយកចម្ងល់ពីជំហានទី ២ មកដោះស្រាយ និងធ្វើជាស្ពានចម្លង (Scaffolding Bridge) ទៅកាន់ខ្លឹមសារថ្មី ឬប្រគល់បេសកកម្ម Challenge Scenario (ហាមដាច់ខាតកាត់ផ្តាច់)។
+   - ជំហានទី ៣ ➔ ជំហានទី ៤: ខ្លឹមសារ/ក្បួនខ្នាតពីជំហានទី ៣ ក្លាយជាឧបករណ៍សម្រាប់ឱ្យសិស្សយកទៅអនុវត្តជាក់ស្តែងក្នុងជំហានទី ៤ តាមយុទ្ធវិធីសកម្មដែលបានជ្រើសរើស (PBL, PjBL, 5E, Jigsaw, Gallery Walk...)។
+   - ជំហានទី ៤ ➔ ជំហានទី ៥: លទ្ធផលនៃការអនុវត្តជាក់ស្តែងនៅជំហានទី ៤ ត្រូវបានយកមកសំយោគ ឆ្លុះបញ្ចាំង (Metacognition) តាមរយៈ Exit Ticket 3-2-1 និងកំណត់កិច្ចការស្រាវជ្រាវសម្រាប់ម៉ោងបន្ទាប់។
 
 🚨 ABSOLUTE CRITICAL RULES — VIOLATION = FAILURE:
 1. MANDATORY 3-COLUMN ALIGNMENT & UNIVERSITY/TEC PEDAGOGICAL QUESTIONING STANDARDS (សំណួរ ➔ ចម្លើយ ➔ ចម្លើយរំពឹងទុករបស់សិស្ស):
@@ -5802,6 +5824,20 @@ STEP DURATION ALLOCATION (${totalMin} MINUTES TOTAL - MoEYS STANDARD PERCENTAGES
 - ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី ៦០% - ខ្លឹមសារស្នូលនៃមេរៀន): ${stepTimeHints.step3}
 - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ១៥%): ${stepTimeHints.step4}
 - ជំហានទី ៥ (បណ្ដាំផ្ញើ និងកិច្ចការផ្ទះ ៥%): ${stepTimeHints.step5}
+
+DURATION & SESSION DEPTH SCALING (${totalMin} MINUTES):
+${totalMin >= 150 ? `• EXTENDED 3-HOUR / WORKSHOP SESSION (${totalMin} minutes):
+  - ជំហានទី ៣ (${stepTimeHints.step3}): ត្រូវបង្រៀនខ្លឹមសារថ្មីយ៉ាងស៊ីជម្រៅ ដោយរួមបញ្ចូលការពន្យល់ទ្រឹស្តីគន្លឹះ ឧទាហរណ៍គំរូច្រើនកម្រិត និងការពិភាក្សាដេញដោល
+  - ជំហានទី ៤ (${stepTimeHints.step4}): ត្រូវរៀបចំជាសកម្មភាពអនុវត្តស្មុគស្មាញជាក្រុមលើ Flipchart A0 ឡើងការពារ និងមានការផ្ដល់យោបល់ស្ថាបនា
+  - រួមបញ្ចូល Brain Break ២ នាទី ចំនួន ២ លើក` : (totalMin >= 90 ? `• EXTENDED 2-HOUR BLOCK (${totalMin} minutes):
+  - ជំហានទី ៣ (${stepTimeHints.step3}): ពន្យល់ទ្រឹស្តី និងដឹកនាំសិស្សអនុវត្តលំហាត់គំរូជាបន្តបន្ទាប់
+  - ជំហានទី ៤ (${stepTimeHints.step4}): សកម្មភាពពង្រឹងពុទ្ធិជាក្រុម ៧០% STT លើក្ដារឆ្នួន/Flipchart រួមទាំង Brain Break ២ នាទី` : `• STANDARD 1-HOUR CLASS (${totalMin} minutes): សកម្មភាពរហ័ស ខ្លី ខ្លឹម និងផ្ដោតលើចំណុចស្នូល`)}
+
+PEDAGOGICAL CONTINUITY & SCAFFOLDING CHAIN (ទំនាក់ទំនងរវាងជំហាននីមួយៗ):
+• ជំហានទី ១ ➔ ជំហានទី ២: ពិនិត្យវត្តមាន និងរៀបចំសណ្ដាប់ធ្នាប់ ➔ ឈានចូលពិនិត្យចំណេះដឹងចាស់ ឬចោទសំណួររំលឹក
+• ជំហានទី ២ ➔ ជំហានទី ៣: គ្រូប្រើចម្លើយពីការរំលឹកនៅជំហានទី ២ ធ្វើជាស្ពានចម្លង (Scaffolding Bridge) ផ្សារភ្ជាប់ទៅកាន់ខ្លឹមសារថ្មី
+• ជំហានទី ៣ ➔ ជំហានទី ៤: ទ្រឹស្តី និងក្បួនខ្នាតដែលបានរៀននៅជំហានទី ៣ ត្រូវយកមកប្រើប្រាស់ផ្ទាល់ក្នុងលំហាត់អនុវត្តនៃជំហានទី ៤
+• ជំហានទី ៤ ➔ ជំហានទី ៥: លទ្ធផលនៃការអនុវត្តនៅជំហានទី ៤ ត្រូវបានបូកសរុប ឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 និងដាក់កិច្ចការផ្ទះពង្រឹងបន្ថែម
 
 ═══════════════════════════════════════════════════
 🚨 វិធានភាសាដាច់ខាត & សញ្ញាគណិតវិទ្យា/វិទ្យាសាស្ត្រ (STRICT LANGUAGE & STEM NOTATION):

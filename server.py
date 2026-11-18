@@ -254,6 +254,76 @@ def is_backward_design_request(data):
     return False
 
 
+def khmer_to_en_digits(text):
+    if not text:
+        return ""
+    khmer_digits = "០១២៣៤៥៦៧៨៩"
+    result = []
+    for char in str(text):
+        if char in khmer_digits:
+            result.append(str(khmer_digits.index(char)))
+        else:
+            result.append(char)
+    return "".join(result)
+
+
+def to_khmer_number(num):
+    khmer_digits = ["០", "១", "២", "៣", "៤", "៥", "៦", "៧", "៨", "៩"]
+    return "".join(khmer_digits[int(d)] if d.isdigit() else d for d in str(num))
+
+
+def parse_duration_to_minutes(duration_str):
+    if not duration_str:
+        return 60
+    clean = khmer_to_en_digits(duration_str).lower()
+    combo = re.search(r'(\d+(?:\.\d+)?)\s*(?:ម៉ោង|hour|h|hr)[\s\S]*?(\d+)\s*(?:នាទី|mn|min|m)', clean)
+    if combo:
+        return int(round(float(combo.group(1)) * 60)) + int(combo.group(2))
+    hour = re.search(r'(\d+(?:\.\d+)?)\s*(?:ម៉ោង|hour|h|hr)', clean)
+    if hour:
+        return int(round(float(hour.group(1)) * 60))
+    minute = re.search(r'(\d+)\s*(?:នាទី|mn|min|m)', clean)
+    if minute:
+        return int(minute.group(1))
+    num = re.search(r'\d+', clean)
+    if num:
+        val = int(num.group(0))
+        return val * 60 if val <= 6 else val
+    return 60
+
+
+def calculate_step_durations(duration_str, is_flipped=True):
+    total = parse_duration_to_minutes(duration_str)
+    if is_flipped:
+        s1 = max(1, round(total * 0.03))
+        s2 = max(2, round(total * 0.07))
+        s3 = max(2, round(total * 0.10))
+        s5 = max(1, round(total * 0.05))
+        s4 = max(5, total - (s1 + s2 + s3 + s5))
+        return {
+            "total": total,
+            "step1": f"{to_khmer_number(s1)} នាទី",
+            "step2": f"{to_khmer_number(s2)} នាទី",
+            "step3": f"{to_khmer_number(s3)} នាទី",
+            "step4": f"{to_khmer_number(s4)} នាទី",
+            "step5": f"{to_khmer_number(s5)} នាទី",
+        }
+    else:
+        s1 = max(1, round(total * 0.05))
+        s2 = max(2, round(total * 0.15))
+        s4 = max(2, round(total * 0.15))
+        s5 = max(1, round(total * 0.05))
+        s3 = max(5, total - (s1 + s2 + s4 + s5))
+        return {
+            "total": total,
+            "step1": f"{to_khmer_number(s1)} នាទី",
+            "step2": f"{to_khmer_number(s2)} នាទី",
+            "step3": f"{to_khmer_number(s3)} នាទី",
+            "step4": f"{to_khmer_number(s4)} នាទី",
+            "step5": f"{to_khmer_number(s5)} នាទី",
+        }
+
+
 def detect_method_type(method):
     m = (method or "").lower()
     if "pjbl" in m or "project" in m or "បង្កើតគម្រោង" in m:
@@ -1695,27 +1765,36 @@ def generate_with_gemini_python(api_key, data):
 
     is_flipped = is_flipped_learning_request(data)
     is_bd = not is_flipped and is_backward_design_request(data)
+    step_times = calculate_step_durations(duration, is_flipped)
+    total_min = step_times["total"]
 
     if is_flipped:
         system_prompt = f"""You are Google Gemini AI serving as an expert Cambodian educator, 21st-century pedagogical coach, and instructional designer for the Ministry of Education, Youth and Sport (MoEYS) and Teacher Education Colleges (TEC).
-Generate a complete, high-quality, professional Lesson Plan based on the **FLIPPED LEARNING (ថ្នាក់រៀនត្រឡប់) 5-Step Model** (៥% - ១០% - ១០% - ៧០% - ៥%) with an authentic **Pre-Test QCM 5 Questions** (2-6-2 difficulty ratio), a 4x4 **Active Collaboration Rubric**, and a **Post-Test MCQ 5 Questions (Bloom's 3-4-3)** in Khmer.
+Generate a complete, high-quality, professional Lesson Plan based on the **FLIPPED LEARNING (ថ្នាក់រៀនត្រឡប់) 5-Step Model** (៣% - ៧% - ១០% - ៧៥% - ៥%) [សរុប {total_min} នាទី] with an authentic **Pre-Test QCM 5 Questions** (2-6-2 difficulty ratio), a 4x4 **Active Collaboration Rubric**, and a **Post-Test MCQ 5 Questions (Bloom's 3-4-3)** in Khmer.
 
 Pedagogical Principles & Step Guidelines for Flipped Learning:
 1. Pre-Class Phase (សកម្មភាពស្វ័យសិក្សាត្រៀមមុនម៉ោង):
    - Key takeaways and diagnostic tasks.
    - Muddiest Point prompt (សិស្សកត់ត្រាចំណុចឆ្ងល់យ៉ាងតិច ១ យកមកដោះស្រាយក្នុងជំហានទី២).
 2. Core Focus: Focus 100% of your pedagogical output on Objectives, Materials, and the 5-Step Teaching Process (3%-7%-10%-75%-5%). Do NOT generate pre-test or post-test question arrays in this JSON (they are generated separately on-demand).
-3. In-Class 5-Step Process (ដំណើរការបង្រៀន ៥ ជំហាន ស្តង់ដារ ៣% - ៧% - ១០% - ៧៥% - ៥%):
-   - ជំហានទី ១ : រដ្ឋបាលថ្នាក់ & ការរៀបចំ (៣%): គ្មានសំណួរចោទសួរទេ! គ្រូស្វាគមន៍ ពិនិត្យវត្តមាន សណ្ដាប់ធ្នាប់ អនាម័យ និងរៀបចំបរិយាកាសសិក្សាសកម្ម។
-   - ជំហានទី ២ : ត្រួតពិនិត្យការស្វ័យសិក្សាពីផ្ទះ & ដោះស្រាយចម្ងល់ Muddiest Points (Engage & Explore) (៧%): គ្រូផ្សារភ្ជាប់លទ្ធផល Pre-Test, ចោទសួរផ្ទាល់មាត់បំផុសស្មារតី ២ សំណួរខ្លីៗ, ហៅសិស្សលើកឡើង Muddiest Points, និងបង្ហាញការវាយតម្លៃ Pre-Test។
-   - ជំហានទី ៣ : តម្រង់ទិស និងប្រគល់បេសកកម្មសិក្សា Challenge Scenario (Explore) (១០%): គ្រូដាក់ ៤ សំណួរតម្រង់ទិសដើម្បីពិនិត្យការយល់ដឹង និងសង្ខេបចម្លើយមុនប្រគល់បេសកកម្ម។
-   - ជំហានទី ៤ : សកម្មភាពអនុវត្តសកម្មជាក្រុម និងដោះស្រាយបញ្ហាក្នុងថ្នាក់ (Explain & Elaborate) (៧៥% - CORE ACTIVE LEARNING):
+3. In-Class 5-Step Process (ដំណើរការបង្រៀន ៥ ជំហាន ស្តង់ដារ ៣% - ៧% - ១០% - ៧៥% - ៥% - សរុប {total_min} នាទី):
+   - ជំហានទី ១ : រដ្ឋបាលថ្នាក់ & ការរៀបចំ (៣%): {step_times['step1']} — គ្មានសំណួរចោទសួរទេ! គ្រូស្វាគមន៍ ពិនិត្យវត្តមាន សណ្ដាប់ធ្នាប់ អនាម័យ និងរៀបចំបរិយាកាសសិក្សាសកម្ម។
+   - ជំហានទី ២ : ត្រួតពិនិត្យការស្វ័យសិក្សាពីផ្ទះ & ដោះស្រាយចម្ងល់ Muddiest Points (Engage & Explore) (៧%): {step_times['step2']} — គ្រូផ្សារភ្ជាប់លទ្ធផល Pre-Test, ចោទសួរផ្ទាល់មាត់បំផុសស្មារតី ២ សំណួរខ្លីៗ, ហៅសិស្សលើកឡើង Muddiest Points, និងបង្ហាញការវាយតម្លៃ Pre-Test។
+   - ជំហានទី ៣ : តម្រង់ទិស និងប្រគល់បេសកកម្មសិក្សា Challenge Scenario (Explore) (១០%): {step_times['step3']} — គ្រូដាក់ ៤ សំណួរតម្រង់ទិសដើម្បីពិនិត្យការយល់ដឹង និងសង្ខេបចម្លើយមុនប្រគល់បេសកកម្ម។
+   - ជំហានទី ៤ : សកម្មភាពអនុវត្តសកម្មជាក្រុម និងដោះស្រាយបញ្ហាក្នុងថ្នាក់ (Explain & Elaborate) (៧៥% - CORE ACTIVE LEARNING): {step_times['step4']} —
      • ត្រូវអនុវត្តវិធីសាស្ត្របង្រៀនចម្បង «{method}» ឱ្យស៊ីជម្រៅបំផុត ដោយបែងចែកជា ៤ ដំណាក់កាលសកម្មភាពច្បាស់លាស់ ដោយផ្អែកលើខ្លឹមសារមេរៀន។
      • ដាក់តេស្តបញ្ចប់ Post-Test។
-   - ជំហានទី ៥ : បណ្តាំផ្ញើ និងកិច្ចការផ្ទះ (៥%): Exit Ticket 3-2-1 + បណ្តាំផ្ញើសីលធម៌/បរិស្ថាន + ដាក់ ១ សំណួរកិច្ចការស្រាវជ្រាវ (Research Task) សម្រាប់រៀបចំម៉ោងបន្ទាប់។
-4. TTT 30% / STT 70% RULE: In Step 4, explicitly design activities so the Teacher Talking Time is max 30%, and Student Talking Time is 70% (Student-Centered).
-5. 21st CENTURY SKILLS (4Cs): At the end of student activities (especially in Step 4), tag the exact 4Cs skill being developed in brackets (e.g., [ជំនាញសហការ និងការគិតស៊ីជម្រៅ]).
-6. MANDATORY INSTRUCTIONAL OBJECTIVE FORMULA (ក្បួនតែងវត្ថុបំណងបង្រៀនស្តង់ដារ MoEYS / គរុកោសល្យ A-C-S):
+   - ជំហានទី ៥ : បណ្តាំផ្ញើ និងកិច្ចការផ្ទះ (៥%): {step_times['step5']} — Exit Ticket 3-2-1 + បណ្តាំផ្ញើសីលធម៌/បរិស្ថាន + ដាក់ ១ សំណួរកិច្ចការស្រាវជ្រាវ (Research Task) សម្រាប់រៀបចំម៉ោងបន្ទាប់។
+
+4. DURATION & PEDAGOGICAL CONTINUITY CHAIN ({total_min} នាទី):
+   - ទំនាក់ទំនងតាមដំណាក់កាល៖
+     • ជំហានទី ១ ➔ ជំហានទី ២: ពិនិត្យវត្តមាន/សណ្ដាប់ធ្នាប់ ➔ ឈានចូលពិនិត្យការត្រៀមខ្លួន និងស្រាយចម្ងល់ Muddiest Points។
+     • ជំហានទី ២ ➔ ជំហានទី ៣: គ្រូយកចម្ងល់ពីជំហានទី ២ មកដោះស្រាយ និងធ្វើជាស្ពានចម្លង (Scaffolding Bridge) ទៅកាន់ខ្លឹមសារថ្មី ឬប្រគល់បេសកកម្ម Challenge Scenario។
+     • ជំហានទី ៣ ➔ ជំហានទី ៤: ខ្លឹមសារ/ក្បួនខ្នាតពីជំហានទី ៣ ក្លាយជាឧបករណ៍សម្រាប់ឱ្យសិស្សយកទៅអនុវត្តជាក់ស្តែងក្នុងជំហានទី ៤ តាមយុទ្ធវិធីសកម្មដែលបានជ្រើសរើស (PBL, PjBL, 5E, Jigsaw, Gallery Walk...)។
+     • ជំហានទី ៤ ➔ ជំហានទី ៥: លទ្ធផលនៃការអនុវត្តជាក់ស្តែងនៅជំហានទី ៤ ត្រូវបានយកមកសំយោគ ឆ្លុះបញ្ចាំង (Metacognition) តាមរយៈ Exit Ticket 3-2-1 និងកំណត់កិច្ចការស្រាវជ្រាវសម្រាប់ម៉ោងបន្ទាប់។
+5. TTT 30% / STT 70% RULE: In Step 4, explicitly design activities so the Teacher Talking Time is max 30%, and Student Talking Time is 70% (Student-Centered).
+6. 21st CENTURY SKILLS (4Cs): At the end of student activities (especially in Step 4), tag the exact 4Cs skill being developed in brackets (e.g., [ជំនាញសហការ និងការគិតស៊ីជម្រៅ]).
+7. MANDATORY INSTRUCTIONAL OBJECTIVE FORMULA (ក្បួនតែងវត្ថុបំណងបង្រៀនស្តង់ដារ MoEYS / គរុកោសល្យ A-C-S):
    ⚠️ វិធានកំណត់ចំនួនចំណុច (STRICT 1-BULLET LIMIT): នៅក្នុងវត្ថុបំណងនីមួយៗទាំង ៣ ផ្នែក (វិជ្ជាសម្បទា បំណិនសម្បទា ចរិយាសម្បទា) ត្រូវតែមានត្រឹមតែ ១ ចំណុចគត់ (EXACTLY 1 single comprehensive bullet point per category) ដែលមានសមាសភាគពេញលេញទាំង ៣ តាមរូបមន្ត ACS៖
    - [A - Action / សកម្មភាព ឬ របៀបធ្វើសកម្មភាព]: ប្រើកិរិយាស័ព្ទសកម្មដែលអាចវាស់វែងបាន (ឧ. កំណត់, ពន្យល់, រៀបរាប់, គណនា, វិភាគ, ដោះស្រាយ, រៀបចំ, បង្ហាញ, ប្ដេជ្ញាចិត្ត...)
    - [C - Condition / លក្ខខណ្ឌ]: មធ្យោបាយ ឬវិធីសាស្ត្ររៀន (ឧ. «តាមរយៈការពន្យល់របស់គ្រូ និងការសង្កេតស្លាយ/វីដេអូ», «តាមរយៈការអានឯកសារគោល», «តាមរយៈការអនុវត្តលំហាត់ជាក់ស្តែង និងការពិភាក្សាជាក្រុម», «តាមរយៈការឆ្លុះបញ្ចាំងលើ Exit Ticket»...)
@@ -1761,7 +1840,7 @@ Return ONLY valid JSON matching this schema:
     {{
       "stepNumber": 1,
       "stepTitle": "ជំហានទី១៖ រដ្ឋបាលថ្នាក់",
-      "duration": "០៥ នាទី",
+      "duration": "{step_times['step1']}",
       "teacherActivity": "ពិនិត្យអនាម័យ វត្តមាន សណ្ដាប់ធ្នាប់",
       "contentSummary": "ការពិនិត្យអនាម័យ សម្រង់វត្តមាន និងសណ្ដាប់ធ្នាប់",
       "studentActivity": "ប្រធានថ្នាក់រាយការណ៍ និងត្រៀមរៀន"
@@ -1769,7 +1848,7 @@ Return ONLY valid JSON matching this schema:
     {{
       "stepNumber": 2,
       "stepTitle": "ជំហានទី២៖ រំលឹកមេរៀនចាស់",
-      "duration": "២៥ នាទី",
+      "duration": "{step_times['step2']}",
       "teacherActivity": "ពិនិត្យការស្វ័យសិក្សា និងបង្ហាញលទ្ធផលបុរេតេស្ត (Pre-Test QCM ៥ សំណួរ)",
       "contentSummary": "វិភាគលទ្ធផលបុរេតេស្ត និងស្រាយចម្ងល់ Muddiest Points",
       "studentActivity": "ឆ្លើយសំណួររំលឹក និងលើកឡើងចំណុចចម្ងល់"
@@ -1777,7 +1856,7 @@ Return ONLY valid JSON matching this schema:
     {{
       "stepNumber": 3,
       "stepTitle": "ជំហានទី៣៖ ខ្លឹមសារមេរៀនថ្មី",
-      "duration": "២០ នាទី",
+      "duration": "{step_times['step3']}",
       "teacherActivity": "ពន្យល់សង្ខេបតែលើគំនិតស្នូល និងក្របខណ្ឌទ្រឹស្តីសំខាន់ៗនៃមេរៀន",
       "contentSummary": "ខ្លឹមសារស្នូល និងទ្រឹស្តីគន្លឹះនៃមេរៀន",
       "studentActivity": "យកចិត្តទុកដាក់ស្តាប់ កត់ត្រាគំនិតសំខាន់ៗ និងសួរសំណួរ"
@@ -1785,7 +1864,7 @@ Return ONLY valid JSON matching this schema:
     {{
       "stepNumber": 4,
       "stepTitle": "ជំហានទី៤៖ ពង្រឹងចំណេះដឹង",
-      "duration": "១២០ នាទី",
+      "duration": "{step_times['step4']}",
       "teacherActivity": "[ពិពណ៌នាសកម្មភាពគ្រូដោយប្រើវិធីសាស្ត្រមួយក្នុងចំណោម៖ Jigsaw, Concept Mapping, Role-Play, ឬ Metacognition]...",
       "contentSummary": "[សង្ខេបខ្លឹមសារសកម្មភាព និងទ្រឹស្តីគន្លឹះ]...",
       "studentActivity": "[សកម្មភាពសិស្សឆ្លើយតបទៅនឹងវិធីសាស្ត្រដែលបានជ្រើសរើស]..."
@@ -1793,14 +1872,13 @@ Return ONLY valid JSON matching this schema:
     {{
       "stepNumber": 5,
       "stepTitle": "ជំហានទី៥៖ កិច្ចការផ្ទះ និងបណ្ដាំផ្ញើ",
-      "duration": "១០ នាទី",
-      "teacherActivity": "ណែនាំការធ្វើតេស្តបញ្ចប់ (Post-Test ៥ សំណួរ) និងដាក់កិច្ចការស្រាវជ្រាវបន្ត",
-      "contentSummary": "ការវាយតម្លៃ Post-Test និងកិច្ចការស្រាវជ្រាវសម្រាប់ម៉ោងក្រោយ",
-      "studentActivity": "ធ្វើ Post-Test ភ្លាមៗ និងកត់ត្រាកិច្ចការផ្ទះ"
+      "duration": "{step_times['step5']}",
+      "teacherActivity": "ដាក់សំណួរកិច្ចការស្រាវជ្រាវ (Research Task) និងអប់រំទូន្មានសីលធម៌",
+      "contentSummary": "សំណួរកិច្ចការស្រាវជ្រាវ និងការណែនាំរៀបចំមេរៀនបន្ទាប់",
+      "studentActivity": "កត់ត្រាកិច្ចការផ្ទះ និងស្តាប់បណ្តាំផ្ញើរបស់គ្រូ"
     }}
   ]
-}}
-"""
+}}"""
     elif is_bd:
         system_prompt = f"""You are an expert Cambodian pedagogical educator and TEC (Teacher Education College) curriculum developer.
 Generate a complete, high-quality Backward Design / UbD Lesson Plan (កិច្ចតែងការបង្រៀន តាមបែបត្រឡប់ ៣ ដំណាក់កាល) in Khmer.
@@ -1908,12 +1986,17 @@ Structure requirements:
 2. Three-tier Objectives (វត្ថុបំណង តាមក្បួនគរុកោសល្យ A-C-S / ABCD): វិជ្ជាសម្បទា (knowledge), បំណិនសម្បទា (skills), ចរិយាសម្បទា (attitudes).
    ⚠️ វិធានកំណត់ចំនួនចំណុច (STRICT 1-BULLET LIMIT): នៅក្នុងវត្ថុបំណងនីមួយៗទាំង ៣ ផ្នែក ត្រូវតែមានត្រឹមតែ ១ ចំណុចគត់ (EXACTLY 1 single comprehensive bullet point per category)។ រាល់ចំណុចនីមួយៗត្រូវតែមានសមាសភាគពេញលេញទាំង ៣ [A - Action Verb], [C - Condition: តាមរយៈ...], and [S - Standard: បានត្រឹមត្រូវ/ច្បាស់លាស់...].
 3. Teaching Aids & Materials (សម្ភារឧបទេស): teacher materials and student materials
-4. Five-Step Teaching Process (ដំណើរការបង្រៀន ៥ ជំហាន ស្តង់ដារ MoEYS: ៥% - ១៥% - ៦០% - ១៥% - ៥%):
-   - ជំហានទី ១ (រដ្ឋបាលថ្នាក់ ៥%): រៀបចំបរិយាកាស និងសណ្ដាប់ធ្នាប់
-   - ជំហានទី ២ (រំលឹកមេរៀនចាស់ / ទំនាក់ទំនងមេរៀន ១៥%): ពិនិត្យចំណេះដឹងចាស់ និងភ្ជាប់មេរៀនថ្មី
-   - ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី ៦០% - CORE NEW LESSON): សកម្មភាពគ្រូពន្យល់ និងសិស្សស្វែងយល់ខ្លឹមសារស្នូល
-   - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ១៥%): សកម្មភាពអនុវត្តជាក់ស្តែង និងដោះស្រាយលំហាត់ (STT ៧០%)
-   - ជំហានទី ៥ (បណ្តាំផ្ញើ និងកិច្ចការផ្ទះ ៥%): Exit Ticket 3-2-1 និងកិច្ចការផ្ទះ
+4. Five-Step Teaching Process (ដំណើរការបង្រៀន ៥ ជំហាន ស្តង់ដារ MoEYS: ៥% - ១៥% - ៦០% - ១៥% - ៥% - សរុប {total_min} នាទី):
+   - ជំហានទី ១ (រដ្ឋបាលថ្នាក់ ៥%): {step_times['step1']} — រៀបចំបរិយាកាស និងសណ្ដាប់ធ្នាប់
+   - ជំហានទី ២ (រំលឹកមេរៀនចាស់ / ទំនាក់ទំនងមេរៀន ១៥%): {step_times['step2']} — ពិនិត្យចំណេះដឹងចាស់ និងភ្ជាប់មេរៀនថ្មី
+   - ជំហានទី ៣ (ដំណើរការបង្រៀនថ្មី ៦០% - CORE NEW LESSON): {step_times['step3']} — សកម្មភាពគ្រូពន្យល់ និងសិស្សស្វែងយល់ខ្លឹមសារស្នូល
+   - ជំហានទី ៤ (ពង្រឹងពុទ្ធិ ១៥%): {step_times['step4']} — សកម្មភាពអនុវត្តជាក់ស្តែង និងដោះស្រាយលំហាត់ (STT ៧០%)
+   - ជំហានទី ៥ (បណ្តាំផ្ញើ និងកិច្ចការផ្ទះ ៥%): {step_times['step5']} — Exit Ticket 3-2-1 និងកិច្ចការផ្ទះ
+   - ទំនាក់ទំនងតាមដំណាក់កាល (Pedagogical Continuity Chain):
+     • ជំហានទី ១ ➔ ជំហានទី ២: ពិនិត្យវត្តមាន/សណ្ដាប់ធ្នាប់ ➔ ឈានចូលពិនិត្យចំណេះដឹងចាស់ ឬចោទសំណួររំលឹក
+     • ជំហានទី ២ ➔ ជំហានទី ៣: គ្រូប្រើចម្លើយពីការរំលឹកនៅជំហានទី ២ ធ្វើជាស្ពានចម្លង (Scaffolding Bridge) ផ្សារភ្ជាប់ទៅកាន់ខ្លឹមសារថ្មី
+     • ជំហានទី ៣ ➔ ជំហានទី ៤: ទ្រឹស្តី និងក្បួនខ្នាតដែលបានរៀននៅជំហានទី ៣ ត្រូវយកមកប្រើប្រាស់ផ្ទាល់ក្នុងលំហាត់អនុវត្តនៃជំហានទី ៤
+     • ជំហានទី ៤ ➔ ជំហានទី ៥: លទ្ធផលនៃការអនុវត្តនៅជំហានទី ៤ ត្រូវបានបូកសរុប ឆ្លុះបញ្ចាំង Exit Ticket 3-2-1 និងដាក់កិច្ចការផ្ទះពង្រឹងបន្ថែម
    - QUESTION QUOTAS & ACTIVITY TYPES:
      • ការពិភាក្សាក្រុម (Group Discussion): Must provide 4 complete questions (១. «...?» ២. «...?» ៣. «...?» ៤. «...?»). If uploaded slides have 4 questions, extract ALL 4 verbatim!
      • ការស្រាវជ្រាវ (Research Tasks): Up to 10 specific topics for student groups to choose from.
