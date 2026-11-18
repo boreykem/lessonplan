@@ -12547,7 +12547,7 @@ async function handleExportWord() {
     const presetId = ((presetSelect ? presetSelect.value : '') || data.presetId || state.selectedPresetId || '').toLowerCase();
     const isFlipped = (presetId === 'flipped_learning_5step') || (presetId !== 'moeys_standard_5step' && presetId !== 'backward_design_ubd' && (data.templateType === 'flipped_learning' || Boolean(data.preClassPhase)));
     const isBd = !isFlipped && ((presetId === 'backward_design_ubd') || (presetId !== 'moeys_standard_5step' && (data.templateType === 'backward_design' || Boolean(data.stage1))));
-    const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, HeadingLevel, BorderStyle } = window.docx;
+    const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, HeadingLevel, BorderStyle, Footer, PageNumber } = window.docx;
 
     let docChildren = [];
 
@@ -13205,6 +13205,78 @@ async function handleExportWord() {
       }
     }
 
+    // Official 3-Column Word Footer: Date (Left) | Website URL (Center) | Page X / Y (Right)
+    const officialFooterDate = formatOfficialPrintDate(isEn);
+    const officialSiteUrl = getOfficialAppWebsiteUrl();
+    const docxFooters = (Footer && PageNumber) ? {
+      default: new Footer({
+        children: [
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              new TableRow({
+                children: [
+                  new TableCell({
+                    width: { size: 35, type: WidthType.PERCENTAGE },
+                    borders: {
+                      top: { style: BorderStyle.SINGLE, size: 4, color: "CBD5E1" },
+                      bottom: { style: BorderStyle.NONE },
+                      left: { style: BorderStyle.NONE },
+                      right: { style: BorderStyle.NONE }
+                    },
+                    children: [
+                      new Paragraph({
+                        alignment: AlignmentType.LEFT,
+                        spacing: { before: 60 },
+                        children: [new TextRun({ text: officialFooterDate, size: 17, color: "475569" })]
+                      })
+                    ]
+                  }),
+                  new TableCell({
+                    width: { size: 40, type: WidthType.PERCENTAGE },
+                    borders: {
+                      top: { style: BorderStyle.SINGLE, size: 4, color: "CBD5E1" },
+                      bottom: { style: BorderStyle.NONE },
+                      left: { style: BorderStyle.NONE },
+                      right: { style: BorderStyle.NONE }
+                    },
+                    children: [
+                      new Paragraph({
+                        alignment: AlignmentType.CENTER,
+                        spacing: { before: 60 },
+                        children: [new TextRun({ text: officialSiteUrl, bold: true, size: 17, color: "4338CA" })]
+                      })
+                    ]
+                  }),
+                  new TableCell({
+                    width: { size: 25, type: WidthType.PERCENTAGE },
+                    borders: {
+                      top: { style: BorderStyle.SINGLE, size: 4, color: "CBD5E1" },
+                      bottom: { style: BorderStyle.NONE },
+                      left: { style: BorderStyle.NONE },
+                      right: { style: BorderStyle.NONE }
+                    },
+                    children: [
+                      new Paragraph({
+                        alignment: AlignmentType.RIGHT,
+                        spacing: { before: 60 },
+                        children: [
+                          new TextRun({ text: isEn ? "Page " : "ទំព័រទី ", size: 17, color: "334155", bold: true }),
+                          new TextRun({ children: [PageNumber.CURRENT], size: 17, color: "334155", bold: true }),
+                          new TextRun({ text: " / ", size: 17, color: "334155", bold: true }),
+                          new TextRun({ children: [PageNumber.TOTAL_PAGES], size: 17, color: "334155", bold: true })
+                        ]
+                      })
+                    ]
+                  })
+                ]
+              })
+            ]
+          })
+        ]
+      })
+    } : undefined;
+
     // Create Document
     const doc = new Document({
       styles: {
@@ -13223,11 +13295,12 @@ async function handleExportWord() {
             margin: {
               top: 720,
               right: 720,
-              bottom: 720,
+              bottom: 840,
               left: 720
             }
           }
         },
+        footers: docxFooters,
         children: docChildren
       }]
     });
@@ -13256,6 +13329,30 @@ async function handleExportWord() {
 }
 
 
+function formatOfficialPrintDate(isEn = false) {
+  const now = new Date();
+  const d = now.getDate();
+  const m = now.getMonth();
+  const y = now.getFullYear();
+  if (isEn) {
+    const monthsEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${String(d).padStart(2, '0')} ${monthsEn[m]} ${y}`;
+  }
+  const monthsKm = ['មករា', 'កុម្ភៈ', 'មីនា', 'មេសា', 'ឧសភា', 'មិថុនា', 'កក្កដា', 'សីហា', 'កញ្ញា', 'តុលា', 'វិច្ឆិកា', 'ធ្នូ'];
+  const kNum = (typeof toKhmerNumber === 'function') ? toKhmerNumber : String;
+  return `ថ្ងៃទី ${kNum(String(d).padStart(2, '0'))} ខែ${monthsKm[m]} ឆ្នាំ${kNum(y)}`;
+}
+
+function getOfficialAppWebsiteUrl() {
+  try {
+    const origin = window.location && window.location.origin ? window.location.origin : '';
+    if (origin && /^https:\/\//i.test(origin) && !/localhost|127\.0\.0\.1/i.test(origin)) {
+      return origin.replace(/\/+$/, '');
+    }
+  } catch (_) { }
+  return 'https://lessonplan-kh.vercel.app';
+}
+
 function handlePrintPdf() {
   const activePlan = state.generatedPlanData || state.currentPlan;
   const docEl = document.getElementById('printableDoc');
@@ -13263,6 +13360,11 @@ function handlePrintPdf() {
     showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
     return;
   }
+
+  const isEn = (state.language === 'en');
+  const footerDateText = formatOfficialPrintDate(isEn).replace(/"/g, '\\"');
+  const footerSiteText = getOfficialAppWebsiteUrl().replace(/"/g, '\\"');
+  const pageLabelPrefix = isEn ? 'Page ' : 'ទំព័រទី ';
 
   // Clone ONLY the A4 lesson plan content and strip all non-printable UI buttons/banners
   const clone = docEl.cloneNode(true);
@@ -13295,7 +13397,42 @@ function handlePrintPdf() {
   <style>
     @page {
       size: A4 portrait;
-      margin: 0;
+      margin: 13mm 14mm 17mm 14mm;
+      @top-left { content: none; }
+      @top-center { content: none; }
+      @top-right { content: none; }
+      @bottom-left {
+        content: "${footerDateText}";
+        font-family: 'Kantumruy Pro', 'Battambang', sans-serif;
+        font-size: 8.5pt;
+        color: #475569;
+        border-top: 0.75pt solid #cbd5e1;
+        padding-top: 2.5mm;
+        margin-bottom: 5mm;
+        vertical-align: top;
+      }
+      @bottom-center {
+        content: "${footerSiteText}";
+        font-family: 'Kantumruy Pro', 'Inter', sans-serif;
+        font-size: 8.5pt;
+        font-weight: 700;
+        color: #4338ca;
+        border-top: 0.75pt solid #cbd5e1;
+        padding-top: 2.5mm;
+        margin-bottom: 5mm;
+        vertical-align: top;
+      }
+      @bottom-right {
+        content: "${pageLabelPrefix}" counter(page) " / " counter(pages);
+        font-family: 'Kantumruy Pro', 'Battambang', sans-serif;
+        font-size: 8.5pt;
+        font-weight: 700;
+        color: #334155;
+        border-top: 0.75pt solid #cbd5e1;
+        padding-top: 2.5mm;
+        margin-bottom: 5mm;
+        vertical-align: top;
+      }
     }
     * {
       box-sizing: border-box;
@@ -13311,17 +13448,6 @@ function handlePrintPdf() {
       font-size: 10.5pt;
       line-height: 1.6;
     }
-    /* Repeating invisible top/bottom page margin spacers across every printed page */
-    .print-page-shell {
-      width: 100%;
-      border-collapse: collapse;
-      border: none;
-    }
-    .print-page-shell > thead { display: table-header-group; }
-    .print-page-shell > tfoot { display: table-footer-group; }
-    .print-page-shell > thead > tr > td { height: 13mm; padding: 0; border: none; }
-    .print-page-shell > tfoot > tr > td { height: 13mm; padding: 0; border: none; }
-    .print-page-shell > tbody > tr > td { padding: 0 14mm; border: none; vertical-align: top; }
     .print-a4-root {
       width: 100%;
       margin: 0 auto;
@@ -13487,11 +13613,7 @@ function handlePrintPdf() {
   </style>
 </head>
 <body>
-  <table class="print-page-shell">
-    <thead><tr><td></td></tr></thead>
-    <tbody><tr><td><div class="print-a4-root">${clone.innerHTML}</div></td></tr></tbody>
-    <tfoot><tr><td></td></tr></tfoot>
-  </table>
+  <div class="print-a4-root">${clone.innerHTML}</div>
 </body>
 </html>`;
 
