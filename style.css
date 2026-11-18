@@ -4291,4 +4291,39 @@ textarea.form-control {
 .cat-badge-practice { color: #7c3aed; background: #ede9fe; }
 .cat-badge-reflection { color: #059669; background: #d1fae5; }
 
+/* Auto-sync button next to Techniques label */
+.btn-pill-auto-sync {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #eef2ff;
+  color: #4f46e5;
+  border: 1px solid #c7d2fe;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-pill-auto-sync:hover {
+  background: #e0e7ff;
+  border-color: #a5b4fc;
+  color: #3730a3;
+  transform: translateY(-1px);
+}
+
+[data-theme="dark"] .btn-pill-auto-sync {
+  background: #312e81;
+  color: #c7d2fe;
+  border-color: #4338ca;
+}
+
+[data-theme="dark"] .btn-pill-auto-sync:hover {
+  background: #3730a3;
+  color: #e0e7ff;
+}
+
+
 

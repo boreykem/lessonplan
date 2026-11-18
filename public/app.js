@@ -364,6 +364,64 @@ const BUILTIN_TEACHING_METHODS = [
   }
 ];
 
+// 🧭 Pedagogical Mapping: Optimal Active Learning Techniques for each Teaching Method
+// Categorized proportionally: 1 Warm-up (ដើមម៉ោង) + 1 Practice/Collaboration (កណ្តាលម៉ោង) + 1 Reflection (ចុងម៉ោង)
+const METHOD_DEFAULT_TECHNIQUES = {
+  '5e': [
+    'Concept Cartoons',        // 🌅 Warm-up (Engage)
+    'Think-Pair-Share',       // ⚡ Practice (Explore & Explain)
+    'Exit Ticket 3-2-1'       // 🎯 Reflection (Evaluate)
+  ],
+  'pbl': [
+    'Brainstorming',          // 🌅 Warm-up (Problem Discovery)
+    'Think-Pair-Share',       // ⚡ Practice (Collaborative Problem-Solving)
+    'Exit Ticket 3-2-1'       // 🎯 Reflection (Metacognitive Synthesis)
+  ],
+  'pjbl': [
+    'Brainstorming',          // 🌅 Warm-up (Driving Question Ideation)
+    'Gallery Walk',           // ⚡ Practice (Artifact Defense & Critique)
+    'Two Stars and a Wish'    // 🎯 Reflection (Peer Assessment & Reflection)
+  ],
+  'ibl': [
+    'Spaced Retrieval Practice / Interleaving', // 🌅 Warm-up (Prior Knowledge Activation)
+    'Think-Pair-Share',                         // ⚡ Practice (Hypothesis Testing & Investigation)
+    'Exit Ticket 3-2-1'                         // 🎯 Reflection (Evidence Synthesis)
+  ],
+  'flipped': [
+    'Muddiest Point',         // 🌅 Warm-up (Pre-class Clarification)
+    'Gallery Walk',           // ⚡ Practice (75% In-depth Group Collaboration)
+    'Exit Ticket 3-2-1'       // 🎯 Reflection (Formative Wrap-up)
+  ],
+  'socratic': [
+    'Fist to Five',           // 🌅 Warm-up (Instant Position Stance)
+    'Fishbowl Discussion',    // ⚡ Practice (Deep Dialectic Socratic Seminar)
+    'Exit Ticket 3-2-1'       // 🎯 Reflection (Personal Stance Reflection)
+  ],
+  'cooperative': [
+    'Interactive Quizzes',    // 🌅 Warm-up (Readiness Check)
+    'Jigsaw',                 // ⚡ Practice (Expert Groups & Home Groups)
+    'Exit Ticket 3-2-1'       // 🎯 Reflection (Shared Learning Reflection)
+  ],
+  'experimental': [
+    'Concept Cartoons',       // 🌅 Warm-up (Hypothesis Formulation)
+    'Learning Stations',      // ⚡ Practice (Hands-on Lab Rotations)
+    'Exit Ticket 3-2-1'       // 🎯 Reflection (Experimental Findings Wrap-up)
+  ],
+  'direct': [
+    'Interactive Quizzes',    // 🌅 Warm-up (Prior Prerequisite Check)
+    'Think-Pair-Share',       // ⚡ Practice (We Do / You Do Practice)
+    'Exit Ticket 3-2-1'       // 🎯 Reflection (Fluency Assessment)
+  ]
+};
+
+function getDefaultTechniquesForMethod(methodVal) {
+  const detected = (typeof detectMethodType === 'function') ? detectMethodType(methodVal) : (methodVal || '5e');
+  return METHOD_DEFAULT_TECHNIQUES[detected] || ['Concept Cartoons', 'Think-Pair-Share', 'Exit Ticket 3-2-1'];
+}
+if (typeof window !== 'undefined') {
+  window.getDefaultTechniquesForMethod = getDefaultTechniquesForMethod;
+}
+
 const BUILTIN_TEACHING_TECHNIQUES = [
   // 🌅 ក្រុមទី ១៖ ដើមម៉ោង (Warm-up & Retrieval)
   { id: 'muddiest_point', name: 'Muddiest Point', category: 'warmup', icon: 'fa-question', kmLabel: 'Muddiest Point', descKm: 'សិស្សកត់ត្រាចំណុចដែលនៅស្រពិចស្រពិលបំផុត ដើម្បីស្រាយបំភ្លឺរួមគ្នា (Muddiest Point)', descEn: 'Quickly identify the most confusing or unclear concept from the lesson' },
@@ -454,7 +512,10 @@ function getSelectedTechniques() {
       }
     }
   } catch (e) { }
-  state.selectedTechniques = ['Think-Pair-Share', 'Jigsaw', 'Gallery Walk'];
+  const currentMethod = document.getElementById('inputMethod')?.value || '5e';
+  state.selectedTechniques = (typeof getDefaultTechniquesForMethod === 'function')
+    ? getDefaultTechniquesForMethod(currentMethod)
+    : ['Concept Cartoons', 'Think-Pair-Share', 'Exit Ticket 3-2-1'];
   return state.selectedTechniques;
 }
 
@@ -518,21 +579,63 @@ function handlePresetTemplateChange(val) {
 }
 window.handlePresetTemplateChange = handlePresetTemplateChange;
 
-function handleTeachingMethodChange() {
+function handleTeachingMethodChange(autoSyncTechs = true) {
   const methodSelect = document.getElementById('inputMethod');
   const customWrap = document.getElementById('customMethodWrap');
-  if (!methodSelect || !customWrap) return;
+  if (!methodSelect) return;
 
-  if (methodSelect.value === 'custom') {
-    customWrap.style.display = 'block';
+  const currentVal = methodSelect.value;
+
+  if (currentVal === 'custom') {
+    if (customWrap) customWrap.style.display = 'block';
     const input = document.getElementById('inputCustomMethodText');
     if (input) {
       input.focus();
       input.select();
     }
   } else {
-    customWrap.style.display = 'none';
+    if (customWrap) customWrap.style.display = 'none';
   }
+
+  // 🎯 Auto-adjust active learning techniques to match the selected teaching method
+  if (autoSyncTechs && currentVal !== 'custom') {
+    autoSyncTechniquesToMethod(true);
+  }
+
+  if (typeof updateDynamicPacingBar === 'function') {
+    updateDynamicPacingBar();
+  }
+}
+window.handleTeachingMethodChange = handleTeachingMethodChange;
+
+function autoSyncTechniquesToMethod(showToastMsg = true) {
+  const methodSelect = document.getElementById('inputMethod');
+  const currentVal = methodSelect ? methodSelect.value : '5e';
+  if (currentVal === 'custom') return;
+
+  const recommendedTechs = getDefaultTechniquesForMethod(currentVal);
+  saveSelectedTechniques(recommendedTechs);
+  renderTechniquesChips();
+
+  if (showToastMsg) {
+    const selectedOption = methodSelect ? methodSelect.options[methodSelect.selectedIndex] : null;
+    let methodName = '';
+    if (selectedOption) {
+      methodName = selectedOption.textContent.replace(/^[^\w\u1780-\u17FF]+/, '').split('(')[0].trim();
+    } else {
+      methodName = currentVal;
+    }
+    const isEn = (state.language === 'en');
+    showToast(
+      isEn
+        ? `🎯 Auto-adjusted optimal active techniques for «${methodName}» (${recommendedTechs.join(', ')})!`
+        : `🎯 បានកែតម្រូវយុទ្ធវិធីបង្រៀនស្វ័យប្រវត្តិតាម «${methodName}» (${recommendedTechs.length} យុទ្ធវិធី)!`,
+      'info'
+    );
+  }
+}
+if (typeof window !== 'undefined') {
+  window.autoSyncTechniquesToMethod = autoSyncTechniquesToMethod;
 }
 
 function confirmAddCustomMethod() {
@@ -680,10 +783,7 @@ function clearTechniquesSearch(event) {
 
 function resetToDefaultTechniques(event) {
   if (event) event.stopPropagation();
-  const defaultTechs = ['Think-Pair-Share', 'Jigsaw', 'Gallery Walk'];
-  saveSelectedTechniques(defaultTechs);
-  renderTechniquesChips();
-  showToast(state.language === 'en' ? 'Reset to 3 default techniques' : 'បានកំណត់មកយុទ្ធវិធីលំនាំដើម (៣)', 'info');
+  autoSyncTechniquesToMethod(true);
 }
 
 function clearAllTechniques(event) {

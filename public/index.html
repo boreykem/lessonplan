@@ -29,7 +29,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=20261115_v84">
+  <link rel="stylesheet" href="style.css?v=20261118_v85">
 
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -315,7 +315,8 @@
               </div>
               <button type="button" class="btn-toggle-profile-edit" id="btnToggleProfileEdit"
                 onclick="event.stopPropagation(); toggleTeacherProfileFields();">
-                <i class="fa-solid fa-pen-to-square"></i> <span id="btnToggleProfileEditText" data-i18n="btnProfileEdit">កែប្រែ</span>
+                <i class="fa-solid fa-pen-to-square"></i> <span id="btnToggleProfileEditText"
+                  data-i18n="btnProfileEdit">កែប្រែ</span>
               </button>
             </div>
 
@@ -351,8 +352,7 @@
               <!-- Degree & Grade -->
               <div class="form-grid-2">
                 <div class="control-group">
-                  <label for="inputDegree" data-i18n="degreeLabel">កម្រិតសិក្សា <span
-                      class="req">*</span></label>
+                  <label for="inputDegree" data-i18n="degreeLabel">កម្រិតសិក្សា <span class="req">*</span></label>
                   <select id="inputDegree" class="form-control" onchange="updateTeacherProfileSummaryLive()">
                     <option value="primary">បឋមសិក្សា</option>
                     <option value="lower_sec" selected>អនុវិទ្យាល័យ</option>
@@ -364,8 +364,7 @@
                 </div>
 
                 <div class="control-group">
-                  <label for="inputGrade" data-i18n="gradeLabel">កម្រិតថ្នាក់ <span
-                      class="req">*</span></label>
+                  <label for="inputGrade" data-i18n="gradeLabel">កម្រិតថ្នាក់ <span class="req">*</span></label>
                   <select id="inputGrade" class="form-control" onchange="updateTeacherProfileSummaryLive()">
                     <option value="ថ្នាក់ទី ៧">ថ្នាក់ទី ៧</option>
                     <option value="ថ្នាក់ទី ៨" selected>ថ្នាក់ទី ៨</option>
@@ -431,7 +430,8 @@
                     <i class="fa-solid fa-clock text-primary" style="margin-right: 4px;"></i> រយៈពេលបង្រៀន <span
                       class="req">*</span>
                   </label>
-                  <span id="activeDurationLabel" style="font-size: 0.76rem; font-weight: 700; color: #4f46e5;">(៦០ នាទី)</span>
+                  <span id="activeDurationLabel" style="font-size: 0.76rem; font-weight: 700; color: #4f46e5;">(៦០
+                    នាទី)</span>
                 </div>
 
                 <select id="inputDurationSelect" class="form-control" onchange="handleDurationChange(this.value)">
@@ -518,7 +518,8 @@
                 <label for="presetTemplateSelect" data-i18n="labelPresetTemplate">
                   <i class="fa-solid fa-award text-primary" style="margin-right: 4px;"></i> ប្រភេទកិច្ចតែងការ
                 </label>
-                <select id="presetTemplateSelect" class="form-control" onchange="handlePresetTemplateChange(this.value)">
+                <select id="presetTemplateSelect" class="form-control"
+                  onchange="handlePresetTemplateChange(this.value)">
                   <option value="moeys_standard_5step" selected>កិច្ចតែងការស្តង់ដារ ៥ ជំហាន (ទូទៅ / មធ្យមសិក្សា)
                   </option>
                   <option value="flipped_learning_5step">⚡ កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់ (Flipped Classroom)</option>
@@ -531,7 +532,8 @@
                   វិធីសាស្រ្តបង្រៀន៖
                 </label>
                 <select id="inputMethod" class="form-control" onchange="handleTeachingMethodChange()">
-                  <option value="5e">វិធីសាស្ត្រ 5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)</option>
+                  <option value="5e">វិធីសាស្ត្រ 5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)
+                  </option>
                   <option value="pbl">វិធីសាស្ត្រដោះស្រាយបញ្ហា (Problem-Based Learning - PBL)</option>
                   <option value="pjbl">វិធីសាស្ត្របង្កើតគម្រោង (Project-Based Learning - PjBL)</option>
                   <option value="ibl">វិធីសាស្ត្ររិះរក និងស៊ើបអង្កេត (Inquiry-Based Learning - IBL)</option>
@@ -564,7 +566,8 @@
             <!-- 🎯 Real-Time Dynamic Pacing Bar (Visual Timeline Breakdown) -->
             <div id="dynamicPacingBarWrap" class="dynamic-pacing-wrap mt-2">
               <div class="pacing-header">
-                <span class="pacing-title"><i class="fa-solid fa-chart-pie text-primary"></i> បែងចែកពេលវេលាគរុកោសល្យ៖</span>
+                <span class="pacing-title"><i class="fa-solid fa-chart-pie text-primary"></i>
+                  បែងចែកពេលវេលាគរុកោសល្យ៖</span>
                 <span class="pacing-mode-badge" id="pacingModeBadge">កិច្ចតែងការ (ភាគរយតាមជំហាន)</span>
               </div>
               <div class="pacing-bar-container" id="pacingBarSegments">
@@ -586,7 +589,8 @@
                 </span>
                 <span class="badge"
                   style="background: #ecfdf5; color: #047857; border: 1px solid #a7f3d0; font-size: 0.74rem; font-weight: 700; padding: 3px 10px; border-radius: 14px;">
-                  <i class="fa-solid fa-user-graduate"></i> <span data-i18n="teachingApproachVal">សិស្សមជ្ឈមណ្ឌល (Student-Centered — 70% STT)</span>
+                  <i class="fa-solid fa-user-graduate"></i> <span data-i18n="teachingApproachVal">សិស្សមជ្ឈមណ្ឌល
+                    (Student-Centered — 70% STT)</span>
                 </span>
               </div>
 
@@ -597,11 +601,19 @@
                     <i class="fa-solid fa-puzzle-piece" style="margin-right: 4px; color: #6366f1;"></i>
                     <span data-i18n="techniquesLabel">យុទ្ធវិធីបង្រៀនគន្លឹះ (Active Techniques)</span> ៖
                   </label>
-                  <span id="selectedTechniquesCount" style="font-size: 0.72rem; color: #6366f1; font-weight: 700;">បានជ្រើសរើស ៣</span>
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <button type="button" class="btn-pill-auto-sync" onclick="autoSyncTechniquesToMethod(true)"
+                      title="ចុចដើម្បីកែតម្រូវយុទ្ធវិធីស្វ័យប្រវត្តិតាមវិធីសាស្ត្របង្រៀន">
+                      <i class="fa-solid fa-wand-magic-sparkles"></i> <span>តម្រឹមស្វ័យប្រវត្តិ</span>
+                    </button>
+                    <span id="selectedTechniquesCount"
+                      style="font-size: 0.72rem; color: #6366f1; font-weight: 700;">បានជ្រើសរើស ៣</span>
+                  </div>
                 </div>
 
                 <!-- Combo Dropdown Trigger Button -->
-                <div class="techniques-combo-trigger" id="techniquesComboTrigger" onclick="toggleTechniquesDropdown()" tabindex="0" role="button" aria-haspopup="listbox" aria-expanded="false">
+                <div class="techniques-combo-trigger" id="techniquesComboTrigger" onclick="toggleTechniquesDropdown()"
+                  tabindex="0" role="button" aria-haspopup="listbox" aria-expanded="false">
                   <div class="combo-trigger-left">
                     <i class="fa-solid fa-list-check combo-icon"></i>
                     <span class="combo-trigger-text" id="comboTriggerText">ជ្រើសរើសយុទ្ធវិធីបង្រៀន...</span>
@@ -618,22 +630,24 @@
                 </div>
 
                 <!-- Dropdown Panel (Multi-select Checkbox Menu) -->
-                <div class="techniques-dropdown-panel" id="techniquesDropdownPanel" style="display: none;" onclick="event.stopPropagation()">
+                <div class="techniques-dropdown-panel" id="techniquesDropdownPanel" style="display: none;"
+                  onclick="event.stopPropagation()">
                   <!-- Dropdown Search & Quick Actions -->
                   <div class="techniques-dropdown-header">
                     <div class="techniques-search-wrap">
                       <i class="fa-solid fa-magnifying-glass search-icon"></i>
                       <input type="text" id="techniquesSearchInput" class="techniques-search-input"
-                        placeholder="ស្វែងរកយុទ្ធវិធី..."
-                        oninput="filterTechniquesList(this.value)"
+                        placeholder="ស្វែងរកយុទ្ធវិធី..." oninput="filterTechniquesList(this.value)"
                         onclick="event.stopPropagation()">
-                      <button type="button" class="btn-clear-search" id="btnClearSearch" onclick="clearTechniquesSearch(event)" style="display: none;">
+                      <button type="button" class="btn-clear-search" id="btnClearSearch"
+                        onclick="clearTechniquesSearch(event)" style="display: none;">
                         <i class="fa-solid fa-xmark"></i>
                       </button>
                     </div>
                     <div class="techniques-quick-actions">
                       <button type="button" class="btn-quick-action" onclick="resetToDefaultTechniques(event)">
-                        <i class="fa-solid fa-rotate-left"></i> <span data-i18n="btnResetTechDefault">លំនាំដើម (៣)</span>
+                        <i class="fa-solid fa-rotate-left"></i> <span data-i18n="btnResetTechDefault">លំនាំដើម
+                          (៣)</span>
                       </button>
                       <button type="button" class="btn-quick-action" onclick="clearAllTechniques(event)">
                         <i class="fa-solid fa-trash-can"></i> <span data-i18n="btnClearTechAll">សម្អាតទាំងអស់</span>
@@ -654,21 +668,26 @@
                           placeholder="វាយបញ្ចូលឈ្មោះយុទ្ធវិធីថ្មី..."
                           onkeydown="if(event.key==='Enter') confirmAddCustomTechniqueFromDropdown(event)"
                           onclick="event.stopPropagation()">
-                        <button type="button" class="btn btn-sm btn-primary" onclick="confirmAddCustomTechniqueFromDropdown(event)"
+                        <button type="button" class="btn btn-sm btn-primary"
+                          onclick="confirmAddCustomTechniqueFromDropdown(event)"
                           style="white-space: nowrap; padding: 4px 10px; font-size: 0.78rem; border-radius: 6px;">
                           <i class="fa-solid fa-plus"></i> បន្ថែម
                         </button>
-                        <button type="button" class="btn btn-sm btn-secondary" onclick="toggleDropdownAddCustom(false, event)"
+                        <button type="button" class="btn btn-sm btn-secondary"
+                          onclick="toggleDropdownAddCustom(false, event)"
                           style="white-space: nowrap; padding: 4px 8px; font-size: 0.78rem; border-radius: 6px;">
                           <i class="fa-solid fa-xmark"></i>
                         </button>
                       </div>
                     </div>
                     <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                      <button type="button" class="btn-footer-add" id="btnShowAddCustomInDropdown" onclick="toggleDropdownAddCustom(true, event)">
-                        <i class="fa-solid fa-plus"></i> <span data-i18n="btnAddCustomTech">+ បន្ថែមយុទ្ធវិធីផ្ទាល់ខ្លួន...</span>
+                      <button type="button" class="btn-footer-add" id="btnShowAddCustomInDropdown"
+                        onclick="toggleDropdownAddCustom(true, event)">
+                        <i class="fa-solid fa-plus"></i> <span data-i18n="btnAddCustomTech">+
+                          បន្ថែមយុទ្ធវិធីផ្ទាល់ខ្លួន...</span>
                       </button>
-                      <button type="button" class="btn-footer-done" onclick="event.stopPropagation(); toggleTechniquesDropdown(false)">
+                      <button type="button" class="btn-footer-done"
+                        onclick="event.stopPropagation(); toggleTechniquesDropdown(false)">
                         <i class="fa-solid fa-check"></i> <span data-i18n="btnDoneTech">រួចរាល់</span>
                       </button>
                     </div>
@@ -788,7 +807,8 @@
                 <i class="fa-solid fa-paperclip"></i> <span data-i18n="btnAttachFile">ភ្ជាប់ឯកសារ</span>
               </button>
 
-              <button type="button" class="btn-paste-pill" id="btnPasteLessonContent" onclick="pasteToLessonContent()" title="Paste ពី Clipboard" style="display: none !important;">
+              <button type="button" class="btn-paste-pill" id="btnPasteLessonContent" onclick="pasteToLessonContent()"
+                title="Paste ពី Clipboard" style="display: none !important;">
                 <i class="fa-solid fa-paste"></i> <span>Paste</span>
               </button>
 
@@ -910,7 +930,8 @@
                 <div id="lessonFileStatus" class="file-status-pill mb-2"
                   style="display: none; align-items: center; gap: 8px; padding: 6px 12px; background: rgba(99, 102, 241, 0.08); border: 1.5px solid #6366f1; border-radius: 8px; color: #4338ca; font-weight: 600; font-size: 0.8rem; width: 100%; max-width: 100%; box-sizing: border-box; overflow: hidden;">
                   <i class="fa-solid fa-file-circle-check" style="font-size: 1rem; color: #4f46e5; flex-shrink: 0;"></i>
-                  <span class="file-name" style="font-family: var(--font-khmer); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;"></span>
+                  <span class="file-name"
+                    style="font-family: var(--font-khmer); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;"></span>
                   <button type="button" class="btn-remove-file" id="btnRemoveLessonFile" title="ដកឯកសារនេះចេញ"
                     style="background: none; border: none; cursor: pointer; color: #ef4444; font-size: 0.95rem; margin-left: auto; flex-shrink: 0;">
                     <i class="fa-solid fa-xmark"></i>
@@ -987,7 +1008,8 @@
           <!-- Quick Model Tier Selector (Gemini 3.5 Flash & Gemini Pro) -->
           <div class="model-tier-quick-select mb-2" id="mainModelTierRow"
             style="display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 6px 12px; background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 8px; width: 100%; box-sizing: border-box;">
-            <span style="font-size: 0.78rem; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
+            <span
+              style="font-size: 0.78rem; font-weight: 700; color: #475569; display: flex; align-items: center; gap: 6px; white-space: nowrap;">
               <i class="fa-solid fa-bolt" style="color: #eab308;"></i> <span>ម៉ូឌែល AI (Model)៖</span>
             </span>
             <select id="selectMainModelTier" class="form-control form-control-sm"
@@ -1030,7 +1052,8 @@
         <div class="toolbar-left" style="display: none !important;">
           <!-- Mobile Back to Form Button (Hidden as requested: user switches via top mobile tabs) -->
           <button type="button" class="btn-tool-action btn-mobile-back-to-form" id="btnMobileBackToForm"
-            onclick="setMobileWorkspaceView('form')" title="ត្រឡប់ទៅទម្រង់បញ្ចូល (Back to Form)" style="display: none !important;">
+            onclick="setMobileWorkspaceView('form')" title="ត្រឡប់ទៅទម្រង់បញ្ចូល (Back to Form)"
+            style="display: none !important;">
             <i class="fa-solid fa-chevron-left"></i>
           </button>
 
@@ -1097,7 +1120,8 @@
             onclick="triggerInsertDocImage()" title="បញ្ចូលរូបភាព គំនូសតាងពិសោធន៍ ឬក្រាហ្វិក (Insert Diagram / Image)">
             <i class="fa-solid fa-image"></i> <span data-i18n="btnInsertDiagram">គំនូសតាង/រូបភាព</span>
           </button>
-          <input type="file" id="docImageInput" accept="image/*" style="display: none;" onchange="handleDocImageSelected(this.files)">
+          <input type="file" id="docImageInput" accept="image/*" style="display: none;"
+            onchange="handleDocImageSelected(this.files)">
 
           <button id="btnCopyText" class="btn-tool-action btn-copy" title="ចម្លងអត្ថបទទាំងអស់">
             <i class="fa-regular fa-copy"></i> <span data-i18n="btnCopy">ចម្លង</span>
@@ -1158,7 +1182,8 @@
           <div id="emptyStateApiBanner"
             style="display: inline-flex; align-items: center; gap: 8px; background: #fefce8; border: 1.5px solid #fef08a; padding: 5px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; color: #854d0e; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
             <span id="emptyStateApiDot">🟡</span>
-            <span id="emptyStateApiText">មិនទាន់ភ្ជាប់ API Key — សូមភ្ជាប់ Google Gemini API Key ដើម្បីដំណើរការបង្កើតកិច្ចតែងការ AI ពិតប្រាកដ</span>
+            <span id="emptyStateApiText">មិនទាន់ភ្ជាប់ API Key — សូមភ្ជាប់ Google Gemini API Key
+              ដើម្បីដំណើរការបង្កើតកិច្ចតែងការ AI ពិតប្រាកដ</span>
             <button type="button" id="btnEmptyBannerConnectKey" onclick="openApiKeyModal()"
               style="background: #f59e0b; color: white; border: none; padding: 2px 9px; border-radius: 12px; font-size: 0.75rem; font-weight: 700; cursor: pointer; margin-left: 4px; box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);">
               <i class="fa-solid fa-key"></i> <span data-i18n="btnEmptyBannerConnectKey">ភ្ជាប់ Key ឥឡូវនេះ</span>
@@ -1171,39 +1196,45 @@
             <div class="empty-step-card"
               style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 10px 12px; transition: transform 0.2s, box-shadow 0.2s;">
               <span id="emptyStep1Badge" data-i18n="emptyStep1Badge"
-                style="display: inline-block; background: #e0e7ff; color: #4338ca; font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px;">ជំហានទី ១</span>
+                style="display: inline-block; background: #e0e7ff; color: #4338ca; font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px;">ជំហានទី
+                ១</span>
               <div id="emptyStep1Title" data-i18n="emptyStep1Title"
                 style="font-weight: 700; font-size: 0.84rem; color: var(--text-primary); margin-bottom: 3px; display: flex; align-items: center; gap: 5px; white-space: nowrap;">
                 <i class="fa-solid fa-file-circle-plus" style="color: #4f46e5;"></i> រើសទម្រង់/មេរៀន
               </div>
               <div id="emptyStep1Desc" data-i18n="emptyStep1Desc"
-                style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">ជ្រើសទម្រង់ MoEYS ឬ Upload Word/PDF/PPTX</div>
+                style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">ជ្រើសទម្រង់ MoEYS ឬ Upload
+                Word/PDF/PPTX</div>
             </div>
 
             <!-- Step 2 -->
             <div class="empty-step-card"
               style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 10px 12px; transition: transform 0.2s, box-shadow 0.2s;">
               <span id="emptyStep2Badge" data-i18n="emptyStep2Badge"
-                style="display: inline-block; background: #ecfdf5; color: #047857; font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px;">ជំហានទី ២</span>
+                style="display: inline-block; background: #ecfdf5; color: #047857; font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px;">ជំហានទី
+                ២</span>
               <div id="emptyStep2Title" data-i18n="emptyStep2Title"
                 style="font-weight: 700; font-size: 0.84rem; color: var(--text-primary); margin-bottom: 3px; display: flex; align-items: center; gap: 5px; white-space: nowrap;">
                 <i class="fa-solid fa-wand-magic-sparkles" style="color: #10b981;"></i> បង្កើតដោយ AI
               </div>
               <div id="emptyStep2Desc" data-i18n="emptyStep2Desc"
-                style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">កិច្ចតែងការ ៥ ជំហាន + Pre (60/30/10) + Post (20/60/20)</div>
+                style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">កិច្ចតែងការ ៥ ជំហាន + Pre
+                (60/30/10) + Post (20/60/20)</div>
             </div>
 
             <!-- Step 3 -->
             <div class="empty-step-card"
               style="background: var(--bg-body, #f8fafc); border: 1px solid var(--border-color, #e2e8f0); border-radius: 8px; padding: 10px 12px; transition: transform 0.2s, box-shadow 0.2s;">
               <span id="emptyStep3Badge" data-i18n="emptyStep3Badge"
-                style="display: inline-block; background: #f0f9ff; color: #0369a1; font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px;">ជំហានទី ៣</span>
+                style="display: inline-block; background: #f0f9ff; color: #0369a1; font-size: 0.68rem; font-weight: 700; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px;">ជំហានទី
+                ៣</span>
               <div id="emptyStep3Title" data-i18n="emptyStep3Title"
                 style="font-weight: 700; font-size: 0.84rem; color: var(--text-primary); margin-bottom: 3px; display: flex; align-items: center; gap: 5px; white-space: nowrap;">
                 <i class="fa-solid fa-file-word" style="color: #0284c7;"></i> កែសម្រួល & Export
               </div>
               <div id="emptyStep3Desc" data-i18n="emptyStep3Desc"
-                style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">ពិនិត្យលើ A4 រួច Export ជា Word (.docx) / PPTX</div>
+                style="font-size: 0.74rem; color: var(--text-secondary); line-height: 1.35;">ពិនិត្យលើ A4 រួច Export ជា
+                Word (.docx) / PPTX</div>
             </div>
           </div>
 
@@ -1211,11 +1242,13 @@
           <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
             <button id="btnEmptyConnectKey" class="btn-secondary" onclick="openApiKeyModal()"
               style="border: 1.5px solid #f59e0b; color: #b45309; background: #fffbeb; font-weight: 700; padding: 8px 18px; border-radius: 8px; font-size: 0.86rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-              <i class="fa-solid fa-key" style="color: #f59e0b;"></i> <span data-i18n="btnEmptyConnectKey">ភ្ជាប់ API Key</span>
+              <i class="fa-solid fa-key" style="color: #f59e0b;"></i> <span data-i18n="btnEmptyConnectKey">ភ្ជាប់ API
+                Key</span>
             </button>
             <button id="btnEmptyOpenLibrary" class="btn-secondary" onclick="openSavedPlansModal()"
               style="border: 1.5px solid #0284c7; color: #0284c7; background: #f0f9ff; font-weight: 700; padding: 8px 18px; border-radius: 8px; font-size: 0.86rem; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);">
-              <i class="fa-solid fa-book-bookmark" style="color: #0284c7;"></i> <span data-i18n="btnEmptyOpenLibrary">បណ្ណាល័យកិច្ចតែងការ</span>
+              <i class="fa-solid fa-book-bookmark" style="color: #0284c7;"></i> <span
+                data-i18n="btnEmptyOpenLibrary">បណ្ណាល័យកិច្ចតែងការ</span>
             </button>
           </div>
           <script>
@@ -1413,13 +1446,15 @@
         <!-- ⚡ Gemini Model Tier: Flash vs Pro -->
         <div class="control-group mt-3" id="groupGeminiModelTier">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <label for="selectGeminiModelTier" style="font-weight: 600; font-size: 0.85rem; color: #334155; margin-bottom: 0;">
+            <label for="selectGeminiModelTier"
+              style="font-weight: 600; font-size: 0.85rem; color: #334155; margin-bottom: 0;">
               <i class="fa-solid fa-microchip" style="color: #4f46e5; margin-right: 4px;"></i> ម៉ូឌែល AI (Model)៖
             </label>
-            <span id="badgeGeminiModelTier" style="font-size: 0.72rem; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 10px; font-weight: 700;">FLASH</span>
+            <span id="badgeGeminiModelTier"
+              style="font-size: 0.72rem; background: #e0e7ff; color: #4338ca; padding: 2px 8px; border-radius: 10px; font-weight: 700;">FLASH</span>
           </div>
-          <select id="selectGeminiModelTier" class="control-select form-control" style="font-weight: 600; font-size: 0.88rem;"
-            onchange="handleGeminiModelTierChange(this.value)">
+          <select id="selectGeminiModelTier" class="control-select form-control"
+            style="font-weight: 600; font-size: 0.88rem;" onchange="handleGeminiModelTierChange(this.value)">
             <option value="flash" selected>⚡ Gemini 3.5 Flash (Ultra Fast - លឿនបំផុត)</option>
             <option value="pro">👑 Gemini Pro (Deep Pedagogical Reasoning)</option>
           </select>
@@ -1688,7 +1723,8 @@
           <!-- Choice 2: Quick Switch to Flash Tier -->
           <button type="button" id="btnAiErrorSwitchFlash" class="btn-secondary" onclick="switchTierToFlashAndRetry()"
             style="border: 1.5px solid #10b981; color: #065f46; justify-content: center; padding: 10px 16px; font-weight: 600; font-size: 0.9rem; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; background: #ecfdf5;">
-            <i class="fa-solid fa-bolt" style="color: #10b981;"></i> ⚡ ប្តូរទៅកាន់ Gemini 3.5 Flash (Ultra Fast) &amp; សាកល្បងភ្លាម
+            <i class="fa-solid fa-bolt" style="color: #10b981;"></i> ⚡ ប្តូរទៅកាន់ Gemini 3.5 Flash (Ultra Fast) &amp;
+            សាកល្បងភ្លាម
           </button>
 
           <!-- Choice 3: Enter / Switch API Key -->
@@ -2677,7 +2713,7 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261118_v129"></script>
+  <script src="app.js?v=20261118_v130"></script>
 </body>
 
 </html>
