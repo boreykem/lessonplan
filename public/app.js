@@ -19091,7 +19091,6 @@ const EDUCATIONAL_IMAGE_CATEGORIES = {
     'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1024&q=80', // Colorful creative cognitive development activity
     'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=1024&q=80', // Early childhood thinking & developmental play
     'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=1024&q=80', // Peer learning & social constructivism (Vygotsky)
-    'https://images.unsplash.com/photo-1544717305-2782549b5136?w=1024&q=80', // Focused student learning & comprehension
     'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1024&q=80'  // Educational knowledge & academic study stack
   ],
   brain_neuro: [
@@ -19410,6 +19409,95 @@ function pickUniqueCuratedImageUrl(targetCategory, slideIndex, usedUrls) {
   // Pass 2 (only if deck has > 40 slides and every single image in the bank was used)
   const fallbackList = EDUCATIONAL_IMAGE_CATEGORIES[targetCategory] || EDUCATIONAL_IMAGE_CATEGORIES['pedagogy_teacher'];
   return fallbackList[Math.max(0, slideIndex - 1) % fallbackList.length];
+}
+
+// 🔍 Live Topic-Exact Photo Search via Wikimedia Commons API (Free, Zero Key, Strict Relevance Scoring >= 6)
+// Finds genuine subject-specific photographs (e.g., mother & smiling baby, child reading, Jean Piaget,
+// Angkor Wat, photosynthesis leaf, classroom discussion) while filtering out military/political/archive junk!
+async function searchRelevantWikimediaSlideImage(keyword, usedUrls, isHistory = false) {
+  const stopWords = new Set([
+    'the', 'and', 'for', 'with', 'from', 'into', 'about', 'that', 'this',
+    'concept', 'educational', 'illustration', 'visual', 'image', 'photo',
+    'picture', 'showing', 'diagram', 'modern', 'clean', 'background', 'high', 'detail'
+  ]);
+  const cleanWords = String(keyword || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length >= 3 && !stopWords.has(w));
+  if (cleanWords.length === 0) return null;
+
+  const queries = [cleanWords.slice(0, 3).join(' ')];
+  if (cleanWords.length > 2) queries.push(cleanWords.slice(0, 2).join(' '));
+
+  const badTitleRe = isHistory
+    ? /(stamp|logo|icon|flag|signature|coat_of_arms|newspaper|scan|page_\d|pdf|djvu|dpla|nara)/i
+    : /(18\d\d|19[0-8]\d|stamp|logo|icon|flag|signature|coat_of_arms|newspaper|gravestone|burial|funeral|war|soldier|statue|memorial|census|scan|page_\d|pdf|djvu|wikisource|book_cover|biden|trump|obama|clinton|bush|putin|coast_guard|navy|army|air_force|usaf|dpla|nara|marine|pentagon|senator|president|governor|minister|congress|politician|election|campaign|rally)/i;
+
+  const used = usedUrls instanceof Set ? usedUrls : new Set();
+
+  for (const q of queries) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
+    try {
+      const apiUrl = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrnamespace=6&gsrsearch=${encodeURIComponent(q)}&gsrlimit=12&prop=imageinfo&iiprop=url|mime|size|extmetadata&iiurlwidth=960&format=json&origin=*`;
+      const resp = await fetch(apiUrl, { signal: controller.signal });
+      clearTimeout(timer);
+      if (!resp.ok) continue;
+      const json = await resp.json();
+      const pages = Object.values(json.query?.pages || []);
+      const scored = [];
+
+      for (const p of pages) {
+        const info = p.imageinfo?.[0];
+        if (!info) continue;
+        const mime = info.mime || '';
+        if (!/^image\/(jpeg|png|webp)$/i.test(mime)) continue;
+        const w = info.width || 0;
+        const h = info.height || 0;
+        if (w < 480 || h < 320) continue;
+        const ratio = w / h;
+        if (ratio < 0.65 || ratio > 2.0) continue;
+        const title = String(p.title || '');
+        if (badTitleRe.test(title)) continue;
+
+        const thumbUrl = (info.thumburl || '').split('?')[0];
+        const origUrl = (info.url || '').split('?')[0];
+        const bestUrl = thumbUrl || ((info.size || 0) < 4000000 ? origUrl : '');
+        if (!bestUrl || used.has(bestUrl)) continue;
+
+        const desc = String(info.extmetadata?.ImageDescription?.value || '').replace(/<[^>]+>/g, ' ');
+        if (badTitleRe.test(desc)) continue;
+
+        const hay = `${title} ${desc}`.toLowerCase();
+        let score = 0;
+        let matchedWords = 0;
+        for (const kw of cleanWords.slice(0, 4)) {
+          if (title.toLowerCase().includes(kw)) {
+            score += 3.5;
+            matchedWords++;
+          } else if (hay.includes(kw)) {
+            score += 1.5;
+            matchedWords++;
+          }
+        }
+        if (ratio >= 1.0 && ratio <= 1.75) score += 1;
+        // Require strong genuine relevance (>= 6 points and at least 2 distinct keywords when query has >= 2 words)
+        const minMatches = cleanWords.length >= 2 ? 2 : 1;
+        if (score >= 6 && matchedWords >= minMatches) {
+          scored.push({ score, url: bestUrl, title });
+        }
+      }
+
+      scored.sort((a, b) => b.score - a.score);
+      if (scored.length > 0) {
+        return scored[0];
+      }
+    } catch (_) {
+      clearTimeout(timer);
+    }
+  }
+  return null;
 }
 
 async function getSlideImage(slideDef, data, imageMode, theme, slideIndex, usedUrls = null) {
@@ -20809,15 +20897,42 @@ window.buildGoogleSlidesPresentation = async function (slidesData, meta, options
     return { badge, heading, desc };
   };
 
-  // Pre-select ZERO-DUPLICATE context-matched HTTPS image URLs for every slide!
+  // Pre-select LIVE TOPIC-EXACT & ZERO-DUPLICATE HTTPS image URLs for every slide!
+  // Uses live Wikimedia Commons relevance-scored search on each slide's exact keyword first,
+  // with automatic curated Unsplash fallback if no strong Wikimedia photo matches.
+  updatePptxWidgetStatus(`🔍 កំពុងស្វែងរករូបភាពជាក់ស្ដែងត្រូវនឹងខ្លឹមសារស្លាយទាំង ${slidesData.length}...`, 64);
   const usedUrls = new Set();
-  const slideImagePlans = slidesData.map((sl, idx) => {
-    if (imageMode === 'no') return null;
+  const isHistoryLesson = /ប្រវត្តិ|អង្គរ|history|angkor|khmer|heritage/i.test(`${meta.subject || ''} ${meta.lessonTitle || ''}`);
+  const slideImagePlans = [];
+  for (let idx = 0; idx < slidesData.length; idx++) {
+    const sl = slidesData[idx];
+    if (imageMode === 'no') {
+      slideImagePlans.push(null);
+      continue;
+    }
     const det = detectSlideTopic(sl, meta, idx + 1);
-    const url = pickUniqueCuratedImageUrl(det.category, idx + 1, usedUrls);
-    if (url) usedUrls.add(url);
-    return url ? { url, category: det.category } : null;
-  });
+    const fallbackUrl = pickUniqueCuratedImageUrl(det.category, idx + 1, usedUrls);
+    let chosenUrl = '';
+    let sourceTag = 'curated';
+
+    // Try live Wikimedia Commons search using the slide's exact AI keyword (for content slides & topic cover)
+    const rawKw = String(sl.imageSearchKeyword || det.searchKeyword || '').trim();
+    if (rawKw) {
+      const liveMatch = await searchRelevantWikimediaSlideImage(rawKw, usedUrls, isHistoryLesson);
+      if (liveMatch && liveMatch.url) {
+        chosenUrl = liveMatch.url;
+        sourceTag = 'wikimedia';
+      }
+    }
+
+    if (!chosenUrl) {
+      chosenUrl = fallbackUrl;
+      sourceTag = 'curated';
+    }
+    if (chosenUrl) usedUrls.add(chosenUrl);
+    if (fallbackUrl && fallbackUrl !== chosenUrl) usedUrls.add(fallbackUrl);
+    slideImagePlans.push(chosenUrl ? { url: chosenUrl, fallbackUrl: fallbackUrl || '', category: det.category, source: sourceTag } : null);
+  }
 
   // 2. Build Pass 1: Create all blank slides + backgrounds + cover photo placeholder order
   updatePptxWidgetStatus(`🎨 កំពុងរៀបចំស្លាយទាំង ${slidesData.length} និងបញ្ជូនរូបភាពចូល Google Slides...`, 70);
@@ -21296,13 +21411,25 @@ window.buildGoogleSlidesPresentation = async function (slidesData, meta, options
           requests: imgReqs
         });
       } catch (batchImgErr) {
-        console.warn('[Google Slides] Batch image error, retrying per-slide safely:', batchImgErr);
+        console.warn('[Google Slides] Batch image error, retrying per-slide with fallbackUrl:', batchImgErr);
         for (const req of imgReqs) {
           try {
             await googleSlidesApiFetch(`https://slides.googleapis.com/v1/presentations/${presentationId}:batchUpdate`, token, 'POST', {
               requests: [req]
             });
-          } catch (_) { }
+          } catch (_) {
+            const slideNum = parseInt(String(req.createImage?.objectId || '').replace(/\D+/g, ''), 10) || 0;
+            const fbUrl = slideImagePlans[slideNum - 1]?.fallbackUrl;
+            if (fbUrl && fbUrl !== req.createImage.url) {
+              try {
+                const retryReq = JSON.parse(JSON.stringify(req));
+                retryReq.createImage.url = fbUrl;
+                await googleSlidesApiFetch(`https://slides.googleapis.com/v1/presentations/${presentationId}:batchUpdate`, token, 'POST', {
+                  requests: [retryReq]
+                });
+              } catch (_e2) { }
+            }
+          }
         }
       }
     }
@@ -21499,9 +21626,9 @@ STRICT CRITICAL RULES:
    - Keep concepts punchy, memorable, and visually structured.
 4. DETAILED SPEAKER NOTES:
    - Provide 2 to 4 sentences of rich teaching advice in Khmer per slide, explaining what the teacher should elaborate, questions to ask students, and activities.
-5. TOPIC-CORRELATED VISUAL KEYWORDS & AI IMAGE PROMPTS (Strict Correlation):
-   - Every slide's visual MUST strictly and directly reflect the specific academic subject, scientific topic, historical event, or concept taught on that slide.
-   - "imageSearchKeyword": 2 to 4 precise English nouns describing the slide's exact topic (e.g. for Child Brain Development: "human brain neural synapses cognitive development", for Photosynthesis: "plant leaf chloroplast photosynthesis", for Angkor Wat: "Angkor Wat stone temple architecture", for Chemistry: "chemical molecular structure bonds", for Solar System: "solar system planets orbit astronomy"). NEVER use generic words like "classroom", "school", "education", "teacher", "learning concept" unless the slide is explicitly about classroom management or teaching!
+5. TOPIC-CORRELATED VISUAL KEYWORDS & AI IMAGE PROMPTS (Strict Photo-Search Accuracy):
+   - Every slide's visual MUST strictly and literally depict the exact physical subject taught on that slide.
+   - "imageSearchKeyword": EXACTLY 2 to 3 concrete, photographable English visual nouns that directly match a real photograph on Wikimedia Commons (e.g., if slide is about Infant Response to Mother's Voice -> "mother smiling baby"; if slide is about Toddler Speaking -> "toddler child talking"; if slide is about Child Reading -> "child reading book"; if slide is about Piaget -> "Jean Piaget"; if slide is about Vygotsky -> "Lev Vygotsky"; if slide is about Group Flipchart -> "students group discussion"; if slide is about Photosynthesis -> "green leaf photosynthesis"; if slide is about Angkor Wat -> "Angkor Wat temple"). NEVER use abstract academic nouns like "communication concept", "cognitive framework", "pedagogy learning" — ALWAYS use concrete visible objects/people/scenes!
    - "imagePrompt": A highly detailed English visual prompt for a specialized educational diagram, scientific illustration, or subject visualization matching that exact slide's content (e.g. "Detailed scientific illustration of human brain cross section showing neural connections, glowing synapses, and cognitive thought pathways, isolated on clean background, crisp lighting, high resolution, 8k, no text").
 
 JSON Schema:
