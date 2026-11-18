@@ -5755,6 +5755,16 @@ state.geminiModelTier = (function () {
 })();
 
 function getActiveGeminiModelTier() {
+  if (!window._geminiTierV137Migrated) {
+    window._geminiTierV137Migrated = true;
+    try {
+      if (!localStorage.getItem('gemini_tier_v137_migrated')) {
+        localStorage.setItem('gemini_model_tier', 'flash');
+        localStorage.setItem('gemini_tier_v137_migrated', '1');
+        state.geminiModelTier = 'flash';
+      }
+    } catch (e) { }
+  }
   return state.geminiModelTier || (function () {
     try { return localStorage.getItem('gemini_model_tier') || 'flash'; } catch (e) { return 'flash'; }
   })();
@@ -5762,15 +5772,7 @@ function getActiveGeminiModelTier() {
 
 function getCandidateGeminiModels(tier) {
   const activeTier = tier || getActiveGeminiModelTier();
-  if (activeTier === 'pro') {
-    return [
-      { ver: 'v1beta', name: 'gemini-pro-latest' },
-      { ver: 'v1beta', name: 'gemini-pro' }
-    ];
-  }
-  // Default: 'flash' (⚡ Gemini 3.5 Flash Lite & Gemini 3.5 Flash - Ultra Fast)
-  // Strictly Gemini 3.5 Flash Lite and above, strictly excluding legacy 1.5 / 2.0 / 2.5 models
-  return [
+  const flashPool = [
     { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
     { ver: 'v1beta', name: 'gemini-3.5-flash' },
     { ver: 'v1beta', name: 'gemini-3.8-flash' },
@@ -5779,6 +5781,16 @@ function getCandidateGeminiModels(tier) {
     { ver: 'v1beta', name: 'gemini-flash-lite-latest' },
     { ver: 'v1beta', name: 'gemini-flash-latest' }
   ];
+  if (activeTier === 'pro') {
+    // Settings-only Pro tier with automatic resilient fallback to Flash pool (never dead-ends on Free API keys)
+    return [
+      { ver: 'v1beta', name: 'gemini-2.5-pro' },
+      { ver: 'v1beta', name: 'gemini-pro-latest' },
+      ...flashPool
+    ];
+  }
+  // Default: 'flash' (⚡ Smart Auto-Flash Engine - Ultra Fast & Free-Tier Reliable)
+  return flashPool;
 }
 
 function handleGeminiModelTierChange(tier) {
