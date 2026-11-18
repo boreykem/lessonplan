@@ -3217,7 +3217,7 @@ def export_docx():
         p_mth_h.runs[0].font.size = Pt(12)
         m_title = data.get("method") or "ការរៀនបែបត្រឡប់"
         m_type = detect_method_type(m_title)
-        doc.add_paragraph(f"• វិធីសាស្ត្របង្រៀនចម្បង៖ {m_title}").runs[0].bold = True
+        doc.add_paragraph(f"• វិធីសាស្រ្តបង្រៀន៖ {m_title}").runs[0].bold = True
         doc.add_paragraph("• គំរូ និងទម្រង់រៀបចំការរៀន៖ ការរៀនបែបត្រឡប់ (Flipped Learning Model ៥ ជំហាន: ៥% - ១០% - ១០% - ៧០% - ៥%) — ផ្សារភ្ជាប់ការស្វ័យសិក្សាត្រៀមមុនម៉ោង (Pre-Class តាមវីដេអូបង្រៀន Micro-Lecture NotebookLM និងបុរេតេស្ត Pre-Test QCM) ជាមួយការរៀនសកម្មក្នុងថ្នាក់ (In-Class Active Learning ៧០%)។")
         doc.add_paragraph("• ដំណាក់កាលអនុវត្តវិធីសាស្ត្រក្នុងថ្នាក់៖")
         if m_type == "pbl":
@@ -3431,7 +3431,7 @@ def export_docx():
         p_std_mth.runs[0].font.size = Pt(12)
         std_m_title = data.get("method") or "សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)"
         std_m_type = detect_method_type(std_m_title)
-        doc.add_paragraph(f"• វិធីសាស្ត្របង្រៀនចម្បង៖ {std_m_title}").runs[0].bold = True
+        doc.add_paragraph(f"• វិធីសាស្រ្តបង្រៀន៖ {std_m_title}").runs[0].bold = True
         doc.add_paragraph("• ទម្រង់កិច្ចតែងការ៖ កិច្ចតែងការស្តង់ដារ ៥ ជំហាន ក្រសួងអប់រំ យុវជន និងកីឡា (MoEYS Standard 5-Step Process)")
         doc.add_paragraph("• ការរៀបចំដំណាក់កាលគរុកោសល្យក្នុង ៥ ជំហាន៖")
         if std_m_type == "pbl":

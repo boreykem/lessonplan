@@ -1693,7 +1693,7 @@ const I18N_DICTIONARY = {
     optPresetUbD: "កិច្ចតែងការតាមបែបត្រឡប់ (Backward Design / UbD ៣ ដំណាក់កាល)",
     optPresetPrimary: "កិច្ចតែងការបឋមសិក្សា (ថ្នាក់ទី ១-៦)",
     optPresetStem: "កិច្ចតែងការបែប STEM / 5E (វិទ្យាសាស្ត្រ និងពិសោធន៍)",
-    methodLabel: "វិធីសាស្ត្របង្រៀនចម្បង",
+    methodLabel: "វិធីសាស្រ្តបង្រៀន",
 
     // Step 3
     step3Title: "ខ្លឹមសារមេរៀន",
@@ -8019,7 +8019,7 @@ function renderTeachingMethodContent(method, templateType = '5_steps', isEn = fa
   return `
     <ul class="doc-list" style="margin-top: 4px; line-height: 1.8;">
       <li><strong>គោលវិធីបង្រៀន៖</strong> ${escapeHtml(approach)}</li>
-      <li><strong>វិធីសាស្ត្របង្រៀនចម្បង៖</strong> ${escapeHtml(m)}</li>
+      <li><strong>វិធីសាស្រ្តបង្រៀន៖</strong> ${escapeHtml(m)}</li>
       <li><strong>យុទ្ធវិធីបង្រៀនគន្លឹះ៖</strong> ${techsBadges}</li>
     </ul>
   `;
@@ -10787,7 +10787,7 @@ async function handleExportWord() {
       docChildren.push(
         new Paragraph({ children: [new TextRun({ text: "៣. វិធីសាស្រ្ដបង្រៀន", bold: true, size: 24 })] }),
         new Paragraph({ children: [new TextRun({ text: `• គោលវិធីបង្រៀន៖ ${approachText}`, bold: true, size: 22 })] }),
-        new Paragraph({ children: [new TextRun({ text: `• វិធីសាស្ត្របង្រៀនចម្បង៖ ${methodTitle}`, bold: true, size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: `• វិធីសាស្រ្តបង្រៀន៖ ${methodTitle}`, bold: true, size: 22 })] }),
         new Paragraph({ children: [new TextRun({ text: `• យុទ្ធវិធីបង្រៀនគន្លឹះ៖ ${techniquesText}`, bold: true, size: 22 })] }),
         new Paragraph({ text: "" })
       );
@@ -11083,7 +11083,7 @@ async function handleExportWord() {
       docChildren.push(
         new Paragraph({ children: [new TextRun({ text: "III. វិធីសាស្រ្ដបង្រៀន (Teaching Methodology)", bold: true, size: 24 })] }),
         new Paragraph({ children: [new TextRun({ text: `• គោលវិធីបង្រៀន៖ ${stdApproachText}`, bold: true, size: 22 })] }),
-        new Paragraph({ children: [new TextRun({ text: `• វិធីសាស្ត្របង្រៀនចម្បង៖ ${stdMethodTitle}`, bold: true, size: 22 })] }),
+        new Paragraph({ children: [new TextRun({ text: `• វិធីសាស្រ្តបង្រៀន៖ ${stdMethodTitle}`, bold: true, size: 22 })] }),
         new Paragraph({ children: [new TextRun({ text: `• យុទ្ធវិធីបង្រៀនគន្លឹះ៖ ${stdTechniquesText}`, bold: true, size: 22 })] }),
         new Paragraph({ text: "" })
       );
