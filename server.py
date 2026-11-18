@@ -2282,11 +2282,14 @@ APP_RELEASE_DATE = "2026-10-13"
 
 @app.route("/api/health", methods=["GET"])
 def health_check():
+    env_cid = os.environ.get("GOOGLE_CLIENT_ID", "").strip()
+    if not env_cid or "123456789-xxxx" in env_cid:
+        env_cid = "187362338910-tfc1lo8f2obvhha26cn89dnaosp42gn8.apps.googleusercontent.com"
     return jsonify({
         "status": "ok", 
         "service": "AI Lesson Plan Studio (Python/Flask)",
         "version": APP_VERSION,
-        "googleClientId": os.environ.get("GOOGLE_CLIENT_ID", "").strip()
+        "googleClientId": env_cid
     })
 
 

@@ -20446,18 +20446,27 @@ window.closePptxWidget = closePptxWidget;
 const GOOGLE_SLIDES_CLIENT_ID_STORAGE_KEY = 'google_slides_oauth_client_id';
 const GOOGLE_SLIDES_LAST_DECK_STORAGE_KEY = 'google_slides_last_created_deck';
 const GOOGLE_SLIDES_OAUTH_SCOPE = 'https://www.googleapis.com/auth/presentations';
+const DEFAULT_GOOGLE_SLIDES_CLIENT_ID = '187362338910-tfc1lo8f2obvhha26cn89dnaosp42gn8.apps.googleusercontent.com';
 let _googleSlidesAccessToken = '';
 let _googleSlidesTokenExpiry = 0;
+
+function isValidRealGoogleClientId(id) {
+  const s = String(id || '').trim();
+  return Boolean(s && s.includes('.apps.googleusercontent.com') && !s.includes('123456789-xxxx'));
+}
 
 function getGoogleSlidesClientId() {
   try {
     const saved = (localStorage.getItem(GOOGLE_SLIDES_CLIENT_ID_STORAGE_KEY) || '').trim();
-    if (saved) return saved;
+    if (isValidRealGoogleClientId(saved)) return saved;
   } catch (_) { }
-  if (typeof window !== 'undefined' && window.GOOGLE_SLIDES_CLIENT_ID) {
+  if (typeof window !== 'undefined' && isValidRealGoogleClientId(window.GOOGLE_SLIDES_CLIENT_ID)) {
     return String(window.GOOGLE_SLIDES_CLIENT_ID).trim();
   }
-  return (_serverGoogleClientId || '').trim();
+  if (isValidRealGoogleClientId(_serverGoogleClientId)) {
+    return _serverGoogleClientId.trim();
+  }
+  return DEFAULT_GOOGLE_SLIDES_CLIENT_ID;
 }
 window.getGoogleSlidesClientId = getGoogleSlidesClientId;
 
