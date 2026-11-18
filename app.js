@@ -335,11 +335,11 @@ const BUILTIN_TEACHING_METHODS = [
     shortEn: 'Inquiry-Based (IBL)'
   },
   {
-    id: 'flipped',
-    nameKm: 'វិធីសាស្ត្ររៀនបែបត្រឡប់ (Flipped Learning Model)',
-    nameEn: 'Flipped Learning Model',
-    shortKm: 'រៀនបែបត្រឡប់ (Flipped)',
-    shortEn: 'Flipped Learning'
+    id: 'direct',
+    nameKm: 'វិធីសាស្ត្រពន្យល់បង្ហាញ និងអនុវត្ត (Direct Instruction: I Do - We Do - You Do)',
+    nameEn: 'Direct Instruction (I Do - We Do - You Do)',
+    shortKm: 'ពន្យល់បង្ហាញ & អនុវត្ត (Direct)',
+    shortEn: 'Direct Instruction'
   },
   {
     id: 'socratic',
@@ -596,17 +596,56 @@ function updateSelectedTechniquesCounter() {
 function populateTeachingMethodsSelect(isEn = false, preserveVal = null) {
   const methodSelect = document.getElementById('inputMethod');
   if (!methodSelect) return;
-  let currentVal = preserveVal || methodSelect.value || '5e';
-  if (String(currentVal).toLowerCase().includes('សិស្សមជ្ឈមណ្ឌល') || String(currentVal).toLowerCase().includes('student-centered')) {
-    currentVal = '5e';
+
+  const presetVal = document.getElementById('presetTemplateSelect')?.value || state.selectedPresetId || 'moeys_standard_5step';
+  const isFlippedTpl = (presetVal === 'flipped_learning_5step');
+
+  let currentVal = preserveVal || methodSelect.value || (isFlippedTpl ? 'pbl' : '5e');
+  const valLow = String(currentVal).toLowerCase();
+  if (valLow.includes('សិស្សមជ្ឈមណ្ឌល') || valLow.includes('student-centered') || valLow === 'flipped' || valLow.includes('ត្រឡប់')) {
+    currentVal = isFlippedTpl ? 'pbl' : '5e';
   }
-  const customMethods = getCustomTeachingMethods();
+  const customMethods = getCustomTeachingMethods().filter(cm => {
+    const cl = String(cm || '').toLowerCase();
+    return !cl.includes('flipped') && !cl.includes('ត្រឡប់');
+  });
+
+  // ⭐ Template-Aware Pedagogical Recommendations (All 8 remain freely selectable!)
+  const recommendedIds = isFlippedTpl
+    ? ['pbl', 'pjbl', '5e', 'cooperative', 'experimental', 'socratic']
+    : ['5e', 'direct', 'ibl', 'cooperative'];
+
+  const recommendedMethods = [];
+  const otherMethods = [];
+  recommendedIds.forEach(rid => {
+    const found = BUILTIN_TEACHING_METHODS.find(m => m.id === rid);
+    if (found) recommendedMethods.push(found);
+  });
+  BUILTIN_TEACHING_METHODS.forEach(m => {
+    if (!recommendedIds.includes(m.id)) otherMethods.push(m);
+  });
 
   let html = '';
-  BUILTIN_TEACHING_METHODS.forEach(m => {
+  const recGroupLabel = isFlippedTpl
+    ? (isEn ? '⭐ Recommended for Flipped Classroom (75% Active)' : '⭐ វិធីសាស្ត្រណែនាំសម្រាប់ថ្នាក់រៀនត្រឡប់ (Flipped ៧៥%)')
+    : (isEn ? '⭐ Recommended for MoEYS Standard (60% Core Lesson)' : '⭐ វិធីសាស្ត្រណែនាំសម្រាប់ស្តង់ដារក្រសួង (MoEYS)');
+  const otherGroupLabel = isEn ? '📚 Other Teaching Methods' : '📚 វិធីសាស្ត្របន្ថែមផ្សេងទៀត';
+
+  html += `<optgroup label="${recGroupLabel}">`;
+  recommendedMethods.forEach(m => {
     const label = isEn ? m.nameEn : m.nameKm;
-    html += `<option value="${m.id}">${escapeHtml(label)}</option>`;
+    html += `<option value="${m.id}">⭐ ${escapeHtml(label)}</option>`;
   });
+  html += `</optgroup>`;
+
+  if (otherMethods.length > 0) {
+    html += `<optgroup label="${otherGroupLabel}">`;
+    otherMethods.forEach(m => {
+      const label = isEn ? m.nameEn : m.nameKm;
+      html += `<option value="${m.id}">${escapeHtml(label)}</option>`;
+    });
+    html += `</optgroup>`;
+  }
 
   if (customMethods.length > 0) {
     html += `<optgroup label="${isEn ? 'Custom Teaching Methods' : 'វិធីសាស្ត្រផ្ទាល់ខ្លួន'}">`;
@@ -652,6 +691,16 @@ window.selectPresetTemplateCard = selectPresetTemplateCard;
 function handlePresetTemplateChange(val) {
   state.selectedPresetId = val;
   syncPresetTemplateCards(val);
+
+  // 🎯 Update Teaching Method dropdown recommendations (⭐) for the chosen Template
+  const methodSelect = document.getElementById('inputMethod');
+  let targetMethod = methodSelect ? methodSelect.value : '5e';
+  if (val === 'flipped_learning_5step' && targetMethod === 'direct') {
+    // Direct Instruction is primarily for MoEYS in-class I Do/We Do; nudge to PBL for 75% Flipped Active Practice
+    targetMethod = 'pbl';
+  }
+  populateTeachingMethodsSelect(state.language === 'en', targetMethod);
+
   if (state.currentPlan) {
     state.currentPlan.presetId = val;
     state.currentPlan.templateType = (val === 'flipped_learning_5step') ? 'flipped_learning' : '5_steps';
@@ -788,9 +837,8 @@ function setSelectedTeachingMethod(val) {
   const valStr = String(val || '').trim();
   const valLower = valStr.toLowerCase();
 
-  // ⚠️ "សិស្សមជ្ឈមណ្ឌល / Student-Centered" គឺជា «គោលវិធីបង្រៀន (Approach)» មិនមែនជា «វិធីសាស្ត្របង្រៀន (Method)» ទេ!
-  // បើទិន្នន័យចាស់មានពាក្យនេះ ត្រូវកំណត់ទៅវិធីសាស្ត្រ 5E ជាស្វ័យប្រវត្តិ និងហាមដាច់ខាតបន្ថែមជា Option ក្នុង Select!
-  if (!valStr || valLower.includes('សិស្សមជ្ឈមណ្ឌល') || valLower.includes('student-centered') || valLower === 'student_centered') {
+  // ⚠️ "សិស្សមជ្ឈមណ្ឌល / Student-Centered" គឺជា Approach ហើយ "Flipped" គឺជា Radio Card ប្រភេទកិច្ចតែងការខាងលើ
+  if (!valStr || valLower.includes('សិស្សមជ្ឈមណ្ឌល') || valLower.includes('student-centered') || valLower === 'student_centered' || valLower === 'flipped' || valLower.includes('flipped') || valLower.includes('ត្រឡប់')) {
     methodSelect.selectedIndex = 0;
     return;
   }
