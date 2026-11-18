@@ -4076,7 +4076,7 @@ async function extractTextFromFile(file) {
       const mimeType = file.type || (extension === 'png' ? 'image/png' : 'image/jpeg');
       const rawBase64 = base64Data.split(',')[1];
 
-      const ocrCandidateModels = ['gemini-3.5-flash-lite', 'gemini-2.5-flash-lite', 'gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-2.0-flash'];
+      const ocrCandidateModels = ['gemini-3.5-flash-lite', 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-3.6-flash', 'gemini-3.1-flash-lite', 'gemini-flash-lite-latest', 'gemini-flash-latest'];
       for (const model of ocrCandidateModels) {
         try {
           const ocrUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -5262,18 +5262,20 @@ function getCandidateGeminiModels(tier) {
   const activeTier = tier || getActiveGeminiModelTier();
   if (activeTier === 'pro') {
     return [
-      { ver: 'v1beta', name: 'gemini-2.5-pro' },
-      { ver: 'v1beta', name: 'gemini-1.5-pro' },
-      { ver: 'v1beta', name: 'gemini-pro-latest' }
+      { ver: 'v1beta', name: 'gemini-pro-latest' },
+      { ver: 'v1beta', name: 'gemini-pro' }
     ];
   }
-  // Default: 'flash' (⚡ Gemini 3.5 Flash - Ultra Fast)
-  // Strictly concise candidate list prioritizing Gemini 3.5 Flash without redundant models
+  // Default: 'flash' (⚡ Gemini 3.5 Flash Lite & Gemini 3.5 Flash - Ultra Fast)
+  // Strictly Gemini 3.5 Flash Lite and above, strictly excluding legacy 1.5 / 2.0 / 2.5 models
   return [
+    { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
     { ver: 'v1beta', name: 'gemini-3.5-flash' },
-    { ver: 'v1beta', name: 'gemini-2.5-flash' },
-    { ver: 'v1beta', name: 'gemini-2.0-flash' },
-    { ver: 'v1beta', name: 'gemini-1.5-flash' }
+    { ver: 'v1beta', name: 'gemini-3.8-flash' },
+    { ver: 'v1beta', name: 'gemini-3.6-flash' },
+    { ver: 'v1beta', name: 'gemini-3.1-flash-lite' },
+    { ver: 'v1beta', name: 'gemini-flash-lite-latest' },
+    { ver: 'v1beta', name: 'gemini-flash-latest' }
   ];
 }
 
@@ -9145,12 +9147,15 @@ ${testTypeDescription}
       }
     }
 
-    // 3. Try Google Gemini AI Models with SSE Streaming (Prioritizing Gemini 3.5 Flash)
+    // 3. Try Google Gemini AI Models with SSE Streaming (Prioritizing Gemini 3.5 Flash Lite & Gemini 3.5 Flash)
     const candidateModels = [
+      { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
       { ver: 'v1beta', name: 'gemini-3.5-flash' },
-      { ver: 'v1beta', name: 'gemini-2.5-flash' },
-      { ver: 'v1beta', name: 'gemini-2.0-flash' },
-      { ver: 'v1beta', name: 'gemini-1.5-flash' }
+      { ver: 'v1beta', name: 'gemini-3.8-flash' },
+      { ver: 'v1beta', name: 'gemini-3.6-flash' },
+      { ver: 'v1beta', name: 'gemini-3.1-flash-lite' },
+      { ver: 'v1beta', name: 'gemini-flash-lite-latest' },
+      { ver: 'v1beta', name: 'gemini-flash-latest' }
     ];
 
     let lastAiError = null;
@@ -16638,10 +16643,13 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
     // 🧠 Case B: Google Gemini AI (Dynamic discovery, up to 5 minutes timeout, 3 retries with backoff)
     if (!slidesData) {
       const candidateModels = [
+        { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
         { ver: 'v1beta', name: 'gemini-3.5-flash' },
-        { ver: 'v1beta', name: 'gemini-2.5-flash' },
-        { ver: 'v1beta', name: 'gemini-2.0-flash' },
-        { ver: 'v1beta', name: 'gemini-1.5-flash' }
+        { ver: 'v1beta', name: 'gemini-3.8-flash' },
+        { ver: 'v1beta', name: 'gemini-3.6-flash' },
+        { ver: 'v1beta', name: 'gemini-3.1-flash-lite' },
+        { ver: 'v1beta', name: 'gemini-flash-lite-latest' },
+        { ver: 'v1beta', name: 'gemini-flash-latest' }
       ];
 
       const MAX_ATTEMPTS = 3;

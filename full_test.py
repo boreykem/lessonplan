@@ -64,10 +64,10 @@ check("window.resetToSmartEngineDefault exported", "window.resetToSmartEngineDef
 check("window.testCurrentAiProviderKey exported", "window.testCurrentAiProviderKey = testCurrentAiProviderKey" in js)
 
 # Model checks
-check("gemini-2.5-pro in generator",          "'gemini-2.5-pro'" in js,    "Primary model for paid Pro users")
-check("gemini-3.6-flash in generator",        "'gemini-3.6-flash'" in js,  "Latest Google recommended model")
-check("gemini-2.5-pro in TEST function",      js.count("'gemini-2.5-pro'") >= 2, "Must appear in both generator & test")
-check("OLD gemini-2.5-flash REMOVED",         "'gemini-2.5-flash'" not in js, "Deprecated model must be gone")
+check("gemini-3.5-flash-lite in generator",   "'gemini-3.5-flash-lite'" in js, "Primary ultra-fast model")
+check("gemini-pro-latest in generator",       "'gemini-pro-latest'" in js,     "Primary model for Pro tier")
+check("OLD gemini-1.5-flash REMOVED",         "'gemini-1.5-flash'" not in js,  "Deprecated model must be gone")
+check("OLD gemini-2.5-flash REMOVED",         "'gemini-2.5-flash'" not in js,  "Deprecated model must be gone")
 
 # ─── TEST 4: No-Cache Headers ────────────────────────────────────
 print("\n── 4. Cache-Control Headers ──")
