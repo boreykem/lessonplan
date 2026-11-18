@@ -1,10 +1,12 @@
 {
-  "version": "2.6.0",
-  "releaseDate": "2026-10-13",
+  "version": "2.7.0",
+  "releaseDate": "2026-11-18",
   "releaseNotes": [
-    "ប្តូរប៊ូតុងបង្កើតស្លាយទៅជា 2-Step Gemini Master Prompt (AI Image + Khmer Typography)",
-    "ផ្ទាំង Preview Prompt ជាមួយប៊ូតុងកូពី និងបើក Gemini Web ដោយស្វ័យប្រវត្តិ",
-    "កែលម្អប្រព័ន្ធ Cloud Auto-Updater & Cache Sync"
+    "🎬 ផ្ទាំងបង្កើតស្លាយក្នុងកម្មវិធី (In-App Slide Studio) — កែអក្សរ, ប្ដូររូបភាព Wikimedia, បញ្ចាំងពេញអេក្រង់, ទាញយក .pptx / PDF ដោយមិនបាច់ចូលគណនី Google",
+    "📁 ថតមេរៀន (Lesson Folders Studio) + ភ្ជាប់ថតពិតលើកុំព្យូទ័រ (Drive D Direct Sync) + ទាញយកថតទាំងមូល .zip",
+    "🎥 គាំទ្រឯកសារភ្ជាប់រហូតដល់ 100 MB (រួមទាំងវីដេអូ NotebookLM .mp4, PDF, Word) ជាមួយកម្មវិធីចាក់វីដេអូក្នុងកម្មវិធី",
+    "🧪 អធិការកិច្ចវិញ្ញាសា ៦ សសរស្ដម្ភ (Pre-Test & Post-Test Psychometric Inspector) & បង្ហោះឯកសារមេរៀនច្រើនព្រមគ្នា",
+    "🔄 កែលម្អប្រព័ន្ធ Cloud Auto-Updater ឱ្យអាប់ដេតកំណែថ្មីដោយស្វ័យប្រវត្តិ (មិនបាត់ទិន្នន័យ)"
   ],
-  "updateUrl": "https://github.com/boreykem/lessonplan"
+  "updateUrl": "https://lessonplan-kh.vercel.app"
 }

@@ -18579,7 +18579,20 @@ async function checkLicenseStatus() {
 // ==========================================
 // 🔄 CLOUD AUTO-UPDATER SYSTEM
 // ==========================================
-const CURRENT_APP_VERSION = '2.6.0';
+const CURRENT_APP_VERSION = '2.7.0';
+
+function isRemoteVersionNewer(remoteVer, localVer) {
+  const parseV = (v) => (String(v || '').match(/\d+/g) || []).map(Number);
+  const curV = parseV(localVer);
+  const remV = parseV(remoteVer);
+  for (let i = 0; i < Math.max(curV.length, remV.length); i++) {
+    const c = curV[i] || 0;
+    const r = remV[i] || 0;
+    if (r > c) return true;
+    if (r < c) return false;
+  }
+  return false;
+}
 
 function openUpdateModal() {
   const modal = document.getElementById('updateModal');
@@ -18611,28 +18624,47 @@ async function checkAppUpdates(isManual = false) {
 
   try {
     let data = null;
+
+    // 1. Check same-origin /version_manifest.json (instant & always fresh on Vercel!)
     try {
-      const res = await fetch('/api/system/check_update');
-      if (res.ok) data = await res.json();
+      const localMan = await fetch('/version_manifest.json?t=' + Date.now(), { cache: 'no-store' });
+      if (localMan.ok) {
+        const m = await localMan.json();
+        if (m && m.version) {
+          data = {
+            hasUpdate: isRemoteVersionNewer(m.version, CURRENT_APP_VERSION),
+            currentVersion: CURRENT_APP_VERSION,
+            latestVersion: m.version,
+            releaseDate: m.releaseDate || '',
+            releaseNotes: m.releaseNotes || ['កែលម្អប្រព័ន្ធ និងបន្ថែមមុខងារថ្មីៗ'],
+            updateUrl: m.updateUrl || 'https://lessonplan-kh.vercel.app'
+          };
+        }
+      }
     } catch (_) { }
 
-    // Fallback: Check GitHub directly (for Vercel / Static hosting)
+    // 2. Fallback: Check Flask /api/system/check_update (always compare against browser's CURRENT_APP_VERSION!)
     if (!data || !data.latestVersion) {
-      const ghRes = await fetch('https://raw.githubusercontent.com/boreykem/lessonplan/main/version_manifest.json?t=' + Date.now());
+      try {
+        const res = await fetch('/api/system/check_update?t=' + Date.now(), { cache: 'no-store' });
+        if (res.ok) {
+          const apiData = await res.json();
+          if (apiData && apiData.latestVersion) {
+            apiData.currentVersion = CURRENT_APP_VERSION;
+            apiData.hasUpdate = isRemoteVersionNewer(apiData.latestVersion, CURRENT_APP_VERSION);
+            data = apiData;
+          }
+        }
+      } catch (_) { }
+    }
+
+    // 3. Fallback: Check GitHub directly
+    if (!data || !data.latestVersion) {
+      const ghRes = await fetch('https://raw.githubusercontent.com/boreykem/lessonplan/main/version_manifest.json?t=' + Date.now(), { cache: 'no-store' });
       if (ghRes.ok) {
         const ghData = await ghRes.json();
-        const parseV = (v) => (String(v).match(/\d+/g) || []).map(Number);
-        const curV = parseV(CURRENT_APP_VERSION);
-        const remV = parseV(ghData.version || '');
-        let hasUp = false;
-        for (let i = 0; i < Math.max(curV.length, remV.length); i++) {
-          const c = curV[i] || 0;
-          const r = remV[i] || 0;
-          if (r > c) { hasUp = true; break; }
-          if (r < c) { break; }
-        }
         data = {
-          hasUpdate: hasUp,
+          hasUpdate: isRemoteVersionNewer(ghData.version, CURRENT_APP_VERSION),
           currentVersion: CURRENT_APP_VERSION,
           latestVersion: ghData.version || CURRENT_APP_VERSION,
           releaseDate: ghData.releaseDate || '',
@@ -18708,24 +18740,40 @@ async function applyAppUpdate() {
   }, 200);
 
   try {
-    if (progressLabel) progressLabel.textContent = 'កំពុងទាញយក និងដំឡើងឯកសារថ្មី...';
+    if (progressLabel) progressLabel.textContent = 'កំពុងសម្អាត Cache ចាស់ និងទាញយកកំណែថ្មី (មិនបាត់ទិន្នន័យ)...';
 
-    const res = await fetch('/api/system/apply_update', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ files: {} })
-    });
-    await res.json();
+    // 1. Safely clear ONLY Service Worker static asset caches (never touches localStorage or IndexedDB Lesson Folders!)
+    if ('caches' in window) {
+      try {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      } catch (_) { }
+    }
+    if ('serviceWorker' in navigator) {
+      try {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+      } catch (_) { }
+    }
+
+    // 2. Also notify local desktop server if running locally (gracefully ignored on Vercel serverless)
+    try {
+      await fetch('/api/system/apply_update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files: {} })
+      });
+    } catch (_) { }
 
     clearInterval(timer);
     if (progressBar) progressBar.style.width = '100%';
     if (progressPercent) progressPercent.textContent = '100%';
     if (progressLabel) progressLabel.textContent = '✅ អាប់ដេតជោគជ័យ! កំពុងដំណើរការឡើងវិញ...';
 
-    showToast('🎉 អាប់ដេតជោគជ័យ! កំពុង Restart កម្មវិធី...', 'success');
+    showToast('🎉 អាប់ដេតជោគជ័យ! កំពុងបើកកំណែថ្មី...', 'success');
     setTimeout(() => {
-      window.location.reload();
-    }, 1500);
+      window.location.replace(window.location.pathname + '?updated=' + Date.now());
+    }, 900);
   } catch (err) {
     clearInterval(timer);
     showToast('បរាជ័យក្នុងការអាប់ដេត: ' + err.message, 'error');
