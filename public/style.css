@@ -4953,9 +4953,79 @@ textarea.form-control {
 @media print {
   .pedagogical-quality-strip,
   .autosave-draft-pill,
-  .subject-method-suggest-bar {
+  .subject-method-suggest-bar,
+  .btn-inline-ai-regen {
     display: none !important;
   }
+}
+
+/* ==========================================================================
+   ✨ 4. Inline AI Single-Step Regenerate Button & Modal Chips
+   ========================================================================== */
+.btn-inline-ai-regen {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(99, 102, 241, 0.38);
+  background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+  color: #4338ca;
+  font-family: 'Kantumruy Pro', 'Inter', sans-serif;
+  font-size: 8.2pt;
+  font-weight: 700;
+  line-height: 1.4;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: all 0.16s ease;
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.12);
+}
+
+.btn-inline-ai-regen:hover {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #ffffff;
+  border-color: #4f46e5;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(79, 70, 229, 0.28);
+}
+
+.step-regen-chips-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.step-regen-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #c7d2fe;
+  background: #f5f3ff;
+  color: #4338ca;
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.step-regen-chip:hover {
+  background: #4f46e5;
+  border-color: #4f46e5;
+  color: #ffffff;
+}
+
+@keyframes stepUpdatedFlash {
+  0% { background-color: #dcfce7; }
+  70% { background-color: #f0fdf4; }
+  100% { background-color: transparent; }
+}
+
+tr.step-just-updated td {
+  animation: stepUpdatedFlash 2.2s ease-out;
 }
 
 

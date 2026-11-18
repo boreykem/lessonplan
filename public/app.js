@@ -11113,16 +11113,23 @@ function renderLessonPlanToA4(data) {
 
   if (isFlipped) {
     let flippedStepsHtml = '';
-    (data.steps || []).forEach(step => {
+    (data.steps || []).forEach((step, idx) => {
       const stepTitle = localizeStepTitle(step.stepTitle, isEn);
       const stepDur = localizeDuration(step.duration, isEn);
+      const regenBtnLabel = isEn ? 'Refine Step' : 'កែដោយ AI';
+      const regenBtnTitle = isEn ? 'Regenerate / refine only this step with Gemini AI (fast & low API usage)' : 'កែសម្រួល ឬបង្កើតតែជំហាននេះឡើងវិញដោយ Gemini AI (លឿន & សន្សំកូតា API)';
       flippedStepsHtml += `
-        <tr style="background: #f1f5f9;">
+        <tr data-step-header-idx="${idx}" style="background: #f1f5f9;">
           <td colspan="3" style="font-weight: bold; font-size: 10.5pt; color: #0f172a; padding: 7px 10px; border: 1px solid #cbd5e1;">
-            ${escapeHtml(stepTitle)} <span style="color: #0369a1; font-weight: 700; font-size: 9.5pt;">(${escapeHtml(stepDur)})</span>
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+              <span>${escapeHtml(stepTitle)} <span style="color: #0369a1; font-weight: 700; font-size: 9.5pt;">(${escapeHtml(stepDur)})</span></span>
+              <button type="button" class="btn-inline-ai-regen no-print" contenteditable="false" onclick="openStepRegenerateModal(${idx})" title="${escapeHtml(regenBtnTitle)}">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> ${regenBtnLabel}
+              </button>
+            </div>
           </td>
         </tr>
-        <tr>
+        <tr data-step-body-idx="${idx}">
           <td style="width: 35%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.teacherActivity)}</td>
           <td style="width: 35%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.contentSummary)}</td>
           <td style="width: 30%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.studentActivity)}</td>
@@ -11417,20 +11424,26 @@ function renderLessonPlanToA4(data) {
 
   // 5-Step Process Rendering (MoEYS Standard 3-Column Layout: សកម្មភាពគ្រូ | ខ្លឹមសារ | សកម្មភាពសិស្ស)
   let stepsHtml = '';
-  (data.steps || []).forEach(step => {
+  (data.steps || []).forEach((step, idx) => {
     const stepTitle = localizeStepTitle(step.stepTitle, isEn);
     const stepDur = localizeDuration(step.duration, isEn);
+    const regenBtnLabel = isEn ? 'Refine Step' : 'កែដោយ AI';
+    const regenBtnTitle = isEn ? 'Regenerate / refine only this step with Gemini AI (fast & low API usage)' : 'កែសម្រួល ឬបង្កើតតែជំហាននេះឡើងវិញដោយ Gemini AI (លឿន & សន្សំកូតា API)';
     stepsHtml += `
-      <tr style="background: #ffffff;">
+      <tr data-step-header-idx="${idx}" style="background: #ffffff;">
         <td style="width: 35%; border: 1px solid #cbd5e1;"></td>
         <td style="width: 35%; text-align: center; font-weight: bold; font-size: 10pt; color: #0f172a; padding: 6px 8px; border: 1px solid #cbd5e1;">
           <span style="background-color: #fef08a; padding: 2px 10px; border-radius: 3px; display: inline-block;">
             ${escapeHtml(stepTitle)} (${escapeHtml(stepDur)})
           </span>
         </td>
-        <td style="width: 30%; border: 1px solid #cbd5e1;"></td>
+        <td style="width: 30%; border: 1px solid #cbd5e1; text-align: right; padding: 4px 8px; vertical-align: middle;">
+          <button type="button" class="btn-inline-ai-regen no-print" contenteditable="false" onclick="openStepRegenerateModal(${idx})" title="${escapeHtml(regenBtnTitle)}">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> ${regenBtnLabel}
+          </button>
+        </td>
       </tr>
-      <tr>
+      <tr data-step-body-idx="${idx}">
         <td style="width: 35%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.teacherActivity)}</td>
         <td style="width: 35%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.contentSummary)}</td>
         <td style="width: 30%; vertical-align: top; padding: 8px 10px; border: 1px solid #cbd5e1;">${formatLineBreaks(step.studentActivity)}</td>
@@ -12623,12 +12636,358 @@ async function handleCopyText() {
   }
 
   try {
-    await navigator.clipboard.writeText(doc.innerText);
+    // Strip non-printable UI buttons (e.g. ✨ កែដោយ AI) & draft warning banner before copying
+    const clone = doc.cloneNode(true);
+    clone.querySelectorAll('.no-print, .offline-warning-banner, .btn-inline-ai-regen').forEach(el => el.remove());
+    const cleanText = clone.innerText || clone.textContent || '';
+    await navigator.clipboard.writeText(cleanText.trim());
     showToast('📋 បានចម្លងអត្ថបទកិច្ចតែងការទាំងអស់ទៅកាន់ Clipboard!', 'success');
   } catch (err) {
     showToast('មិនអាចចម្លងបានទេ: ' + err.message, 'error');
   }
 }
+
+// ==========================================================================
+// ✨ INLINE AI SINGLE-STEP REGENERATE ENGINE (Fast & Low-Token Surgical Edit)
+// Regenerates ONLY the selected step (Steps 1–5) via Gemini API without touching
+// the rest of the lesson plan. Strictly honors the Zero-Silent-Fallback mandate.
+// ==========================================================================
+let _activeStepRegenIndex = -1;
+let _lastRegeneratedStepBackup = null;
+
+function openStepRegenerateModal(stepIdx) {
+  const plan = state.currentPlan || state.generatedPlanData;
+  if (!plan || !Array.isArray(plan.steps) || !plan.steps[stepIdx]) {
+    showToast('មិនរកឃើញទិន្នន័យជំហាននេះឡើយ!', 'warning');
+    return;
+  }
+
+  _activeStepRegenIndex = stepIdx;
+  const step = plan.steps[stepIdx];
+  const isEn = (state.language === 'en');
+  const stepTitle = localizeStepTitle(step.stepTitle, isEn);
+  const stepDur = localizeDuration(step.duration, isEn);
+
+  const modal = document.getElementById('stepRegenerateModal');
+  const metaEl = document.getElementById('stepRegenStepMeta');
+  const inputEl = document.getElementById('stepRegenInstructionInput');
+  const errBox = document.getElementById('stepRegenErrorBox');
+  const undoBtn = document.getElementById('btnStepRegenUndo');
+
+  if (metaEl) metaEl.textContent = `${stepTitle} (${stepDur})`;
+  if (inputEl) inputEl.value = '';
+  if (errBox) {
+    errBox.style.display = 'none';
+    errBox.innerHTML = '';
+  }
+  if (undoBtn) {
+    const canUndo = Boolean(_lastRegeneratedStepBackup && _lastRegeneratedStepBackup.index === stepIdx);
+    undoBtn.style.display = canUndo ? 'inline-flex' : 'none';
+  }
+  if (modal) {
+    modal.style.display = 'flex';
+    setTimeout(() => { if (inputEl) inputEl.focus(); }, 60);
+  }
+}
+window.openStepRegenerateModal = openStepRegenerateModal;
+
+function closeStepRegenerateModal() {
+  const modal = document.getElementById('stepRegenerateModal');
+  if (modal) modal.style.display = 'none';
+}
+window.closeStepRegenerateModal = closeStepRegenerateModal;
+
+function applyStepRegenQuickChip(text) {
+  const inputEl = document.getElementById('stepRegenInstructionInput');
+  if (!inputEl) return;
+  const cur = inputEl.value.trim();
+  if (!cur) {
+    inputEl.value = text;
+  } else if (!cur.includes(text)) {
+    inputEl.value = `${cur} និង${text}`;
+  }
+  inputEl.focus();
+}
+window.applyStepRegenQuickChip = applyStepRegenQuickChip;
+
+function undoLastStepRegenerate() {
+  const plan = state.currentPlan || state.generatedPlanData;
+  if (!plan || !_lastRegeneratedStepBackup || !Array.isArray(plan.steps)) return;
+  const { index, previousStep } = _lastRegeneratedStepBackup;
+  if (!plan.steps[index] || !previousStep) return;
+
+  plan.steps[index] = Object.assign({}, plan.steps[index], previousStep);
+  _lastRegeneratedStepBackup = null;
+  closeStepRegenerateModal();
+  renderLessonPlanToA4(plan);
+  showToast('↩️ បានត្រឡប់ខ្លឹមសារជំហាននេះទៅដូចដើមវិញហើយ!', 'info');
+}
+window.undoLastStepRegenerate = undoLastStepRegenerate;
+
+async function callAiForSingleStep(promptText, apiKey, provider) {
+  if (provider === 'groq' || apiKey.startsWith('gsk_')) {
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: promptText }],
+        temperature: 0.65,
+        max_tokens: 1800,
+        response_format: { type: 'json_object' }
+      })
+    });
+    if (!resp.ok) {
+      const errJson = await resp.json().catch(() => ({}));
+      throw new Error(errJson.error?.message || `Groq API HTTP ${resp.status}`);
+    }
+    const json = await resp.json();
+    return json.choices?.[0]?.message?.content || '';
+  }
+
+  if (provider === 'openrouter' || apiKey.startsWith('sk-or-')) {
+    const resp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [{ role: 'user', content: promptText }],
+        temperature: 0.65,
+        max_tokens: 1800
+      })
+    });
+    if (!resp.ok) {
+      const errJson = await resp.json().catch(() => ({}));
+      throw new Error(errJson.error?.message || `OpenRouter API HTTP ${resp.status}`);
+    }
+    const json = await resp.json();
+    return json.choices?.[0]?.message?.content || '';
+  }
+
+  // Default: Google Gemini Flash Auto-Engine candidate pool (fast & free-tier resilient)
+  const candidates = getCandidateGeminiModels('flash');
+  let lastErr = null;
+  for (const m of candidates) {
+    const url = `https://generativelanguage.googleapis.com/${m.ver}/models/${m.name}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 35000);
+    try {
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: promptText }] }],
+          generationConfig: {
+            temperature: 0.65,
+            maxOutputTokens: 2048,
+            responseMimeType: 'application/json'
+          }
+        })
+      });
+      clearTimeout(timer);
+      if (resp.ok) {
+        const json = await resp.json();
+        const text = json.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+        if (text && text.trim().length > 20) {
+          return text;
+        }
+        lastErr = new Error(`Empty response from ${m.name}`);
+      } else {
+        const errJson = await resp.json().catch(() => ({}));
+        const msg = errJson.error?.message || `HTTP ${resp.status}`;
+        lastErr = new Error(`${m.name}: ${msg}`);
+        if (msg.includes('API_KEY_INVALID') || msg.includes('API key not valid') || resp.status === 401 || resp.status === 403) {
+          throw lastErr;
+        }
+      }
+    } catch (e) {
+      clearTimeout(timer);
+      lastErr = e;
+      if (String(e.message || '').includes('API_KEY_INVALID') || String(e.message || '').includes('API key not valid')) {
+        throw e;
+      }
+    }
+  }
+  throw lastErr || new Error('មិនអាចភ្ជាប់ទៅ Google Gemini AI API បានឡើយ។');
+}
+
+async function executeSingleStepRegenerate() {
+  const plan = state.currentPlan || state.generatedPlanData;
+  const idx = _activeStepRegenIndex;
+  if (!plan || !Array.isArray(plan.steps) || !plan.steps[idx]) {
+    showToast('មិនរកឃើញជំហានដែលត្រូវកែសម្រួលឡើយ!', 'warning');
+    return;
+  }
+
+  const errBox = document.getElementById('stepRegenErrorBox');
+  const submitBtn = document.getElementById('btnStepRegenSubmit');
+  const submitText = document.getElementById('btnStepRegenSubmitText');
+  const userInstruction = (document.getElementById('stepRegenInstructionInput')?.value || '').trim();
+
+  const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
+  let provider = state.aiProvider || 'gemini';
+  if (apiKey.startsWith('AIza') || apiKey.startsWith('AQ.')) provider = 'gemini';
+  else if (apiKey.startsWith('gsk_')) provider = 'groq';
+  else if (apiKey.startsWith('sk-or-')) provider = 'openrouter';
+
+  // Strict Zero-Silent-Fallback check
+  if (!apiKey) {
+    if (errBox) {
+      errBox.style.display = 'block';
+      errBox.innerHTML = `
+        <strong>⚠️ មិនទាន់មាន Google Gemini API Key៖</strong> កម្មវិធីមិនផ្ដល់ទម្រង់ Fallback ដោយស្វ័យប្រវត្តិឡើយ។
+        <button type="button" onclick="closeStepRegenerateModal(); openApiKeyModal();"
+          style="margin-left: 6px; padding: 2px 8px; border-radius: 6px; border: 1px solid #d97706; background: #fffbeb; color: #92400e; font-weight: 700; cursor: pointer;">
+          🔑 បញ្ចូល API Key
+        </button>
+      `;
+    }
+    return;
+  }
+
+  const step = plan.steps[idx];
+  const prevStep = idx > 0 ? plan.steps[idx - 1] : null;
+  const nextStep = idx < plan.steps.length - 1 ? plan.steps[idx + 1] : null;
+  const isEn = (state.language === 'en');
+  const isFlipped = (plan.presetId === 'flipped_learning_5step' || plan.templateType === 'flipped_learning');
+  const selectedTechs = (Array.isArray(plan.techniques) && plan.techniques.length > 0)
+    ? plan.techniques
+    : (typeof getSelectedTechniques === 'function' ? getSelectedTechniques() : []);
+
+  const promptText = `
+You are an elite Cambodian Master Educator & MoEYS Curriculum Specialist.
+Your task is to SURGICALLY REGENERATE ONLY ONE SINGLE STEP of an existing lesson plan — do NOT generate other steps.
+
+[LESSON CONTEXT]
+- Subject: ${plan.subject || ''}
+- Grade / Level: ${plan.grade || ''}
+- Lesson Title: ${plan.lessonTitle || ''}
+- Template Format: ${isFlipped ? 'Flipped Classroom (3%-7%-10%-75%-5%)' : 'MoEYS Standard 5-Step (5%-15%-60%-15%-5%)'}
+- Teaching Method: ${plan.method || '5E Instructional Model'}
+- Selected Active Learning Techniques: ${selectedTechs.join(', ') || 'Think-Pair-Share, Gallery Walk'}
+- Output Language: ${isEn ? 'Professional Academic English' : 'Standard Formal Khmer (ភាសាខ្មែរផ្លូវការគរុកោសល្យ ១០០% — ហាមប្រើអក្សរថៃ/វៀតណាម/ចិនដាច់ខាត)'}
+
+[TARGET STEP TO REGENERATE]
+- Step Number: ${step.stepNumber || (idx + 1)} of ${plan.steps.length}
+- Step Title: ${step.stepTitle || ''}
+- Allocated Duration: ${step.duration || ''}
+
+[ADJACENT STEPS FOR CONTINUITY]
+- Previous Step Summary: ${prevStep ? `${prevStep.stepTitle}: ${(prevStep.contentSummary || '').slice(0, 140)}` : 'Start of class'}
+- Next Step Summary: ${nextStep ? `${nextStep.stepTitle}: ${(nextStep.contentSummary || '').slice(0, 140)}` : 'End of class'}
+
+[CURRENT DRAFT OF THIS STEP (TO IMPROVE/REPLACE)]
+- Teacher Activity: ${(step.teacherActivity || '').slice(0, 450)}
+- Content Summary: ${(step.contentSummary || '').slice(0, 450)}
+- Student Activity: ${(step.studentActivity || '').slice(0, 450)}
+
+[TEACHER'S SPECIFIC REFINEMENT REQUEST]
+${userInstruction || 'សូមសរសេរជំហាននេះឡើងវិញឱ្យកាន់តែស៊ីជម្រៅ ជាក់ស្ដែង មានសកម្មភាពគ្រូ-ខ្លឹមសារ-សិស្សស៊ីចង្វាក់គ្នា ១០០% និងដោតយុទ្ធវិធីបង្រៀនឱ្យរស់រវើកតាមមុខវិជ្ជានេះ។'}
+
+[STRICT RULES]
+1. Keep exact fidelity to the subject "${plan.subject || ''}" and lesson "${plan.lessonTitle || ''}" (include concrete examples, formulas, questions, or text analysis as appropriate for this subject).
+2. Ensure the 3 columns align 1-to-1 (each teacher action matches the lesson content and student action).
+3. Use clean bullet points (• ...) with newlines (\\n).
+4. Return ONLY valid JSON with EXACTLY these 3 string keys:
+{
+  "teacherActivity": "• ...",
+  "contentSummary": "• ...",
+  "studentActivity": "• ..."
+}
+`.trim();
+
+  if (errBox) errBox.style.display = 'none';
+  if (submitBtn) submitBtn.disabled = true;
+  if (submitText) submitText.textContent = isEn ? 'Refining with Gemini AI...' : 'កំពុងកែសម្រួលដោយ Gemini AI...';
+
+  try {
+    const rawText = await callAiForSingleStep(promptText, apiKey, provider);
+    const cleanedJsonStr = String(rawText || '')
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim();
+    const startBrace = cleanedJsonStr.indexOf('{');
+    const endBrace = cleanedJsonStr.lastIndexOf('}');
+    if (startBrace === -1 || endBrace === -1) {
+      throw new Error('Gemini AI មិនបានត្រឡប់ទម្រង់ JSON ត្រឹមត្រូវឡើយ។ សូមសាកល្បងម្ដងទៀត។');
+    }
+
+    const parsed = JSON.parse(cleanedJsonStr.slice(startBrace, endBrace + 1));
+    const newT = String(parsed.teacherActivity || '').trim();
+    const newC = String(parsed.contentSummary || '').trim();
+    const newS = String(parsed.studentActivity || '').trim();
+
+    if (newT.length < 10 || newC.length < 10 || newS.length < 10) {
+      throw new Error('ទិន្នន័យដែល Gemini AI ផ្ដល់មកខ្លីពេក ឬមិនគ្រប់ ៣ ជួរ។ សូមចុចសាកល្បងម្ដងទៀត។');
+    }
+
+    // Save Undo backup before applying surgical update
+    _lastRegeneratedStepBackup = {
+      index: idx,
+      previousStep: {
+        teacherActivity: step.teacherActivity,
+        contentSummary: step.contentSummary,
+        studentActivity: step.studentActivity
+      }
+    };
+
+    const cleanedPatch = cleanForbiddenScriptsAndFormatMath({
+      teacherActivity: newT,
+      contentSummary: newC,
+      studentActivity: newS
+    });
+
+    plan.steps[idx].teacherActivity = cleanedPatch.teacherActivity;
+    plan.steps[idx].contentSummary = cleanedPatch.contentSummary;
+    plan.steps[idx].studentActivity = cleanedPatch.studentActivity;
+
+    closeStepRegenerateModal();
+    renderLessonPlanToA4(plan);
+
+    // Scroll smoothly to updated step and flash emerald highlight
+    setTimeout(() => {
+      const bodyRow = document.querySelector(`#printableDoc tr[data-step-body-idx="${idx}"]`);
+      const headerRow = document.querySelector(`#printableDoc tr[data-step-header-idx="${idx}"]`);
+      if (headerRow) {
+        headerRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      if (bodyRow) {
+        bodyRow.classList.add('step-just-updated');
+        setTimeout(() => bodyRow.classList.remove('step-just-updated'), 2400);
+      }
+    }, 80);
+
+    showToast(
+      isEn
+        ? `✨ Step ${idx + 1} refined successfully by Gemini AI!`
+        : `✨ បានកែសម្រួល «${localizeStepTitle(step.stepTitle, false)}» ឡើងវិញដោយជោគជ័យ!`,
+      'success'
+    );
+  } catch (err) {
+    console.error('[Inline Step Regenerate] Error:', err);
+    // Strict Zero-Silent-Fallback: keep original step intact and show exact Gemini reason
+    if (errBox) {
+      const msg = String(err.message || err);
+      errBox.style.display = 'block';
+      errBox.innerHTML = `
+        <strong>⚠️ Gemini AI មិនអាចកែសម្រួលជំហាននេះបាននៅពេលនេះ៖</strong><br>
+        <span>${escapeHtml(msg.slice(0, 220))}</span><br>
+        <span style="color: #475569; font-size: 0.78rem;">🛡️ ខ្លឹមសារដើមរបស់ជំហាននេះត្រូវបានរក្សាទុកដដែល (គ្មានការជំនួសដោយ Fallback ឡើយ)។</span>
+      `;
+    }
+  } finally {
+    if (submitBtn) submitBtn.disabled = false;
+    if (submitText) submitText.textContent = isEn ? 'Regenerate This Step' : 'បង្កើតជំហាននេះឡើងវិញ';
+  }
+}
+window.executeSingleStepRegenerate = executeSingleStepRegenerate;
 
 // Toast Notification Manager
 function showToast(message, type = 'info') {

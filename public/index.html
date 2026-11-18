@@ -29,7 +29,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=20261118_v90">
+  <link rel="stylesheet" href="style.css?v=20261118_v91">
 
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -1854,6 +1854,90 @@
     </div>
   </div>
 
+  <!-- ✨ Inline AI Single-Step Regenerate Modal (Fast & Low-Token Surgical Refinement) -->
+  <div id="stepRegenerateModal" class="modal-overlay" style="display: none; z-index: 10006;">
+    <div class="modal-card"
+      style="max-width: 560px; border-top: 5px solid #6366f1; border-radius: 14px; overflow: hidden; max-height: 90vh; display: flex; flex-direction: column;">
+      <div class="modal-header" style="padding: 13px 18px; background: #ffffff;">
+        <div class="modal-title-wrap" style="gap: 10px;">
+          <span style="width: 34px; height: 34px; border-radius: 10px; background: linear-gradient(135deg, #eef2ff, #e0e7ff); color: #4f46e5; display: inline-flex; align-items: center; justify-content: center; font-size: 1rem;">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+          </span>
+          <div>
+            <h4 id="stepRegenModalTitle" style="margin: 0; font-size: 1rem; font-weight: 800; color: #1e1b4b;">
+              កែសម្រួល / បង្កើតជំហានឡើងវិញដោយ Gemini AI
+            </h4>
+            <div id="stepRegenStepMeta" style="font-size: 0.78rem; color: #4f46e5; font-weight: 600; margin-top: 2px;">
+              ជំហានទី ...
+            </div>
+          </div>
+        </div>
+        <button type="button" class="btn-close-modal" onclick="closeStepRegenerateModal()"><i
+            class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body" style="padding: 14px 18px; overflow-y: auto; flex: 1;">
+        <div style="font-size: 0.82rem; color: #475569; margin-bottom: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 11px; line-height: 1.5;">
+          ⚡ <strong>លឿន និងសន្សំកូតា API៖</strong> Gemini AI នឹងកែសម្រួលតែ <strong>ជំហាននេះមួយប៉ុណ្ណោះ</strong> ដោយរក្សាជំហានផ្សេងៗទាំងអស់ឱ្យនៅដដែល ១០០%។
+        </div>
+
+        <!-- Quick 1-click improvement chips -->
+        <div style="font-size: 0.8rem; font-weight: 700; color: #334155; margin-bottom: 6px;">
+          💡 ជ្រើសរើសសំណូមពររហ័ស (អាចចុចរើសបានច្រើន)៖
+        </div>
+        <div class="step-regen-chips-wrap" id="stepRegenChipsWrap">
+          <button type="button" class="step-regen-chip" onclick="applyStepRegenQuickChip('បន្ថែមលំហាត់គំរូ និងឧទាហរណ៍ជាក់ស្ដែងឱ្យកាន់តែច្បាស់')">
+            🎯 បន្ថែមលំហាត់ / ឧទាហរណ៍
+          </button>
+          <button type="button" class="step-regen-chip" onclick="applyStepRegenQuickChip('បង្កើនសកម្មភាពសិស្សសកម្ម (Active Learning) និងការពិភាក្សាជាក្រុម')">
+            🤝 បង្កើនសកម្មភាពសិស្សសកម្ម
+          </button>
+          <button type="button" class="step-regen-chip" onclick="applyStepRegenQuickChip('ដោតយុទ្ធវិធីបង្រៀនគន្លឹះដែលបានជ្រើសរើសចូលក្នុងសកម្មភាពគ្រូ និងសិស្សឱ្យចំឈ្មោះច្បាស់លាស់')">
+            🧩 ដោតយុទ្ធវិធីឱ្យច្បាស់
+          </button>
+          <button type="button" class="step-regen-chip" onclick="applyStepRegenQuickChip('សរសេរឱ្យខ្លី ងាយយល់ មានចំណុចច្បាស់លាស់ និងងាយអនុវត្តផ្ទាល់ក្នុងថ្នាក់')">
+            ✂️ សរសេរឱ្យខ្លី ងាយយល់
+          </button>
+          <button type="button" class="step-regen-chip" onclick="applyStepRegenQuickChip('បន្ថែមសំណួរត្រិះរិះស៊ីជម្រៅ (HOTS) និងសំណួរវាយតម្លៃការយល់ដឹងសិស្ស')">
+            🧠 បន្ថែមសំណួរ HOTS
+          </button>
+        </div>
+
+        <!-- Custom Instruction Input -->
+        <div style="margin-top: 12px;">
+          <label for="stepRegenInstructionInput" style="display: block; font-size: 0.82rem; font-weight: 700; color: #1e293b; margin-bottom: 5px;">
+            ✍️ សំណូមពរកែលម្អបន្ថែម (ទុកទំនេរក៏បាន ដើម្បីឱ្យ AI សរសេរថ្មីកាន់តែល្អ)៖
+          </label>
+          <textarea id="stepRegenInstructionInput" class="form-control" rows="3"
+            placeholder="ឧ. សុំបន្ថែមលំហាត់គណនា ២ លំហាត់មានដំណោះស្រាយ និងប្រើ Think-Pair-Share ក្នុងសកម្មភាពសិស្ស..."
+            style="font-size: 0.86rem; line-height: 1.5; resize: vertical;"></textarea>
+        </div>
+
+        <!-- Inline Error Display (Strict Zero Silent Fallback) -->
+        <div id="stepRegenErrorBox" style="display: none; margin-top: 10px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 9px 12px; font-size: 0.82rem; color: #991b1b; line-height: 1.5;">
+        </div>
+      </div>
+
+      <div class="modal-footer" style="padding: 11px 18px; background: #f8fafc; border-top: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+        <button type="button" id="btnStepRegenUndo" class="btn-secondary" onclick="undoLastStepRegenerate()"
+          style="display: none; padding: 7px 12px; font-size: 0.82rem; border-radius: 8px; border: 1.5px solid #cbd5e1; color: #334155; background: white; cursor: pointer;">
+          <i class="fa-solid fa-rotate-left"></i> ត្រឡប់ទៅមុនកែ (Undo)
+        </button>
+        <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+          <button type="button" class="btn-secondary" onclick="closeStepRegenerateModal()"
+            style="padding: 8px 14px; font-size: 0.84rem; border-radius: 8px; border: 1px solid #cbd5e1; background: white; color: #475569; cursor: pointer;">
+            បោះបង់
+          </button>
+          <button type="button" id="btnStepRegenSubmit" class="btn-primary" onclick="executeSingleStepRegenerate()"
+            style="background: linear-gradient(135deg, #4f46e5, #6366f1); color: white; border: none; padding: 8px 16px; font-size: 0.86rem; font-weight: 700; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; box-shadow: 0 3px 10px rgba(79, 70, 229, 0.25);">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span id="btnStepRegenSubmitText">បង្កើតជំហាននេះឡើងវិញ</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 🎬 Flipped Classroom Video Micro-Lecture Prompt Modal -->
   <div id="notebookLmModal" class="modal-overlay" style="display: none;">
     <div class="modal-card"
@@ -2584,7 +2668,7 @@
   <div id="smartHoverTooltip" class="smart-hover-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261118_v143"></script>
+  <script src="app.js?v=20261118_v144"></script>
 </body>
 
 </html>
