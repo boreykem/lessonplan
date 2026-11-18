@@ -19060,19 +19060,51 @@ function sanitizeEnglishPrompt(text) {
     .trim();
 }
 
-// 🌐 High-Resolution Domain-Specific Curated Visual Bank (Verified 200 OK, High Resolution, Instant CORS)
+// 🌐 High-Resolution Domain-Specific & Activity-Aware Curated Visual Bank (All Verified 200 OK, High Resolution, Instant CORS)
 const EDUCATIONAL_IMAGE_CATEGORIES = {
+  classroom_admin: [
+    'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1024&q=80', // Organized bright classroom welcome
+    'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1024&q=80', // Teacher welcoming attentive students in class
+    'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=1024&q=80', // Active educator engaging students
+    'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1024&q=80'  // Instructor leading classroom session
+  ],
+  qa_muddiest_point: [
+    'https://images.unsplash.com/photo-1517842645767-c639042777db?w=1024&q=80', // Sticky notes & brainstorming review questions
+    'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1024&q=80', // Student writing diagnostic questions & notes
+    'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1024&q=80', // Reviewing notes & clarifying key points
+    'https://images.unsplash.com/photo-1512314889357-e157c22f938d?w=1024&q=80'  // Study checklist & questioning concepts
+  ],
+  pbl_case_study: [
+    'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1024&q=80', // Students collaborating on problem-solving case study
+    'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1024&q=80', // Small group team discussion & analysis
+    'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=1024&q=80', // Workshop seminar problem-based learning
+    'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1024&q=80'  // University student group analyzing case scenario
+  ],
+  flipchart_presentation: [
+    'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1024&q=80', // Team brainstorming at flipchart / sticky-note board
+    'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=1024&q=80', // Presenter leading visual presentation & discussion
+    'https://images.unsplash.com/photo-1558403194-611308249627?w=1024&q=80', // Group sticky-note gallery walk on wall board
+    'https://images.unsplash.com/photo-1515187029135-18ee286d815b?w=1024&q=80'  // Interactive group showcase & peer feedback
+  ],
+  child_psychology: [
+    'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1024&q=80', // Child cognitive learning & classroom discovery
+    'https://images.unsplash.com/photo-1513542789411-b6a5d4f31634?w=1024&q=80', // Colorful creative cognitive development activity
+    'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?w=1024&q=80', // Early childhood thinking & developmental play
+    'https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=1024&q=80', // Peer learning & social constructivism (Vygotsky)
+    'https://images.unsplash.com/photo-1544717305-2782549b5136?w=1024&q=80', // Focused student learning & comprehension
+    'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1024&q=80'  // Educational knowledge & academic study stack
+  ],
   brain_neuro: [
-    'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=1024&q=80', // 1. 3D Human brain anatomical model & cerebral lobes
-    'https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=1024&q=80', // 2. Glowing neural network synapses & brain connectivity
-    'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1024&q=80', // 3. Medical neuroimaging MRI brain scan analysis
-    'https://images.unsplash.com/photo-1576086213369-97a306d36557?w=1024&q=80', // 4. Child cognitive learning developmental puzzle & focus
-    'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1024&q=80', // 5. Digital cognitive mind & thinking intellect
-    'https://images.unsplash.com/photo-1518152006812-edab29b069ac?w=1024&q=80'  // 6. Neuroscience laboratory research
+    'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=1024&q=80', // 3D Human brain anatomical model & cerebral lobes
+    'https://images.unsplash.com/photo-1507413245164-6160d8298b31?w=1024&q=80', // Glowing neural network synapses & brain connectivity
+    'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1024&q=80', // Medical neuroimaging MRI brain scan analysis
+    'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=1024&q=80', // Digital cognitive mind & learning interface
+    'https://images.unsplash.com/photo-1518152006812-edab29b069ac?w=1024&q=80'  // Neuroscience & scientific research
   ],
   biology_anatomy: [
     'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?w=1024&q=80', // DNA double helix genetic structure
     'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=1024&q=80', // Microscopic cellular biology
+    'https://images.unsplash.com/photo-1576086213369-97a306d36557?w=1024&q=80', // Fluorescence microscopic cell structure
     'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=1024&q=80', // Biological science microscope & Petri dish
     'https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?w=1024&q=80'  // Plant leaf cellular photosynthesis
   ],
@@ -19114,19 +19146,55 @@ const EDUCATIONAL_IMAGE_CATEGORIES = {
   group_collaboration: [
     'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1024&q=80', // Active collaborative students group project
     'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=1024&q=80', // Diverse team brainstorm & teamwork discussion
-    'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1024&q=80'  // Friendly student partnership & cooperation
+    'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1024&q=80', // Friendly student partnership & cooperation
+    'https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=1024&q=80'  // Student group collaborating
   ],
   pedagogy_teacher: [
     'https://images.unsplash.com/photo-1577896851231-70ef18881754?w=1024&q=80', // Enthusiastic teacher instructing active class
-    'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1024&q=80'  // Modern educator presentation at whiteboard
+    'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=1024&q=80', // Modern educator presentation at whiteboard
+    'https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1024&q=80', // Classroom teaching session
+    'https://images.unsplash.com/photo-1580582932707-520aed937b7b?w=1024&q=80'  // Bright school classroom
+  ],
+  assessment_quiz: [
+    'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=1024&q=80', // Structured evaluation checklist & reflection
+    'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=1024&q=80', // Student completing written assessment
+    'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1024&q=80', // Reflective study journal & planning
+    'https://images.unsplash.com/photo-1491841573634-28140fc7ced7?w=1024&q=80'  // Achievement & learning mastery
   ],
   reflective_summary: [
     'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1024&q=80', // Reflective study journal & planning
-    'https://images.unsplash.com/photo-1491841573634-28140fc7ced7?w=1024&q=80'  // Achievement, graduation & learning success
+    'https://images.unsplash.com/photo-1491841573634-28140fc7ced7?w=1024&q=80', // Achievement, graduation & learning success
+    'https://images.unsplash.com/photo-1484480974693-6ca0a78fb36b?w=1024&q=80', // Key takeaways checklist
+    'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=1024&q=80'  // Academic knowledge books
   ]
 };
 
-// 🎯 Deep Semantic Subject & Slide Topic Extractor
+// Smart Context-Compatible Fallback Chains (ensures ZERO duplicate photos even on 15+ slide decks!)
+const CATEGORY_FALLBACK_CHAIN = {
+  classroom_admin: ['pedagogy_teacher', 'child_psychology', 'pbl_case_study', 'reflective_summary'],
+  qa_muddiest_point: ['assessment_quiz', 'flipchart_presentation', 'pbl_case_study', 'pedagogy_teacher', 'child_psychology'],
+  pbl_case_study: ['group_collaboration', 'flipchart_presentation', 'qa_muddiest_point', 'pedagogy_teacher', 'child_psychology'],
+  flipchart_presentation: ['pbl_case_study', 'group_collaboration', 'pedagogy_teacher', 'qa_muddiest_point', 'reflective_summary'],
+  child_psychology: ['pedagogy_teacher', 'pbl_case_study', 'qa_muddiest_point', 'classroom_admin', 'reflective_summary'],
+  brain_neuro: ['child_psychology', 'pedagogy_teacher', 'qa_muddiest_point', 'pbl_case_study', 'reflective_summary'],
+  assessment_quiz: ['reflective_summary', 'qa_muddiest_point', 'pedagogy_teacher', 'classroom_admin'],
+  reflective_summary: ['assessment_quiz', 'pedagogy_teacher', 'child_psychology', 'classroom_admin'],
+  group_collaboration: ['pbl_case_study', 'flipchart_presentation', 'pedagogy_teacher', 'classroom_admin'],
+  pedagogy_teacher: ['classroom_admin', 'child_psychology', 'pbl_case_study', 'flipchart_presentation', 'reflective_summary'],
+  biology_anatomy: ['chemistry', 'earth_environment', 'pedagogy_teacher', 'pbl_case_study'],
+  chemistry: ['biology_anatomy', 'physics_astronomy', 'pedagogy_teacher', 'pbl_case_study'],
+  physics_astronomy: ['technology_stem', 'mathematics', 'earth_environment', 'pedagogy_teacher'],
+  earth_environment: ['biology_anatomy', 'physics_astronomy', 'pedagogy_teacher', 'reflective_summary'],
+  cambodian_history: ['literature_language', 'pedagogy_teacher', 'reflective_summary', 'pbl_case_study'],
+  mathematics: ['technology_stem', 'physics_astronomy', 'qa_muddiest_point', 'pedagogy_teacher'],
+  literature_language: ['reflective_summary', 'qa_muddiest_point', 'pedagogy_teacher', 'child_psychology'],
+  technology_stem: ['mathematics', 'pbl_case_study', 'flipchart_presentation', 'pedagogy_teacher']
+};
+
+// 🎯 Deep Context-First Semantic Slide Topic Extractor
+// Priority 1: Slide's OWN pedagogical activity/stage (Admin, Muddiest Point, Flipchart, PBL, Closure)
+// Priority 2: Slide's OWN subject concept (Piaget/Vygotsky, Brain Anatomy, Bio, Chem, Physics, Math...)
+// Priority 3: Overall Lesson Subject fallback
 function detectSlideTopic(slideDef, meta, slideIndex = 1) {
   const title = (slideDef.title || '').toLowerCase();
   const keyword = (slideDef.imageSearchKeyword || '').toLowerCase();
@@ -19134,206 +19202,266 @@ function detectSlideTopic(slideDef, meta, slideIndex = 1) {
   const rawBullets = Array.isArray(slideDef.bullets) ? slideDef.bullets.join(' ') : String(slideDef.bullets || '');
   const bullets = rawBullets.toLowerCase();
   const subject = (meta?.subject || '').toLowerCase();
-  const fullText = `${title} ${keyword} ${prompt} ${bullets} ${subject}`.toLowerCase();
+  const slideTitleAndBullets = `${title} ${bullets}`.toLowerCase();
   const slideSpecificText = `${title} ${keyword} ${bullets}`.toLowerCase();
+  const fullText = `${title} ${keyword} ${prompt} ${bullets} ${subject}`.toLowerCase();
 
-  // 1. Brain, Neuroscience & Child Cognitive Psychology (Highest Priority)
-  if (/ខួរក្បាល|ប្រសាទ|សរសៃប្រសាទ|បញ្ញា|ស្មារតី|ការយល់ដឹង|ចងចាំ|កោសិកាខួរក្បាល|កោសិកាប្រសាទ|brain|neuron|synapse|synaptic|neural|neuro|cortex|cognitive|cerebrum|intellect|neuroplasticity|developmental psychology|ចិត្តវិទ្យា/i.test(fullText)) {
-    if (/synapse|ការតភ្ជាប់|synaptic|ចន្លោះ/i.test(slideSpecificText)) {
-      return {
-        category: 'brain_neuro',
-        searchKeyword: 'synapse neural connection neurotransmitter',
-        aiPrompt: 'Microscopic scientific illustration of synaptic cleft connection between neurons, glowing neurotransmitters, high detail, 8k, no text',
-        imgIdx: 1
-      };
-    } else if (/កោសិកា|neuron|axon|ដង់ឌ្រីត/i.test(slideSpecificText)) {
-      return {
-        category: 'brain_neuro',
-        searchKeyword: 'human brain neuron cell structure dendrites',
-        aiPrompt: 'Detailed 3D scientific visualization of a multipolar neuron cell showing dendrites, axon, and glowing electrical impulses, clean background, 8k, no text',
-        imgIdx: 0
-      };
-    } else if (/ភាពបត់បែន|plasticity|neuroplasticity|បន្ស៊ាំ/i.test(slideSpecificText)) {
-      return {
-        category: 'brain_neuro',
-        searchKeyword: 'brain neuroplasticity growth neural network',
-        aiPrompt: 'Artistic scientific illustration of brain neuroplasticity, glowing neural pathways forming and adapting, radiant blue and gold, 8k, no text',
-        imgIdx: 2
-      };
-    } else if (/កុមារ|លូតលាស់|អភិវឌ្ឍ|child|developmental|គំនិត/i.test(slideSpecificText)) {
-      return {
-        category: 'brain_neuro',
-        searchKeyword: 'child brain development cognitive learning puzzle',
-        aiPrompt: 'Inspiring educational visual showing child cognitive brain development, imaginative learning and thinking pathways, warm modern style, 8k, no text',
-        imgIdx: 3
-      };
-    } else {
-      const idx = (slideIndex - 1) % 6;
-      return {
-        category: 'brain_neuro',
-        searchKeyword: 'human brain neural synapses cognitive development',
-        aiPrompt: 'Detailed scientific illustration of human brain cross section showing neural connections, glowing synapses, and cognitive thought pathways, isolated on clean background, crisp lighting, high resolution, 8k, no text',
-        imgIdx: idx
-      };
-    }
+  // === PRIORITY 1: Explicit Classroom / Pedagogical Activity in THIS Slide ===
+  if (/រដ្ឋបាលថ្នាក់|វត្តមាន|ត្រៀមចិត្តសាស្ត្រ|បើកថ្នាក់|ស្វាគមន៍|attendance|warm.?up|welcome|classroom\s*admin/i.test(slideTitleAndBullets)) {
+    return {
+      category: 'classroom_admin',
+      searchKeyword: 'bright modern classroom teacher welcoming students ready to learn',
+      aiPrompt: 'Warm bright modern university classroom with an encouraging teacher welcoming attentive students at the start of class, clean natural lighting, high resolution, no text',
+      imgIdx: (slideIndex - 1)
+    };
   }
 
-  // 2. Biology, Cells, Genetics & Anatomy
+  if (/flipchart|gallery\s*walk|បង្ហាញក្រុម|ធ្វើបទបង្ហាញ|ក្ដារខៀន|presentation|poster\s*board|pitch/i.test(slideTitleAndBullets)) {
+    return {
+      category: 'flipchart_presentation',
+      searchKeyword: 'students presenting ideas on flipchart whiteboard poster gallery walk',
+      aiPrompt: 'Active university students presenting group work on a clean flipchart and whiteboard with colorful sticky notes in a bright classroom, educational photography style, no text',
+      imgIdx: (slideIndex - 1)
+    };
+  }
+
+  if (/muddiest|សំណួររំលឹក|វិនិច្ឆ័យ|យល់មិនច្បាស់|ចម្ងល់|pre.?test|diagnostic|think.?pair|brainstorm/i.test(slideTitleAndBullets)) {
+    return {
+      category: 'qa_muddiest_point',
+      searchKeyword: 'students writing questions sticky notes diagnostic review discussion',
+      aiPrompt: 'Clean bright educational flatlay of colorful sticky notes, open notebook, pens and question brainstorming cards on a study desk for classroom check-in, crisp lighting, no text',
+      imgIdx: (slideIndex - 1)
+    };
+  }
+
+  if (/pbl|ករណីសិក្សា|ដោះស្រាយបញ្ហា|six\s*thinking|jigsaw|case\s*study|problem.?solving|scenario|ពិភាក្សា|ការងារជាក្រុម|សហការ|សកម្មភាពក្រុម|group\s*work|collaborat|teamwork/i.test(slideTitleAndBullets)) {
+    return {
+      category: 'pbl_case_study',
+      searchKeyword: 'students collaborating around table solving real case study problem',
+      aiPrompt: 'Engaged college students collaborating around a table analyzing a real-world educational case study with notebooks and diagrams, bright modern classroom, realistic style, no text',
+      imgIdx: (slideIndex - 1)
+    };
+  }
+
+  if (/exit\s*ticket|post.?test|វាយតម្លៃ|បណ្តាំផ្ញើ|សង្ខេប|ឆ្លុះបញ្ចាំង|សន្និដ្ឋាន|កិច្ចការផ្ទះ|assessment|reflection|summary|conclusion|homework|closure/i.test(slideTitleAndBullets)) {
+    return {
+      category: 'assessment_quiz',
+      searchKeyword: 'student learning assessment reflection checklist academic achievement',
+      aiPrompt: 'Clean bright educational visual of a structured reflection journal, checklist, and graduation success concept on a wooden desk, warm natural lighting, no text',
+      imgIdx: (slideIndex - 1)
+    };
+  }
+
+  if (/វត្ថុបំណង|គោលបំណង|learning\s*objective/i.test(slideTitleAndBullets)) {
+    return {
+      category: 'pedagogy_teacher',
+      searchKeyword: 'educator guiding classroom learning objectives modern teaching',
+      aiPrompt: 'Modern inspiring educator explaining clear lesson goals to attentive students in a bright contemporary classroom, clean lighting, no text',
+      imgIdx: (slideIndex - 1)
+    };
+  }
+
+  // === PRIORITY 2: Slide-Specific Domain Concepts ===
+  // 2a. Explicit Brain Anatomy / Neuroscience ONLY when slide specifically talks about brain/neurons/synapses
+  if (/ខួរក្បាល|សរសៃប្រសាទ|កោសិកាប្រសាទ|កោសិកាខួរក្បាល|neuron|synapse|synaptic|neuroplasticity|cortex|cerebrum|mri|neuroscience/i.test(slideSpecificText)) {
+    return {
+      category: 'brain_neuro',
+      searchKeyword: 'human brain neural synapses neuroscience cognitive structure',
+      aiPrompt: 'Clean scientific educational illustration of human brain neural pathways and glowing synaptic connections on soft clean background, high detail, no text',
+      imgIdx: (slideIndex - 1)
+    };
+  }
+
+  // 2b. Child Cognitive Development & Educational Psychology (Piaget, Vygotsky, ZPD, Scaffolding, Learning)
+  if (/piaget|vygotsky|zpd|scaffolding|schema|កុមារ|ពុទ្ធិ|ចិត្តវិទ្យា|អភិវឌ្ឍន៍|ការយល់ដឹង|ចងចាំ|ការរៀនសូត្រ|cognitive|developmental|psychology|child\s*learning|pedagogy/i.test(slideSpecificText)) {
+    return {
+      category: 'child_psychology',
+      searchKeyword: 'child cognitive development educational psychology learning discovery',
+      aiPrompt: 'Warm inspiring educational visual illustrating child cognitive development, interactive learning blocks, creative thinking and peer scaffolding in bright modern classroom, no text',
+      imgIdx: (slideIndex - 1)
+    };
+  }
+
+  // 2c. Biology, Cells, Genetics & Anatomy
   if (/ជីវវិទ្យា|កោសិកា|ឌីអិនអេ|សរីរាង្គ|បេះដូង|សួត|ឈាម|រុក្ខជាតិ|រស្មីសំយោគ|ប្រព័ន្ធរំលាយអាហារ|សត្វ|មេរោគ|បាក់តេរី|ហ្សែន|cell|dna|biology|organ|photosynthesis|anatomy|genetics|microbiology/i.test(fullText)) {
     return {
       category: 'biology_anatomy',
       searchKeyword: 'biological cell structure microscopic anatomy genetics',
-      aiPrompt: 'Vibrant scientific educational illustration of biological cell structure and DNA double helix, glowing microscopic detail, clean background, 8k, no text',
-      imgIdx: (slideIndex - 1) % 4
+      aiPrompt: 'Vibrant scientific educational illustration of biological cell structure and DNA double helix, glowing microscopic detail, clean background, no text',
+      imgIdx: (slideIndex - 1)
     };
   }
 
-  // 3. Chemistry & Molecular Science
+  // 2d. Chemistry & Molecular Science
   if (/គីមី|ធាតុគីមី|ម៉ូលេគុល|អាតូម|ប្រតិកម្មគីមី|សូលុយស្យុង|អាស៊ីត|បាស|តារាងខួប|chemistry|chemical|molecule|atom|reaction|laboratory|periodic table|compound/i.test(fullText)) {
     return {
       category: 'chemistry',
       searchKeyword: 'chemical reaction molecular bonds laboratory test tubes',
-      aiPrompt: 'Scientific illustration of colorful chemistry reaction in glass beakers and 3D molecular atomic bonds, clean laboratory background, high resolution, no text',
-      imgIdx: (slideIndex - 1) % 3
+      aiPrompt: 'Scientific illustration of colorful chemistry reaction in glass beakers and 3D molecular atomic bonds, clean laboratory background, no text',
+      imgIdx: (slideIndex - 1)
     };
   }
 
-  // 4. Physics, Energy, Mechanics & Astronomy
+  // 2e. Physics, Energy, Mechanics & Astronomy
   if (/រូបវិទ្យា|កម្លាំង|ចលនា|ទំនាញផែនដី|អគ្គិសនី|មេដែក|រលក|ពន្លឺ|ថាមពល|ប្រព័ន្ធព្រះអាទិត្យ|ភព|តារាវិទ្យា|ចក្រវាល|physics|gravity|solar system|planets|astronomy|electricity|energy|optics|magnetism/i.test(fullText)) {
     return {
       category: 'physics_astronomy',
       searchKeyword: 'solar system planets astronomy physics energy space',
-      aiPrompt: 'Educational cosmic illustration of solar system planets orbiting glowing sun in deep starry space, physics energy concept, vibrant colors, 8k, no text',
-      imgIdx: (slideIndex - 1) % 3
+      aiPrompt: 'Educational cosmic illustration of physics optics, energy waves, and solar system planetary motion, vibrant colors, no text',
+      imgIdx: (slideIndex - 1)
     };
   }
 
-  // 5. Earth Science, Geography & Ecology
+  // 2f. Earth Science, Geography & Ecology
   if (/ផែនដី|ភូមិវិទ្យា|បរិស្ថាន|ព្រៃឈើ|អាកាសធាតុ|ទន្លេ|ភ្នំ|ទឹកជំនន់|រញ្ជួយដី|ដី|ប្រព័ន្ធអេកូឡូស៊ី|កោះ|សមុទ្រ|geography|environment|earth|climate|forest|ecosystem|nature|weather/i.test(fullText)) {
     return {
       category: 'earth_environment',
       searchKeyword: 'planet earth globe continents nature environment ecology',
-      aiPrompt: 'Stunning educational illustration of planet Earth globe showing lush continents, blue oceans, and natural ecosystems, clean lighting, 8k, no text',
-      imgIdx: (slideIndex - 1) % 3
+      aiPrompt: 'Stunning educational illustration of planet Earth globe showing lush continents, blue oceans, and natural ecosystems, clean lighting, no text',
+      imgIdx: (slideIndex - 1)
     };
   }
 
-  // 6. Cambodian History, Heritage & Angkor Architecture
+  // 2g. Cambodian History, Heritage & Angkor Architecture
   if (/ប្រវត្តិសាស្ត្រ|ប្រវត្តិវិទ្យា|អង្គរ|អង្គរវត្ត|ប្រាសាទ|វប្បធម៌|អរិយធម៌|បេតិកភណ្ឌ|សម័យ|ស្តេច|ព្រះមហាក្សត្រ|វត្ត|បារាយណ៍|ចេនឡា|ហ្វូណន|បុរាណ|history|angkor|temple|khmer|heritage|culture|cambodia/i.test(fullText)) {
     return {
       category: 'cambodian_history',
       searchKeyword: 'Angkor Wat ancient stone temple sunrise Cambodia architecture heritage',
-      aiPrompt: 'Majestic artistic illustration of Angkor Wat temple towers rising against sunrise sky, ancient Khmer stone architectural heritage, high resolution, no text',
-      imgIdx: (slideIndex - 1) % 3
+      aiPrompt: 'Majestic artistic illustration of Angkor Wat temple towers rising against sunrise sky, ancient Khmer stone architectural heritage, no text',
+      imgIdx: (slideIndex - 1)
     };
   }
 
-  // 7. Mathematics & Geometry
+  // 2h. Mathematics & Geometry
   if (/គណិត|ពិជគណិត|ធរណីមាត្រ|ត្រីកោណមាត្រ|ប្រូបាប|ស្ថិតិ|សមីការ|ក្រាប|មុំ|គណនា|លេខ|math|algebra|geometry|calculus|statistics|trigonometry|equations/i.test(fullText)) {
     return {
       category: 'mathematics',
       searchKeyword: 'mathematics equations geometric shapes formulas calculation',
-      aiPrompt: 'Modern educational illustration of 3D geometric shapes, mathematical formulas, and coordinate graphs, clean gradient background, high definition, no text',
-      imgIdx: (slideIndex - 1) % 3
+      aiPrompt: 'Modern educational illustration of 3D geometric shapes, mathematical curves, and coordinate graphs, clean gradient background, no text',
+      imgIdx: (slideIndex - 1)
     };
   }
 
-  // 8. Language, Literature, Reading & Poetry
+  // 2i. Language, Literature, Reading & Poetry
   if (/ភាសាខ្មែរ|អក្សរសិល្ប៍|តែងសេចក្តី|កំណាព្យ|រឿង|វេយ្យាករណ៍|អក្ខរក្រម|ការអាន|ការសរសេរ|សិល្បៈតែងនិពន្ធ|literature|poetry|grammar|reading|writing|novel|prose|books/i.test(fullText)) {
     return {
       category: 'literature_language',
       searchKeyword: 'open classic book glowing wisdom literature creative writing',
-      aiPrompt: 'Inspiring illustration of an open book with glowing pages of wisdom, quill pen, and literary imagination symbols, warm soft lighting, 8k, no text',
-      imgIdx: (slideIndex - 1) % 3
+      aiPrompt: 'Inspiring illustration of an open book with glowing pages of wisdom, fountain pen, and literary imagination symbols, warm soft lighting, no text',
+      imgIdx: (slideIndex - 1)
     };
   }
 
-  // 9. Technology, Robotics & Coding
-  if (/បច្ចេកវិទ្យា|កុំព្យូទ័រ|កូដ|សរសេរកូដ|អ៊ីនធឺណិត|បញ្ញាសិប្បនិម្មិត|ai|coding|programming|robot|technology|stem|software|hardware|algorithm/i.test(fullText)) {
+  // 2j. Technology, Robotics & Coding
+  if (/បច្ចេកវិទ្យា|កុំព្យូទ័រ|កូដ|សរសេរកូដ|អ៊ីនធឺណិត|បញ្ញាសិប្បនិម្មិត|\bai\b|coding|programming|robot|technology|stem|software|hardware|algorithm/i.test(fullText)) {
     return {
       category: 'technology_stem',
       searchKeyword: 'modern technology robotics coding artificial intelligence futuristic circuit',
-      aiPrompt: 'Futuristic educational illustration of artificial intelligence, robotic technology, and digital circuit connections, modern glowing blue palette, 8k, no text',
-      imgIdx: (slideIndex - 1) % 3
+      aiPrompt: 'Futuristic educational illustration of artificial intelligence, robotic technology, and digital circuit connections, modern glowing blue palette, no text',
+      imgIdx: (slideIndex - 1)
     };
   }
 
-  // 10. Group Discussion & Collaborative Projects
-  if (/ពិភាក្សា|ការងារជាក្រុម|សហការ|ដៃគូ|សកម្មភាពក្រុម|group|collaborative|teamwork|discussion|peer/i.test(slideSpecificText)) {
+  // === PRIORITY 3: Lesson Subject Fallback ===
+  if (/ចិត្តវិទ្យា|psychology|គរុកោសល្យ|អប់រំ|education/i.test(subject)) {
     return {
-      category: 'group_collaboration',
-      searchKeyword: 'active diverse students collaborative project team discussion',
-      aiPrompt: 'Vibrant modern illustration of diverse active students smiling and collaborating together around a project table, positive educational teamwork, flat vector art',
-      imgIdx: (slideIndex - 1) % 3
+      category: 'child_psychology',
+      searchKeyword: 'educational psychology cognitive learning classroom students',
+      aiPrompt: 'Warm modern educational illustration of active learning, cognitive growth, and teacher-student interaction in a bright classroom, no text',
+      imgIdx: (slideIndex - 1)
     };
   }
 
-  // 11. Reflective, Summary, Conclusion & Assessment
-  if (/ឆ្លុះបញ្ចាំង|សង្ខេប|សន្និដ្ឋាន|ជោគជ័យ|បណ្តាំផ្ញើ|វាយតម្លៃ|assessment|reflection|summary|conclusion|achievement/i.test(slideSpecificText)) {
-    return {
-      category: 'reflective_summary',
-      searchKeyword: 'educational achievement success learning summary reflection',
-      aiPrompt: 'Modern educational conceptual illustration symbolizing learning achievement, growth mindset, and academic success, warm inspiring colors, clean background',
-      imgIdx: (slideIndex - 1) % 2
-    };
-  }
-
-  // 12. Pedagogy & Teaching Methods (Fallback)
   return {
     category: 'pedagogy_teacher',
     searchKeyword: 'inspirational teacher educating active classroom students',
-    aiPrompt: 'Warm inspirational illustration of a dedicated modern teacher guiding curious young students with interactive media, clean educational setting',
-    imgIdx: (slideIndex - 1) % 2
+    aiPrompt: 'Warm inspirational illustration of a dedicated modern teacher guiding curious students with interactive media, clean educational setting, no text',
+    imgIdx: (slideIndex - 1)
   };
 }
 
-async function getSlideImage(slideDef, data, imageMode, theme, slideIndex) {
+// Strict Zero-Duplicate Context-Matched Visual Picker across Primary + Sibling Categories
+function pickUniqueCuratedImageUrl(targetCategory, slideIndex, usedUrls) {
+  const used = usedUrls instanceof Set ? usedUrls : new Set();
+  const chain = [
+    targetCategory,
+    ...(CATEGORY_FALLBACK_CHAIN[targetCategory] || []),
+    'pedagogy_teacher',
+    'pbl_case_study',
+    'flipchart_presentation',
+    'qa_muddiest_point',
+    'classroom_admin',
+    'reflective_summary'
+  ];
+
+  // Pass 1: Find an UNUSED URL starting from targetCategory then compatible siblings
+  for (const cat of chain) {
+    const list = EDUCATIONAL_IMAGE_CATEGORIES[cat];
+    if (!Array.isArray(list) || list.length === 0) continue;
+    const startOffset = (Math.max(0, (slideIndex - 1)) % list.length);
+    for (let step = 0; step < list.length; step++) {
+      const candidate = list[(startOffset + step) % list.length];
+      if (!used.has(candidate)) {
+        return candidate;
+      }
+    }
+  }
+
+  // Pass 2 (only if deck has > 40 slides and every single image in the bank was used)
+  const fallbackList = EDUCATIONAL_IMAGE_CATEGORIES[targetCategory] || EDUCATIONAL_IMAGE_CATEGORIES['pedagogy_teacher'];
+  return fallbackList[Math.max(0, slideIndex - 1) % fallbackList.length];
+}
+
+async function getSlideImage(slideDef, data, imageMode, theme, slideIndex, usedUrls = null) {
   if (imageMode === 'no') return null;
 
-  // 1. Authentically determine educational topic & subtopic from slide content
+  // 1. Authentically determine slide-specific activity/topic context
   const detected = detectSlideTopic(slideDef, data, slideIndex);
   const targetCategory = detected.category;
 
-  // 2. Try Pollinations AI first if in AI mode and not blocked
+  // 2. Try Pollinations AI first if in AI mode (using context-accurate prompt + unique per-slide seed!)
   if (imageMode === 'ai') {
-    let cleanPrompt = sanitizeEnglishPrompt(slideDef.imagePrompt || detected.aiPrompt || '');
-    if (!cleanPrompt || cleanPrompt.length < 8) {
+    let cleanPrompt = sanitizeEnglishPrompt(slideDef.imagePrompt || '');
+    // If the slide's raw imagePrompt is missing, too short, or mismatched generic brain for an activity slide, use our context-accurate detected.aiPrompt!
+    const isActivitySlide = ['classroom_admin', 'qa_muddiest_point', 'pbl_case_study', 'flipchart_presentation', 'assessment_quiz'].includes(targetCategory);
+    if (!cleanPrompt || cleanPrompt.length < 12 || (isActivitySlide && /brain|neuron|cell|microscope/i.test(cleanPrompt))) {
       cleanPrompt = detected.aiPrompt;
     }
 
-    // STRICT: Do NOT forcibly append classroom setting! Use pristine concept illustration
-    const fullPrompt = `${cleanPrompt.substring(0, 180)}, clear educational infographic visual, professional scientific clarity, vibrant colors, isolated on clean background, 8k, no text`;
-    const seed = Math.floor(Math.random() * 900000) + 100000;
+    const fullPrompt = `${cleanPrompt.substring(0, 180)}, clear educational visual, bright modern clean style, high resolution, no text, no watermark`;
+    const seed = Math.floor(Math.random() * 800000) + 100000 + (slideIndex * 7919);
     const aiUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?width=1024&height=768&nologo=true&seed=${seed}`;
 
     try {
-      const base64 = await fetchImageAsBase64(aiUrl, 7000);
+      const base64 = await fetchImageAsBase64(aiUrl, 9500);
       if (base64 && base64.startsWith('data:image')) {
-        return { data: base64 };
+        return { data: base64, source: 'ai', category: targetCategory };
       }
     } catch (e) {
       console.warn(`[PPTX Image ${slideIndex}] AI image fetch error:`, e);
     }
   }
 
-  // 3. High-Resolution Domain-Specific Curated Visual Bank (100% Reliable, Instant CORS, Guaranteed Subject Relevance!)
-  const list = EDUCATIONAL_IMAGE_CATEGORIES[targetCategory] || EDUCATIONAL_IMAGE_CATEGORIES['pedagogy_teacher'];
-  const chosenIdx = typeof detected.imgIdx === 'number' ? detected.imgIdx % list.length : (slideIndex - 1) % list.length;
-  const chosenUrl = list[chosenIdx];
-
-  try {
-    const base64 = await fetchImageAsBase64(chosenUrl, 6000);
-    if (base64 && base64.startsWith('data:image')) {
-      return { data: base64 };
+  // 3. Strict Zero-Duplicate Curated Visual Bank (tries up to 3 unused URLs so no two slides EVER repeat!)
+  const used = usedUrls instanceof Set ? usedUrls : new Set();
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const chosenUrl = pickUniqueCuratedImageUrl(targetCategory, slideIndex + attempt, used);
+    if (!chosenUrl) break;
+    used.add(chosenUrl); // Reserve immediately to prevent duplicates even across retries
+    try {
+      const base64 = await fetchImageAsBase64(chosenUrl, 6000);
+      if (base64 && base64.startsWith('data:image')) {
+        return { data: base64, source: 'curated', category: targetCategory, url: chosenUrl };
+      }
+    } catch (e) {
+      console.warn(`[PPTX Image ${slideIndex}] Educational bank fetch error:`, e);
     }
-  } catch (e) {
-    console.warn(`[PPTX Image ${slideIndex}] Educational bank fetch error:`, e);
   }
 
   // 4. Absolute offline zero-failure Topic-Aware Canvas Diagram Card
   const canvasBase64 = generateEducationalCardDataUrl(slideDef.title, targetCategory, data.subject, theme, slideIndex);
   if (canvasBase64) {
-    return { data: canvasBase64 };
+    return { data: canvasBase64, source: 'canvas', category: targetCategory };
   }
 
   return null;
@@ -20692,12 +20820,13 @@ window.buildPptxPresentation = async function (slidesData, meta, options) {
     return { isNumbered, badge, heading, desc };
   };
 
-  // 🚀 High-Speed Sequential Image Fetching
+  // 🚀 High-Speed Sequential Image Fetching with Strict Zero-Duplicate Tracking across ALL Slides
   let slideImages = [];
+  const usedImageUrls = new Set();
   if (imageMode !== 'no') {
     updatePptxWidgetStatus(`🎨 កំពុងរៀបចំរូបភាពអប់រំគុណភាពខ្ពស់ស្របតាមខ្លឹមសារស្លាយទាំង ${slidesData.length}...`, 60);
     for (let sIdx = 0; sIdx < slidesData.length; sIdx++) {
-      const img = await getSlideImage(slidesData[sIdx], meta, imageMode, theme, sIdx + 1);
+      const img = await getSlideImage(slidesData[sIdx], meta, imageMode, theme, sIdx + 1, usedImageUrls);
       slideImages.push(img);
     }
   }
