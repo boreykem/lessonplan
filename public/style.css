@@ -4325,5 +4325,38 @@ textarea.form-control {
   color: #e0e7ff;
 }
 
+/* Pedagogical Phase Color-Coded Technique Pills */
+.preview-tech-pill.pill-cat-warmup {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+  color: #0369a1;
+}
+.preview-tech-pill.pill-cat-practice {
+  background: #f5f3ff;
+  border-color: #ddd6fe;
+  color: #6d28d9;
+}
+.preview-tech-pill.pill-cat-reflection {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+  color: #047857;
+}
+[data-theme="dark"] .preview-tech-pill.pill-cat-warmup {
+  background: rgba(2, 132, 199, 0.18);
+  border-color: #0369a1;
+  color: #7dd3fc;
+}
+[data-theme="dark"] .preview-tech-pill.pill-cat-practice {
+  background: rgba(124, 58, 237, 0.18);
+  border-color: #6d28d9;
+  color: #c4b5fd;
+}
+[data-theme="dark"] .preview-tech-pill.pill-cat-reflection {
+  background: rgba(5, 150, 105, 0.18);
+  border-color: #047857;
+  color: #6ee7b7;
+}
+
+
 
 

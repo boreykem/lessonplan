@@ -345,10 +345,46 @@ def detect_method_type(method):
     return "student_centered"
 
 
-def get_method_pedagogical_prompt(method, is_flipped, is_bd, lesson_title=""):
+def build_techniques_alignment_prompt(techniques, is_flipped=False):
+    if not techniques or not isinstance(techniques, list):
+        return ""
+    clean_techs = [str(t).strip() for t in techniques if str(t).strip()]
+    if not clean_techs:
+        return ""
+
+    step2_techs, step3_techs, step4_techs, step5_techs = [], [], [], []
+    for t in clean_techs:
+        tl = t.lower()
+        if any(k in tl for k in ("exit ticket", "reflection", "two stars")):
+            step5_techs.append(t)
+        elif any(k in tl for k in ("muddiest", "fist to five", "interactive quiz", "spaced retrieval", "retrieval", "brainstorming")):
+            step2_techs.append(t)
+        elif any(k in tl for k in ("concept attainment", "socratic")) or (not is_flipped and "concept cartoons" in tl):
+            step3_techs.append(t)
+        else:
+            step4_techs.append(t)
+
+    if not is_flipped and not step3_techs and len(step4_techs) >= 2:
+        step3_techs.append(step4_techs.pop(0))
+
+    rules = [f"• 🔗 ខ្សែសង្វាក់យុទ្ធវិធីសរុប ({len(clean_techs)} យុទ្ធវិធី - ត្រូវបញ្ចូលឱ្យគ្រប់ ១០០% តាមលំដាប់)៖ {' ➔ '.join(clean_techs)}"]
+    if step2_techs:
+        rules.append(f"• ជំហានទី ២ ({'៧% ពិនិត្យស្វ័យសិក្សាពីផ្ទះ' if is_flipped else '១៥% រំលឹកមេរៀនចាស់'}): ត្រូវបញ្ជ្រាប [អនុវត្តយុទ្ធវិធី {' + '.join(step2_techs)}]។ (⚠️ ហាមដាច់ខាតដាក់ Exit Ticket នៅជំហានទី ២!)")
+    if step3_techs:
+        rules.append(f"• ជំហានទី ៣ ({'១០% បំភ្លឺ & ប្រគល់បេសកកម្ម' if is_flipped else '៦០% ដំណើរការបង្រៀនថ្មី - CORE'}): ត្រូវបញ្ជ្រាប [អនុវត្តយុទ្ធវិធី {' ➔ '.join(step3_techs)}]។")
+    if step4_techs:
+        rules.append(f"• ជំហានទី ៤ ({'៧៥% CORE ACTIVE LEARNING' if is_flipped else '១៥% ពង្រឹងពុទ្ធិ - ៧០% STT'}): ត្រូវតភ្ជាប់យុទ្ធវិធីជាខ្សែសង្វាក់ [{' ➔ '.join(step4_techs)}] លើ Flipchart A0/ក្ដារឆ្នួន [ជំនាញ 4Cs]។")
+    if step5_techs:
+        rules.append(f"• ជំហានទី ៥ (៥% វាយតម្លៃ & កិច្ចការផ្ទះ): ត្រូវបញ្ជ្រាប [អនុវត្តយុទ្ធវិធី {' + '.join(step5_techs)}] សម្រាប់ឆ្លុះបញ្ចាំងចុងម៉ោង។")
+
+    return "\n   - វិធានតម្រឹមយុទ្ធវិធីបង្រៀនគន្លឹះតាមជំហានគរុកោសល្យត្រឹមត្រូវ (Pedagogical Techniques Alignment & Cohesion):\n     " + "\n     ".join(rules)
+
+
+def get_method_pedagogical_prompt(method, is_flipped, is_bd, lesson_title="", techniques=None):
     method_type = detect_method_type(method)
     method_name = method or "សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)"
     title_str = f"នៃ «{lesson_title}»" if lesson_title else ""
+    tech_block = build_techniques_alignment_prompt(techniques, is_flipped)
 
     if is_flipped:
         if method_type == "pbl":
@@ -1759,6 +1795,7 @@ def generate_with_gemini_python(api_key, data):
     teacher = data.get("teacher", "")
     duration = data.get("duration", "៥០ នាទី")
     method = data.get("method", "")
+    techniques = data.get("techniques", [])
     custom_notes = data.get("customNotes", "")
     lesson_content = data.get("lessonContent", "")
     custom_template = data.get("customTemplate", "")
@@ -1800,7 +1837,7 @@ Pedagogical Principles & Step Guidelines for Flipped Learning:
    - [C - Condition / លក្ខខណ្ឌ]: មធ្យោបាយ ឬវិធីសាស្ត្ររៀន (ឧ. «តាមរយៈការពន្យល់របស់គ្រូ និងការសង្កេតស្លាយ/វីដេអូ», «តាមរយៈការអានឯកសារគោល», «តាមរយៈការអនុវត្តលំហាត់ជាក់ស្តែង និងការពិភាក្សាជាក្រុម», «តាមរយៈការឆ្លុះបញ្ចាំងលើ Exit Ticket»...)
    - [S - Standard / ស្ដង់ដារ ឬ កម្រិតកំណត់]: កម្រិតកំណត់នៃការសម្រេចបាន (ឧ. «បានត្រឹមត្រូវ និងក្បោះក្បាយ», «បានយ៉ាងហោចណាស់ ៨០% ត្រឹមត្រូវ», «បានច្បាស់លាស់ឥតខុសឆ្គង», «ប្រកបដោយភាពជឿជាក់ និងស្ទាត់ជំនាញ», «ប្រកបដោយស្មារតីទទួលខុសត្រូវខ្ពស់»)
    ⚠️ ហាមដាក់លើសពី ១ ចំណុចក្នុងផ្នែកនីមួយៗ! (STRICTLY 1 single comprehensive ACS bullet for knowledge, 1 for skills, and 1 for attitudes).
-{get_method_pedagogical_prompt(method, True, False, lesson_title)}
+{get_method_pedagogical_prompt(method, True, False, lesson_title, techniques)}{build_techniques_alignment_prompt(techniques, True)}
 
 Return ONLY valid JSON matching this schema:
 {{
@@ -2012,7 +2049,7 @@ Structure requirements:
      • EXIT TICKET 3-2-1: In Step 5, you MUST include an "Exit Ticket 3-2-1" formative assessment (e.g., សរសេរ ៣ចំណុចដែលបានរៀន, ២ចំណុចដែលចាប់អារម្មណ៍, ១ចំណុចដែលឆ្ងល់).
 5. Self-Reflection (ការស្វ័យវាយតម្លៃ)
 
-{get_method_pedagogical_prompt(method, False, False, lesson_title)}
+{get_method_pedagogical_prompt(method, False, False, lesson_title, techniques)}{build_techniques_alignment_prompt(techniques, False)}
 
 {f"IMPORTANT: The user provided a custom template structure. You MUST adopt this custom format: {custom_template}" if custom_template else ""}
 
