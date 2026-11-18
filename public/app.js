@@ -5564,7 +5564,8 @@ function applyTestAuditFixByIndex(testType, fixIndex) {
   const item = list[fixIndex];
   if (!item) return;
   const qn = parseInt(item.qNumber, 10) || 0;
-  if (qn <= 0) {
+  const isKeyBalanceIssue = /(កូនសោចម្លើយ|ចម្លើយគំរូ|អតុល្យភាព|ប្រមូលផ្ដុំ.*ជម្រើស|answer\s*key|distribution|imbalance|streak)/i.test(`${item.issue || ''} ${item.fixInstruction || ''}`);
+  if (qn <= 0 || isKeyBalanceIssue) {
     autoFixAllTestAuditGaps(testType);
   } else {
     fixSingleTestQuestion(testType, qn, item.fixInstruction || item.issue || '');
@@ -5690,6 +5691,64 @@ async function autoFixAllTestAuditGaps(testType) {
   }
   if (_testAuditFixInFlight[testType] || _testAuditInFlight[testType]) return;
 
+  const isEn = (state.language === 'en');
+  _testAuditUndoSnapshots[testType] = {
+    questions: JSON.parse(JSON.stringify(qList)),
+    report: JSON.parse(JSON.stringify(report))
+  };
+
+  const curMetrics = computeTestObjectiveMetrics(qList, testType);
+  const needsKeyBalance = qList.length >= 4 && (curMetrics.maxLetterRatio > 0.36 || curMetrics.maxStreak >= 3);
+
+  // Identify ONLY the exact questions that actually need AI content/distractor/stem/explanation edits
+  const flaggedSet = new Set();
+  (report.itemAnalysis || []).forEach(it => {
+    const qn = parseInt(it.qNumber, 10) || 0;
+    if (qn >= 1 && qn <= qList.length) {
+      if (it.distractorRating !== 'good' || it.estCorrectPct > 88 || it.estCorrectPct < 20) {
+        flaggedSet.add(qn);
+      }
+    }
+  });
+  (curMetrics.lengthBiasItems || []).forEach(qn => flaggedSet.add(qn));
+  (curMetrics.clueFlawItems || []).forEach(x => flaggedSet.add(x.qNumber));
+  (curMetrics.brokenOptionItems || []).forEach(qn => flaggedSet.add(qn));
+  (curMetrics.roboticStemItems || []).forEach(qn => flaggedSet.add(qn));
+  const keyOnlyIssueRe = /(កូនសោចម្លើយ|ចម្លើយគំរូ|អតុល្យភាព|ប្រមូលផ្ដុំ.*ជម្រើស|answer\s*key|distribution|imbalance|streak)/i;
+  (report.improvements || []).forEach(imp => {
+    const qn = parseInt(imp.qNumber, 10) || 0;
+    const isKeyOnly = keyOnlyIssueRe.test(`${imp.issue || ''} ${imp.fixInstruction || ''}`);
+    if (!isKeyOnly && qn >= 1 && qn <= qList.length) {
+      flaggedSet.add(qn);
+    }
+  });
+  qList.forEach((q, idx) => {
+    if (String(q.explanation || '').trim().length < 12) flaggedSet.add(idx + 1);
+  });
+
+  const pillarFeedback = (report.pillars || []).map(p => `- ${p.title} (${p.score}/${p.max}): ${p.feedback} ${p.guardrailNote || ''}`).join('\n');
+  const impNotes = (report.improvements || []).map(i => `- Q${i.qNumber || 'All'}: ${i.issue} -> ${i.fixInstruction}`).join('\n');
+  const combinedNotes = `${pillarFeedback}\n${impNotes}`.trim();
+
+  // FAST ZERO-TOKEN PATH: If all items are already strong and ONLY Answer Key distribution is skewed!
+  if (flaggedSet.size === 0 && needsKeyBalance) {
+    let balanced = distributeAndBalanceQuizList(qList, true);
+    balanced.forEach((q, idx) => { q.number = idx + 1; });
+    setTestListForType(plan, testType, balanced);
+    setTestAuditReport(plan, testType, null);
+    rerenderSingleTestModule(testType);
+    showToast(
+      isEn
+        ? '✨ Rebalanced Answer Keys (A/B/C/D) evenly! Re-auditing updated score...'
+        : '✨ បានធ្វើតុល្យភាពកូនសោចម្លើយ (A/B/C/D) ស្មើគ្នាភ្លាមៗ! កំពុងវាយតម្លៃពិន្ទុថ្មី...',
+      'success'
+    );
+    setTimeout(() => {
+      runTestPsychometricAudit(testType, `Rebalanced answer key distribution evenly across A/B/C/D.\n${combinedNotes}`);
+    }, 300);
+    return;
+  }
+
   const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
   if (!apiKey) {
     showToast('⚠️ សូមភ្ជាប់ Google Gemini API Key ជាមុនសិន!', 'warning');
@@ -5702,120 +5761,155 @@ async function autoFixAllTestAuditGaps(testType) {
   else if (apiKey.startsWith('gsk_')) provider = 'groq';
   else if (apiKey.startsWith('sk-or-')) provider = 'openrouter';
 
-  const isEn = (state.language === 'en');
-  _testAuditUndoSnapshots[testType] = {
-    questions: JSON.parse(JSON.stringify(qList)),
-    report: JSON.parse(JSON.stringify(report))
-  };
+  // If no specific items were flagged but score < 95, target the 3 lowest/most improvable items
+  let targetNums = Array.from(flaggedSet).sort((a, b) => a - b);
+  if (targetNums.length === 0) {
+    targetNums = qList.slice(0, Math.min(4, qList.length)).map((_, i) => i + 1);
+  }
 
   _testAuditFixInFlight[testType] = true;
   refreshTestAuditPanel(testType);
   showToast(
-    isEn ? '✨ Upgrading entire test in 1 pass...' : '✨ Gemini AI កំពុងកែលម្អវិញ្ញាសាទាំងមូលក្នុងពេលតែម្ដង...',
+    isEn
+      ? `✨ Upgrading ${targetNums.length} flagged item(s) in 1 pass...`
+      : `✨ Gemini AI កំពុងកែលម្អសំណួរចំនួន ${toKhmerNumber(targetNums.length)} ក្នុងពេលតែម្ដង...`,
     'info'
   );
 
-  const pillarFeedback = (report.pillars || []).map(p => `- ${p.title} (${p.score}/${p.max}): ${p.feedback} ${p.guardrailNote || ''}`).join('\n');
   const itemNotes = (report.itemAnalysis || [])
-    .filter(it => it.distractorRating !== 'good' || it.estCorrectPct > 88 || it.estCorrectPct < 20)
+    .filter(it => targetNums.includes(parseInt(it.qNumber, 10)))
     .map(it => `- Q${it.qNumber} (Distractors=${it.distractorRating}, EstOK=${it.estCorrectPct}%): ${it.note}`)
     .join('\n');
-  const impNotes = (report.improvements || []).map(i => `- Q${i.qNumber || 'All'}: ${i.issue} -> ${i.fixInstruction}`).join('\n');
-  const combinedNotes = `${pillarFeedback}\n${itemNotes}\n${impNotes}`.trim();
 
-  const itemsJson = JSON.stringify(qList.map((q, idx) => ({
-    number: idx + 1,
-    difficulty: q.difficulty || 'មធ្យម (Medium)',
-    difficultyLevel: q.difficultyLevel || 'medium',
-    question: q.question || '',
-    options: {
-      A: q.options?.A || q.options?.['ក'] || '',
-      B: q.options?.B || q.options?.['ខ'] || '',
-      C: q.options?.C || q.options?.['គ'] || '',
-      D: q.options?.D || q.options?.['ឃ'] || ''
-    },
-    correctAnswer: q.correctAnswer || 'A',
-    explanation: q.explanation || ''
-  })));
+  const targetItemsJson = JSON.stringify(targetNums.map(qn => {
+    const q = qList[qn - 1];
+    return {
+      number: qn,
+      difficulty: q.difficulty || 'មធ្យម (Medium)',
+      difficultyLevel: q.difficultyLevel || 'medium',
+      question: q.question || '',
+      options: {
+        A: q.options?.A || q.options?.['ក'] || '',
+        B: q.options?.B || q.options?.['ខ'] || '',
+        C: q.options?.C || q.options?.['គ'] || '',
+        D: q.options?.D || q.options?.['ឃ'] || ''
+      },
+      correctAnswer: q.correctAnswer || 'A',
+      explanation: q.explanation || ''
+    };
+  }));
 
   const fixAllPrompt = `
-You are an elite Psychometrician upgrading a ${qList.length}-question ${testType === 'pre' ? 'Pre-Test' : 'Post-Test'} to 95+/100 quality in ONE SINGLE PASS.
+You are an elite Psychometrician upgrading ONLY the ${targetNums.length} flagged question(s) [${targetNums.map(n => 'Q' + n).join(', ')}] of a ${qList.length}-question ${testType === 'pre' ? 'Pre-Test' : 'Post-Test'} to 95+/100 quality in ONE SINGLE PASS.
 
 [LESSON CONTEXT]
 - Subject: ${plan.subject || ''} | Grade/Level: ${plan.grade || ''} | Lesson: ${plan.lessonTitle || ''}
 
-[ALL AUDIT GAPS TO RESOLVE]
+[AUDIT GAPS TO RESOLVE]
 ${combinedNotes}
+${itemNotes}
 
-[CURRENT ${qList.length} QUESTIONS (JSON)]
-${itemsJson}
+[ONLY THE ${targetNums.length} FLAGGED QUESTIONS TO UPGRADE (JSON)]
+${targetItemsJson}
 
 [NON-NEGOTIABLE UPGRADE RULES]
-1. Return EXACTLY ${qList.length} questions (keep strong questions intact; thoroughly upgrade every flagged/weak question).
-2. DISTRACTORS (25 pts): Every wrong option MUST be a realistic student misconception — eliminate ALL silly options, eliminate ALL "all/none of the above", eliminate ALL absolute clue words ("always/never/ជានិច្ច/មិនដែល"), and make all 4 options roughly EQUAL in length and grammatical structure (zero Length Bias!).
-3. ANSWER KEY BALANCE: Distribute "correctAnswer" evenly across A, B, C, D (~25% each, no 3+ identical keys in a row), ensuring the text inside the matching option slot is 100% scientifically correct.
-4. EXPLANATIONS: Every question MUST have a clear pedagogical explanation stating why the right answer is correct and why key distractors are wrong.
-5. LANGUAGE: ${isEn ? 'Academic English' : 'Standard Formal Khmer (ភាសាខ្មែរផ្លូវការគរុកោសល្យ ១០០%)'}.
+1. Return ONLY a valid JSON OBJECT with key "updatedQuestions" containing the ${targetNums.length} upgraded question objects (matching exact "number" values: ${targetNums.join(', ')}).
+2. DISTRACTORS (25 pts): Every wrong option MUST be a realistic student misconception — NO silly options, NO "all/none of the above", NO absolute clue words ("always/never/ជានិច្ច/មិនដែល"), and make all 4 options roughly EQUAL in length and grammatical structure (zero Length Bias!).
+3. ACCURATE KEY & RICH EXPLANATION: Put the 100% scientifically correct answer in the option matching "correctAnswer" and write a clear pedagogical explanation stating why it is correct and why key distractors are misconceptions.
+4. LANGUAGE: ${isEn ? 'Academic English' : 'Standard Formal Khmer (ភាសាខ្មែរផ្លូវការគរុកោសល្យ ១០០%)'}.
 
-Return ONLY a valid JSON array of ${qList.length} question objects (no markdown fences):
-[
-  {
-    "number": 1,
-    "difficulty": "...",
-    "difficultyLevel": "easy|medium|hard",
-    "question": "...",
-    "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
-    "correctAnswer": "A|B|C|D",
-    "explanation": "..."
-  }
-]
+Return ONLY valid JSON object (no markdown fences):
+{
+  "updatedQuestions": [
+    {
+      "number": ${targetNums[0]},
+      "difficulty": "...",
+      "difficultyLevel": "easy|medium|hard",
+      "question": "...",
+      "options": { "A": "...", "B": "...", "C": "...", "D": "..." },
+      "correctAnswer": "A|B|C|D",
+      "explanation": "..."
+    }
+  ]
+}
 `.trim();
 
   try {
-    const rawText = await callAiForSingleStep(fixAllPrompt, apiKey, provider, 4800);
+    const rawText = await callAiForSingleStep(fixAllPrompt, apiKey, provider, 8192);
     const cleaned = String(rawText || '').replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
-    const sIdx = cleaned.indexOf('[');
-    const eIdx = cleaned.lastIndexOf(']');
-    if (sIdx === -1 || eIdx === -1) throw new Error('AI មិនបានត្រឡប់ JSON Array សំណួរត្រឹមត្រូវ។');
-    let upgradedList = cleanForbiddenScriptsAndFormatMath(JSON.parse(cleaned.slice(sIdx, eIdx + 1)));
-    if (!Array.isArray(upgradedList) || upgradedList.length < Math.max(1, qList.length - 1)) {
-      throw new Error('ចំនួនសំណួរដែលកែថ្មីមិនគ្រប់គ្រាន់ឡើយ។');
-    }
-    upgradedList = upgradedList.slice(0, qList.length).map((q, idx) => ({
-      number: idx + 1,
-      difficulty: q.difficulty || qList[idx]?.difficulty || 'មធ្យម (Medium)',
-      difficultyLevel: q.difficultyLevel || qList[idx]?.difficultyLevel || 'medium',
-      question: String(q.question || qList[idx]?.question || '').trim(),
-      options: {
-        A: String(q.options?.A || '').trim(),
-        B: String(q.options?.B || '').trim(),
-        C: String(q.options?.C || '').trim(),
-        D: String(q.options?.D || '').trim()
-      },
-      correctAnswer: ['A', 'B', 'C', 'D'].includes(String(q.correctAnswer || '').toUpperCase())
-        ? String(q.correctAnswer).toUpperCase()
-        : (qList[idx]?.correctAnswer || 'A'),
-      explanation: String(q.explanation || '').trim()
-    }));
 
-    // Auto-balance answer keys only if skewed
-    const postCheck = computeTestObjectiveMetrics(upgradedList, testType);
-    if (upgradedList.length >= 5 && (postCheck.maxLetterRatio > 0.42 || postCheck.maxStreak >= 3) && typeof distributeAndBalanceQuizList === 'function') {
-      upgradedList = distributeAndBalanceQuizList(upgradedList);
-      upgradedList.forEach((q, idx) => { q.number = idx + 1; });
+    let parsedObj = null;
+    try {
+      parsedObj = JSON.parse(cleaned);
+    } catch (_) {
+      const objStart = cleaned.indexOf('{');
+      const objEnd = cleaned.lastIndexOf('}');
+      const arrStart = cleaned.indexOf('[');
+      const arrEnd = cleaned.lastIndexOf(']');
+      if (objStart !== -1 && objEnd > objStart) {
+        try { parsedObj = JSON.parse(cleaned.slice(objStart, objEnd + 1)); } catch (_e2) {}
+      }
+      if (!parsedObj && arrStart !== -1 && arrEnd > arrStart) {
+        parsedObj = JSON.parse(cleaned.slice(arrStart, arrEnd + 1));
+      }
     }
 
-    setTestListForType(plan, testType, upgradedList);
+    let deltaList = [];
+    if (Array.isArray(parsedObj)) {
+      deltaList = parsedObj;
+    } else if (parsedObj && typeof parsedObj === 'object') {
+      deltaList = parsedObj.updatedQuestions || parsedObj.questions || parsedObj.items || Object.values(parsedObj).find(v => Array.isArray(v)) || [];
+    }
+
+    if (!Array.isArray(deltaList) || deltaList.length === 0) {
+      throw new Error('AI មិនបានត្រឡប់បញ្ជីសំណួរកែលម្អត្រឹមត្រូវឡើយ។');
+    }
+
+    const cleanedDelta = cleanForbiddenScriptsAndFormatMath(deltaList);
+    let mergedList = qList.map((q, idx) => ({ ...q, number: idx + 1 }));
+
+    cleanedDelta.forEach((uq, dIdx) => {
+      if (!uq || typeof uq !== 'object' || !uq.question || !uq.options) return;
+      const targetNum = parseInt(uq.number, 10) || targetNums[dIdx] || 0;
+      const tIdx = targetNum - 1;
+      if (tIdx < 0 || tIdx >= mergedList.length) return;
+      const orig = mergedList[tIdx];
+      mergedList[tIdx] = {
+        number: targetNum,
+        difficulty: uq.difficulty || orig.difficulty || 'មធ្យម (Medium)',
+        difficultyLevel: uq.difficultyLevel || orig.difficultyLevel || 'medium',
+        question: String(uq.question || orig.question || '').trim(),
+        options: {
+          A: String(uq.options.A || uq.options['ក'] || orig.options?.A || '').trim(),
+          B: String(uq.options.B || uq.options['ខ'] || orig.options?.B || '').trim(),
+          C: String(uq.options.C || uq.options['គ'] || orig.options?.C || '').trim(),
+          D: String(uq.options.D || uq.options['ឃ'] || orig.options?.D || '').trim()
+        },
+        correctAnswer: ['A', 'B', 'C', 'D'].includes(String(uq.correctAnswer || '').toUpperCase())
+          ? String(uq.correctAnswer).toUpperCase()
+          : (orig.correctAnswer || 'A'),
+        explanation: String(uq.explanation || orig.explanation || '').trim()
+      };
+    });
+
+    // Guarantee balanced A/B/C/D answer keys (0 streaks >= 3, no letter > 36%)
+    const postCheck = computeTestObjectiveMetrics(mergedList, testType);
+    if (mergedList.length >= 4 && (postCheck.maxLetterRatio > 0.36 || postCheck.maxStreak >= 3) && typeof distributeAndBalanceQuizList === 'function') {
+      mergedList = distributeAndBalanceQuizList(mergedList, true);
+      mergedList.forEach((q, idx) => { q.number = idx + 1; });
+    }
+
+    setTestListForType(plan, testType, mergedList);
     setTestAuditReport(plan, testType, null);
     _testAuditFixInFlight[testType] = false;
     rerenderSingleTestModule(testType);
 
     showToast(
-      isEn ? '✨ Entire test upgraded! Re-auditing updated score...' : '✨ បានកែលម្អវិញ្ញាសាទាំងមូលរួចរាល់! កំពុងវាយតម្លៃពិន្ទុថ្មី...',
+      isEn ? '✨ Test upgraded successfully! Re-auditing updated score...' : '✨ បានកែលម្អវិញ្ញាសារួចរាល់! កំពុងវាយតម្លៃពិន្ទុថ្មី...',
       'success'
     );
     setTimeout(() => {
-      runTestPsychometricAudit(testType, combinedNotes);
+      runTestPsychometricAudit(testType, `${combinedNotes}\n${itemNotes}`);
     }, 350);
   } catch (err) {
     console.error('[Auto-Fix All Test Audit] Error:', err);
@@ -10247,21 +10341,34 @@ function generateNotebookLMScriptOffline(subject, grade, lessonTitle, mainPoints
   };
 }
 
-function distributeAndBalanceQuizList(list) {
+function distributeAndBalanceQuizList(list, forceRebalance = false) {
   if (!Array.isArray(list) || list.length === 0) return list;
-
-  // If the list is already well-distributed and authentic from AI (has at least 2 distinct answer keys),
-  // preserve AI questions, options, and explanations without scrambling!
-  const keys = new Set(list.map(q => (q && q.correctAnswer ? String(q.correctAnswer).trim().toUpperCase() : 'A')));
-  if (keys.size > 1) {
-    return list;
-  }
 
   const letters = ['A', 'B', 'C', 'D'];
   const khmerLetters = ['ក', 'ខ', 'គ', 'ឃ'];
   const n = list.length;
 
-  // Generate balanced target keys across A, B, C, D (~25% each)
+  // Check actual statistical balance (not just keys.size > 1, which missed 8/15 skewed B keys!)
+  const counts = { A: 0, B: 0, C: 0, D: 0 };
+  let maxStreak = 0;
+  let curStreak = 0;
+  let prevK = '';
+  list.forEach(q => {
+    const k = (q && q.correctAnswer) ? String(q.correctAnswer).trim().toUpperCase() : 'A';
+    const normK = letters.includes(k) ? k : 'A';
+    counts[normK]++;
+    if (normK === prevK) curStreak++;
+    else { curStreak = 1; prevK = normK; }
+    if (curStreak > maxStreak) maxStreak = curStreak;
+  });
+  const maxRatio = Math.max(counts.A, counts.B, counts.C, counts.D) / Math.max(1, n);
+  const alreadyBalanced = (n < 4) || (maxRatio <= 0.36 && maxStreak <= 2);
+
+  if (!forceRebalance && alreadyBalanced) {
+    return list;
+  }
+
+  // Generate balanced target keys across A, B, C, D (~25% each) with zero adjacent duplicates
   const pool = [];
   const baseCount = Math.floor(n / 4);
   const remainder = n % 4;
@@ -10278,54 +10385,78 @@ function distributeAndBalanceQuizList(list) {
     const j = Math.floor(Math.random() * (i + 1));
     [pool[i], pool[j]] = [pool[j], pool[i]];
   }
-  // Prevent adjacent duplicate keys where possible
-  for (let i = 1; i < pool.length; i++) {
-    if (pool[i] === pool[i - 1]) {
-      for (let j = i + 1; j < pool.length; j++) {
-        if (pool[j] !== pool[i] && (j === pool.length - 1 || pool[j] !== pool[j + 1])) {
-          [pool[i], pool[j]] = [pool[j], pool[i]];
-          break;
+  // Eliminate adjacent duplicate keys (multiple passes for reliability)
+  for (let pass = 0; pass < 4; pass++) {
+    for (let i = 1; i < pool.length; i++) {
+      if (pool[i] === pool[i - 1]) {
+        for (let j = 0; j < pool.length; j++) {
+          if (j === i || j === i - 1) continue;
+          const prevOk = (j === 0 || pool[j - 1] !== pool[i]);
+          const nextOk = (j === pool.length - 1 || pool[j + 1] !== pool[i]);
+          const targetOk = pool[j] !== pool[i - 1] && (i === pool.length - 1 || pool[j] !== pool[i + 1]);
+          if (prevOk && nextOk && targetOk) {
+            [pool[i], pool[j]] = [pool[j], pool[i]];
+            break;
+          }
         }
       }
     }
   }
 
+  const swapExplanationLetters = (expText, oldL, newL) => {
+    if (!expText || oldL === newL) return expText;
+    const oldKh = khmerLetters[letters.indexOf(oldL)] || '';
+    const newKh = khmerLetters[letters.indexOf(newL)] || '';
+    let out = String(expText);
+    // Safely swap Latin letter references (e.g., "ចម្លើយ B", "ជម្រើស B", "Option B", "(B)")
+    const tmpEn = '__TMP_OPT_EN__';
+    const enOldRe = new RegExp(`(ចម្លើយ|ជម្រើស|គន្លឹះ|Option|Answer|Key|\\()(\\s*)${oldL}(?=\\b|\\)|\\.|,|\\s|$)`, 'g');
+    const enNewRe = new RegExp(`(ចម្លើយ|ជម្រើស|គន្លឹះ|Option|Answer|Key|\\()(\\s*)${newL}(?=\\b|\\)|\\.|,|\\s|$)`, 'g');
+    out = out.replace(enOldRe, `$1$2${tmpEn}`).replace(enNewRe, `$1$2${oldL}`).replace(new RegExp(tmpEn, 'g'), newL);
+    if (oldKh && newKh) {
+      const tmpKh = '__TMP_OPT_KH__';
+      const khOldRe = new RegExp(`(ចម្លើយ|ជម្រើស|គន្លឹះ|\\()(\\s*)${oldKh}(?=[\\s\\)\\.,។]|$)`, 'g');
+      const khNewRe = new RegExp(`(ចម្លើយ|ជម្រើស|គន្លឹះ|\\()(\\s*)${newKh}(?=[\\s\\)\\.,។]|$)`, 'g');
+      out = out.replace(khOldRe, `$1$2${tmpKh}`).replace(khNewRe, `$1$2${oldKh}`).replace(new RegExp(tmpKh, 'g'), newKh);
+    }
+    return out;
+  };
+
   return list.map((q, idx) => {
     if (!q || typeof q !== 'object') return q;
     const item = { ...q };
     const opts = item.options || {};
-    const optA = opts.A || opts['ក'] || '';
-    const optB = opts.B || opts['ខ'] || '';
-    const optC = opts.C || opts['គ'] || '';
-    const optD = opts.D || opts['ឃ'] || '';
+    const optMap = {
+      A: opts.A || opts['ក'] || '',
+      B: opts.B || opts['ខ'] || '',
+      C: opts.C || opts['គ'] || '',
+      D: opts.D || opts['ឃ'] || ''
+    };
 
     let rawCorrect = (item.correctAnswer || 'A').toString().trim().toUpperCase();
-    let correctText = optA;
-    if (rawCorrect === 'B' || rawCorrect === 'ខ' || rawCorrect === '2' || rawCorrect === '២' || (optB && rawCorrect === optB)) {
-      correctText = optB;
-    } else if (rawCorrect === 'C' || rawCorrect === 'គ' || rawCorrect === '3' || rawCorrect === '៣' || (optC && rawCorrect === optC)) {
-      correctText = optC;
-    } else if (rawCorrect === 'D' || rawCorrect === 'ឃ' || rawCorrect === '4' || rawCorrect === '៤' || (optD && rawCorrect === optD)) {
-      correctText = optD;
-    }
-
-    const allOptions = [optA, optB, optC, optD];
-    const correctIdx = allOptions.indexOf(correctText);
-    const distractors = allOptions.filter((_, i) => i !== (correctIdx >= 0 ? correctIdx : 0));
-
-    // Shuffle distractors randomly
-    for (let i = distractors.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [distractors[i], distractors[j]] = [distractors[j], distractors[i]];
+    let oldKey = 'A';
+    if (rawCorrect === 'B' || rawCorrect === 'ខ' || rawCorrect === '2' || rawCorrect === '២' || (optMap.B && rawCorrect === optMap.B.toUpperCase())) {
+      oldKey = 'B';
+    } else if (rawCorrect === 'C' || rawCorrect === 'គ' || rawCorrect === '3' || rawCorrect === '៣' || (optMap.C && rawCorrect === optMap.C.toUpperCase())) {
+      oldKey = 'C';
+    } else if (rawCorrect === 'D' || rawCorrect === 'ឃ' || rawCorrect === '4' || rawCorrect === '៤' || (optMap.D && rawCorrect === optMap.D.toUpperCase())) {
+      oldKey = 'D';
     }
 
     const targetKey = pool[idx % pool.length];
-    const targetIdx = letters.indexOf(targetKey);
+    if (targetKey !== oldKey) {
+      // Minimal clean 2-slot swap: preserves exact option texts & updates explanation letter refs!
+      const tmp = optMap[oldKey];
+      optMap[oldKey] = optMap[targetKey];
+      optMap[targetKey] = tmp;
+      if (item.explanation) {
+        item.explanation = swapExplanationLetters(item.explanation, oldKey, targetKey);
+      }
+    }
 
     const newOpts = {};
-    let distractorIdx = 0;
     for (let i = 0; i < 4; i++) {
-      const val = (i === targetIdx) ? correctText : (distractors[distractorIdx++] || '');
+      const val = optMap[letters[i]];
       newOpts[letters[i]] = val;
       newOpts[khmerLetters[i]] = val;
     }
