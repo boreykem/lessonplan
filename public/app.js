@@ -3962,6 +3962,7 @@ let _aiAuditInFlight = false;
 let _aiAuditLastError = '';
 let _aiAuditDetailsOpen = false;
 let _aiAuditRunSeq = 0;
+let _currentAuditFixes = [];
 
 function openStepRegenerateModalWithFix(stepIdx, fixInstruction) {
   if (typeof openStepRegenerateModal !== 'function') return;
@@ -3973,6 +3974,17 @@ function openStepRegenerateModalWithFix(stepIdx, fixInstruction) {
   }
 }
 window.openStepRegenerateModalWithFix = openStepRegenerateModalWithFix;
+
+function applyAuditFixByIndex(fixIdx) {
+  const item = Array.isArray(_currentAuditFixes) ? _currentAuditFixes[fixIdx] : null;
+  if (!item) return;
+  const plan = state.currentPlan || state.generatedPlanData;
+  const maxSteps = (plan && Array.isArray(plan.steps)) ? plan.steps.length : 5;
+  const stepNo = parseInt(item.stepNumber, 10) || 0;
+  const stepIdx = (stepNo >= 1 && stepNo <= maxSteps) ? (stepNo - 1) : 0;
+  openStepRegenerateModalWithFix(stepIdx, item.fixInstruction || item.issue || '');
+}
+window.applyAuditFixByIndex = applyAuditFixByIndex;
 
 function renderPedagogicalQualityScore(data) {
   const strip = document.getElementById('pedagogicalQualityStrip');
@@ -4067,6 +4079,7 @@ function renderPedagogicalQualityScore(data) {
     ` : '';
 
     const improvements = Array.isArray(aiAudit.improvements) ? aiAudit.improvements.filter(it => it && it.issue) : [];
+    _currentAuditFixes = improvements;
     const fixesHtml = improvements.length > 0 ? `
       <div class="audit-fixes-section">
         <div class="audit-fixes-title">
@@ -4077,12 +4090,11 @@ function renderPedagogicalQualityScore(data) {
           ${improvements.map((imp, i) => {
             const stepNo = parseInt(imp.stepNumber, 10) || 0;
             const stepIdx = (stepNo >= 1 && stepNo <= (data.steps?.length || 5)) ? (stepNo - 1) : -1;
-            const safeFixAttr = encodeURIComponent(imp.fixInstruction || imp.issue || '');
             const tagText = stepNo > 0
               ? (isEn ? `Step ${stepNo}` : `ជំហានទី ${kNum(stepNo)}`)
               : (isEn ? 'General' : 'ទូទៅ');
             const fixBtnHtml = stepIdx >= 0
-              ? `<button type="button" class="btn-audit-fix-step" onclick="openStepRegenerateModalWithFix(${stepIdx}, decodeURIComponent('${safeFixAttr}'))">
+              ? `<button type="button" class="btn-audit-fix-step" onclick="applyAuditFixByIndex(${i})">
                   <i class="fa-solid fa-wrench"></i> ${isEn ? `Fix Step ${stepNo} Now` : `កែជំហានទី ${kNum(stepNo)} ភ្លាម`}
                  </button>`
               : '';
@@ -4217,13 +4229,13 @@ async function runDeepAiPedagogicalAudit(planData, isManualTrigger = false) {
   const stepsDigest = (plan.steps || []).map((st, idx) => {
     const n = st.stepNumber || (idx + 1);
     return `Step ${n} [${st.stepTitle || ''} | ${st.duration || ''}]:
-  - Teacher: ${String(st.teacherActivity || '').slice(0, 500)}
-  - Content: ${String(st.contentSummary || '').slice(0, 500)}
-  - Student: ${String(st.studentActivity || '').slice(0, 500)}${st.diagramSvg || st.diagramImageDataUrl ? `\n  - Visual Embedded: YES (${st.diagramCaption || 'diagram/image'})` : ''}`;
+  - Teacher: ${String(st.teacherActivity || '').slice(0, 3500)}
+  - Content: ${String(st.contentSummary || '').slice(0, 3500)}
+  - Student: ${String(st.studentActivity || '').slice(0, 3500)}${st.diagramSvg || st.diagramImageDataUrl ? `\n  - Visual Embedded: YES (${st.diagramCaption || 'diagram/image'})` : ''}`;
   }).join('\n\n');
 
   const preClassDigest = (isFlipped && plan.preClassPhase)
-    ? `\n[PRE-CLASS PHASE]\n- Video/Materials: ${plan.preClassPhase.video || ''} | ${plan.preClassPhase.materials || ''}\n- Teacher: ${String(plan.preClassPhase.teacherActivity || '').slice(0, 260)}\n- Student: ${String(plan.preClassPhase.studentActivity || '').slice(0, 260)}`
+    ? `\n[PRE-CLASS PHASE]\n- Video/Materials: ${plan.preClassPhase.video || ''} | ${plan.preClassPhase.materials || ''}\n- Teacher: ${String(plan.preClassPhase.teacherActivity || '').slice(0, 1200)}\n- Student: ${String(plan.preClassPhase.studentActivity || '').slice(0, 1200)}`
     : '';
 
   const auditPrompt = `
