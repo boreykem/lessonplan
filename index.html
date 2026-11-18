@@ -30,7 +30,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=20261118_v177">
+  <link rel="stylesheet" href="style.css?v=20261118_v181">
 
   <!-- Progressive Web App (PWA) Meta & Manifest -->
   <link rel="manifest" href="manifest.json">
@@ -550,6 +550,50 @@
                   <div class="tpl-card-title">ថ្នាក់រៀនត្រឡប់ (Flipped)</div>
                   <div class="tpl-card-ratio">៣% • ៧% • ១០% • ៧៥% • ៥%</div>
                 </button>
+              </div>
+            </div>
+
+            <!-- 1B. Delivery Mode Selector (In-Person vs Online vs Hybrid) -->
+            <div id="deliveryModeWrapper" class="control-group mb-2">
+              <label data-i18n="deliveryModeLabel" style="margin-bottom: 5px; display: block;">
+                <i class="fa-solid fa-laptop-file text-primary" style="margin-right: 4px; color: #0284c7;"></i> របៀបបង្រៀន (Delivery Mode)៖
+              </label>
+              <input type="hidden" id="inputDeliveryMode" value="in_person">
+              <div class="delivery-mode-pills" id="deliveryModePills" role="radiogroup" aria-label="របៀបបង្រៀន">
+                <button type="button" class="delivery-pill active" id="deliveryPillInPerson" data-mode="in_person"
+                  onclick="selectDeliveryMode('in_person')" role="radio" aria-checked="true">
+                  <span>🏫</span> <span data-i18n="deliveryInPerson">ផ្ទាល់ក្នុងថ្នាក់</span>
+                </button>
+                <button type="button" class="delivery-pill" id="deliveryPillOnline" data-mode="online"
+                  onclick="selectDeliveryMode('online')" role="radio" aria-checked="false">
+                  <span>💻</span> <span data-i18n="deliveryOnline">អនឡាញ (Online)</span>
+                </button>
+                <button type="button" class="delivery-pill" id="deliveryPillHybrid" data-mode="hybrid"
+                  onclick="selectDeliveryMode('hybrid')" role="radio" aria-checked="false">
+                  <span>🔀</span> <span data-i18n="deliveryHybrid">ចម្រុះ (Hybrid)</span>
+                </button>
+              </div>
+
+              <!-- Expandable Online / Hybrid Platform Panel -->
+              <div id="onlinePlatformPanel" class="online-platform-panel" style="display: none;">
+                <div class="online-platform-row">
+                  <label for="inputOnlinePlatform" class="online-platform-label" data-i18n="onlinePlatformLabel">
+                    <i class="fa-solid fa-video" style="color: #0284c7;"></i> កម្មវិធីបង្រៀន Online៖
+                  </label>
+                  <select id="inputOnlinePlatform" class="form-control form-control-sm" style="flex: 1; min-width: 150px;">
+                    <option value="Zoom / Google Meet" selected>Zoom / Google Meet</option>
+                    <option value="Zoom">Zoom (Breakout Rooms, Poll, Chat)</option>
+                    <option value="Google Meet">Google Meet (Breakout Rooms, Jamboard/Docs)</option>
+                    <option value="Microsoft Teams">Microsoft Teams (Channels, Whiteboard)</option>
+                    <option value="Telegram Live / Group">Telegram Live / Group (Voice/Video + Poll)</option>
+                  </select>
+                </div>
+                <div id="onlineFlippedTipBar" class="online-flipped-tip" style="display: none;">
+                  <span>💡 <b>ណែនាំសម្រាប់ Online៖</b> ទម្រង់ <b>Flipped Classroom (៧៥%) + PBL/Socratic</b> ជួយឱ្យសិស្សសកម្មជាង!</span>
+                  <button type="button" class="btn-online-tip-apply" onclick="applyRecommendedOnlineSetup()">
+                    ⚡ ប្ដូរទៅ Flipped
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -3002,7 +3046,7 @@
   <div id="smartHoverTooltip" class="smart-hover-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261118_v180"></script>
+  <script src="app.js?v=20261118_v181"></script>
 </body>
 
 </html>

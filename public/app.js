@@ -679,6 +679,7 @@ function selectPresetTemplateCard(val) {
   }
   syncPresetTemplateCards(val);
   handlePresetTemplateChange(val);
+  if (typeof refreshOnlineFlippedTipBar === 'function') refreshOnlineFlippedTipBar();
 }
 window.selectPresetTemplateCard = selectPresetTemplateCard;
 
@@ -2069,6 +2070,11 @@ const I18N_DICTIONARY = {
     btnClearTechAll: "សម្អាតទាំងអស់",
     btnAddCustomTech: "+ បន្ថែមយុទ្ធវិធីថ្មី",
     btnDoneTech: "រួចរាល់",
+    deliveryModeLabel: "របៀបបង្រៀន (Delivery Mode)៖",
+    deliveryInPerson: "ផ្ទាល់ក្នុងថ្នាក់",
+    deliveryOnline: "អនឡាញ (Online)",
+    deliveryHybrid: "ចម្រុះ (Hybrid)",
+    onlinePlatformLabel: "កម្មវិធីបង្រៀន Online៖",
     modalSavedPlansSearchPlaceholder: "ស្វែងរកតាមចំណងជើងមេរៀន មុខវិជ្ជា ថ្នាក់ ឬកាលបរិច្ឆេទ...",
     modalSavedPlansFilterAll: "-- គ្រប់មុខវិជ្ជា --",
 
@@ -2242,6 +2248,11 @@ const I18N_DICTIONARY = {
     btnClearTechAll: "Clear All",
     btnAddCustomTech: "+ Add Custom Technique",
     btnDoneTech: "Done",
+    deliveryModeLabel: "Delivery Mode:",
+    deliveryInPerson: "In-Person",
+    deliveryOnline: "Online (Live)",
+    deliveryHybrid: "Hybrid",
+    onlinePlatformLabel: "Online Platform:",
     modalSavedPlansSearchPlaceholder: "Search by lesson title, subject, grade, or date...",
     modalSavedPlansFilterAll: "-- All Subjects --",
 
@@ -8052,6 +8063,110 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', t
 
 
 // ==========================================================================
+// 💻 DELIVERY MODE ENGINE (In-Person vs Online Zoom/Meet vs Hybrid)
+// ==========================================================================
+function getSelectedDeliveryMode() {
+  return (document.getElementById('inputDeliveryMode')?.value || state.deliveryMode || 'in_person').trim();
+}
+window.getSelectedDeliveryMode = getSelectedDeliveryMode;
+
+function getSelectedOnlinePlatform() {
+  return (document.getElementById('inputOnlinePlatform')?.value || state.onlinePlatform || 'Zoom / Google Meet').trim();
+}
+window.getSelectedOnlinePlatform = getSelectedOnlinePlatform;
+
+function getDeliveryModeBadgeText(mode, platform, isEn = false) {
+  const m = String(mode || 'in_person').trim();
+  const p = String(platform || 'Zoom / Google Meet').trim();
+  if (m === 'online') {
+    return isEn ? `💻 Online Teaching (${p})` : `💻 បង្រៀនតាមអនឡាញ (Online — ${p})`;
+  }
+  if (m === 'hybrid') {
+    return isEn ? `🔀 Hybrid Teaching (In-Person + ${p})` : `🔀 បង្រៀនចម្រុះ (Hybrid — ក្នុងថ្នាក់ + ${p})`;
+  }
+  return isEn ? '🏫 In-Person Classroom' : '🏫 បង្រៀនផ្ទាល់ក្នុងថ្នាក់';
+}
+window.getDeliveryModeBadgeText = getDeliveryModeBadgeText;
+
+function refreshOnlineFlippedTipBar() {
+  const tipBar = document.getElementById('onlineFlippedTipBar');
+  if (!tipBar) return;
+  const mode = getSelectedDeliveryMode();
+  const presetVal = document.getElementById('presetTemplateSelect')?.value || state.selectedPresetId || 'moeys_standard_5step';
+  tipBar.style.display = (mode === 'online' && presetVal !== 'flipped_learning_5step') ? 'flex' : 'none';
+}
+
+window.selectDeliveryMode = function (mode = 'in_person', platform = null) {
+  const valid = ['in_person', 'online', 'hybrid'].includes(mode) ? mode : 'in_person';
+  state.deliveryMode = valid;
+  const hiddenInp = document.getElementById('inputDeliveryMode');
+  if (hiddenInp) hiddenInp.value = valid;
+
+  document.querySelectorAll('#deliveryModePills .delivery-pill').forEach(btn => {
+    const isAct = btn.getAttribute('data-mode') === valid;
+    btn.classList.toggle('active', isAct);
+    btn.setAttribute('aria-checked', isAct ? 'true' : 'false');
+  });
+
+  const panel = document.getElementById('onlinePlatformPanel');
+  if (panel) panel.style.display = (valid === 'online' || valid === 'hybrid') ? 'flex' : 'none';
+
+  const platSel = document.getElementById('inputOnlinePlatform');
+  if (platform && platSel) {
+    platSel.value = platform;
+    state.onlinePlatform = platform;
+  }
+
+  refreshOnlineFlippedTipBar();
+};
+
+window.applyRecommendedOnlineSetup = function () {
+  if (typeof selectPresetTemplateCard === 'function') {
+    selectPresetTemplateCard('flipped_learning_5step');
+  }
+  const methodEl = document.getElementById('inputMethod');
+  if (methodEl) {
+    methodEl.value = 'pbl';
+    if (typeof handleTeachingMethodChange === 'function') handleTeachingMethodChange();
+  }
+  refreshOnlineFlippedTipBar();
+  showToast('⚡ បានប្ដូរទៅទម្រង់ Flipped Classroom (៧៥%) + PBL — សាកសមបំផុតសម្រាប់បង្រៀន Online!', 'success', 4500);
+};
+
+function getDeliveryModePedagogicalPrompt(deliveryMode, onlinePlatform, isFlipped = false) {
+  const mode = String(deliveryMode || 'in_person').trim();
+  const platform = String(onlinePlatform || 'Zoom / Google Meet').trim();
+  if (mode === 'online') {
+    return `
+
+═══════════════════════════════════════════════════
+💻 MANDATORY ONLINE TEACHING ADAPTATION (${platform.toUpperCase()} — 100% REMOTE CLASSROOM):
+═══════════════════════════════════════════════════
+- THIS LESSON IS TAUGHT 100% ONLINE via **${platform}** (NOT a physical classroom!).
+- ⛔ STRICT PROHIBITION: NEVER mention physical-only classroom tools or actions such as ក្ដារខៀន/ដីស/ហ្វឺត (chalkboard/chalk), ក្រដាសផ្ទាំងធំ A0 (physical paper Flipchart), ដើរជុំវិញថ្នាក់ (physical Gallery Walk), បិតក្រដាសលើជញ្ជាំង, ឬបោះបាល់ក្នុងថ្នាក់!
+- ✅ REQUIRED ONLINE TOOLS & ACTIVITIES ACROSS ALL 5 STEPS:
+  • សម្ភារឧបទេស (Materials): ត្រូវដាក់សម្ភារៈអនឡាញជាក់ស្ដែង — គ្រូ៖ កុំព្យូទ័រ, អ៊ីនធឺណិត, កម្មវិធី ${platform}, ស្លាយបង្រៀន Slide Studio, ក្ដារឌីជីថល (Digital Whiteboard/Padlet/Google Docs), តំណភ្ជាប់ Poll/Pre-Post Test, ក្រុម Telegram។ សិស្ស៖ ទូរស័ព្ទ/កុំព្យូទ័រ, កាស/Mic, សៀវភៅកត់ត្រា, តំណភ្ជាប់ Google Docs/Padlet។
+  • ជំហានទី ១ (រដ្ឋបាលអនឡាញ): ពិនិត្យវត្តមានតាម Chatbox/Google Form, ត្រួតពិនិត្យ Mic/Camera និងរំលឹកវិន័យរៀន Online (បិទ Mic ពេលស្ដាប់, លើកដៃ Reaction ពេលចង់ឆ្លើយ)។
+  • ជំហានទី ២ (រំលឹក/ពិនិត្យចំណេះចាស់): ប្រើសំណួរ Live Poll, Chatbox Waterfall (ឱ្យសិស្សវាយចម្លើយផ្ញើចូល Chat ព្រមគ្នា), ឬហ្គេមសំណួរខ្លីៗ។
+  • ជំហានទី ៣ (${isFlipped ? 'បំភ្លឺចំណុចងងឹត & ប្រគល់បេសកកម្មអនឡាញ' : 'ដំណើរការបង្រៀនថ្មីតាម Screen Share'}): គ្រូ **Share Screen** បង្ហាញស្លាយ/រូបភាព ដោយបំបែកការពន្យល់ជាកំណាត់ខ្លីៗ (Micro-lecture ៨–១០ នាទី) ឆ្លាស់ជាមួយសំណួរអន្តរកម្មតាម Chatbox ឬបើក Mic ដើម្បីកុំឱ្យសិស្សអផ្សុក។
+  • ជំហានទី ៤ (${isFlipped ? 'អនុវត្តសកម្ម ៧៥% ក្នុង Breakout Rooms' : 'ពង្រឹងពុទ្ធិអនឡាញ ៧០% STT'}): បែងចែកសិស្សចូល **Breakout Rooms** ពិភាក្សាក្រុម និងសរសេរលទ្ធផលរួមគ្នាលើ **Google Docs / Padlet / Shared Slides** (គ្រូចូលតាមដានតាម Breakout Room នីមួយៗ) → ត្រឡប់មកបន្ទប់ធំវិញ តំណាងក្រុម **Share Screen** បង្ហាញស្នាដៃ និងមិត្តរួមថ្នាក់ផ្ដល់យោបល់តាម Mic/Chatbox [ជំនាញ 4Cs]។
+  • ជំហានទី ៥ (បណ្ដាំផ្ញើ): ធ្វើ **Digital Exit Ticket 3-2-1** តាម Chatbox ឬ Google Form + ផ្ញើឯកសារ/វីដេអូ និងកិច្ចការផ្ទះចូល **Telegram Group / Google Classroom**។`;
+  }
+  if (mode === 'hybrid') {
+    return `
+
+═══════════════════════════════════════════════════
+🔀 MANDATORY HYBRID TEACHING ADAPTATION (IN-PERSON + ${platform.toUpperCase()} SIMULTANEOUSLY):
+═══════════════════════════════════════════════════
+- THIS LESSON IS TAUGHT IN **HYBRID MODE** (some students are physically in the classroom while others join live via **${platform}**).
+- ✅ REQUIRED HYBRID COORDINATION:
+  • សម្ភារឧបទេស (Materials): រួមបញ្ចូលទាំងឧបករណ៍ថ្នាក់ផ្ទាល់ (Projector/TV, កាមេរ៉ា/Mic) និងឧបករណ៍អនឡាញ (${platform}, Padlet/Google Slides រួមគ្នា, ក្រុម Telegram)។
+  • គ្រប់សកម្មភាពពិភាក្សា និងការសួរឆ្លើយ ត្រូវធានាការចូលរួមស្មើភាពគ្នារវាង **សិស្សក្នុងថ្នាក់** និង **សិស្សតាមអនឡាញ** (ឧ. ប្រើ Digital Board/Padlet តែមួយរួមគ្នា ឱ្យក្រុមក្នុងថ្នាក់ និងក្រុម Breakout Room អនឡាញបង្ហាញលទ្ធផលលើអេក្រង់តែមួយ និងប្រើ Digital Poll/Exit Ticket ដែលទាំងពីរក្រុមចូលឆ្លើយបានដូចគ្នា)។`;
+  }
+  return '';
+}
+
+// ==========================================================================
 // AI Generation Core Engine
 // ==========================================================================
 
@@ -8138,9 +8253,12 @@ async function handleGenerateLessonPlan() {
     setMobileWorkspaceView('preview');
   }
 
+  const deliveryMode = getSelectedDeliveryMode();
+  const onlinePlatform = getSelectedOnlinePlatform();
   const genParams = {
     school, teacher, subject, grade, duration, chapter, lessonTitle,
     approach, method, techniques,
+    deliveryMode, onlinePlatform,
     customNotes, lessonContent,
     language: state.language || 'km',
     templateMode: state.templateMode,
@@ -8195,6 +8313,8 @@ async function handleGenerateLessonPlan() {
       planData.selfEvaluation = state.savedLearningGain;
     }
     delete planData.aiAuditReport;
+    planData.deliveryMode = deliveryMode;
+    planData.onlinePlatform = onlinePlatform;
     state.currentPlan = planData;
     state.generatedPlanData = planData;
     renderLessonPlanToA4(planData);
@@ -8513,7 +8633,7 @@ async function generateWithGroqAPI(params) {
   const totalMin = parseDurationToMinutes(params.duration);
   const stepTimeHints = calculateStepDurations(params.duration, isFlipped ? 'flipped' : (isBd ? 'backward_design' : 'standard'));
 
-  const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle, params.techniques, params.subject, params.duration);
+  const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle, params.techniques, params.subject, params.duration) + getDeliveryModePedagogicalPrompt(params.deliveryMode, params.onlinePlatform, isFlipped);
   const isEn = (params.language === 'en' || state.language === 'en');
   const targetLang = isEn ? 'ENGLISH (all content, objectives, pedagogical steps, materials, and activities MUST be written 100% in English)' : 'Khmer';
   const cleanMethod = (params.method && !params.method.includes('សិស្សមជ្ឈមណ្ឌល') && !params.method.toLowerCase().includes('student-centered')) ? params.method : (isEn ? '5E Instructional Model' : 'វិធីសាស្ត្រ 5E Instructional Model');
@@ -8582,7 +8702,7 @@ async function generateWithOpenRouterAPI(params) {
   const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
   const isFlipped = isFlippedLearningRequest(params);
   const isBd = !isFlipped && isBackwardDesignRequest(params);
-  const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle, params.techniques, params.subject, params.duration);
+  const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle, params.techniques, params.subject, params.duration) + getDeliveryModePedagogicalPrompt(params.deliveryMode, params.onlinePlatform, isFlipped);
   const isEn = (params.language === 'en' || state.language === 'en');
   const targetLang = isEn ? 'ENGLISH (all content, objectives, pedagogical steps, materials, and activities MUST be written 100% in English)' : 'Khmer';
   const cleanMethod = (params.method && !params.method.includes('សិស្សមជ្ឈមណ្ឌល') && !params.method.toLowerCase().includes('student-centered')) ? params.method : (isEn ? '5E Instructional Model' : 'វិធីសាស្ត្រ 5E Instructional Model');
@@ -8898,7 +9018,7 @@ ${totalMin >= 150 ? `• This is an EXTENDED 3-HOUR / WORKSHOP SESSION (${totalM
    - [C - Condition / លក្ខខណ្ឌ]: មធ្យោបាយ ឬវិធីសាស្ត្ររៀន (ឧ. «តាមរយៈការពន្យល់របស់គ្រូ និងការសង្កេតស្លាយ/វីដេអូ», «តាមរយៈការអានឯកសារគោល», «តាមរយៈការអនុវត្តលំហាត់ជាក់ស្តែង និងការពិភាក្សាជាក្រុម», «តាមរយៈការឆ្លុះបញ្ចាំងលើ Exit Ticket»...)
    - [S / D - Standard / ស្ដង់ដារ ឬ កម្រិតកំណត់]: កម្រិតកំណត់នៃការសម្រេចបាន (ឧ. «បានត្រឹមត្រូវ និងក្បោះក្បាយ», «បានយ៉ាងហោចណាស់ ៨០% ត្រឹមត្រូវ», «បានច្បាស់លាស់ឥតខុសឆ្គង», «ប្រកបដោយភាពជឿជាក់ និងស្ទាត់ជំនាញ», «ប្រកបដោយស្មារតីទទួលខុសត្រូវខ្ពស់»)
    ⚠️ ហាមដាច់ខាតសរសេរតែសកម្មភាពកាត់ៗ (ឧ. «ពន្យល់បានពី...») ដោយគ្មានលក្ខខណ្ឌ (Condition: តាមរយៈ...) និងគ្មានស្ដង់ដារ (Standard: បានត្រឹមត្រូវ...)!
-${getMethodPedagogicalPrompt(params.method, true, false, params.lessonTitle, params.techniques, params.subject, params.duration)}
+${getMethodPedagogicalPrompt(params.method, true, false, params.lessonTitle, params.techniques, params.subject, params.duration)}${getDeliveryModePedagogicalPrompt(params.deliveryMode, params.onlinePlatform, true)}
 
 CRITICAL INSTRUCTIONS FOR AI GENERATION:
 1. Deep Content Analysis: Thoroughly examine the provided lesson content. Extract real definitions, terms, rules, formulas, and examples. Use them everywhere in the plan.
@@ -9164,7 +9284,7 @@ PEDAGOGICAL CONTINUITY & SCAFFOLDING CHAIN (ទំនាក់ទំនងរវ
      • ហាមដាច់ខាតសួរសំណួរបិទទន្ទេញចាំចម្លើយខ្លីៗ (Closed recall questions ដូចជា «តើមានប៉ុន្មានប្រភេទ?» រួចសិស្សឆ្លើយតែ «៣ ប្រភេទ»)។ ត្រូវសួរដាស់ការគិត ហេតុផល និងការវិភាគ (ឧ. «តើមុំ និងជ្រុងនីមួយៗមានលក្ខណៈខុសគ្នាយ៉ាងដូចម្តេច ហើយហេតុអ្វីបានជាចាំបាច់ត្រូវបែងចែកបែបនេះ?», «តើយើងអាចអនុវត្តចំណេះដឹងនេះក្នុងការដោះស្រាយបញ្ហាជាក់ស្តែងយ៉ាងដូចម្តេច?»)។
    - គំនូសតាង និងរូបភាពធរណីមាត្រ/វិទ្យាសាស្ត្រ (STEM DIAGRAMS):
      • សម្រាប់មុខវិជ្ជាគណិតវិទ្យា រូបវិទ្យា គីមីវិទ្យា ក្នុងប្រអប់ [ខ្លឹមសារ] ត្រូវសរសេររៀបរាប់រូបរាងធរណីមាត្រ គំនូសតាង ឬដ្យាក្រាមដែលត្រូវគូរបង្ហាញលើក្តារខៀនឱ្យបានច្បាស់លាស់ (ឧ. រូបត្រីកោណកែង សមបាត សម័ង្ស ប្លង់កូអរដោនេ បំពង់ពិសោធន៍...)។
-${getMethodPedagogicalPrompt(params.method, false, false, params.lessonTitle, params.techniques, params.subject, params.duration)}
+${getMethodPedagogicalPrompt(params.method, false, false, params.lessonTitle, params.techniques, params.subject, params.duration)}${getDeliveryModePedagogicalPrompt(params.deliveryMode, params.onlinePlatform, false)}
 
 ⛔ ABSOLUTE PROHIBITIONS:
 - NEVER write "...", "...", or any ellipsis as content
@@ -13299,6 +13419,7 @@ function renderLessonPlanToA4(data) {
       ${data.chapter ? `<div><strong>${escapeHtml(data.chapter)}</strong></div>` : ''}
       <div style="font-size: 11.5pt; font-weight: bold; color: #1e293b;">${escapeHtml(data.lessonTitle || '')}</div>
       ${data.method ? `<div style="font-size: 9.5pt; color: #475569; margin-top: 2px;"><strong>${isEn ? 'Teaching Method:' : 'វិធីសាស្ត្របង្រៀន៖'}</strong> ${escapeHtml(data.method)}</div>` : ''}
+      ${(data.deliveryMode && data.deliveryMode !== 'in_person') ? `<div style="font-size: 9.5pt; color: #0369a1; margin-top: 2px;"><strong>${isEn ? 'Delivery Mode:' : 'របៀបបង្រៀន៖'}</strong> ${escapeHtml(getDeliveryModeBadgeText(data.deliveryMode, data.onlinePlatform, isEn))}</div>` : ''}
     </div>
   `;
 
@@ -13379,6 +13500,7 @@ function renderLessonPlanToA4(data) {
       <div class="doc-lesson-banner" style="margin-bottom: 16px;">
         ${data.chapter ? `<div><strong>${escapeHtml(data.chapter)}</strong></div>` : ''}
         <div style="font-size: 11.5pt; font-weight: bold; color: #1e293b;">${isEn ? 'Lesson Title: ' : 'ចំណងជើងមេរៀន៖ '}${escapeHtml(data.lessonTitle || '')}</div>
+        ${(data.deliveryMode && data.deliveryMode !== 'in_person') ? `<div style="font-size: 9.5pt; color: #0369a1; margin-top: 3px;"><strong>${isEn ? 'Delivery Mode: ' : 'របៀបបង្រៀន៖ '}</strong>${escapeHtml(getDeliveryModeBadgeText(data.deliveryMode, data.onlinePlatform, isEn))}</div>` : ''}
       </div>
 
       <!-- Section 1: Objectives -->
@@ -14225,6 +14347,10 @@ async function handleExportWord(exportOptions = {}) {
             new TextRun({ text: `${data.lessonTitle || ''}`, bold: true, size: 26 })
           ]
         }),
+        ...((data.deliveryMode && data.deliveryMode !== 'in_person') ? [new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [new TextRun({ text: `របៀបបង្រៀន៖ ${getDeliveryModeBadgeText(data.deliveryMode, data.onlinePlatform, isEn)}`, bold: true, size: 22, color: "0369A1" })]
+        })] : []),
         new Paragraph({ text: "" })
       );
     }
@@ -14364,6 +14490,9 @@ async function handleExportWord(exportOptions = {}) {
             new TextRun({ text: `ចំណងជើងមេរៀន៖ ${data.lessonTitle || ''}`, bold: true, size: 24 })
           ]
         }),
+        ...((data.deliveryMode && data.deliveryMode !== 'in_person') ? [new Paragraph({
+          children: [new TextRun({ text: `របៀបបង្រៀន៖ ${getDeliveryModeBadgeText(data.deliveryMode, data.onlinePlatform, isEn)}`, bold: true, size: 22, color: "0369A1" })]
+        })] : []),
         new Paragraph({ text: "" })
       );
 
@@ -17643,6 +17772,9 @@ function openSavedPlanInCanvas(id) {
   if (record.planData.duration) setDurationValue(record.planData.duration);
   if (record.planData.chapter) document.getElementById('inputChapter').value = record.planData.chapter;
   if (record.planData.lessonTitle) document.getElementById('inputLessonTitle').value = record.planData.lessonTitle;
+  if (typeof selectDeliveryMode === 'function') {
+    selectDeliveryMode(record.planData.deliveryMode || 'in_person', record.planData.onlinePlatform || null);
+  }
   if (record.planData.method) {
     if (typeof setSelectedTeachingMethod === 'function') setSelectedTeachingMethod(record.planData.method);
     else document.getElementById('inputMethod').value = record.planData.method;
