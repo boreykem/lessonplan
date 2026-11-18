@@ -20057,15 +20057,10 @@ window.convertPastedGeminiToPptx = async function (targetFormat = 'google_slides
     return;
   }
 
-  // Request Google OAuth access token synchronously inside user gesture BEFORE closing modal/async work
+  // If Google OAuth Client ID is configured, authenticate directly; otherwise use Zero-Setup Google Slides Import mode!
   let googleAccessToken = null;
-  if (targetFormat === 'google_slides') {
-    if (!getGoogleSlidesClientId()) {
-      switchPptxTab('direct');
-      toggleGoogleClientIdPanel(true);
-      showToast('⚙️ សូមបញ្ចូល Google OAuth Client ID ជាមុនសិន ដើម្បីបង្កើតក្នុង Google Slides!', 'warning', 7000);
-      return;
-    }
+  let useDirectGoogleApi = (targetFormat === 'google_slides' && Boolean(getGoogleSlidesClientId()));
+  if (useDirectGoogleApi) {
     try {
       googleAccessToken = await requestGoogleSlidesAccessToken(false);
     } catch (authErr) {
@@ -20077,7 +20072,7 @@ window.convertPastedGeminiToPptx = async function (targetFormat = 'google_slides
   closePptxModal();
   state.isPptxGenerating = true;
   showPptxWidget(targetFormat === 'google_slides'
-    ? `📊 កំពុងបង្កើត ${slidesData.length} ស្លាយក្នុង Google Slides...`
+    ? `📊 កំពុងបង្កើត ${slidesData.length} ស្លាយសម្រាប់ Google Slides...`
     : `🎬 កំពុងបម្លែង ${slidesData.length} ស្លាយទៅជា PPTX...`);
   updatePptxWidgetStatus(`🧠 បានស្រង់ឃើញ ${slidesData.length} ស្លាយ... កំពុងរៀបចំរូបភាព & Layout`, 35);
 
@@ -20091,10 +20086,10 @@ window.convertPastedGeminiToPptx = async function (targetFormat = 'google_slides
       subject: (document.getElementById('inputSubject')?.value || document.getElementById('subjectSelect')?.value || 'ទូទៅ').trim(),
       grade: (document.getElementById('inputGrade')?.value || document.getElementById('gradeSelect')?.value || 'ទូទៅ').trim()
     };
-    if (targetFormat === 'google_slides') {
+    if (useDirectGoogleApi) {
       await buildGoogleSlidesPresentation(slidesData, meta, { theme, imageMode, accessToken: googleAccessToken });
     } else {
-      await buildPptxPresentation(slidesData, meta, { theme, imageMode });
+      await buildPptxPresentation(slidesData, meta, { theme, imageMode, openGoogleSlidesAfter: (targetFormat === 'google_slides') });
     }
   } catch (err) {
     console.error('Convert Slides error:', err);
@@ -20471,9 +20466,11 @@ function isGoogleSlidesTokenValid() {
 }
 
 function toggleGoogleClientIdPanel(forceOpen = null) {
+  const card = document.getElementById('googleSlidesAuthCard');
   const box = document.getElementById('googleClientIdSetupBox');
   if (!box) return;
   const open = (forceOpen !== null) ? Boolean(forceOpen) : (box.style.display === 'none' || !box.style.display);
+  if (open && card) card.style.display = 'block';
   box.style.display = open ? 'block' : 'none';
   const originEl = document.getElementById('googleSlidesOriginDisplay');
   if (originEl && window.location && window.location.origin) {
@@ -20482,6 +20479,12 @@ function toggleGoogleClientIdPanel(forceOpen = null) {
   const inp = document.getElementById('inputGoogleSlidesClientId');
   if (inp && !inp.value) {
     inp.value = getGoogleSlidesClientId();
+  }
+  if (!open && !getGoogleSlidesClientId() && card) {
+    const lastCard = document.getElementById('lastGoogleSlidesResultCard');
+    if (!lastCard || lastCard.style.display === 'none') {
+      card.style.display = 'none';
+    }
   }
 }
 window.toggleGoogleClientIdPanel = toggleGoogleClientIdPanel;
@@ -20498,6 +20501,8 @@ async function copyCurrentOriginForGoogleCloud() {
 window.copyCurrentOriginForGoogleCloud = copyCurrentOriginForGoogleCloud;
 
 function refreshGoogleSlidesAuthUI() {
+  const card = document.getElementById('googleSlidesAuthCard');
+  const authRow = document.getElementById('googleSlidesAuthRow');
   const statusEl = document.getElementById('googleSlidesAuthStatusText');
   const btnConnect = document.getElementById('btnConnectGoogleSlides');
   const btnDisconnect = document.getElementById('btnDisconnectGoogleSlides');
@@ -20518,23 +20523,7 @@ function refreshGoogleSlidesAuthUI() {
     inp.value = clientId;
   }
 
-  if (statusEl) {
-    if (connected) {
-      statusEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #16a34a;"></i> <span style="color: #15803d;">បានភ្ជាប់គណនី Google Slides API រួចរាល់ (1-Click Ready)</span>`;
-    } else if (clientId) {
-      statusEl.innerHTML = `<i class="fa-brands fa-google" style="color: #2563eb;"></i> <span>បានកំណត់ Client ID រួច — ចុច «ភ្ជាប់គណនី Google» ដើម្បីអនុញ្ញាត</span>`;
-    } else {
-      statusEl.innerHTML = `<i class="fa-solid fa-key" style="color: #d97706;"></i> <span style="color: #b45309;">សូមកំណត់ Google OAuth Client ID (ធ្វើតែម្ដងគត់)</span>`;
-    }
-  }
-
-  if (btnConnect) btnConnect.style.display = connected ? 'none' : 'inline-flex';
-  if (btnDisconnect) btnDisconnect.style.display = connected ? 'inline-flex' : 'none';
-  if (setupBox && !clientId) {
-    setupBox.style.display = 'block';
-  }
-
-  // Show last created Google Slides deck link if available
+  let hasLastDeck = false;
   if (lastCard && lastLink && lastTitle) {
     try {
       const savedLast = JSON.parse(localStorage.getItem(GOOGLE_SLIDES_LAST_DECK_STORAGE_KEY) || 'null');
@@ -20542,6 +20531,7 @@ function refreshGoogleSlidesAuthUI() {
         lastTitle.textContent = savedLast.title || 'Google Slides Presentation';
         lastLink.href = savedLast.url;
         lastCard.style.display = 'flex';
+        hasLastDeck = true;
       } else {
         lastCard.style.display = 'none';
       }
@@ -20549,6 +20539,28 @@ function refreshGoogleSlidesAuthUI() {
       lastCard.style.display = 'none';
     }
   }
+
+  // Keep UI 100% simple for teachers: hide technical Client ID setup unless Admin explicitly opens ⚙️!
+  if (!clientId) {
+    if (authRow) authRow.style.display = 'none';
+    const setupOpen = setupBox && setupBox.style.display === 'block';
+    if (card) card.style.display = (setupOpen || hasLastDeck) ? 'block' : 'none';
+    return;
+  }
+
+  if (card) card.style.display = 'block';
+  if (authRow) authRow.style.display = 'flex';
+
+  if (statusEl) {
+    if (connected) {
+      statusEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #16a34a;"></i> <span style="color: #15803d;">បានភ្ជាប់គណនី Google រួចរាល់ (ចុច ១ ដងបង្កើតភ្លាម)</span>`;
+    } else {
+      statusEl.innerHTML = `<i class="fa-brands fa-google" style="color: #2563eb;"></i> <span>ភ្ជាប់គណនី Google ដើម្បីបង្កើតផ្ទាល់ក្នុង docs.google.com/presentation</span>`;
+    }
+  }
+
+  if (btnConnect) btnConnect.style.display = connected ? 'none' : 'inline-flex';
+  if (btnDisconnect) btnDisconnect.style.display = connected ? 'inline-flex' : 'none';
 }
 window.refreshGoogleSlidesAuthUI = refreshGoogleSlidesAuthUI;
 
@@ -21325,14 +21337,11 @@ window.generatePptxSlides = async function (targetFormat = 'google_slides') {
     return;
   }
 
-  // Request Google OAuth access token synchronously right inside the user click gesture (prevents popup blocker!)
+  // If Google OAuth Client ID is configured (e.g. via Vercel env var), authenticate directly in 1 click;
+  // otherwise seamlessly use Zero-Setup mode (generates .pptx + opens docs.google.com/presentation/create)!
   let googleAccessToken = null;
-  if (targetFormat === 'google_slides') {
-    if (!getGoogleSlidesClientId()) {
-      toggleGoogleClientIdPanel(true);
-      showToast('⚙️ សូមបញ្ចូល Google OAuth Client ID ជាមុនសិន ដើម្បីបង្កើតក្នុង docs.google.com/presentation!', 'warning', 7000);
-      return;
-    }
+  const useDirectGoogleApi = (targetFormat === 'google_slides' && Boolean(getGoogleSlidesClientId()));
+  if (useDirectGoogleApi) {
     try {
       googleAccessToken = await requestGoogleSlidesAccessToken(false);
     } catch (authErr) {
@@ -21649,10 +21658,10 @@ ${data.steps ? `\nTeaching Steps:\n${data.steps.map(s => s.stepTitle + ': ' + s.
       return; // Exit cleanly without creating fake/repetitive dummy presentation!
     }
 
-    if (targetFormat === 'google_slides') {
+    if (useDirectGoogleApi) {
       await buildGoogleSlidesPresentation(slidesData, data, { theme, imageMode, accessToken: googleAccessToken });
     } else {
-      await buildPptxPresentation(slidesData, data, { theme, imageMode });
+      await buildPptxPresentation(slidesData, data, { theme, imageMode, openGoogleSlidesAfter: (targetFormat === 'google_slides') });
     }
 
   } catch (error) {
@@ -22012,8 +22021,19 @@ window.buildPptxPresentation = async function (slidesData, meta, options) {
   const fileName = `PPT_${cleanTitle || 'Lesson'}.pptx`;
   await pptx.writeFile({ fileName: fileName });
 
-  finishPptxWidgetSuccess(fileName);
-  showToast(`✅ បានទាញយកស្លាយ ${fileName} ជោគជ័យ!`, 'success', 10000);
+  if (options.openGoogleSlidesAfter) {
+    const gUrl = 'https://docs.google.com/presentation/create';
+    finishPptxWidgetGoogleSlides(gUrl, cleanTitle || fileName);
+    const statusEl = document.getElementById('pptxWidgetStatus');
+    if (statusEl) {
+      statusEl.innerHTML = `<span style="color: #059669; font-weight: 700;">✅ ទាញយក <b>${escapeHtml(fileName)}</b> រួចហើយ! ក្នុង Google Slides សូមចុច <b>File ➔ Import slides ➔ Upload</b></span>`;
+    }
+    showToast(`✅ ទាញយក ${fileName} រួចរាល់! កំពុងបើក Google Slides — សូមចុច File ➔ Import slides ➔ Upload!`, 'success', 11000);
+    window.open(gUrl, '_blank');
+  } else {
+    finishPptxWidgetSuccess(fileName);
+    showToast(`✅ បានទាញយកស្លាយ ${fileName} ជោគជ័យ!`, 'success', 10000);
+  }
   return fileName;
 };
 

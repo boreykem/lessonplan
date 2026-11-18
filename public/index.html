@@ -2380,9 +2380,15 @@
           style="color: #b45309; font-weight: 800; font-size: 1.08rem; display: flex; align-items: center; gap: 9px;">
           <i class="fa-brands fa-google" style="color: #d97706;"></i> <span data-i18n="modalPptxTitle">បង្កើតស្លាយ Google Slides (docs.google.com/presentation)</span>
         </div>
-        <button class="modal-close" onclick="closePptxModal()"
-          style="font-size: 1.3rem; background: none; border: none; cursor: pointer; color: #64748b;"><i
-            class="fa-solid fa-times"></i></button>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <button type="button" onclick="toggleGoogleClientIdPanel()" title="ការកំណត់ Admin: Google OAuth Client ID"
+            style="font-size: 0.92rem; background: none; border: none; cursor: pointer; color: #94a3b8; padding: 4px 6px;">
+            <i class="fa-solid fa-gear"></i>
+          </button>
+          <button class="modal-close" onclick="closePptxModal()"
+            style="font-size: 1.3rem; background: none; border: none; cursor: pointer; color: #64748b;"><i
+              class="fa-solid fa-times"></i></button>
+        </div>
       </div>
 
       <!-- Tab Navigation -->
@@ -2405,12 +2411,12 @@
           <i class="fa-solid fa-circle-check" style="color: #d97706;"></i> ប្រព័ន្ធនឹងបង្កើតស្លាយបង្រៀនដោយ AI រួចផ្ញើចូល <b>Google Drive (docs.google.com/presentation)</b> របស់លោកគ្រូដោយផ្ទាល់ — ស្អាត ពុម្ពអក្សរខ្មែរច្បាស់ មាន Speaker Notes និងអាចប្ដូររូបភាព/Theme ក្នុង Google Slides ភ្លាមៗ!
         </div>
 
-        <!-- 🔐 Google Slides API OAuth Sign-In & Client ID Card -->
-        <div id="googleSlidesAuthCard" class="gslides-auth-card">
-          <div class="gslides-auth-row">
+        <!-- 🔐 Google Slides API OAuth Card (Auto-shown only when OAuth Client ID is configured or Admin opens ⚙️) -->
+        <div id="googleSlidesAuthCard" class="gslides-auth-card" style="display: none;">
+          <div class="gslides-auth-row" id="googleSlidesAuthRow">
             <div class="gslides-auth-status" id="googleSlidesAuthStatusText">
               <i class="fa-brands fa-google" style="color: #d97706;"></i>
-              <span>កំពុងពិនិត្យការភ្ជាប់ Google Slides API...</span>
+              <span>ភ្ជាប់គណនី Google ដើម្បីបង្កើតផ្ទាល់ក្នុង Google Slides</span>
             </div>
             <div class="gslides-auth-btns">
               <button type="button" id="btnConnectGoogleSlides" class="btn-gslides-connect" onclick="connectGoogleSlidesAccount()">
@@ -2418,9 +2424,6 @@
               </button>
               <button type="button" id="btnDisconnectGoogleSlides" class="btn-gslides-disconnect" onclick="disconnectGoogleSlidesAccount()" style="display: none;">
                 <i class="fa-solid fa-right-from-bracket"></i> <span>ចាកចេញ</span>
-              </button>
-              <button type="button" class="btn-gslides-config" onclick="toggleGoogleClientIdPanel()" title="កំណត់ Google OAuth Client ID">
-                <i class="fa-solid fa-gear"></i> <span>Client ID</span>
               </button>
             </div>
           </div>
@@ -2746,7 +2749,7 @@
   <div id="smartHoverTooltip" class="smart-hover-tooltip" role="tooltip" aria-hidden="true"></div>
 
   <!-- Scripts with automatic cache busting -->
-  <script src="app.js?v=20261118_v168"></script>
+  <script src="app.js?v=20261118_v169"></script>
 </body>
 
 </html>
