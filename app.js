@@ -10883,16 +10883,31 @@ ${testTypeDescription}
       }
     }
 
-    // 3. Try Google Gemini AI Models with SSE Streaming (Prioritizing Gemini 3.5 Flash Lite & Gemini 3.5 Flash)
-    const candidateModels = [
-      { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
-      { ver: 'v1beta', name: 'gemini-3.5-flash' },
-      { ver: 'v1beta', name: 'gemini-3.8-flash' },
-      { ver: 'v1beta', name: 'gemini-3.6-flash' },
-      { ver: 'v1beta', name: 'gemini-3.1-flash-lite' },
-      { ver: 'v1beta', name: 'gemini-flash-lite-latest' },
-      { ver: 'v1beta', name: 'gemini-flash-latest' }
-    ];
+    // 3. Try Google Gemini AI Flash Pool via fast, clean Direct REST (fresh AbortController per model, zero SSE partial-JSON corruption)
+    const candidateModels = (typeof getCandidateGeminiModels === 'function')
+      ? getCandidateGeminiModels('flash')
+      : [
+          { ver: 'v1beta', name: 'gemini-3.5-flash-lite' },
+          { ver: 'v1beta', name: 'gemini-3.5-flash' },
+          { ver: 'v1beta', name: 'gemini-3.8-flash' },
+          { ver: 'v1beta', name: 'gemini-3.6-flash' },
+          { ver: 'v1beta', name: 'gemini-3.1-flash-lite' },
+          { ver: 'v1beta', name: 'gemini-flash-lite-latest' },
+          { ver: 'v1beta', name: 'gemini-flash-latest' }
+        ];
+
+    const extractQuestionsFromParsed = (parsed) => {
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (parsed && typeof parsed === 'object') {
+        const possible = parsed.questions || parsed.preTestQCM || parsed.postTestMCQ ||
+          parsed.test || parsed.quiz || parsed.preTest || parsed.postTest ||
+          parsed.mcqs || parsed.data || parsed.items || parsed.assessment;
+        if (Array.isArray(possible) && possible.length > 0) return possible;
+        const found = Object.values(parsed).find(v => Array.isArray(v) && v.length > 0 && typeof v[0] === 'object');
+        if (found) return found;
+      }
+      return null;
+    };
 
     let lastAiError = null;
     const cleanKey = apiKey.trim();
@@ -10904,16 +10919,15 @@ ${testTypeDescription}
 
       if (!skipOverlay) {
         setLoadingOverlayStatus(
-          isPre ? 'AI កំពុងបង្កើតកម្រងសំណួរ Pre-Test (Streaming Real-Time)...' : 'AI កំពុងបង្កើតកម្រងសំណួរ Post-Test (Streaming Real-Time)...',
-          'កំពុងទាក់ទង Google Gemini 3.5 Flash (Ultra-Fast)... សូមរង់ចាំបន្តិច!',
-          '⚡ Gemini 3.5 Flash (Ultra-Fast)'
+          isPre ? `AI កំពុងបង្កើតកម្រងសំណួរ Pre-Test (${numQuestions} សំណួរ)...` : `AI កំពុងបង្កើតកម្រងសំណួរ Post-Test (${numQuestions} សំណួរ)...`,
+          `កំពុងភ្ជាប់ Google Gemini (${modelName})... សូមរង់ចាំបន្តិច!`,
+          `⚡ ${modelName} (${i + 1}/${candidateModels.length})`
         );
       }
 
-      const streamUrl = `https://generativelanguage.googleapis.com/${modelVer}/models/${modelName}:streamGenerateContent?alt=sse&key=${cleanKey}`;
-      const directUrl = `https://generativelanguage.googleapis.com/${modelVer}/models/${modelName}:generateContent?key=${cleanKey}`;
+      const directUrl = `https://generativelanguage.googleapis.com/${modelVer}/models/${modelName}:generateContent?key=${encodeURIComponent(cleanKey)}`;
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 90000);
+      const timeoutId = setTimeout(() => controller.abort(), 50000);
 
       const requestBody = {
         contents: [{ role: 'user', parts: [{ text: systemPrompt }] }],
@@ -10930,88 +10944,6 @@ ${testTypeDescription}
         }
       };
 
-      let responseText = '';
-
-      // ⚡ Step 1: Real-time SSE Streaming (Server-Sent Events) - reliable, streaming real-time
-      try {
-        const streamResp = await fetch(streamUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          signal: controller.signal,
-          body: JSON.stringify(requestBody)
-        });
-
-        if (streamResp.ok && streamResp.body) {
-          const reader = streamResp.body.getReader();
-          const decoder = new TextDecoder('utf-8');
-          let buffer = '';
-          let totalChars = 0;
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            buffer += decoder.decode(value, { stream: true });
-
-            const lines = buffer.split('\n');
-            buffer = lines.pop(); // keep partial line
-
-            for (const line of lines) {
-              const trimmed = line.trim();
-              if (trimmed.startsWith('data:')) {
-                const jsonStr = trimmed.slice(5).trim();
-                if (jsonStr && jsonStr !== '[DONE]') {
-                  try {
-                    const chunkData = JSON.parse(jsonStr);
-                    const chunkText = chunkData.candidates?.[0]?.content?.parts?.[0]?.text || '';
-                    if (chunkText) {
-                      responseText += chunkText;
-                      totalChars += chunkText.length;
-                      const progressPct = Math.min(95, Math.round(15 + (totalChars / 25)));
-                      const progressEl = document.getElementById('progressBarFill');
-                      if (progressEl) progressEl.style.width = `${progressPct}%`;
-                      if (!skipOverlay) {
-                        setLoadingOverlayStatus(
-                          isPre ? 'AI កំពុងបង្កើតកម្រងសំណួរ Pre-Test (Streaming Real-Time)...' : 'AI កំពុងបង្កើតកម្រងសំណួរ Post-Test (Streaming Real-Time)...',
-                          `⚡ កំពុងទទួលទិន្នន័យផ្ទាល់ (SSE)៖ ទទួលបាន ${totalChars.toLocaleString()} តួអក្សរ...`,
-                          `🤖 ${modelName} (${progressPct}% - SSE Active ⚡)`
-                        );
-                      }
-                    }
-                  } catch (_) { }
-                }
-              }
-            }
-          }
-        }
-      } catch (streamErr) {
-        console.warn(`SSE stream for ${modelName} assessment failed, falling back to direct REST:`, streamErr);
-      }
-
-      // ⚡ Step 2: If SSE streaming yielded response text, parse questions
-      if (responseText && responseText.trim().length > 0) {
-        clearTimeout(timeoutId);
-        const parsed = extractAndParseJson(responseText);
-        let list = null;
-        if (Array.isArray(parsed)) {
-          list = parsed;
-        } else if (parsed && typeof parsed === 'object') {
-          const possible = parsed.questions || parsed.preTestQCM || parsed.postTestMCQ ||
-            parsed.test || parsed.quiz || parsed.preTest || parsed.postTest ||
-            parsed.mcqs || parsed.data || parsed.items || parsed.assessment;
-          if (Array.isArray(possible) && possible.length > 0) {
-            list = possible;
-          } else {
-            const found = Object.values(parsed).find(v => Array.isArray(v) && v.length > 0 && typeof v[0] === 'object');
-            if (found) list = found;
-          }
-        }
-        if (list && list.length > 0) {
-          console.log(`[Gemini SSE ${modelName}] Successfully generated ${list.length} questions`);
-          return distributeAndBalanceQuizList(list.slice(0, numQuestions));
-        }
-      }
-
-      // ⚡ Step 3: Direct REST fallback for this model if SSE did not return full JSON
       try {
         const resp = await fetch(directUrl, {
           method: 'POST',
@@ -11020,30 +10952,19 @@ ${testTypeDescription}
           body: JSON.stringify(requestBody)
         });
         clearTimeout(timeoutId);
+
         if (resp.ok) {
           const data = await resp.json();
-          const txt = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (txt) {
+          const txt = data.candidates?.[0]?.content?.parts?.map(p => p.text || '').join('') || '';
+          if (txt && txt.trim().length > 10) {
             const parsed = extractAndParseJson(txt);
-            let list = null;
-            if (Array.isArray(parsed)) {
-              list = parsed;
-            } else if (parsed && typeof parsed === 'object') {
-              const possible = parsed.questions || parsed.preTestQCM || parsed.postTestMCQ ||
-                parsed.test || parsed.quiz || parsed.preTest || parsed.postTest ||
-                parsed.mcqs || parsed.data || parsed.items || parsed.assessment;
-              if (Array.isArray(possible) && possible.length > 0) {
-                list = possible;
-              } else {
-                const found = Object.values(parsed).find(v => Array.isArray(v) && v.length > 0 && typeof v[0] === 'object');
-                if (found) list = found;
-              }
-            }
+            const list = extractQuestionsFromParsed(parsed);
             if (list && list.length > 0) {
-              console.log(`[Gemini REST ${modelName}] Successfully generated ${list.length} questions`);
+              console.log(`[Gemini REST ${modelName}] Successfully generated ${list.length} ${testType}-test questions`);
               return distributeAndBalanceQuizList(list.slice(0, numQuestions));
             }
           }
+          lastAiError = new Error(`Gemini ${modelName}: ទិន្នន័យសំណួរ JSON មិនពេញលេញ`);
         } else {
           const errText = await resp.text().catch(() => '');
           let shortMsg = errText;
@@ -11051,12 +10972,19 @@ ${testTypeDescription}
             const errJson = JSON.parse(errText);
             shortMsg = errJson.error?.message || errText;
           } catch (_) { }
-          lastAiError = new Error(`Gemini ${modelName} (${resp.status}): ${shortMsg.slice(0, 90)}`);
-          console.warn(`Model ${modelName} returned status ${resp.status}:`, errText);
+          lastAiError = new Error(`Gemini ${modelName} (${resp.status}): ${shortMsg.slice(0, 120)}`);
+          console.warn(`Model ${modelName} returned status ${resp.status}:`, shortMsg);
+          // Immediately stop trying more models if API Key is invalid
+          if (resp.status === 401 || resp.status === 403 || shortMsg.includes('API_KEY_INVALID') || shortMsg.includes('API key not valid')) {
+            throw lastAiError;
+          }
         }
       } catch (e) {
         clearTimeout(timeoutId);
         lastAiError = e;
+        if (String(e.message || '').includes('API_KEY_INVALID') || String(e.message || '').includes('API key not valid')) {
+          throw e;
+        }
         console.warn(`Model ${modelName} REST test generator error:`, e);
       }
     }
@@ -11099,9 +11027,9 @@ ${testTypeDescription}
 async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
   let plan = state.generatedPlanData || state.currentPlan;
   if (!plan) {
-    const title = (document.getElementById('lessonTitleInput')?.value || '').trim();
-    const subject = (document.getElementById('subjectSelect')?.value || '').trim();
-    const grade = (document.getElementById('gradeSelect')?.value || '').trim();
+    const title = (document.getElementById('inputLessonTitle')?.value || '').trim();
+    const subject = (typeof getSubjectValue === 'function' ? getSubjectValue() : (document.getElementById('inputSubject')?.value || '')).trim();
+    const grade = (typeof getGradeValue === 'function' ? getGradeValue() : (document.getElementById('inputGrade')?.value || '')).trim();
     if (title || subject) {
       plan = {
         lessonTitle: title || 'មេរៀនទូទៅ',
@@ -11113,7 +11041,9 @@ async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
       state.generatedPlanData = plan;
       renderLessonPlanToA4(plan);
       const empty = document.getElementById('emptyState');
+      const docEl = document.getElementById('printableDoc');
       if (empty) empty.style.display = 'none';
+      if (docEl) docEl.style.display = 'block';
     } else {
       showToast('សូមបង្កើតកិច្ចតែងការ ឬបញ្ចូលចំណងជើងមេរៀនជាមុនសិន!', 'warning');
       return;
@@ -11121,6 +11051,11 @@ async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
   }
 
   const isEn = (state.language === 'en');
+  const docEl = document.getElementById('printableDoc');
+  const emptyEl = document.getElementById('emptyState');
+  if (emptyEl) emptyEl.style.display = 'none';
+  if (docEl) docEl.style.display = 'block';
+
   let wrapper = document.getElementById('preTestModuleWrapper');
   const appendix = document.getElementById('appendixSectionWrapper');
   if (appendix) appendix.style.display = 'block';
@@ -11129,8 +11064,6 @@ async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
 
   if (!wrapper) {
     renderLessonPlanToA4(plan);
-    const empty = document.getElementById('emptyState');
-    if (empty) empty.style.display = 'none';
     wrapper = document.getElementById('preTestModuleWrapper');
     const appEl = document.getElementById('appendixSectionWrapper');
     if (appEl) appEl.style.display = 'block';
@@ -11165,8 +11098,10 @@ async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
 
     if (wrapper) {
       wrapper.innerHTML = renderPreTestModule(plan, isEn);
+      setTimeout(() => triggerMathRendering(wrapper), 60);
       wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+    if (typeof scheduleAutoSaveDraft === 'function') scheduleAutoSaveDraft(800);
     showToast(isEn ? '✨ Pre-Test QCM generated successfully!' : `✨ បានបង្កើតបុរេតេស្ត (${qList.length} សំណួរ) ដោយជោគជ័យ!`, 'success');
   } catch (err) {
     console.error('Pre-Test generation error:', err);
@@ -11190,6 +11125,7 @@ async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
       openApiKeyModal();
       showToast(isEn ? '⚠️ Please connect your Gemini API Key first.' : '⚠️ សូមភ្ជាប់ Google Gemini API Key ដើម្បីបង្កើតសំណួរឆ្លាតវៃតាម AI!', 'warning', 6000);
     } else {
+      const safeScaleExpr = scale ? JSON.stringify(scale).replace(/"/g, '&quot;') : 'null';
       if (wrapper) {
         wrapper.innerHTML = `
           <div style="background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 10px; padding: 22px; text-align: center;">
@@ -11204,7 +11140,7 @@ async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
               <button type="button" onclick="openApiKeyModal()" style="padding: 8px 16px; background: #64748b; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 9pt; cursor: pointer;">
                 <i class="fa-solid fa-key" style="margin-right: 6px;"></i> ${isEn ? 'Check / Change API Key' : 'ពិនិត្យ / ប្តូរ API Key'}
               </button>
-              <button type="button" onclick="generatePreTestOnDemand(${numQuestions}, ${JSON.stringify(scale)})" style="padding: 8px 16px; background: #4f46e5; color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 9pt; cursor: pointer;">
+              <button type="button" onclick="generatePreTestOnDemand(${Number(numQuestions) || 10}, ${safeScaleExpr})" style="padding: 8px 16px; background: #4f46e5; color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 9pt; cursor: pointer;">
                 <i class="fa-solid fa-rotate-right" style="margin-right: 6px;"></i> ${isEn ? 'Retry with AI' : 'ព្យាយាមបង្កើតម្តងទៀត'}
               </button>
             </div>
@@ -11222,9 +11158,9 @@ window.generatePreTestOnDemand = generatePreTestOnDemand;
 async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
   let plan = state.generatedPlanData || state.currentPlan;
   if (!plan) {
-    const title = (document.getElementById('lessonTitleInput')?.value || '').trim();
-    const subject = (document.getElementById('subjectSelect')?.value || '').trim();
-    const grade = (document.getElementById('gradeSelect')?.value || '').trim();
+    const title = (document.getElementById('inputLessonTitle')?.value || '').trim();
+    const subject = (typeof getSubjectValue === 'function' ? getSubjectValue() : (document.getElementById('inputSubject')?.value || '')).trim();
+    const grade = (typeof getGradeValue === 'function' ? getGradeValue() : (document.getElementById('inputGrade')?.value || '')).trim();
     if (title || subject) {
       plan = {
         lessonTitle: title || 'មេរៀនទូទៅ',
@@ -11236,7 +11172,9 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
       state.generatedPlanData = plan;
       renderLessonPlanToA4(plan);
       const empty = document.getElementById('emptyState');
+      const docEl = document.getElementById('printableDoc');
       if (empty) empty.style.display = 'none';
+      if (docEl) docEl.style.display = 'block';
     } else {
       showToast('សូមបង្កើតកិច្ចតែងការ ឬបញ្ចូលចំណងជើងមេរៀនជាមុនសិន!', 'warning');
       return;
@@ -11244,6 +11182,11 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
   }
 
   const isEn = (state.language === 'en');
+  const docEl = document.getElementById('printableDoc');
+  const emptyEl = document.getElementById('emptyState');
+  if (emptyEl) emptyEl.style.display = 'none';
+  if (docEl) docEl.style.display = 'block';
+
   let wrapper = document.getElementById('postTestModuleWrapper');
   const appendix = document.getElementById('appendixSectionWrapper');
   if (appendix) appendix.style.display = 'block';
@@ -11252,8 +11195,6 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
 
   if (!wrapper) {
     renderLessonPlanToA4(plan);
-    const empty = document.getElementById('emptyState');
-    if (empty) empty.style.display = 'none';
     wrapper = document.getElementById('postTestModuleWrapper');
     const appEl = document.getElementById('appendixSectionWrapper');
     if (appEl) appEl.style.display = 'block';
@@ -11288,8 +11229,10 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
 
     if (wrapper) {
       wrapper.innerHTML = renderPostTestModule(plan, isEn);
+      setTimeout(() => triggerMathRendering(wrapper), 60);
       wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+    if (typeof scheduleAutoSaveDraft === 'function') scheduleAutoSaveDraft(800);
     showToast(isEn ? '✨ Post-Test MCQ generated successfully!' : `✨ បានបង្កើតបច្ឆិមតេស្ត (${qList.length} សំណួរ) ដោយជោគជ័យ!`, 'success');
   } catch (err) {
     console.error('Post-Test generation error:', err);
@@ -11313,6 +11256,7 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
       openApiKeyModal();
       showToast(isEn ? '⚠️ Please connect your Gemini API Key first.' : '⚠️ សូមភ្ជាប់ Google Gemini API Key ដើម្បីបង្កើតសំណួរឆ្លាតវៃតាម AI!', 'warning', 6000);
     } else {
+      const safeScaleExpr = scale ? JSON.stringify(scale).replace(/"/g, '&quot;') : 'null';
       if (wrapper) {
         wrapper.innerHTML = `
           <div style="background: #fef2f2; border: 1.5px solid #fca5a5; border-radius: 10px; padding: 22px; text-align: center;">
@@ -11327,7 +11271,7 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
               <button type="button" onclick="openApiKeyModal()" style="padding: 8px 16px; background: #64748b; color: white; border: none; border-radius: 6px; font-weight: 600; font-size: 9pt; cursor: pointer;">
                 <i class="fa-solid fa-key" style="margin-right: 6px;"></i> ${isEn ? 'Check / Change API Key' : 'ពិនិត្យ / ប្តូរ API Key'}
               </button>
-              <button type="button" onclick="generatePostTestOnDemand(${numQuestions}, ${JSON.stringify(scale)})" style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 9pt; cursor: pointer;">
+              <button type="button" onclick="generatePostTestOnDemand(${Number(numQuestions) || 10}, ${safeScaleExpr})" style="padding: 8px 16px; background: #10b981; color: white; border: none; border-radius: 6px; font-weight: 700; font-size: 9pt; cursor: pointer;">
                 <i class="fa-solid fa-rotate-right" style="margin-right: 6px;"></i> ${isEn ? 'Retry with AI' : 'ព្យាយាមបង្កើតម្តងទៀត'}
               </button>
             </div>
@@ -12300,18 +12244,50 @@ function applyZoom() {
 // Export to Microsoft Word (.docx)
 // ==========================================================================
 async function handleExportWord() {
-  if (!state.generatedPlanData) {
+  const data = state.generatedPlanData || state.currentPlan;
+  if (!data) {
     showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
     return;
   }
 
+  const isEn = (state.language === 'en');
+  const safeFileName = `កិច្ចតែងការ_${data.subject || ''}_${data.grade || ''}_${(data.lessonTitle || '').substring(0, 22)}`
+    .replace(/[\\/:*?"<>|]/g, '_')
+    .replace(/\s+/g, '_') + '.docx';
+
   showToast('កំពុងបង្កើតឯកសារ Microsoft Word (.docx)...', 'info');
 
+  // Helper: Fallback to Python Backend /api/export/docx if client-side docx library is unavailable
+  const exportViaServerDocx = async () => {
+    const resp = await fetch('/api/export/docx', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (!resp.ok) {
+      throw new Error(`Server Word export HTTP ${resp.status}`);
+    }
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = safeFileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    showToast('✨ បានទាញយកឯកសារ Word (.docx) ដោយជោគជ័យ!', 'success');
+  };
+
   try {
-    const data = state.generatedPlanData;
+    if (!window.docx || !window.docx.Document || !window.docx.Packer) {
+      await exportViaServerDocx();
+      return;
+    }
+
     const presetSelect = document.getElementById('presetTemplateSelect');
     const presetId = ((presetSelect ? presetSelect.value : '') || data.presetId || state.selectedPresetId || '').toLowerCase();
-    const isFlipped = (presetId === 'flipped_learning_5step') || (presetId !== 'moeys_standard_5step' && presetId !== 'backward_design_ubd' && (data.templateType === 'flipped_learning' || Boolean(data.preTestQCM) || Boolean(data.preClassPhase)));
+    const isFlipped = (presetId === 'flipped_learning_5step') || (presetId !== 'moeys_standard_5step' && presetId !== 'backward_design_ubd' && (data.templateType === 'flipped_learning' || Boolean(data.preClassPhase)));
     const isBd = !isFlipped && ((presetId === 'backward_design_ubd') || (presetId !== 'moeys_standard_5step' && (data.templateType === 'backward_design' || Boolean(data.stage1))));
     const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, HeadingLevel, BorderStyle } = window.docx;
 
@@ -12321,11 +12297,11 @@ async function handleExportWord() {
     docChildren.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
-        children: [new TextRun({ text: "ព្រះរាជាណាចក្រកម្ពុជា", bold: true, size: 28 })]
+        children: [new TextRun({ text: isEn ? "KINGDOM OF CAMBODIA" : "ព្រះរាជាណាចក្រកម្ពុជា", bold: true, size: 28 })]
       }),
       new Paragraph({
         alignment: AlignmentType.CENTER,
-        children: [new TextRun({ text: "ជាតិ សាសនា ព្រះមហាក្សត្រ", bold: true, size: 24 })]
+        children: [new TextRun({ text: isEn ? "NATION RELIGION KING" : "ជាតិ សាសនា ព្រះមហាក្សត្រ", bold: true, size: 24 })]
       }),
       new Paragraph({
         alignment: AlignmentType.CENTER,
@@ -12334,53 +12310,54 @@ async function handleExportWord() {
       new Paragraph({ text: "" })
     );
 
-    // Meta Info Table
-    docChildren.push(
-      new Table({
-        width: { size: 100, type: WidthType.PERCENTAGE },
-        rows: [
-          new TableRow({
-            children: [
-              new TableCell({
-                width: { size: 60, type: WidthType.PERCENTAGE },
-                borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } },
-                children: [
-                  new Paragraph({ children: [new TextRun({ text: `គ្រឹះស្ថានសិក្សា៖ ${data.school || ''}`, bold: true, size: 22 })] }),
-                  new Paragraph({ children: [new TextRun({ text: `ឈ្មោះគ្រូបង្រៀន៖ ${data.teacher || ''}`, size: 22 })] }),
-                  new Paragraph({ children: [new TextRun({ text: `មុខវិជ្ជា៖ ${data.subject || ''} | កម្រិត៖ ${data.grade || ''}`, size: 22 })] }),
-                ]
-              }),
-              new TableCell({
-                width: { size: 40, type: WidthType.PERCENTAGE },
-                borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } },
-                children: [
-                  new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `${data.dateStr || ''}`, size: 22 })] }),
-                  new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `រយៈពេល៖ ${data.duration || ''}`, bold: true, size: 22 })] }),
-                ]
-              })
-            ]
-          })
-        ]
-      }),
-      new Paragraph({ text: "" })
-    );
+    // Only emit Standard Meta Info Table + Main Title for MoEYS Standard / UbD (Flipped renders its own dedicated header below)
+    if (!isFlipped) {
+      docChildren.push(
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: { size: 60, type: WidthType.PERCENTAGE },
+                  borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } },
+                  children: [
+                    new Paragraph({ children: [new TextRun({ text: `គ្រឹះស្ថានសិក្សា៖ ${data.school || ''}`, bold: true, size: 22 })] }),
+                    new Paragraph({ children: [new TextRun({ text: `ឈ្មោះគ្រូបង្រៀន៖ ${data.teacher || ''}`, size: 22 })] }),
+                    new Paragraph({ children: [new TextRun({ text: `មុខវិជ្ជា៖ ${data.subject || ''} | កម្រិត៖ ${data.grade || ''}`, size: 22 })] }),
+                  ]
+                }),
+                new TableCell({
+                  width: { size: 40, type: WidthType.PERCENTAGE },
+                  borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } },
+                  children: [
+                    new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `${data.dateStr || ''}`, size: 22 })] }),
+                    new Paragraph({ alignment: AlignmentType.RIGHT, children: [new TextRun({ text: `រយៈពេល៖ ${data.duration || ''}`, bold: true, size: 22 })] }),
+                  ]
+                })
+              ]
+            })
+          ]
+        }),
+        new Paragraph({ text: "" })
+      );
 
-    // Main Lesson Plan Title
-    const titleText = data.templateTitle || (isFlipped ? (isEn ? "FLIPPED CLASSROOM LESSON PLAN" : "កិច្ចតែងការ បែបថ្នាក់រៀនត្រឡប់ (FLIPPED CLASSROOM)") : (isBd ? "កិច្ចតែងការបង្រៀន (តាមបែបត្រឡប់ - Backward Design / UbD)" : "កិច្ចតែងការបង្រៀន"));
-    docChildren.push(
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        children: [new TextRun({ text: titleText, bold: true, underline: {}, size: 28 })]
-      }),
-      new Paragraph({
-        alignment: AlignmentType.CENTER,
-        children: [
-          new TextRun({ text: data.chapter ? `${data.chapter} - ` : '', size: 24 }),
-          new TextRun({ text: `${data.lessonTitle || ''}`, bold: true, size: 26 })
-        ]
-      }),
-      new Paragraph({ text: "" })
-    );
+      const titleText = data.templateTitle || (isBd ? "កិច្ចតែងការបង្រៀន (តាមបែបត្រឡប់ - Backward Design / UbD)" : (isEn ? "STANDARD LESSON PLAN" : "កិច្ចតែងការបង្រៀន"));
+      docChildren.push(
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [new TextRun({ text: titleText, bold: true, underline: {}, size: 28 })]
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          children: [
+            new TextRun({ text: data.chapter ? `${data.chapter} - ` : '', size: 24 }),
+            new TextRun({ text: `${data.lessonTitle || ''}`, bold: true, size: 26 })
+          ]
+        }),
+        new Paragraph({ text: "" })
+      );
+    }
 
     // Helper: Pre-Test Docx paragraphs
     const buildDocxPreTest = () => {
@@ -12997,27 +12974,56 @@ async function handleExportWord() {
       }]
     });
 
-    // Generate blob and download
+    // Generate blob and download reliably across all browsers
     const blob = await Packer.toBlob(doc);
+    const blobUrl = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `កិច្ចតែងការ_${data.subject || ''}_${data.grade || ''}_${(data.lessonTitle || '').substring(0, 20)}.docx`;
+    link.href = blobUrl;
+    link.download = safeFileName;
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 4000);
     showToast('✨ បានទាញយកឯកសារ Word (.docx) ដោយជោគជ័យ!', 'success');
 
   } catch (err) {
-    console.error('Word Export Error:', err);
-    showToast(`បញ្ហាក្នុងការទាញយក Word: ${err.message}`, 'error');
+    console.error('Client Word Export Error, attempting server fallback:', err);
+    try {
+      await exportViaServerDocx();
+    } catch (srvErr) {
+      console.error('Server Word Export Fallback Error:', srvErr);
+      showToast(`បញ្ហាក្នុងការទាញយក Word: ${err.message}`, 'error');
+    }
   }
 }
 
 
 function handlePrintPdf() {
-  if (!state.generatedPlanData) {
+  const activePlan = state.generatedPlanData || state.currentPlan;
+  const docEl = document.getElementById('printableDoc');
+  if (!activePlan || !docEl) {
     showToast('សូមបង្កើតកិច្ចតែងការជាមុនសិន!', 'warning');
     return;
   }
-  window.print();
+
+  // Ensure A4 document is visible & un-zoomed before triggering native print/Save-as-PDF
+  const emptyEl = document.getElementById('emptyState');
+  if (emptyEl) emptyEl.style.display = 'none';
+  docEl.style.display = 'block';
+
+  const prevTransform = docEl.style.transform;
+  docEl.style.transform = 'none';
+
+  const restoreZoom = () => {
+    docEl.style.transform = prevTransform;
+    window.removeEventListener('afterprint', restoreZoom);
+  };
+  window.addEventListener('afterprint', restoreZoom);
+
+  setTimeout(() => {
+    window.print();
+    setTimeout(restoreZoom, 1500);
+  }, 80);
 }
 
 // Copy Text to Clipboard

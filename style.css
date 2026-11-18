@@ -2745,63 +2745,123 @@ textarea.form-control {
 }
 
 /* ==========================================================================
-   Print Optimization (@media print)
+   Print Optimization (@media print) - Multi-Page A4 Clean PDF Export
    ========================================================================== */
+@page {
+  size: A4 portrait;
+  margin: 10mm;
+}
+
 @media print {
+  html,
   body {
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
     background: #ffffff !important;
     color: #000000 !important;
     overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .app-header,
   .sidebar-panel,
   .preview-toolbar,
+  .mobile-workspace-tabs,
   .empty-state,
   .loading-overlay,
   .modal-overlay,
-  .toast-container {
+  .toast-container,
+  .pedagogical-quality-strip,
+  .autosave-draft-pill,
+  .smart-hover-tooltip,
+  .btn-inline-ai-regen,
+  .step-diagram-actions,
+  .offline-warning-banner,
+  .appendix-page-divider,
+  .no-print {
     display: none !important;
   }
 
-  .app-workspace {
+  .app-workspace,
+  .app-workspace.view-form,
+  .app-workspace.view-preview {
     display: block !important;
     height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  .preview-panel {
+  .preview-panel,
+  .app-workspace.view-form .preview-panel,
+  .app-workspace.view-preview .preview-panel {
+    display: block !important;
     background: transparent !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
     overflow: visible !important;
+    position: static !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .canvas-scroll-container {
-    padding: 0 !important;
-    overflow: visible !important;
     display: block !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    position: static !important;
+    width: 100% !important;
   }
 
-  .a4-sheet {
+  .a4-sheet,
+  #printableDoc {
+    display: block !important;
     box-shadow: none !important;
     border: none !important;
-    padding: 10mm 15mm !important;
+    border-radius: 0 !important;
+    padding: 2mm 4mm !important;
+    margin: 0 !important;
     width: 100% !important;
+    max-width: 100% !important;
     min-height: auto !important;
     transform: none !important;
+    background: #ffffff !important;
+  }
+
+  .doc-table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+
+  .doc-table thead {
+    display: table-header-group !important;
+  }
+
+  .doc-table tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
 
   .doc-appendix-wrapper {
     page-break-before: always !important;
     break-before: page !important;
     margin-top: 0 !important;
-    padding-top: 15mm !important;
-  }
-
-  .appendix-page-divider {
-    display: none !important;
-  }
-
-  .offline-warning-banner {
-    display: none !important;
+    padding-top: 6mm !important;
   }
 
   .doc-inserted-image-wrap {
