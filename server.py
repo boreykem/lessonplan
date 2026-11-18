@@ -380,6 +380,60 @@ def build_techniques_alignment_prompt(techniques, is_flipped=False):
     return "\n   - វិធានតម្រឹមយុទ្ធវិធីបង្រៀនគន្លឹះតាមជំហានគរុកោសល្យត្រឹមត្រូវ (Pedagogical Techniques Alignment & Cohesion):\n     " + "\n     ".join(rules)
 
 
+def detect_subject_domain(subject):
+    s = str(subject or "").lower()
+    if re.search(r'គណិត|រូបវិទ្យា|គីមី|ជីវវិទ្យា|ផែនដី|ព័ត៌មានវិទ្យា|វិទ្យាសាស្ត្រ|កុំព្យូទ័រ|math|physic|chem|bio|earth|science|ict|computer|stem|coding|algebra|geometry|calculus', s):
+        return "stem"
+    if re.search(r'ភាសា|អក្សរសាស្ត្រ|អង់គ្លេស|បារាំង|ខ្មែរ|khmer|english|french|literature|grammar|reading|writing|language', s):
+        return "language"
+    if re.search(r'កសិកម្ម|គេហវិទ្យា|សិល្បៈ|អប់រំកាយ|កីឡា|តន្ត្រី|គំនូរ|agriculture|home econ|art|music|physical|sport|craft|vocational', s):
+        return "practical"
+    return "social"
+
+
+def build_subject_pedagogical_framing(subject, techniques=None, duration="", is_flipped=False):
+    clean_subject = str(subject or "ទូទៅ").strip() or "ទូទៅ"
+    domain = detect_subject_domain(clean_subject)
+    total_min = parse_duration_to_minutes(duration)
+    ratio_str = "៣% - ៧% - ១០% - ៧៥% - ៥%" if is_flipped else "៥% - ១៥% - ៦០% - ១៥% - ៥%"
+    tpl_label = "ថ្នាក់រៀនត្រឡប់ (Flipped Classroom)" if is_flipped else "កិច្ចតែងការស្តង់ដារក្រសួង (MoEYS 5-Step)"
+    tech_list = " ➔ ".join(str(t) for t in (techniques or []) if str(t).strip()) or "Think-Pair-Share ➔ Gallery Walk ➔ Exit Ticket 3-2-1"
+
+    if domain == "stem":
+        domain_rules = f"""• 🔬 ស៊ុមឯកទេសវិទ្យាសាស្ត្រ (STEM Cognitive Framing - «{clean_subject}»):
+     - រាល់ខ្លឹមសារក្នុងជួរឈរ «ខ្លឹមសារមេរៀន» ត្រូវតែសុក្រឹត ១០០% មានរូបមន្តជាក់លាក់, លំហាត់គណនាជាលេខ (Worked Numerical Examples), ដំណោះស្រាយមួយជំហានម្តងៗ, ខ្នាតរង្វាស់ត្រឹមត្រូវ (SI Units), ឬទិន្នន័យពិសោធន៍ជាក់ស្តែង!
+     - ហាមដាច់ខាតសរសេរតែពាក្យទ្រឹស្តីទូទៅដោយគ្មានរូបមន្ត ឬគ្មានលេខគណនាជាក់ស្តែង។
+     - យុទ្ធវិធី [{tech_list}] ត្រូវរលាយចូលជាសកម្មភាពគណនា, ពិសោធន៍, ផ្ទៀងផ្ទាត់សម្មតិកម្ម, និងវិភាគកំហុសលម្អៀង (Error Analysis) ពិតប្រាកដនៃមុខវិជ្ជា «{clean_subject}»។"""
+    elif domain == "language":
+        domain_rules = f"""• 📖 ស៊ុមឯកទេសភាសា និងអក្សរសាស្ត្រ (Language & Literature Framing - «{clean_subject}»):
+     - រាល់ខ្លឹមសារក្នុងជួរឈរ «ខ្លឹមសារមេរៀន» ត្រូវតែមានអត្ថបទគំរូ/សម្រង់ឃ្លាឃ្លោងជាក់ស្តែង, ពាក្យគន្លឹះ (Vocabulary) ព្រមទាំងអត្ថន័យ, ទម្រង់វេយ្យាករណ៍ និងឧទាហរណ៍ប្រយោគត្រឹមត្រូវ ១០០%។
+     - ត្រូវបញ្ជ្រាបបំណិនភាសាទាំង ៤ (ស្តាប់, និយាយ, អាន, សរសេរ) និងការវិភាគអត្ថន័យ/តម្លៃអប់រំ។
+     - យុទ្ធវិធី [{tech_list}] ត្រូវរលាយចូលជាសកម្មភាពវិភាគអត្ថបទ, តែងសេចក្តីខ្លី, ដើរតួសន្ទនា, និងការកែសម្រួលសំណេរគ្នាទៅវិញទៅមក (Peer Editing) នៃមុខវិជ្ជា «{clean_subject}»។"""
+    elif domain == "practical":
+        domain_rules = f"""• 🛠️ ស៊ុមឯកទេសអនុវត្ត និងវិជ្ជាជីវៈ (Practical & Arts Framing - «{clean_subject}»):
+     - រាល់ខ្លឹមសារក្នុងជួរឈរ «ខ្លឹមសារមេរៀន» ត្រូវតែបង្ហាញជំហានបច្ចេកទេសជាក់ស្តែង (Step-by-Step Procedures), វិធានសុវត្ថិភាព (Safety Rules), និងលក្ខណៈវិនិច្ឆ័យគុណភាពស្នាដៃ/កាយវិការ។
+     - យុទ្ធវិធី [{tech_list}] ត្រូវរលាយចូលជាការបង្ហាញគំរូ, ការហ្វឹកហាត់ផ្ទាល់ដៃតាមស្ថានីយ, និងការវាយតម្លៃស្នាដៃផ្ទាល់។"""
+    else:
+        domain_rules = f"""• 🌍 ស៊ុមឯកទេសវិទ្យាសាស្ត្រសង្គម និងគរុកោសល្យ (Social Sciences & Humanities Framing - «{clean_subject}»):
+     - រាល់ខ្លឹមសារក្នុងជួរឈរ «ខ្លឹមសារមេរៀន» ត្រូវតែមានអំណះអំណាងប្រវត្តិសាស្ត្រ/ភូមិសាស្ត្រ/សង្គមជាក់លាក់, ការវិភាគហេតុ និងផល (Cause & Effect), ករណីសិក្សាជាក់ស្តែងក្នុងបរិបទកម្ពុជា, និងការឆ្លុះបញ្ចាំងសីលធម៌/តម្លៃសង្គម។
+     - យុទ្ធវិធី [{tech_list}] ត្រូវរលាយចូលជាការវិភាគប្រភពឯកសារ, ការសួរដេញដោលទស្សនៈ (Debate / Socratic Dialogue), ការជជែករកដំណោះស្រាយសង្គម, និងការឆ្លុះបញ្ចាំងគុណតម្លៃនៃមុខវិជ្ជា «{clean_subject}»។"""
+
+    if total_min > 135:
+        pacing_rule = f"• ⏱️ កម្រិតជម្រៅវិធីសាស្ត្រសម្រាប់ ៣ ម៉ោង ({total_min} នាទី — Deep Immersion / STEM / PjBL): សិស្សចុះពិសោធន៍ជាក់ស្តែង, សាងសង់គំរូ Prototype / Flipchart A0, តស៊ូមតិដេញដោល និងវាយតម្លៃតាម Rubric (រួមបញ្ចូល Brain Break សម្រាក ៥ នាទី នៅពាក់កណ្តាលម៉ោង)។"
+    elif total_min > 75:
+        pacing_rule = f"• ⏱️ កម្រិតជម្រៅវិធីសាស្ត្រសម្រាប់ ២ ម៉ោង ({total_min} នាទី — Full Methodology Cycle): ដំណើរការវដ្តពេញលេញនៃវិធីសាស្ត្របង្រៀន (តាំងពីបង្កើតសម្មតិកម្ម/វិភាគបញ្ហា រហូតដល់តេស្តលទ្ធផល និងឆ្លុះបញ្ចាំង រួមទាំង Brain Break ២-៣ នាទី)។"
+    else:
+        pacing_rule = f"• ⏱️ កម្រិតជម្រៅវិធីសាស្ត្រសម្រាប់ ១ ម៉ោង ({total_min} នាទី — Focused Inquiry): វិធីសាស្ត្រខ្នាតបង្រួម ផ្ដោតលើបញ្ហា ឬគោលគំនិតគន្លឹះតែ ១ គត់ឱ្យច្បាស់លាស់ និងស៊ីជម្រៅ។"
+
+    return f"""
+═══════════════════════════════════════════════════
+🎯 SUBJECT-SPECIFIC COGNITIVE FRAMING & 4-LAYER ALIGNMENT («{clean_subject}»):
+═══════════════════════════════════════════════════
+• តួនាទីឯកទេស៖ អ្នកជាអ្នកជំនាញគរុកោសល្យជាន់ខ្ពស់ និងជាគ្រូឧទ្ទេសឯកទេសមុខវិជ្ជា «{clean_subject}»។ អ្នកត្រូវរៀបចំកិច្ចតែងការប្រភេទ «{tpl_label}» រយៈពេល «{duration}» ({total_min} នាទី, សមាមាត្រ {ratio_str}) ដោយបត់បែនតាមលក្ខណៈពិសេសនៃមុខវិជ្ជា «{clean_subject}» ១០០%។
+{domain_rules}
+{pacing_rule}"""
+
+
 def get_method_pedagogical_prompt(method, is_flipped, is_bd, lesson_title="", techniques=None):
     method_type = detect_method_type(method)
     method_name = method or "សិស្សមជ្ឈមណ្ឌល (Student-Centered Approach)"
@@ -1837,7 +1891,7 @@ Pedagogical Principles & Step Guidelines for Flipped Learning:
    - [C - Condition / លក្ខខណ្ឌ]: មធ្យោបាយ ឬវិធីសាស្ត្ររៀន (ឧ. «តាមរយៈការពន្យល់របស់គ្រូ និងការសង្កេតស្លាយ/វីដេអូ», «តាមរយៈការអានឯកសារគោល», «តាមរយៈការអនុវត្តលំហាត់ជាក់ស្តែង និងការពិភាក្សាជាក្រុម», «តាមរយៈការឆ្លុះបញ្ចាំងលើ Exit Ticket»...)
    - [S - Standard / ស្ដង់ដារ ឬ កម្រិតកំណត់]: កម្រិតកំណត់នៃការសម្រេចបាន (ឧ. «បានត្រឹមត្រូវ និងក្បោះក្បាយ», «បានយ៉ាងហោចណាស់ ៨០% ត្រឹមត្រូវ», «បានច្បាស់លាស់ឥតខុសឆ្គង», «ប្រកបដោយភាពជឿជាក់ និងស្ទាត់ជំនាញ», «ប្រកបដោយស្មារតីទទួលខុសត្រូវខ្ពស់»)
    ⚠️ ហាមដាក់លើសពី ១ ចំណុចក្នុងផ្នែកនីមួយៗ! (STRICTLY 1 single comprehensive ACS bullet for knowledge, 1 for skills, and 1 for attitudes).
-{get_method_pedagogical_prompt(method, True, False, lesson_title, techniques)}{build_techniques_alignment_prompt(techniques, True)}
+{get_method_pedagogical_prompt(method, True, False, lesson_title, techniques)}{build_techniques_alignment_prompt(techniques, True)}{build_subject_pedagogical_framing(subject, techniques, duration, True)}
 
 Return ONLY valid JSON matching this schema:
 {{
@@ -2049,7 +2103,7 @@ Structure requirements:
      • EXIT TICKET 3-2-1: In Step 5, you MUST include an "Exit Ticket 3-2-1" formative assessment (e.g., សរសេរ ៣ចំណុចដែលបានរៀន, ២ចំណុចដែលចាប់អារម្មណ៍, ១ចំណុចដែលឆ្ងល់).
 5. Self-Reflection (ការស្វ័យវាយតម្លៃ)
 
-{get_method_pedagogical_prompt(method, False, False, lesson_title, techniques)}{build_techniques_alignment_prompt(techniques, False)}
+{get_method_pedagogical_prompt(method, False, False, lesson_title, techniques)}{build_techniques_alignment_prompt(techniques, False)}{build_subject_pedagogical_framing(subject, techniques, duration, False)}
 
 {f"IMPORTANT: The user provided a custom template structure. You MUST adopt this custom format: {custom_template}" if custom_template else ""}
 

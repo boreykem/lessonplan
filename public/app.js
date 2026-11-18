@@ -4644,7 +4644,77 @@ function isGenericStepTitle(title, stepIdx) {
   return false;
 }
 
-function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', techniques = []) {
+// 🧠 4-Layer Subject-Specific Cognitive Framing & Methodology Pacing Engine (STEM vs Social vs Language vs Practical)
+function detectSubjectDomain(subject) {
+  const s = String(subject || '').toLowerCase();
+  if (/គណិត|រូបវិទ្យា|គីមី|ជីវវិទ្យា|ផែនដី|ព័ត៌មានវិទ្យា|វិទ្យាសាស្ត្រ|កុំព្យូទ័រ|math|physic|chem|bio|earth|science|ict|computer|stem|coding|algebra|geometry|calculus/.test(s)) {
+    return 'stem';
+  }
+  if (/ភាសា|អក្សរសាស្ត្រ|អង់គ្លេស|បារាំង|ខ្មែរ|khmer|english|french|literature|grammar|reading|writing|language/.test(s)) {
+    return 'language';
+  }
+  if (/កសិកម្ម|គេហវិទ្យា|សិល្បៈ|អប់រំកាយ|កីឡា|តន្ត្រី|គំនូរ|agriculture|home econ|art|music|physical|sport|craft|vocational/.test(s)) {
+    return 'practical';
+  }
+  return 'social';
+}
+
+function buildSubjectPedagogicalFraming(subject, techniques = [], duration = '', isFlipped = false) {
+  const cleanSubject = (subject || (typeof getSubjectValue === 'function' ? getSubjectValue() : '') || 'ទូទៅ').trim();
+  const domain = detectSubjectDomain(cleanSubject);
+  const durStr = duration || (typeof getDurationValue === 'function' ? getDurationValue() : '០១ ម៉ោង');
+  const totalMin = (typeof parseDurationToMinutes === 'function') ? parseDurationToMinutes(durStr) : 60;
+  const ratioStr = isFlipped ? '៣% - ៧% - ១០% - ៧៥% - ៥%' : '៥% - ១៥% - ៦០% - ១៥% - ៥%';
+  const templateLabel = isFlipped ? 'ថ្នាក់រៀនត្រឡប់ (Flipped Classroom)' : 'កិច្ចតែងការស្តង់ដារក្រសួង (MoEYS 5-Step)';
+  const techListStr = (Array.isArray(techniques) && techniques.length > 0) ? techniques.join(' ➔ ') : 'Think-Pair-Share ➔ Gallery Walk ➔ Exit Ticket 3-2-1';
+
+  let domainRules = '';
+  if (domain === 'stem') {
+    domainRules = `• 🔬 ស៊ុមឯកទេសវិទ្យាសាស្ត្រ (STEM Cognitive Framing - «${cleanSubject}»):
+     - រាល់ខ្លឹមសារក្នុងជួរឈរ «ខ្លឹមសារមេរៀន» ត្រូវតែសុក្រឹត ១០០% មានរូបមន្តជាក់លាក់, លំហាត់គណនាជាលេខ (Worked Numerical Examples), ដំណោះស្រាយមួយជំហានម្តងៗ, ខ្នាតរង្វាស់ត្រឹមត្រូវ (SI Units), ឬទិន្នន័យពិសោធន៍ជាក់ស្តែង!
+     - ហាមដាច់ខាតសរសេរតែពាក្យទ្រឹស្តីទូទៅដោយគ្មានរូបមន្ត ឬគ្មានលេខគណនាជាក់ស្តែង។
+     - យុទ្ធវិធី [${techListStr}] ត្រូវរលាយចូលជាសកម្មភាពគណនា, ពិសោធន៍, ផ្ទៀងផ្ទាត់សម្មតិកម្ម, និងវិភាគកំហុសលម្អៀង (Error Analysis) ពិតប្រាកដនៃមុខវិជ្ជា «${cleanSubject}»។`;
+  } else if (domain === 'language') {
+    domainRules = `• 📖 ស៊ុមឯកទេសភាសា និងអក្សរសាស្ត្រ (Language & Literature Framing - «${cleanSubject}»):
+     - រាល់ខ្លឹមសារក្នុងជួរឈរ «ខ្លឹមសារមេរៀន» ត្រូវតែមានអត្ថបទគំរូ/សម្រង់ឃ្លាឃ្លោងជាក់ស្តែង, ពាក្យគន្លឹះ (Vocabulary) ព្រមទាំងអត្ថន័យ, ទម្រង់វេយ្យាករណ៍ និងឧទាហរណ៍ប្រយោគត្រឹមត្រូវ ១០០%។
+     - ត្រូវបញ្ជ្រាបបំណិនភាសាទាំង ៤ (ស្តាប់, និយាយ, អាន, សរសេរ) និងការវិភាគអត្ថន័យ/តម្លៃអប់រំ។
+     - យុទ្ធវិធី [${techListStr}] ត្រូវរលាយចូលជាសកម្មភាពវិភាគអត្ថបទ, តែងសេចក្តីខ្លី, ដើរតួសន្ទនា, និងការកែសម្រួលសំណេរគ្នាទៅវិញទៅមក (Peer Editing) នៃមុខវិជ្ជា «${cleanSubject}»។`;
+  } else if (domain === 'practical') {
+    domainRules = `• 🛠️ ស៊ុមឯកទេសអនុវត្ត និងវិជ្ជាជីវៈ (Practical & Arts Framing - «${cleanSubject}»):
+     - រាល់ខ្លឹមសារក្នុងជួរឈរ «ខ្លឹមសារមេរៀន» ត្រូវតែបង្ហាញជំហានបច្ចេកទេសជាក់ស្តែង (Step-by-Step Procedures), វិធានសុវត្ថិភាព (Safety Rules), និងលក្ខណៈវិនិច្ឆ័យគុណភាពស្នាដៃ/កាយវិការ។
+     - យុទ្ធវិធី [${techListStr}] ត្រូវរលាយចូលជាការបង្ហាញគំរូ, ការហ្វឹកហាត់ផ្ទាល់ដៃតាមស្ថានីយ, និងការវាយតម្លៃស្នាដៃផ្ទាល់។`;
+  } else {
+    domainRules = `• 🌍 ស៊ុមឯកទេសវិទ្យាសាស្ត្រសង្គម និងគរុកោសល្យ (Social Sciences & Humanities Framing - «${cleanSubject}»):
+     - រាល់ខ្លឹមសារក្នុងជួរឈរ «ខ្លឹមសារមេរៀន» ត្រូវតែមានអំណះអំណាងប្រវត្តិសាស្ត្រ/ភូមិសាស្ត្រ/សង្គមជាក់លាក់, ការវិភាគហេតុ និងផល (Cause & Effect), ករណីសិក្សាជាក់ស្តែងក្នុងបរិបទកម្ពុជា, និងការឆ្លុះបញ្ចាំងសីលធម៌/តម្លៃសង្គម។
+     - យុទ្ធវិធី [${techListStr}] ត្រូវរលាយចូលជាការវិភាគប្រភពឯកសារ, ការសួរដេញដោលទស្សនៈ (Debate / Socratic Dialogue), ការជជែករកដំណោះស្រាយសង្គម, និងការឆ្លុះបញ្ចាំងគុណតម្លៃនៃមុខវិជ្ជា «${cleanSubject}»។`;
+  }
+
+  let pacingTierRule = '';
+  if (totalMin > 135) {
+    pacingTierRule = `• ⏱️ កម្រិតជម្រៅវិធីសាស្ត្រសម្រាប់ ៣ ម៉ោង (${totalMin} នាទី — Deep Immersion / STEM / PjBL):
+     - ដំណើរការស៊ីជម្រៅកម្រិតខ្ពស់៖ សិស្សចុះពិសោធន៍ជាក់ស្តែង, សាងសង់គំរូ Prototype / Flipchart A0, តស៊ូមតិដេញដោល, កែលម្អស្នាដៃ និងវាយតម្លៃតាម Rubric (រួមបញ្ចូល Brain Break សម្រាក ៥ នាទី នៅពាក់កណ្តាលម៉ោង)។`;
+  } else if (totalMin > 75) {
+    pacingTierRule = `• ⏱️ កម្រិតជម្រៅវិធីសាស្ត្រសម្រាប់ ២ ម៉ោង (${totalMin} នាទី — Full Methodology Cycle):
+     - ដំណើរការវដ្តពេញលេញនៃវិធីសាស្ត្របង្រៀន (តាំងពីបង្កើតសម្មតិកម្ម/វិភាគបញ្ហា រហូតដល់តេស្តលទ្ធផល បង្ហាញស្នាដៃ និងឆ្លុះបញ្ចាំង រួមទាំង Brain Break ២-៣ នាទី)។`;
+  } else {
+    pacingTierRule = `• ⏱️ កម្រិតជម្រៅវិធីសាស្ត្រសម្រាប់ ១ ម៉ោង (${totalMin} នាទី — Focused Inquiry):
+     - វិធីសាស្ត្រខ្នាតបង្រួម៖ ផ្ដោតលើបញ្ហា ឬគោលគំនិតគន្លឹះតែ ១ គត់ឱ្យច្បាស់លាស់ និងស៊ីជម្រៅ មិនពង្រីកប្រធានបទច្រើនពេកដែលនាំឱ្យមិនគ្រប់ម៉ោង។`;
+  }
+
+  return `
+═══════════════════════════════════════════════════
+🎯 SUBJECT-SPECIFIC COGNITIVE FRAMING & 4-LAYER ALIGNMENT («${cleanSubject}»):
+═══════════════════════════════════════════════════
+• តួនាទីឯកទេស៖ អ្នកជាអ្នកជំនាញគរុកោសល្យជាន់ខ្ពស់ និងជាគ្រូឧទ្ទេសឯកទេសមុខវិជ្ជា «${cleanSubject}»។ អ្នកត្រូវរៀបចំកិច្ចតែងការប្រភេទ «${templateLabel}» រយៈពេល «${durStr}» (${totalMin} នាទី, សមាមាត្រ ${ratioStr}) ដោយបត់បែនតាមលក្ខណៈពិសេសនៃមុខវិជ្ជា «${cleanSubject}» ១០០%។
+${domainRules}
+${pacingTierRule}`;
+}
+if (typeof window !== 'undefined') {
+  window.detectSubjectDomain = detectSubjectDomain;
+  window.buildSubjectPedagogicalFraming = buildSubjectPedagogicalFraming;
+}
+
+function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', techniques = [], subject = '', duration = '') {
   let cleanMethod = (method || '').trim();
   if (!cleanMethod || cleanMethod.toLowerCase().includes('សិស្សមជ្ឈមណ្ឌល') || cleanMethod.toLowerCase().includes('student-centered') || cleanMethod === 'student_centered') {
     cleanMethod = 'វិធីសាស្ត្រ 5E Instructional Model (Engage, Explore, Explain, Elaborate, Evaluate)';
@@ -4655,6 +4725,7 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', t
   const selectedTechs = (Array.isArray(techniques) && techniques.length > 0)
     ? techniques
     : (typeof getSelectedTechniques === 'function' ? getSelectedTechniques() : []);
+  const subjectFraming = buildSubjectPedagogicalFraming(subject, selectedTechs, duration, isFlipped);
   // 🎯 Intelligent Pedagogical Technique Mapper (Aligned with Category × Template × Duration)
   let step2Techs = [];
   let step3Techs = [];
@@ -4708,9 +4779,9 @@ function getMethodPedagogicalPrompt(method, isFlipped, isBd, lessonTitle = '', t
       mappingRules.push(`• ជំហានទី ៥ (៥% វាយតម្លៃ & កិច្ចការផ្ទះ): ត្រូវប្រើ Exit Ticket 3-2-1 សម្រាប់ឆ្លុះបញ្ចាំងវាយតម្លៃចុងម៉ោង។`);
     }
 
-    techPrompt = `\n   - វិធានតម្រឹមយុទ្ធវិធីបង្រៀនគន្លឹះតាមជំហានគរុកោសល្យត្រឹមត្រូវ (Pedagogical Techniques Alignment & Cohesion):\n     ${mappingRules.join('\n     ')}`;
+    techPrompt = `\n   - វិធានតម្រឹមយុទ្ធវិធីបង្រៀនគន្លឹះតាមជំហានគរុកោសល្យត្រឹមត្រូវ (Pedagogical Techniques Alignment & Cohesion):\n     ${mappingRules.join('\n     ')}\n${subjectFraming}`;
   } else {
-    techPrompt = `\n   - វិធានគរុកោសល្យនៃយុទ្ធវិធី៖\n     • ជំហានទី ២: ប្រើសំណួររំលឹកចំណេះចាស់ ឬ Muddiest Point រហ័ស។ (⚠️ ហាមដាច់ខាតដាក់ Exit Ticket នៅជំហានទី ២!)\n     • ជំហានទី ៤: អនុវត្តយុទ្ធវិធីរៀនសកម្មជាក្រុម (Think-Pair-Share, Jigsaw, Gallery Walk) ៧០% STT។\n     • ជំហានទី ៥: ដាក់ Exit Ticket 3-2-1 សម្រាប់ឆ្លុះបញ្ចាំងវាយតម្លៃចុងម៉ោង។`;
+    techPrompt = `\n   - វិធានគរុកោសល្យនៃយុទ្ធវិធី៖\n     • ជំហានទី ២: ប្រើសំណួររំលឹកចំណេះចាស់ ឬ Muddiest Point រហ័ស។ (⚠️ ហាមដាច់ខាតដាក់ Exit Ticket នៅជំហានទី ២!)\n     • ជំហានទី ៤: អនុវត្តយុទ្ធវិធីរៀនសកម្មជាក្រុម (Think-Pair-Share, Jigsaw, Gallery Walk) ៧០% STT។\n     • ជំហានទី ៥: ដាក់ Exit Ticket 3-2-1 សម្រាប់ឆ្លុះបញ្ចាំងវាយតម្លៃចុងម៉ោង។\n${subjectFraming}`;
   }
 
   if (isFlipped) {
@@ -5427,7 +5498,7 @@ async function generateWithGroqAPI(params) {
   const totalMin = parseDurationToMinutes(params.duration);
   const stepTimeHints = calculateStepDurations(params.duration, isFlipped ? 'flipped' : (isBd ? 'backward_design' : 'standard'));
 
-  const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle, params.techniques);
+  const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle, params.techniques, params.subject, params.duration);
   const isEn = (params.language === 'en' || state.language === 'en');
   const targetLang = isEn ? 'ENGLISH (all content, objectives, pedagogical steps, materials, and activities MUST be written 100% in English)' : 'Khmer';
   const cleanMethod = (params.method && !params.method.includes('សិស្សមជ្ឈមណ្ឌល') && !params.method.toLowerCase().includes('student-centered')) ? params.method : (isEn ? '5E Instructional Model' : 'វិធីសាស្ត្រ 5E Instructional Model');
@@ -5496,7 +5567,7 @@ async function generateWithOpenRouterAPI(params) {
   const apiKey = (state.geminiApiKey || getActiveGeminiApiKey() || localStorage.getItem('gemini_api_key') || '').trim();
   const isFlipped = isFlippedLearningRequest(params);
   const isBd = !isFlipped && isBackwardDesignRequest(params);
-  const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle, params.techniques);
+  const methodPrompt = getMethodPedagogicalPrompt(params.method, isFlipped, isBd, params.lessonTitle, params.techniques, params.subject, params.duration);
   const isEn = (params.language === 'en' || state.language === 'en');
   const targetLang = isEn ? 'ENGLISH (all content, objectives, pedagogical steps, materials, and activities MUST be written 100% in English)' : 'Khmer';
   const cleanMethod = (params.method && !params.method.includes('សិស្សមជ្ឈមណ្ឌល') && !params.method.toLowerCase().includes('student-centered')) ? params.method : (isEn ? '5E Instructional Model' : 'វិធីសាស្ត្រ 5E Instructional Model');
@@ -5800,7 +5871,7 @@ ${totalMin >= 150 ? `• This is an EXTENDED 3-HOUR / WORKSHOP SESSION (${totalM
    - [C - Condition / លក្ខខណ្ឌ]: មធ្យោបាយ ឬវិធីសាស្ត្ររៀន (ឧ. «តាមរយៈការពន្យល់របស់គ្រូ និងការសង្កេតស្លាយ/វីដេអូ», «តាមរយៈការអានឯកសារគោល», «តាមរយៈការអនុវត្តលំហាត់ជាក់ស្តែង និងការពិភាក្សាជាក្រុម», «តាមរយៈការឆ្លុះបញ្ចាំងលើ Exit Ticket»...)
    - [S / D - Standard / ស្ដង់ដារ ឬ កម្រិតកំណត់]: កម្រិតកំណត់នៃការសម្រេចបាន (ឧ. «បានត្រឹមត្រូវ និងក្បោះក្បាយ», «បានយ៉ាងហោចណាស់ ៨០% ត្រឹមត្រូវ», «បានច្បាស់លាស់ឥតខុសឆ្គង», «ប្រកបដោយភាពជឿជាក់ និងស្ទាត់ជំនាញ», «ប្រកបដោយស្មារតីទទួលខុសត្រូវខ្ពស់»)
    ⚠️ ហាមដាច់ខាតសរសេរតែសកម្មភាពកាត់ៗ (ឧ. «ពន្យល់បានពី...») ដោយគ្មានលក្ខខណ្ឌ (Condition: តាមរយៈ...) និងគ្មានស្ដង់ដារ (Standard: បានត្រឹមត្រូវ...)!
-${getMethodPedagogicalPrompt(params.method, true, false, params.lessonTitle, params.techniques)}
+${getMethodPedagogicalPrompt(params.method, true, false, params.lessonTitle, params.techniques, params.subject, params.duration)}
 
 CRITICAL INSTRUCTIONS FOR AI GENERATION:
 1. Deep Content Analysis: Thoroughly examine the provided lesson content. Extract real definitions, terms, rules, formulas, and examples. Use them everywhere in the plan.
@@ -6066,7 +6137,7 @@ PEDAGOGICAL CONTINUITY & SCAFFOLDING CHAIN (ទំនាក់ទំនងរវ
      • ហាមដាច់ខាតសួរសំណួរបិទទន្ទេញចាំចម្លើយខ្លីៗ (Closed recall questions ដូចជា «តើមានប៉ុន្មានប្រភេទ?» រួចសិស្សឆ្លើយតែ «៣ ប្រភេទ»)។ ត្រូវសួរដាស់ការគិត ហេតុផល និងការវិភាគ (ឧ. «តើមុំ និងជ្រុងនីមួយៗមានលក្ខណៈខុសគ្នាយ៉ាងដូចម្តេច ហើយហេតុអ្វីបានជាចាំបាច់ត្រូវបែងចែកបែបនេះ?», «តើយើងអាចអនុវត្តចំណេះដឹងនេះក្នុងការដោះស្រាយបញ្ហាជាក់ស្តែងយ៉ាងដូចម្តេច?»)។
    - គំនូសតាង និងរូបភាពធរណីមាត្រ/វិទ្យាសាស្ត្រ (STEM DIAGRAMS):
      • សម្រាប់មុខវិជ្ជាគណិតវិទ្យា រូបវិទ្យា គីមីវិទ្យា ក្នុងប្រអប់ [ខ្លឹមសារ] ត្រូវសរសេររៀបរាប់រូបរាងធរណីមាត្រ គំនូសតាង ឬដ្យាក្រាមដែលត្រូវគូរបង្ហាញលើក្តារខៀនឱ្យបានច្បាស់លាស់ (ឧ. រូបត្រីកោណកែង សមបាត សម័ង្ស ប្លង់កូអរដោនេ បំពង់ពិសោធន៍...)។
-${getMethodPedagogicalPrompt(params.method, false, false, params.lessonTitle, params.techniques)}
+${getMethodPedagogicalPrompt(params.method, false, false, params.lessonTitle, params.techniques, params.subject, params.duration)}
 
 ⛔ ABSOLUTE PROHIBITIONS:
 - NEVER write "...", "...", or any ellipsis as content
