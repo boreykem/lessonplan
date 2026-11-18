@@ -3503,7 +3503,7 @@ def export_docx():
         meta_table = doc.add_table(rows=1, cols=2)
         meta_table.alignment = WD_TABLE_ALIGNMENT.CENTER
         c0 = meta_table.cell(0, 0)
-        c0.text = f"មុខវិជ្ជា៖ {data.get('subject', 'ចិត្តវិទ្យាអប់រំ')}\nចំនួនក្រេឌីត៖ {data.get('credits', '៣ ក្រេឌីត (៣-០-៦)')}\nឆ្នាំទី៖ {data.get('year', '១')}   ឆមាសទី៖ {data.get('semester', '២')}\nសប្តាហ៍ទី៖ {data.get('week', '១')}   មេរៀនទី៖ {data.get('lessonNumber', '១')}"
+        c0.text = f"មុខវិជ្ជា៖ {data.get('subject', 'ចិត្តវិទ្យាអប់រំ')}\nចំនួនក្រេឌីត៖ {data.get('credits', '៣ ក្រេឌីត (៣-០-៦)')}\nឆ្នាំទី៖ {data.get('year', '១')}   ឆមាសទី៖ {data.get('semester', '២')}"
         c1 = meta_table.cell(0, 1)
         c1.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.RIGHT
         c1.text = f"រយៈពេល៖ {data.get('duration', '១៨០ នាទី')}\nគ្រូឧទ្ទេស៖ {data.get('teacher', 'កែម បូរី')}\n{data.get('dateStr', '')}"
@@ -3641,12 +3641,6 @@ def export_docx():
         sc1.text = f"{data.get('dateStr', '')}\nហត្ថលេខាគ្រូឧទ្ទេស\n\n\n{data.get('teacher', 'កែម បូរី')}"
         sc1.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
         doc.add_paragraph()
-
-        # Footnote License
-        p_foot = doc.add_paragraph()
-        r_foot = p_foot.add_run("* អាជ្ញាបណ្ណ និងកម្មសិទ្ធិ (License)： ខ្ញុំឈ្មោះកែម បូរី ជាគ្រូឧទ្ទេសមុខវិជ្ជាចិត្តវិទ្យាអប់រំ នៅវិទ្យាស្ថានគរុកោសល្យកំពង់ចាម")
-        r_foot.italic = True
-        r_foot.font.size = Pt(9.5)
 
         # Appendix: Pre-Test & Post-Test on the page after signatures
         has_pre = bool(data.get("preTestQCM"))

@@ -11898,7 +11898,6 @@ function renderLessonPlanToA4(data) {
           <div><strong>${isEn ? 'Subject:' : 'មុខវិជ្ជា៖'}</strong> ${escapeHtml(data.subject || (isEn ? 'Educational Psychology' : 'ចិត្តវិទ្យាអប់រំ'))}</div>
           <div><strong>${isEn ? 'Credits:' : 'ចំនួនក្រេឌីត៖'}</strong> ${escapeHtml(creditsVal)}</div>
           <div><strong>${isEn ? 'Year:' : 'ឆ្នាំទី៖'}</strong> ${escapeHtml(data.year || '1')}  &nbsp;&nbsp;<strong>${isEn ? 'Semester:' : 'ឆមាសទី៖'}</strong> ${escapeHtml(data.semester || '2')}</div>
-          <div><strong>${isEn ? 'Week:' : 'សប្តាហ៍ទី៖'}</strong> ${escapeHtml(data.week || '1')}  &nbsp;&nbsp;<strong>${isEn ? 'Lesson:' : 'មេរៀនទី៖'}</strong> ${escapeHtml(data.lessonNumber || '1')}</div>
         </div>
         <div style="text-align: right;">
           <div><strong>${isEn ? 'Duration:' : 'រយៈពេល៖'}</strong> ${escapeHtml(durVal)}</div>
@@ -12003,11 +12002,6 @@ function renderLessonPlanToA4(data) {
           <div class="sig-space"></div>
           <div style="font-weight: bold;">${escapeHtml(data.teacher || (isEn ? 'Borey Kem' : 'កែម បូរី'))}</div>
         </div>
-      </div>
-
-      <!-- Footnote License -->
-      <div style="margin-top: 26px; padding-top: 10px; border-top: 1px dashed #cbd5e1; font-size: 9pt; color: #475569; font-style: italic;">
-        ${isEn ? '* License & Intellectual Property: Instructor Borey Kem, Educational Psychology, Kampong Cham Teacher Education College' : '* អាជ្ញាបណ្ណ និងកម្មសិទ្ធិ (License)： ខ្ញុំឈ្មោះកែម បូរី ជាគ្រូឧទ្ទេសមុខវិជ្ជាចិត្តវិទ្យាអប់រំ នៅវិទ្យាស្ថានគរុកោសល្យកំពង់ចាម'}
       </div>
 
       <!-- 📎 APPENDIX: Pre-Test & Post-Test on the page after signatures -->
@@ -12875,7 +12869,6 @@ async function handleExportWord() {
                     new Paragraph({ children: [new TextRun({ text: `មុខវិជ្ជា៖ ${data.subject || 'ចិត្តវិទ្យាអប់រំ'}`, bold: true, size: 22 })] }),
                     new Paragraph({ children: [new TextRun({ text: `ចំនួនក្រេឌីត៖ ${data.credits || '៣ ក្រេឌីត (៣-០-៦)'}`, size: 22 })] }),
                     new Paragraph({ children: [new TextRun({ text: `ឆ្នាំទី៖ ${data.year || '១'}   ឆមាសទី៖ ${data.semester || '២'}`, size: 22 })] }),
-                    new Paragraph({ children: [new TextRun({ text: `សប្តាហ៍ទី៖ ${data.week || '១'}   មេរៀនទី៖ ${data.lessonNumber || '១'}`, size: 22 })] }),
                   ]
                 }),
                 new TableCell({
