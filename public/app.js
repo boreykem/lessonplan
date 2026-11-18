@@ -12140,8 +12140,8 @@ function renderPreTestHtmlBlock(data) {
         <button type="button" class="btn-tool-action" onclick="promptGenerateTest('pre')" style="background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; font-weight: 600; padding: 4px 10px; border-radius: 6px; cursor: pointer;" title="បង្កើតបុរេតេស្តឡើងវិញ">
           <i class="fa-solid fa-arrows-rotate"></i> ${isEn ? 'Regenerate' : 'បង្កើតឡើងវិញ'}
         </button>
-        <button type="button" class="btn-tool-action" onclick="removePreTestModule()" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="លាក់កម្រងសំណួរ">
-          <i class="fa-solid fa-xmark"></i> ${isEn ? 'Hide' : 'លាក់'}
+        <button type="button" class="btn-tool-action" onclick="removePreTestModule()" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; padding: 4px 9px; border-radius: 6px; cursor: pointer;" title="លាក់កម្រងសំណួរជាបណ្ដោះអាសន្ន (អាចបង្ហាញឡើងវិញបាន)">
+          <i class="fa-solid fa-eye-slash"></i> ${isEn ? 'Hide' : 'លាក់'}
         </button>
       </div>
     </div>
@@ -12229,8 +12229,8 @@ function renderPostTestHtmlBlock(data) {
         <button type="button" class="btn-tool-action" onclick="promptGenerateTest('post')" style="background: #eef2ff; color: #4338ca; border: 1px solid #c7d2fe; font-weight: 600; padding: 4px 10px; border-radius: 6px; cursor: pointer;" title="បង្កើតបច្ឆាតេស្តឡើងវិញ">
           <i class="fa-solid fa-arrows-rotate"></i> ${isEn ? 'Regenerate' : 'បង្កើតឡើងវិញ'}
         </button>
-        <button type="button" class="btn-tool-action" onclick="removePostTestModule()" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: 600; padding: 4px 8px; border-radius: 6px; cursor: pointer;" title="លាក់កម្រងសំណួរ">
-          <i class="fa-solid fa-xmark"></i> ${isEn ? 'Hide' : 'លាក់'}
+        <button type="button" class="btn-tool-action" onclick="removePostTestModule()" style="background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; font-weight: 600; padding: 4px 9px; border-radius: 6px; cursor: pointer;" title="លាក់កម្រងសំណួរជាបណ្ដោះអាសន្ន (អាចបង្ហាញឡើងវិញបាន)">
+          <i class="fa-solid fa-eye-slash"></i> ${isEn ? 'Hide' : 'លាក់'}
         </button>
       </div>
     </div>
@@ -12704,6 +12704,7 @@ async function generatePreTestOnDemand(numQuestions = 10, scale = null) {
       qList.forEach((q, idx) => { q.number = idx + 1; });
     }
     plan.preTestQCM = qList;
+    plan.preTestHidden = false;
     delete plan.preTestAuditReport;
     _testAuditLastError.pre = '';
     _testAuditUndoSnapshots.pre = null;
@@ -12838,6 +12839,7 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
       qList.forEach((q, idx) => { q.number = idx + 1; });
     }
     plan.postTestMCQ = qList;
+    plan.postTestHidden = false;
     delete plan.postTestAuditReport;
     _testAuditLastError.post = '';
     _testAuditUndoSnapshots.post = null;
@@ -12903,51 +12905,144 @@ async function generatePostTestOnDemand(numQuestions = 10, scale = null) {
 }
 window.generatePostTestOnDemand = generatePostTestOnDemand;
 
+function renderHiddenTestPlaceholderHtml(data, testType, isEn = false) {
+  const list = testType === 'pre' ? data.preTestQCM : data.postTestMCQ;
+  const count = Array.isArray(list) ? list.length : 0;
+  const kNum = (typeof toKhmerNumber === 'function' && !isEn) ? toKhmerNumber : String;
+  const label = testType === 'pre'
+    ? (isEn ? `Pre-Test (${count} Questions)` : `វិញ្ញាសាបុរេតេស្ត Pre-Test (${kNum(count)} សំណួរ)`)
+    : (isEn ? `Post-Test (${count} Questions)` : `វិញ្ញាសាបច្ឆាតេស្ត Post-Test (${kNum(count)} សំណួរ)`);
+  const showFn = testType === 'pre' ? 'showPreTestModule()' : 'showPostTestModule()';
+  const delFn = testType === 'pre' ? 'deletePreTestModule()' : 'deletePostTestModule()';
+  return `
+    <div class="test-hidden-restore-bar no-print" contenteditable="false">
+      <div class="test-hidden-restore-info">
+        <i class="fa-solid fa-eye-slash" style="color: #6366f1;"></i>
+        <span>
+          ${isEn
+            ? `<strong>${label}</strong> is hidden (saved safely &amp; excluded from Print/Word).`
+            : `បានលាក់ <strong>${label}</strong> — ទិន្នន័យត្រូវបានរក្សាទុកសុវត្ថិភាព (មិនបោះពុម្ពពេល Print/Word)`}
+        </span>
+      </div>
+      <div class="test-hidden-restore-actions">
+        <button type="button" class="btn-test-restore-show" onclick="${showFn}">
+          <i class="fa-solid fa-eye"></i> ${isEn ? 'Show Test Again' : 'បង្ហាញឡើងវិញ'}
+        </button>
+        <button type="button" class="btn-test-restore-delete" onclick="${delFn}" title="${isEn ? 'Delete permanently' : 'លុបកម្រងសំណួរចោលទាំងស្រុង'}">
+          <i class="fa-solid fa-trash-can"></i> ${isEn ? 'Delete' : 'លុបចោល'}
+        </button>
+      </div>
+    </div>
+  `;
+}
+
 function removePreTestModule() {
   const plan = state.generatedPlanData || state.currentPlan;
-  if (plan) {
-    plan.preTestQCM = null;
-    const wrapper = document.getElementById('preTestModuleWrapper');
-    if (wrapper) wrapper.innerHTML = '';
-    const hasPre = Boolean(plan.preTestQCM && plan.preTestQCM.length > 0);
-    const hasPost = Boolean(plan.postTestMCQ && plan.postTestMCQ.length > 0);
-    if (!hasPre && !hasPost) {
-      const appendix = document.getElementById('appendixSectionWrapper');
-      if (appendix) appendix.style.display = 'none';
-      const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');
-      titleWrapper.forEach(el => el.style.display = 'none');
-    }
-  }
+  if (!plan || !Array.isArray(plan.preTestQCM) || plan.preTestQCM.length === 0) return;
+  plan.preTestHidden = true;
+  const isEn = (state.language === 'en');
+  const wrapper = document.getElementById('preTestModuleWrapper');
+  if (wrapper) wrapper.innerHTML = renderPreTestModule(plan, isEn);
+  if (typeof scheduleAutoSaveDraft === 'function') scheduleAutoSaveDraft(800);
+  showToast(isEn ? 'Pre-Test hidden. Click "Show Test Again" anytime to restore.' : '🙈 បានលាក់បុរេតេស្ត (ទិន្នន័យនៅរក្សាទុកដដែល — ចុច «បង្ហាញឡើងវិញ» ពេលណាក៏បាន)។', 'info');
 }
 window.removePreTestModule = removePreTestModule;
 
+function showPreTestModule() {
+  const plan = state.generatedPlanData || state.currentPlan;
+  if (!plan || !Array.isArray(plan.preTestQCM) || plan.preTestQCM.length === 0) return;
+  plan.preTestHidden = false;
+  const isEn = (state.language === 'en');
+  const wrapper = document.getElementById('preTestModuleWrapper');
+  if (wrapper) {
+    wrapper.innerHTML = renderPreTestModule(plan, isEn);
+    setTimeout(() => triggerMathRendering(wrapper), 50);
+  }
+  if (typeof scheduleAutoSaveDraft === 'function') scheduleAutoSaveDraft(800);
+}
+window.showPreTestModule = showPreTestModule;
+
+function deletePreTestModule() {
+  const plan = state.generatedPlanData || state.currentPlan;
+  if (!plan) return;
+  const isEn = (state.language === 'en');
+  if (!confirm(isEn ? 'Delete all Pre-Test questions permanently?' : 'តើលោកគ្រូពិតជាចង់លុបកម្រងសំណួរបុរេតេស្ត (Pre-Test) ចោលទាំងស្រុងមែនទេ?')) return;
+  plan.preTestQCM = null;
+  plan.preTestHidden = false;
+  delete plan.preTestAuditReport;
+  const wrapper = document.getElementById('preTestModuleWrapper');
+  if (wrapper) wrapper.innerHTML = '';
+  const hasPost = Boolean(plan.postTestMCQ && plan.postTestMCQ.length > 0);
+  if (!hasPost) {
+    const appendix = document.getElementById('appendixSectionWrapper');
+    if (appendix) appendix.style.display = 'none';
+    const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');
+    titleWrapper.forEach(el => el.style.display = 'none');
+  }
+  if (typeof scheduleAutoSaveDraft === 'function') scheduleAutoSaveDraft(800);
+  showToast(isEn ? 'Pre-Test deleted.' : '🗑️ បានលុបកម្រងសំណួរបុរេតេស្តរួចរាល់។', 'info');
+}
+window.deletePreTestModule = deletePreTestModule;
+
 function removePostTestModule() {
   const plan = state.generatedPlanData || state.currentPlan;
-  if (plan) {
-    plan.postTestMCQ = null;
-    const wrapper = document.getElementById('postTestModuleWrapper');
-    if (wrapper) wrapper.innerHTML = '';
-    const hasPre = Boolean(plan.preTestQCM && plan.preTestQCM.length > 0);
-    const hasPost = Boolean(plan.postTestMCQ && plan.postTestMCQ.length > 0);
-    if (!hasPre && !hasPost) {
-      const appendix = document.getElementById('appendixSectionWrapper');
-      if (appendix) appendix.style.display = 'none';
-      const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');
-      titleWrapper.forEach(el => el.style.display = 'none');
-    }
-  }
+  if (!plan || !Array.isArray(plan.postTestMCQ) || plan.postTestMCQ.length === 0) return;
+  plan.postTestHidden = true;
+  const isEn = (state.language === 'en');
+  const wrapper = document.getElementById('postTestModuleWrapper');
+  if (wrapper) wrapper.innerHTML = renderPostTestModule(plan, isEn);
+  if (typeof scheduleAutoSaveDraft === 'function') scheduleAutoSaveDraft(800);
+  showToast(isEn ? 'Post-Test hidden. Click "Show Test Again" anytime to restore.' : '🙈 បានលាក់បច្ឆាតេស្ត (ទិន្នន័យនៅរក្សាទុកដដែល — ចុច «បង្ហាញឡើងវិញ» ពេលណាក៏បាន)។', 'info');
 }
 window.removePostTestModule = removePostTestModule;
+
+function showPostTestModule() {
+  const plan = state.generatedPlanData || state.currentPlan;
+  if (!plan || !Array.isArray(plan.postTestMCQ) || plan.postTestMCQ.length === 0) return;
+  plan.postTestHidden = false;
+  const isEn = (state.language === 'en');
+  const wrapper = document.getElementById('postTestModuleWrapper');
+  if (wrapper) {
+    wrapper.innerHTML = renderPostTestModule(plan, isEn);
+    setTimeout(() => triggerMathRendering(wrapper), 50);
+  }
+  if (typeof scheduleAutoSaveDraft === 'function') scheduleAutoSaveDraft(800);
+}
+window.showPostTestModule = showPostTestModule;
+
+function deletePostTestModule() {
+  const plan = state.generatedPlanData || state.currentPlan;
+  if (!plan) return;
+  const isEn = (state.language === 'en');
+  if (!confirm(isEn ? 'Delete all Post-Test questions permanently?' : 'តើលោកគ្រូពិតជាចង់លុបកម្រងសំណួរបច្ឆាតេស្ត (Post-Test) ចោលទាំងស្រុងមែនទេ?')) return;
+  plan.postTestMCQ = null;
+  plan.postTestHidden = false;
+  delete plan.postTestAuditReport;
+  const wrapper = document.getElementById('postTestModuleWrapper');
+  if (wrapper) wrapper.innerHTML = '';
+  const hasPre = Boolean(plan.preTestQCM && plan.preTestQCM.length > 0);
+  if (!hasPre) {
+    const appendix = document.getElementById('appendixSectionWrapper');
+    if (appendix) appendix.style.display = 'none';
+    const titleWrapper = document.querySelectorAll('#assessmentSectionTitle');
+    titleWrapper.forEach(el => el.style.display = 'none');
+  }
+  if (typeof scheduleAutoSaveDraft === 'function') scheduleAutoSaveDraft(800);
+  showToast(isEn ? 'Post-Test deleted.' : '🗑️ បានលុបកម្រងសំណួរបច្ឆាតេស្តរួចរាល់។', 'info');
+}
+window.deletePostTestModule = deletePostTestModule;
 
 function renderPreTestModule(data, isEn = false) {
   const hasQuestions = data.preTestQCM && Array.isArray(data.preTestQCM) && data.preTestQCM.length > 0;
   if (!hasQuestions) { return ''; }
+  if (data.preTestHidden) { return renderHiddenTestPlaceholderHtml(data, 'pre', isEn); }
   return renderPreTestHtmlBlock(data);
 }
 
 function renderPostTestModule(data, isEn = false) {
   const hasQuestions = data.postTestMCQ && Array.isArray(data.postTestMCQ) && data.postTestMCQ.length > 0;
   if (!hasQuestions) { return ''; }
+  if (data.postTestHidden) { return renderHiddenTestPlaceholderHtml(data, 'post', isEn); }
   return renderPostTestHtmlBlock(data);
 }
 
@@ -14269,8 +14364,8 @@ async function handleExportWord() {
       );
 
       // Appendix: Pre-Test & Post-Test on the page after signatures
-      const hasPreFlipped = Boolean(data.preTestQCM && data.preTestQCM.length > 0);
-      const hasPostFlipped = Boolean(data.postTestMCQ && data.postTestMCQ.length > 0);
+      const hasPreFlipped = Boolean(data.preTestQCM && data.preTestQCM.length > 0 && !data.preTestHidden);
+      const hasPostFlipped = Boolean(data.postTestMCQ && data.postTestMCQ.length > 0 && !data.postTestHidden);
       if (hasPreFlipped || hasPostFlipped) {
         docChildren.push(
           new Paragraph({
@@ -14530,8 +14625,8 @@ async function handleExportWord() {
     );
 
     // Appendix: Pre-Test & Post-Test on the page after signatures
-    const hasPreStd = Boolean(data.preTestQCM && data.preTestQCM.length > 0);
-    const hasPostStd = Boolean(data.postTestMCQ && data.postTestMCQ.length > 0);
+    const hasPreStd = Boolean(data.preTestQCM && data.preTestQCM.length > 0 && !data.preTestHidden);
+    const hasPostStd = Boolean(data.postTestMCQ && data.postTestMCQ.length > 0 && !data.postTestHidden);
     if (hasPreStd || hasPostStd) {
       docChildren.push(
         new Paragraph({
@@ -14731,7 +14826,8 @@ function handlePrintPdf() {
   const appendixNode = clone.querySelector('#appendixSectionWrapper');
   if (appendixNode) {
     const isHidden = appendixNode.style && appendixNode.style.display === 'none';
-    if (!isHidden && appendixNode.textContent.trim().length > 10) {
+    const hasVisibleTest = Boolean(appendixNode.querySelector('.doc-pretest-container'));
+    if (!isHidden && hasVisibleTest && appendixNode.textContent.trim().length > 10) {
       appendixNode.style.pageBreakBefore = 'auto';
       appendixNode.style.breakBefore = 'auto';
       appendixNode.style.marginTop = '0';

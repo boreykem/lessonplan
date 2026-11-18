@@ -6020,7 +6020,93 @@ tr.step-just-updated td {
 
 @media print {
   .test-audit-host,
-  .btn-test-audit-trigger {
+  .btn-test-audit-trigger,
+  .test-hidden-restore-bar {
     display: none !important;
   }
+}
+
+.test-hidden-restore-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f8fafc, #eef2ff);
+  border: 1.5px dashed #818cf8;
+  font-family: 'Kantumruy Pro', 'Inter', sans-serif;
+  user-select: none;
+}
+
+.test-hidden-restore-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #334155;
+  flex: 1;
+  min-width: 220px;
+}
+
+.test-hidden-restore-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-test-restore-show {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #ffffff !important;
+  font-family: 'Kantumruy Pro', 'Inter', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 9px rgba(79, 70, 229, 0.28);
+  transition: all 0.16s ease;
+}
+
+.btn-test-restore-show:hover {
+  background: linear-gradient(135deg, #4338ca, #7c3aed);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(79, 70, 229, 0.38);
+}
+
+.btn-test-restore-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 11px;
+  border-radius: 8px;
+  border: 1px solid #fca5a5;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-family: 'Kantumruy Pro', 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-test-restore-delete:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .test-hidden-restore-bar {
+  background: #1e293b;
+  border-color: #6366f1;
+}
+
+[data-theme="dark"] .test-hidden-restore-info {
+  color: #e2e8f0;
 }
