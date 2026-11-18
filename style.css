@@ -2822,7 +2822,7 @@ textarea.form-control {
    ========================================================================== */
 @page {
   size: A4 portrait;
-  margin: 10mm;
+  margin: 0;
 }
 
 @media print {
@@ -2912,7 +2912,7 @@ textarea.form-control {
     box-shadow: none !important;
     border: none !important;
     border-radius: 0 !important;
-    padding: 2mm 4mm !important;
+    padding: 13mm 14mm !important;
     margin: 0 !important;
     width: 100% !important;
     max-width: 100% !important;

@@ -13295,7 +13295,7 @@ function handlePrintPdf() {
   <style>
     @page {
       size: A4 portrait;
-      margin: 12mm 12mm 14mm 12mm;
+      margin: 0;
     }
     * {
       box-sizing: border-box;
@@ -13311,6 +13311,17 @@ function handlePrintPdf() {
       font-size: 10.5pt;
       line-height: 1.6;
     }
+    /* Repeating invisible top/bottom page margin spacers across every printed page */
+    .print-page-shell {
+      width: 100%;
+      border-collapse: collapse;
+      border: none;
+    }
+    .print-page-shell > thead { display: table-header-group; }
+    .print-page-shell > tfoot { display: table-footer-group; }
+    .print-page-shell > thead > tr > td { height: 13mm; padding: 0; border: none; }
+    .print-page-shell > tfoot > tr > td { height: 13mm; padding: 0; border: none; }
+    .print-page-shell > tbody > tr > td { padding: 0 14mm; border: none; vertical-align: top; }
     .print-a4-root {
       width: 100%;
       margin: 0 auto;
@@ -13476,7 +13487,11 @@ function handlePrintPdf() {
   </style>
 </head>
 <body>
-  <div class="print-a4-root">${clone.innerHTML}</div>
+  <table class="print-page-shell">
+    <thead><tr><td></td></tr></thead>
+    <tbody><tr><td><div class="print-a4-root">${clone.innerHTML}</div></td></tr></tbody>
+    <tfoot><tr><td></td></tr></tfoot>
+  </table>
 </body>
 </html>`;
 
