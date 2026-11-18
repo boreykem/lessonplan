@@ -2062,6 +2062,13 @@ const I18N_DICTIONARY = {
     modalLicenseBtnActivate: "ធ្វើឱ្យសកម្ម (Activate)",
 
     modalSavedPlansTitle: "ថតមេរៀន (Lesson Folders Studio)",
+    teachingApproachLabel: "គោលវិធីបង្រៀន",
+    teachingApproachVal: "សិស្សមជ្ឈមណ្ឌល (Student-Centered)",
+    techniquesLabel: "យុទ្ធវិធីបង្រៀនគន្លឹះ (Active Techniques)",
+    btnResetTechDefault: "លំនាំដើម",
+    btnClearTechAll: "សម្អាតទាំងអស់",
+    btnAddCustomTech: "+ បន្ថែមយុទ្ធវិធីថ្មី",
+    btnDoneTech: "រួចរាល់",
     modalSavedPlansSearchPlaceholder: "ស្វែងរកតាមចំណងជើងមេរៀន មុខវិជ្ជា ថ្នាក់ ឬកាលបរិច្ឆេទ...",
     modalSavedPlansFilterAll: "-- គ្រប់មុខវិជ្ជា --",
 
@@ -2228,6 +2235,13 @@ const I18N_DICTIONARY = {
     modalLicenseBtnActivate: "Activate License",
 
     modalSavedPlansTitle: "Lesson Folders Studio",
+    teachingApproachLabel: "Teaching Approach",
+    teachingApproachVal: "Student-Centered",
+    techniquesLabel: "Active Teaching Techniques",
+    btnResetTechDefault: "Default",
+    btnClearTechAll: "Clear All",
+    btnAddCustomTech: "+ Add Custom Technique",
+    btnDoneTech: "Done",
     modalSavedPlansSearchPlaceholder: "Search by lesson title, subject, grade, or date...",
     modalSavedPlansFilterAll: "-- All Subjects --",
 
@@ -22024,27 +22038,9 @@ function refreshGoogleSlidesAuthUI() {
     }
   }
 
-  // Keep UI 100% simple for teachers: hide technical Client ID setup unless Admin explicitly opens ⚙️!
-  if (!clientId) {
-    if (authRow) authRow.style.display = 'none';
-    const setupOpen = setupBox && setupBox.style.display === 'block';
-    if (card) card.style.display = (setupOpen || hasLastDeck) ? 'block' : 'none';
-    return;
-  }
-
-  if (card) card.style.display = 'block';
-  if (authRow) authRow.style.display = 'flex';
-
-  if (statusEl) {
-    if (connected) {
-      statusEl.innerHTML = `<i class="fa-solid fa-circle-check" style="color: #16a34a;"></i> <span style="color: #15803d;">បានភ្ជាប់គណនី Google រួចរាល់ (ចុច ១ ដងបង្កើតភ្លាម)</span>`;
-    } else {
-      statusEl.innerHTML = `<i class="fa-brands fa-google" style="color: #2563eb;"></i> <span>ភ្ជាប់គណនី Google ដើម្បីបង្កើតផ្ទាល់ក្នុង docs.google.com/presentation</span>`;
-    }
-  }
-
-  if (btnConnect) btnConnect.style.display = connected ? 'none' : 'inline-flex';
-  if (btnDisconnect) btnDisconnect.style.display = connected ? 'inline-flex' : 'none';
+  // In-App Slide Studio is default (Zero Google Sign-In) — keep legacy Google OAuth card hidden!
+  if (card) card.style.display = 'none';
+  return;
 }
 window.refreshGoogleSlidesAuthUI = refreshGoogleSlidesAuthUI;
 
