@@ -292,14 +292,52 @@ def parse_duration_to_minutes(duration_str):
     return 60
 
 
+def allocate_five_min_steps(total_min, ratios, core_idx, tie_priority=None):
+    n = len(ratios)
+    if not total_min or total_min <= 0:
+        return [5] * n
+
+    if total_min < 5 * n:
+        mins = [max(1, round(total_min * r)) for r in ratios]
+        diff = total_min - sum(mins)
+        mins[core_idx] = max(1, mins[core_idx] + diff)
+        return mins
+
+    remainder_min = total_min % 5
+    total_blocks = total_min // 5
+    exact_blocks = [(total_min * r) / 5.0 for r in ratios]
+
+    blocks = [1] * n
+    remaining = total_blocks - n
+
+    while remaining > 0:
+        best_idx = core_idx
+        best_score = float("-inf")
+        for i in range(n):
+            deficit = exact_blocks[i] - blocks[i]
+            prio = tie_priority[i] if (tie_priority and len(tie_priority) == n) else (n if i == core_idx else n - i)
+            score = deficit + prio * 1e-6
+            if score > best_score:
+                best_score = score
+                best_idx = i
+        blocks[best_idx] += 1
+        remaining -= 1
+
+    mins = [b * 5 for b in blocks]
+    if remainder_min > 0:
+        mins[core_idx] += remainder_min
+    return mins
+
+
 def calculate_step_durations(duration_str, is_flipped=True):
     total = parse_duration_to_minutes(duration_str)
     if is_flipped:
-        s1 = max(1, round(total * 0.03))
-        s2 = max(2, round(total * 0.07))
-        s3 = max(2, round(total * 0.10))
-        s5 = max(1, round(total * 0.05))
-        s4 = max(5, total - (s1 + s2 + s3 + s5))
+        s1, s2, s3, s4, s5 = allocate_five_min_steps(
+            total,
+            [0.03, 0.07, 0.10, 0.75, 0.05],
+            3,
+            [1, 3, 4, 5, 2],
+        )
         return {
             "total": total,
             "step1": f"{to_khmer_number(s1)} នាទី",
@@ -309,11 +347,12 @@ def calculate_step_durations(duration_str, is_flipped=True):
             "step5": f"{to_khmer_number(s5)} នាទី",
         }
     else:
-        s1 = max(1, round(total * 0.05))
-        s2 = max(2, round(total * 0.15))
-        s4 = max(2, round(total * 0.15))
-        s5 = max(1, round(total * 0.05))
-        s3 = max(5, total - (s1 + s2 + s4 + s5))
+        s1, s2, s3, s4, s5 = allocate_five_min_steps(
+            total,
+            [0.05, 0.15, 0.60, 0.15, 0.05],
+            2,
+            [1, 3, 5, 4, 2],
+        )
         return {
             "total": total,
             "step1": f"{to_khmer_number(s1)} នាទី",

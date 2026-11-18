@@ -2844,19 +2844,66 @@ function parseDurationToMinutes(durationStr) {
 window.parseDurationToMinutes = parseDurationToMinutes;
 window.getActiveDurationString = getDurationValue;
 
-// Calculate proportional minutes for each step based on total duration & pedagogical percentage
+// Allocate step minutes rounded to clean multiples of 5 (5, 10, 15, ... 180 min)
+// while preserving exact total duration and staying closest to the official target ratios.
+function allocateFiveMinSteps(totalMin, ratios, coreIdx, tiePriority = []) {
+  const n = ratios.length;
+  if (!totalMin || totalMin <= 0) return ratios.map(() => 5);
+
+  // Tiny custom duration (< 5 min per step): fall back to 1-min rounding with exact sum
+  if (totalMin < 5 * n) {
+    const mins = ratios.map(r => Math.max(1, Math.round(totalMin * r)));
+    const diff = totalMin - mins.reduce((a, b) => a + b, 0);
+    mins[coreIdx] = Math.max(1, mins[coreIdx] + diff);
+    return mins;
+  }
+
+  const remainderMin = totalMin % 5;
+  const totalBlocks = Math.floor(totalMin / 5);
+  const exactBlocks = ratios.map(r => (totalMin * r) / 5);
+
+  // Guarantee at least 1 block (5 min) per step
+  const blocks = new Array(n).fill(1);
+  let remaining = totalBlocks - n;
+
+  // Assign each remaining 5-min block to the step with the largest deficit (minimizes L2 error)
+  while (remaining > 0) {
+    let bestIdx = coreIdx;
+    let bestScore = -Infinity;
+    for (let i = 0; i < n; i++) {
+      const deficit = exactBlocks[i] - blocks[i];
+      const priorityRank = tiePriority.length === n ? tiePriority[i] : (i === coreIdx ? n : n - i);
+      const score = deficit + priorityRank * 1e-6;
+      if (score > bestScore) {
+        bestScore = score;
+        bestIdx = i;
+      }
+    }
+    blocks[bestIdx] += 1;
+    remaining -= 1;
+  }
+
+  const mins = blocks.map(b => b * 5);
+  if (remainderMin > 0) {
+    mins[coreIdx] += remainderMin;
+  }
+  return mins;
+}
+
+// Calculate proportional minutes for each step based on total duration & pedagogical percentage (rounded to 5-min steps)
 function calculateStepDurations(durationStr, mode = 'flipped') {
   const totalMin = parseDurationToMinutes(durationStr);
   const isFlipped = (mode === 'flipped' || mode === 'flipped_learning_5step');
   const isUbD = (mode === 'backward_design' || mode === 'backward_design_3stage');
 
   if (isFlipped) {
-    // ⚡ Flipped Classroom Official Standard: 3% - 7% - 10% - 75% - 5%
-    const s1 = Math.max(1, Math.round(totalMin * 0.03));
-    const s2 = Math.max(2, Math.round(totalMin * 0.07));
-    const s3 = Math.max(2, Math.round(totalMin * 0.10));
-    const s5 = Math.max(1, Math.round(totalMin * 0.05));
-    const s4 = Math.max(5, totalMin - (s1 + s2 + s3 + s5));
+    // ⚡ Flipped Classroom Official Standard: 3% - 7% - 10% - 75% - 5% (5-min base rounding)
+    const [s1, s2, s3, s4, s5] = allocateFiveMinSteps(
+      totalMin,
+      [0.03, 0.07, 0.10, 0.75, 0.05],
+      3,
+      [1, 3, 4, 5, 2]
+    );
     return {
       total: totalMin,
       mode: 'flipped',
@@ -2866,29 +2913,42 @@ function calculateStepDurations(durationStr, mode = 'flipped') {
       step3: `${toKhmerNumber(s3)} នាទី`,
       step4: `${toKhmerNumber(s4)} នាទី`,
       step5: `${toKhmerNumber(s5)} នាទី`,
-      s1, s2, s3, s4, s5
+      s1, s2, s3, s4, s5,
+      p1: Math.round((s1 / totalMin) * 100),
+      p2: Math.round((s2 / totalMin) * 100),
+      p3: Math.round((s3 / totalMin) * 100),
+      p4: Math.round((s4 / totalMin) * 100),
+      p5: Math.round((s5 / totalMin) * 100)
     };
   } else if (isUbD) {
-    // UbD Backward Design: Hook 15%, Explore 70%, Reflect 15%
-    const s1 = Math.max(3, Math.round(totalMin * 0.15));
-    const s3 = Math.max(3, Math.round(totalMin * 0.15));
-    const s2 = Math.max(10, totalMin - (s1 + s3));
+    // UbD Backward Design: Hook 15%, Explore 70%, Reflect 15% (5-min base rounding)
+    const [s1, s2, s3] = allocateFiveMinSteps(
+      totalMin,
+      [0.15, 0.70, 0.15],
+      1,
+      [2, 3, 1]
+    );
+    const p1 = Math.round((s1 / totalMin) * 100);
+    const p2 = Math.round((s2 / totalMin) * 100);
+    const p3 = Math.round((s3 / totalMin) * 100);
     return {
       total: totalMin,
       mode: 'backward_design',
       ratio: '១៥% - ៧០% - ១៥%',
-      step1: `១៥% (~${toKhmerNumber(s1)} នាទី)`,
-      step2: `៧០% (~${toKhmerNumber(s2)} នាទី)`,
-      step3: `១៥% (~${toKhmerNumber(s3)} នាទី)`,
-      s1, s2, s3
+      step1: `${p1 === 15 ? '' : '~'}${toKhmerNumber(p1)}% (${toKhmerNumber(s1)} នាទី)`,
+      step2: `${p2 === 70 ? '' : '~'}${toKhmerNumber(p2)}% (${toKhmerNumber(s2)} នាទី)`,
+      step3: `${p3 === 15 ? '' : '~'}${toKhmerNumber(p3)}% (${toKhmerNumber(s3)} នាទី)`,
+      s1, s2, s3,
+      p1, p2, p3
     };
   } else {
-    // 🏛️ MoEYS Standard 5-Step Official Curriculum Standard: 5% - 15% - 60% - 15% - 5%
-    const s1 = Math.max(1, Math.round(totalMin * 0.05));
-    const s2 = Math.max(2, Math.round(totalMin * 0.15));
-    const s4 = Math.max(2, Math.round(totalMin * 0.15));
-    const s5 = Math.max(1, Math.round(totalMin * 0.05));
-    const s3 = Math.max(5, totalMin - (s1 + s2 + s4 + s5));
+    // 🏛️ MoEYS Standard 5-Step Official Curriculum Standard: 5% - 15% - 60% - 15% - 5% (5-min base rounding)
+    const [s1, s2, s3, s4, s5] = allocateFiveMinSteps(
+      totalMin,
+      [0.05, 0.15, 0.60, 0.15, 0.05],
+      2,
+      [1, 3, 5, 4, 2]
+    );
     return {
       total: totalMin,
       mode: 'standard',
@@ -2898,7 +2958,12 @@ function calculateStepDurations(durationStr, mode = 'flipped') {
       step3: `${toKhmerNumber(s3)} នាទី`,
       step4: `${toKhmerNumber(s4)} នាទី`,
       step5: `${toKhmerNumber(s5)} នាទី`,
-      s1, s2, s3, s4, s5
+      s1, s2, s3, s4, s5,
+      p1: Math.round((s1 / totalMin) * 100),
+      p2: Math.round((s2 / totalMin) * 100),
+      p3: Math.round((s3 / totalMin) * 100),
+      p4: Math.round((s4 / totalMin) * 100),
+      p5: Math.round((s5 / totalMin) * 100)
     };
   }
 }
@@ -2925,6 +2990,8 @@ function updateDynamicPacingBar() {
   else if (isUbD) modeKey = 'backward_design';
 
   const pacing = calculateStepDurations(durationStr, modeKey);
+  const fmtPct = (actual, target) => `${actual === target ? '' : '~'}${toKhmerNumber(actual)}%`;
+  const segW = (mins) => `${((mins / pacing.total) * 100).toFixed(2)}%`;
 
   if (badge) {
     if (isFlipped) {
@@ -2944,44 +3011,44 @@ function updateDynamicPacingBar() {
 
   if (isFlipped) {
     container.innerHTML = `
-      <div class="pacing-segment seg-s1" style="width: 3%;" title="ជំហានទី ១ (រដ្ឋបាល): ៣% (~${pacing.step1})"></div>
-      <div class="pacing-segment seg-s2" style="width: 7%;" title="ជំហានទី ២ (ពិនិត្យស្វ័យសិក្សា): ៧% (~${pacing.step2})"></div>
-      <div class="pacing-segment seg-s3" style="width: 10%;" title="ជំហានទី ៣ (ស្រាយចម្ងល់): ១០% (~${pacing.step3})"></div>
-      <div class="pacing-segment seg-s4" style="width: 75%;" title="ជំហានទី ៤ (អនុវត្តសកម្មជាក្រុម): ៧៥% (~${pacing.step4})"></div>
-      <div class="pacing-segment seg-s5" style="width: 5%;" title="ជំហានទី ៥ (ឆ្លុះបញ្ចាំង/វាយតម្លៃ): ៥% (~${pacing.step5})"></div>
+      <div class="pacing-segment seg-s1" style="width: ${segW(pacing.s1)};" title="ជំហានទី ១ (រដ្ឋបាល): ${pacing.step1} (${fmtPct(pacing.p1, 3)})"></div>
+      <div class="pacing-segment seg-s2" style="width: ${segW(pacing.s2)};" title="ជំហានទី ២ (ពិនិត្យស្វ័យសិក្សា): ${pacing.step2} (${fmtPct(pacing.p2, 7)})"></div>
+      <div class="pacing-segment seg-s3" style="width: ${segW(pacing.s3)};" title="ជំហានទី ៣ (ស្រាយចម្ងល់): ${pacing.step3} (${fmtPct(pacing.p3, 10)})"></div>
+      <div class="pacing-segment seg-s4" style="width: ${segW(pacing.s4)};" title="ជំហានទី ៤ (អនុវត្តសកម្មជាក្រុម): ${pacing.step4} (${fmtPct(pacing.p4, 75)})"></div>
+      <div class="pacing-segment seg-s5" style="width: ${segW(pacing.s5)};" title="ជំហានទី ៥ (ឆ្លុះបញ្ចាំង/វាយតម្លៃ): ${pacing.step5} (${fmtPct(pacing.p5, 5)})"></div>
     `;
     legend.innerHTML = `
-      <span class="p-item"><i class="p-dot dot-s1"></i> ជំ.១: <strong>${pacing.step1}</strong> (៣%)</span>
-      <span class="p-item"><i class="p-dot dot-s2"></i> ជំ.២: <strong>${pacing.step2}</strong> (៧%)</span>
-      <span class="p-item"><i class="p-dot dot-s3"></i> ជំ.៣: <strong>${pacing.step3}</strong> (១០%)</span>
-      <span class="p-item highlight-core"><i class="p-dot dot-s4"></i> ជំ.៤: <strong>${pacing.step4}</strong> (៧៥% អនុវត្តសកម្ម)</span>
-      <span class="p-item"><i class="p-dot dot-s5"></i> ជំ.៥: <strong>${pacing.step5}</strong> (៥%)</span>
+      <span class="p-item"><i class="p-dot dot-s1"></i> ជំ.១: <strong>${pacing.step1}</strong> (${fmtPct(pacing.p1, 3)})</span>
+      <span class="p-item"><i class="p-dot dot-s2"></i> ជំ.២: <strong>${pacing.step2}</strong> (${fmtPct(pacing.p2, 7)})</span>
+      <span class="p-item"><i class="p-dot dot-s3"></i> ជំ.៣: <strong>${pacing.step3}</strong> (${fmtPct(pacing.p3, 10)})</span>
+      <span class="p-item highlight-core"><i class="p-dot dot-s4"></i> ជំ.៤: <strong>${pacing.step4}</strong> (${fmtPct(pacing.p4, 75)} អនុវត្តសកម្ម)</span>
+      <span class="p-item"><i class="p-dot dot-s5"></i> ជំ.៥: <strong>${pacing.step5}</strong> (${fmtPct(pacing.p5, 5)})</span>
     `;
   } else if (isUbD) {
     container.innerHTML = `
-      <div class="pacing-segment seg-s2" style="width: 15%;" title="ដំណាក់កាល ១ (លទ្ធផលរំពឹងទុក): ១៥% (~${pacing.step1})"></div>
-      <div class="pacing-segment seg-s4" style="width: 70%;" title="ដំណាក់កាល ២ (ភស្តុតាងវាយតម្លៃ): ៧០% (~${pacing.step2})"></div>
-      <div class="pacing-segment seg-s5" style="width: 15%;" title="ដំណាក់កាល ៣ (ផែនការបង្រៀន): ១៥% (~${pacing.step3})"></div>
+      <div class="pacing-segment seg-s2" style="width: ${segW(pacing.s1)};" title="ដំណាក់កាល ១ (លទ្ធផលរំពឹងទុក): ${pacing.step1}"></div>
+      <div class="pacing-segment seg-s4" style="width: ${segW(pacing.s2)};" title="ដំណាក់កាល ២ (ភស្តុតាងវាយតម្លៃ): ${pacing.step2}"></div>
+      <div class="pacing-segment seg-s5" style="width: ${segW(pacing.s3)};" title="ដំណាក់កាល ៣ (ផែនការបង្រៀន): ${pacing.step3}"></div>
     `;
     legend.innerHTML = `
       <span class="p-item"><i class="p-dot dot-s2"></i> ដ.១: <strong>${pacing.step1}</strong></span>
-      <span class="p-item highlight-core"><i class="p-dot dot-s4"></i> ដ.២: <strong>${pacing.step2}</strong> (៧០%)</span>
+      <span class="p-item highlight-core"><i class="p-dot dot-s4"></i> ដ.២: <strong>${pacing.step2}</strong></span>
       <span class="p-item"><i class="p-dot dot-s5"></i> ដ.៣: <strong>${pacing.step3}</strong></span>
     `;
   } else {
     container.innerHTML = `
-      <div class="pacing-segment seg-s1" style="width: 5%;" title="ជំហានទី ១ (រដ្ឋបាល): ៥% (~${pacing.step1})"></div>
-      <div class="pacing-segment seg-s2" style="width: 15%;" title="ជំហានទី ២ (រំលឹកមេរៀន): ១៥% (~${pacing.step2})"></div>
-      <div class="pacing-segment seg-s3" style="width: 60%;" title="ជំហានទី ៣ (មេរៀនថ្មី): ៦០% (~${pacing.step3})"></div>
-      <div class="pacing-segment seg-s4" style="width: 15%;" title="ជំហានទី ៤ (ពង្រឹងពុទ្ធិ): ១៥% (~${pacing.step4})"></div>
-      <div class="pacing-segment seg-s5" style="width: 5%;" title="ជំហានទី ៥ (កិច្ចការផ្ទះ): ៥% (~${pacing.step5})"></div>
+      <div class="pacing-segment seg-s1" style="width: ${segW(pacing.s1)};" title="ជំហានទី ១ (រដ្ឋបាល): ${pacing.step1} (${fmtPct(pacing.p1, 5)})"></div>
+      <div class="pacing-segment seg-s2" style="width: ${segW(pacing.s2)};" title="ជំហានទី ២ (រំលឹកមេរៀន): ${pacing.step2} (${fmtPct(pacing.p2, 15)})"></div>
+      <div class="pacing-segment seg-s3" style="width: ${segW(pacing.s3)};" title="ជំហានទី ៣ (មេរៀនថ្មី): ${pacing.step3} (${fmtPct(pacing.p3, 60)})"></div>
+      <div class="pacing-segment seg-s4" style="width: ${segW(pacing.s4)};" title="ជំហានទី ៤ (ពង្រឹងពុទ្ធិ): ${pacing.step4} (${fmtPct(pacing.p4, 15)})"></div>
+      <div class="pacing-segment seg-s5" style="width: ${segW(pacing.s5)};" title="ជំហានទី ៥ (កិច្ចការផ្ទះ): ${pacing.step5} (${fmtPct(pacing.p5, 5)})"></div>
     `;
     legend.innerHTML = `
-      <span class="p-item"><i class="p-dot dot-s1"></i> ជំ.១: <strong>${pacing.step1}</strong> (៥%)</span>
-      <span class="p-item"><i class="p-dot dot-s2"></i> ជំ.២: <strong>${pacing.step2}</strong> (១៥%)</span>
-      <span class="p-item highlight-core"><i class="p-dot dot-s3"></i> ជំ.៣: <strong>${pacing.step3}</strong> (៦០% មេរៀនថ្មី)</span>
-      <span class="p-item"><i class="p-dot dot-s4"></i> ជំ.៤: <strong>${pacing.step4}</strong> (១៥%)</span>
-      <span class="p-item"><i class="p-dot dot-s5"></i> ជំ.៥: <strong>${pacing.step5}</strong> (៥%)</span>
+      <span class="p-item"><i class="p-dot dot-s1"></i> ជំ.១: <strong>${pacing.step1}</strong> (${fmtPct(pacing.p1, 5)})</span>
+      <span class="p-item"><i class="p-dot dot-s2"></i> ជំ.២: <strong>${pacing.step2}</strong> (${fmtPct(pacing.p2, 15)})</span>
+      <span class="p-item highlight-core"><i class="p-dot dot-s3"></i> ជំ.៣: <strong>${pacing.step3}</strong> (${fmtPct(pacing.p3, 60)} មេរៀនថ្មី)</span>
+      <span class="p-item"><i class="p-dot dot-s4"></i> ជំ.៤: <strong>${pacing.step4}</strong> (${fmtPct(pacing.p4, 15)})</span>
+      <span class="p-item"><i class="p-dot dot-s5"></i> ជំ.៥: <strong>${pacing.step5}</strong> (${fmtPct(pacing.p5, 5)})</span>
     `;
   }
 }
