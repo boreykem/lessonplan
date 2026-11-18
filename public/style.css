@@ -4764,12 +4764,16 @@ textarea.form-control {
 .pedagogical-quality-strip {
   width: 100%;
   max-width: 210mm;
-  margin: 0 auto 12px auto;
+  margin: 0 auto 14px auto;
+  flex-shrink: 0 !important;
+  flex-grow: 0;
+  position: relative;
+  z-index: 5;
   background: #ffffff;
-  border: 1.5px solid #e2e8f0;
+  border: 1.5px solid #c7d2fe;
   border-radius: 12px;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
-  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.09);
+  overflow: visible;
   font-family: 'Kantumruy Pro', 'Inter', sans-serif;
 }
 
@@ -4869,6 +4873,7 @@ textarea.form-control {
   border-top: 1px solid #e2e8f0;
   background: #f8fafc;
   padding: 12px 14px;
+  border-radius: 0 0 11px 11px;
 }
 
 .quality-criteria-grid {
