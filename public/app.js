@@ -335,13 +335,6 @@ const BUILTIN_TEACHING_METHODS = [
     shortEn: 'Inquiry-Based (IBL)'
   },
   {
-    id: 'direct',
-    nameKm: 'វិធីសាស្ត្រពន្យល់បង្ហាញ និងអនុវត្ត (Direct Instruction: I Do - We Do - You Do)',
-    nameEn: 'Direct Instruction (I Do - We Do - You Do)',
-    shortKm: 'ពន្យល់បង្ហាញ & អនុវត្ត (Direct)',
-    shortEn: 'Direct Instruction'
-  },
-  {
     id: 'socratic',
     nameKm: 'វិធីសាស្ត្រសួរដេញដោលតាមបែបសូក្រាត (Socratic / Inquiry Questioning)',
     nameEn: 'Socratic Questioning Method',
@@ -455,6 +448,7 @@ const BUILTIN_TEACHING_TECHNIQUES = [
   { id: 'concept_cartoons', name: 'Concept Cartoons', category: 'warmup', icon: 'fa-comments', kmLabel: 'Concept Cartoons', descKm: 'ផ្ទាំងគំនូរតុក្កតាចោទជាជម្រើសគំនិតបំផុសការដេញដោល', descEn: 'Visual cartoon dialogue presenting alternative conceptions for debate' },
 
   // ⚡ ក្រុមទី ២៖ កណ្តាលម៉ោង / អនុវត្តសកម្ម (Core Active Practice)
+  { id: 'direct_i_we_you', name: 'Direct Instruction (I Do - We Do - You Do)', category: 'practice', icon: 'fa-person-chalkboard', kmLabel: 'ពន្យល់បង្ហាញ និងអនុវត្ត (I Do - We Do - You Do)', descKm: 'គ្រូពន្យល់បង្ហាញគំរូ (I Do) ➔ ធ្វើរួមគ្នាជាមួយសិស្ស (We Do) ➔ សិស្សអនុវត្តដោយឯករាជ្យ/ក្រុម (You Do)', descEn: 'Gradual Release: Teacher models (I Do), Guided practice (We Do), Independent practice (You Do)' },
   { id: 'think_pair_share', name: 'Think-Pair-Share', category: 'practice', icon: 'fa-user-group', kmLabel: 'Think-Pair-Share', descKm: 'គិតម្នាក់ឯង ពិភាក្សាជាដៃគូ និងចែករំលែករួមថ្នាក់ (Think-Pair-Share)', descEn: 'Think independently, discuss in pairs, share with class' },
   { id: 'jigsaw', name: 'Jigsaw', category: 'practice', icon: 'fa-puzzle-piece', kmLabel: 'ជីកសរ (Jigsaw)', descKm: 'បែងចែកក្រុមអ្នកជំនាញស្រាវជ្រាវ និងត្រឡប់ទៅបង្រៀនក្រុមដើម (Jigsaw Sharing)', descEn: 'Expert groups investigate sub-topics and return to teach Home Groups' },
   { id: 'learning_stations', name: 'Learning Stations', category: 'practice', icon: 'fa-signs-post', kmLabel: 'Learning Stations', descKm: 'បែងចែកស្ថានីយសិក្សា សិស្សវិលជុំអនុវត្តកិច្ចការតាមស្ថានីយ (Learning Stations)', descEn: 'Rotational student stations with differentiated learning activities' },
@@ -3628,7 +3622,6 @@ const SUBJECT_METHOD_META = {
   'pbl': { icon: '🧩', labelKm: 'ដោះស្រាយបញ្ហា (PBL)', labelEn: 'PBL' },
   'pjbl': { icon: '🛠️', labelKm: 'បង្កើតគម្រោង (PjBL)', labelEn: 'Project (PjBL)' },
   'ibl': { icon: '🔍', labelKm: 'រិះរក (IBL)', labelEn: 'Inquiry (IBL)' },
-  'direct': { icon: '📘', labelKm: 'ពន្យល់បង្ហាញ (Direct)', labelEn: 'Direct Instruction' },
   'socratic': { icon: '💬', labelKm: 'សួរដេញដោលសូក្រាត', labelEn: 'Socratic' },
   'cooperative': { icon: '🤝', labelKm: 'សហការ (Jigsaw)', labelEn: 'Cooperative' },
   'experimental': { icon: '🧪', labelKm: 'ពិសោធន៍ជាក់ស្ដែង', labelEn: 'Experimental' }
@@ -3652,7 +3645,7 @@ function getSmartSuggestedMethodsForSubject(subjectStr, presetId) {
     s.includes('គណិត') || s.includes('ព័ត៌មានវិទ្យា') || s.includes('កុំព្យូទ័រ') ||
     s.includes('math') || s.includes('ict') || s.includes('computer') || s.includes('coding')
   ) {
-    return isFlipped ? ['pbl', 'pjbl', '5e'] : ['pbl', 'direct', '5e'];
+    return isFlipped ? ['pbl', 'pjbl', '5e'] : ['pbl', '5e', 'cooperative'];
   }
 
   // 3. Languages & Literature (Khmer, English, French)
@@ -3661,7 +3654,7 @@ function getSmartSuggestedMethodsForSubject(subjectStr, presetId) {
     s.includes('អង់គ្លេស') || s.includes('បារាំង') || s.includes('khmer') ||
     s.includes('english') || s.includes('french') || s.includes('literature') || s.includes('language')
   ) {
-    return isFlipped ? ['socratic', 'cooperative', 'pjbl'] : ['socratic', 'cooperative', 'direct'];
+    return ['socratic', 'cooperative', 'pjbl'];
   }
 
   // 4. Social Studies, Humanities, Psychology, Pedagogy, Economics
@@ -3771,7 +3764,8 @@ const TECHNIQUE_MATCH_ALIASES = {
   'Snowballing': ['snowball', 'ដុំព្រិល', 'ពង្រីកក្រុម'],
   'Reciprocal Teaching': ['reciprocal', 'បង្រៀនឆ្លាស់គ្នា', 'ព្យាករណ៍ សួរ បំភ្លឺ សង្ខេប'],
   'Gamification': ['gamification', 'ល្បែងសិក្សា', 'ប្រកួតប្រជែង', 'ពិន្ទុក្រុម'],
-  '3-2-1 Reflection': ['3-2-1', '៣-២-១', 'ឆ្លុះបញ្ចាំង ៣-២-១', 'exit ticket']
+  '3-2-1 Reflection': ['3-2-1', '៣-២-១', 'ឆ្លុះបញ្ចាំង ៣-២-១', 'exit ticket'],
+  'Direct Instruction (I Do - We Do - You Do)': ['i do', 'we do', 'you do', 'direct instruction', 'ពន្យល់បង្ហាញ', 'ធ្វើគំរូ', 'អនុវត្តរួមគ្នា', 'អនុវត្តដោយឯករាជ្យ']
 };
 
 // Parse single-step duration strictly as minutes (so bare "5" -> 5 min, NOT 5 hours, and "" -> 0)
