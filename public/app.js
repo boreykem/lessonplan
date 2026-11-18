@@ -16175,7 +16175,7 @@ const LESSON_FOLDERS_DB_VERSION = 2;
 const LESSON_FOLDERS_STORE = 'folders';
 const LESSON_FOLDERS_META_STORE = 'meta';
 const PC_ROOT_HANDLE_META_KEY = 'pc_root_dir_handle';
-const LESSON_FOLDER_MAX_FILE_BYTES = 15 * 1024 * 1024; // 15 MB per attachment
+const LESSON_FOLDER_MAX_FILE_BYTES = 100 * 1024 * 1024; // 100 MB per attachment (Binary Blob in IndexedDB!)
 
 let _lessonFoldersDbPromise = null;
 let _activeLessonFolderId = null;
@@ -16367,6 +16367,40 @@ function dataUrlToUint8Array(dataUrl) {
   return bytes;
 }
 
+// Fast native Blob resolver (supports new Binary Blob attachments AND legacy Base64 dataUrl!)
+function getFolderAttachmentBlob(att) {
+  if (!att) return null;
+  if (att.blob instanceof Blob) return att.blob;
+  if (att.dataUrl) {
+    const bytes = dataUrlToUint8Array(att.dataUrl);
+    if (bytes) return new Blob([bytes], { type: att.type || 'application/octet-stream' });
+  }
+  return null;
+}
+
+// Clone folder metadata cleanly while preserving native binary File/Blob objects intact
+function cloneFolderPreservingBlobs(folder) {
+  if (!folder) return null;
+  const rawAtts = Array.isArray(folder.attachments) ? folder.attachments : [];
+  const metaClone = JSON.parse(JSON.stringify({ ...folder, attachments: [] }));
+  metaClone.attachments = rawAtts.map(a => ({ ...a }));
+  return metaClone;
+}
+
+// Lightweight JSON representation for Backup JSON & PC lesson_folder_backup.json
+function stripBinaryAttachmentsForJson(folder) {
+  const clean = cloneFolderPreservingBlobs(folder);
+  clean.attachments = (clean.attachments || []).map(a => ({
+    id: a.id,
+    name: a.name,
+    type: a.type,
+    size: a.size,
+    pcFileName: sanitizePcFolderName(a.name || 'material'),
+    addedAt: a.addedAt
+  }));
+  return clean;
+}
+
 async function writeLessonFolderToPcDir(folder, rootHandle) {
   if (!folder || !rootHandle) return 0;
   const subName = sanitizePcFolderName(folder.name);
@@ -16423,21 +16457,21 @@ async function writeLessonFolderToPcDir(folder, rootHandle) {
     writtenCount++;
   }
 
-  // 4. Attachments inside real subfolder 05_Materials/
+  // 4. Attachments inside real subfolder 05_Materials/ (Streams native Blob directly — blazingly fast even for 100 MB .mp4!)
   if (Array.isArray(folder.attachments) && folder.attachments.length > 0) {
     const matDir = await subDir.getDirectoryHandle('05_Materials', { create: true });
     for (let i = 0; i < folder.attachments.length; i++) {
       const att = folder.attachments[i];
-      const bytes = dataUrlToUint8Array(att.dataUrl);
-      if (!bytes) continue;
+      const blob = getFolderAttachmentBlob(att);
+      if (!blob) continue;
       const safeFile = sanitizePcFolderName(att.name || `material_${i + 1}`);
-      await writeBlobToPcFile(matDir, safeFile, bytes);
+      await writeBlobToPcFile(matDir, safeFile, blob);
       writtenCount++;
     }
   }
 
-  // 5. Full JSON backup snapshot inside the real PC folder (enables 1-click restore after Browser Wipe!)
-  const backupJson = JSON.stringify({ version: '3.0', folder }, null, 2);
+  // 5. Lightweight JSON backup snapshot inside the real PC folder (attachments live right beside it in 05_Materials/!)
+  const backupJson = JSON.stringify({ version: '3.1', folder: stripBinaryAttachmentsForJson(folder) }, null, 2);
   await writeBlobToPcFile(subDir, 'lesson_folder_backup.json', new Blob([backupJson], { type: 'application/json' }));
 
   return writtenCount;
@@ -16553,6 +16587,26 @@ window.importAllFoldersFromPcRoot = async function (silentIfEmpty = false) {
         const parsed = JSON.parse(text);
         const f = parsed?.folder || (parsed?.id ? parsed : null);
         if (f && f.id && !existingIds.has(f.id)) {
+          // Also restore binary attachment files from real PC subfolder 05_Materials/ (<= 100 MB)
+          try {
+            const matDir = await entry.getDirectoryHandle('05_Materials');
+            const restoredAtts = [];
+            for await (const [fileName, matEntry] of matDir.entries()) {
+              if (matEntry.kind !== 'file') continue;
+              const matFile = await matEntry.getFile();
+              if (matFile.size <= LESSON_FOLDER_MAX_FILE_BYTES) {
+                restoredAtts.push({
+                  id: 'att_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+                  name: matFile.name || fileName,
+                  type: matFile.type || 'application/octet-stream',
+                  size: matFile.size,
+                  blob: matFile,
+                  addedAt: new Date().toISOString()
+                });
+              }
+            }
+            if (restoredAtts.length > 0) f.attachments = restoredAtts;
+          } catch (_) { }
           await idbPutLessonFolder(f);
           existingIds.add(f.id);
           restored++;
@@ -16642,7 +16696,11 @@ function updateLessonFoldersStorageMeter() {
   try {
     let totalBytes = 0;
     (state.lessonFolders || []).forEach(f => {
-      totalBytes += new Blob([JSON.stringify(f)]).size;
+      const metaOnly = { ...f, attachments: [] };
+      totalBytes += new Blob([JSON.stringify(metaOnly)]).size;
+      (f.attachments || []).forEach(a => {
+        totalBytes += (a.blob instanceof Blob) ? a.blob.size : (Number(a.size) || 0);
+      });
     });
     meter.innerHTML = `<i class="fa-solid fa-hard-drive"></i> ទំហំប្រើប្រាស់ក្នុងម៉ាស៊ីន៖ ${formatFolderBytes(totalBytes)}`;
   } catch (_) { }
@@ -16840,7 +16898,7 @@ window.confirmSaveToLessonFolder = async function () {
   const grade = plan.grade || (document.getElementById('inputGrade')?.value || '').trim() || deck?.meta?.grade || '';
   const chapter = plan.chapter || (document.getElementById('inputChapter')?.value || '').trim() || '';
 
-  const folder = existing ? JSON.parse(JSON.stringify(existing)) : {
+  const folder = existing ? cloneFolderPreservingBlobs(existing) : {
     id: 'folder_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
     name: folderName,
     subject: subj,
@@ -17050,25 +17108,41 @@ function renderLessonFolderDetail(folderId) {
 
   const attachmentsHtml = attachments.length > 0
     ? attachments.map(att => {
-        const isPreviewable = /^image\/|application\/pdf/i.test(att.type || '');
+        const mime = att.type || '';
+        const nameLower = String(att.name || '').toLowerCase();
+        const isVideo = /^video\//i.test(mime) || /\.(mp4|webm|mov|mkv)$/i.test(nameLower);
+        const isAudio = /^audio\//i.test(mime) || /\.(mp3|m4a|wav)$/i.test(nameLower);
+        const isImg = /^image\//i.test(mime) || /\.(png|jpg|jpeg|webp|gif)$/i.test(nameLower);
+        const isPdf = /application\/pdf/i.test(mime) || /\.pdf$/i.test(nameLower);
+        const isPreviewable = isVideo || isAudio || isImg || isPdf;
+        const iconHtml = isVideo
+          ? '<i class="fa-solid fa-file-video" style="color: #7c3aed; font-size: 1.1rem;"></i>'
+          : isAudio
+            ? '<i class="fa-solid fa-file-audio" style="color: #0d9488; font-size: 1.1rem;"></i>'
+            : isImg
+              ? '<i class="fa-solid fa-file-image" style="color: #059669; font-size: 1.1rem;"></i>'
+              : isPdf
+                ? '<i class="fa-solid fa-file-pdf" style="color: #dc2626; font-size: 1.1rem;"></i>'
+                : '<i class="fa-solid fa-file-lines" style="color: #ea580c; font-size: 1.1rem;"></i>';
+        const previewBtnLabel = isVideo ? '<i class="fa-solid fa-play"></i> ចាក់វីដេអូ' : (isAudio ? '<i class="fa-solid fa-play"></i> ស្តាប់' : '<i class="fa-solid fa-eye"></i> មើល');
         return `
           <div class="folder-item-row">
             <div class="folder-item-left">
-              <i class="fa-solid fa-file-lines" style="color: #ea580c; font-size: 1.05rem;"></i>
+              ${iconHtml}
               <div style="min-width: 0;">
                 <div class="folder-item-name" title="${escapeHtml(att.name)}">${escapeHtml(att.name)}</div>
                 <div class="folder-item-sub">${formatFolderBytes(att.size)}</div>
               </div>
             </div>
             <div class="folder-item-btns">
-              ${isPreviewable ? `<button type="button" class="btn-folder-mini" onclick="previewFolderAttachment('${folder.id}', '${att.id}')"><i class="fa-solid fa-eye"></i> មើល</button>` : ''}
+              ${isPreviewable ? `<button type="button" class="btn-folder-mini" onclick="previewFolderAttachment('${folder.id}', '${att.id}')">${previewBtnLabel}</button>` : ''}
               <button type="button" class="btn-folder-mini" onclick="downloadFolderAttachment('${folder.id}', '${att.id}')"><i class="fa-solid fa-download"></i> ទាញយក</button>
               <button type="button" class="btn-folder-icon danger" onclick="deleteFolderAttachment('${folder.id}', '${att.id}')" title="លុបឯកសារ"><i class="fa-solid fa-trash-can"></i></button>
             </div>
           </div>
         `;
       }).join('')
-    : `<div style="font-size: 0.83rem; color: #94a3b8; padding: 6px 2px;">មិនទាន់មានឯកសារបន្ថែមទេ — ចុច «+ បង្ហោះឯកសារ» ដើម្បីដាក់ PDF, Word, ឬរូបភាពចូលថតនេះ។</div>`;
+    : `<div style="font-size: 0.83rem; color: #94a3b8; padding: 6px 2px;">មិនទាន់មានឯកសារបន្ថែមទេ — ចុច «+ បង្ហោះឯកសារ» ដើម្បីដាក់ វីដេអូ NotebookLM (.mp4), PDF, Word, ឬរូបភាពចូលថតនេះ។</div>`;
 
   const linksHtml = links.length > 0
     ? links.map(lk => `
@@ -17166,7 +17240,7 @@ function renderLessonFolderDetail(folderId) {
         <div class="folder-section-head">
           <div class="folder-section-title">
             <i class="fa-solid fa-paperclip" style="color: #ea580c;"></i>
-            <span>ឯកសារបន្ថែមផ្សេងៗ (PDF, Word, រូបភាព — ≤ 15MB/ឯកសារ)</span>
+            <span>ឯកសារបន្ថែមផ្សេងៗ (វីដេអូ .mp4, PDF, Word, រូបភាព — ≤ 100MB/ឯកសារ)</span>
           </div>
           <button type="button" class="btn-folder-mini" onclick="triggerFolderAttachmentUpload('${folder.id}')">
             <i class="fa-solid fa-cloud-arrow-up"></i> + បង្ហោះឯកសារ
@@ -17285,22 +17359,16 @@ window.handleLessonFolderAttachmentsSelected = async function (event) {
   let added = 0;
   for (const file of files) {
     if (file.size > LESSON_FOLDER_MAX_FILE_BYTES) {
-      showToast(`⚠️ ឯកសារ "${file.name}" ធំជាង 15 MB — សូមជ្រើសឯកសារតូចជាង 15 MB!`, 'warning', 5000);
+      showToast(`⚠️ ឯកសារ "${file.name}" (${formatFolderBytes(file.size)}) ធំជាង 100 MB — សូមជ្រើសឯកសារតូចជាង 100 MB!`, 'warning', 5500);
       continue;
     }
-    const dataUrl = await new Promise((resolve) => {
-      const r = new FileReader();
-      r.onload = (e) => resolve(e.target.result);
-      r.onerror = () => resolve(null);
-      r.readAsDataURL(file);
-    });
-    if (!dataUrl) continue;
+    // Store native Binary File/Blob directly in IndexedDB (instant, zero base64 RAM bloat!)
     folder.attachments.push({
       id: 'att_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
       name: file.name,
       type: file.type || 'application/octet-stream',
       size: file.size,
-      dataUrl,
+      blob: file,
       addedAt: new Date().toISOString()
     });
     added++;
@@ -17318,25 +17386,45 @@ window.handleLessonFolderAttachmentsSelected = async function (event) {
 window.downloadFolderAttachment = function (folderId, attId) {
   const folder = (state.lessonFolders || []).find(f => f.id === folderId);
   const att = folder?.attachments?.find(a => a.id === attId);
-  if (!att || !att.dataUrl) return;
+  const blob = getFolderAttachmentBlob(att);
+  if (!blob) return;
+  const objUrl = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = att.dataUrl;
+  a.href = objUrl;
   a.download = att.name || 'attachment';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(objUrl), 5000);
 };
 
 window.previewFolderAttachment = function (folderId, attId) {
   const folder = (state.lessonFolders || []).find(f => f.id === folderId);
   const att = folder?.attachments?.find(a => a.id === attId);
-  if (!att || !att.dataUrl) return;
+  const blob = getFolderAttachmentBlob(att);
+  if (!blob) return;
+  const objUrl = URL.createObjectURL(blob);
+  const mime = att.type || blob.type || '';
+  const nameLower = String(att.name || '').toLowerCase();
+  const isVideo = /^video\//i.test(mime) || /\.(mp4|webm|mov|mkv)$/i.test(nameLower);
+  const isAudio = /^audio\//i.test(mime) || /\.(mp3|m4a|wav)$/i.test(nameLower);
+  const isImg = /^image\//i.test(mime) || /\.(png|jpg|jpeg|webp|gif)$/i.test(nameLower);
+
   const w = window.open('', '_blank');
-  if (!w) return;
-  if (/^image\//i.test(att.type || '')) {
-    w.document.write(`<html><body style="margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${att.dataUrl}" style="max-width:96vw;max-height:96vh;"></body></html>`);
+  if (!w) {
+    URL.revokeObjectURL(objUrl);
+    showToast('⚠️ សូមអនុញ្ញាត Pop-up ដើម្បីបើកមើលឯកសារ/វីដេអូ!', 'warning', 4500);
+    return;
+  }
+  const safeTitle = escapeHtml(att.name || 'Preview');
+  if (isVideo) {
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${safeTitle}</title></head><body style="margin:0;background:#020617;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;color:#f8fafc;font-family:sans-serif;padding:16px;box-sizing:border-box;"><div style="margin-bottom:10px;font-weight:700;font-size:0.95rem;">🎬 ${safeTitle}</div><video src="${objUrl}" controls autoplay style="max-width:96vw;max-height:86vh;border-radius:12px;box-shadow:0 20px 50px rgba(0,0,0,0.6);"></video></body></html>`);
+  } else if (isAudio) {
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${safeTitle}</title></head><body style="margin:0;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;color:#f8fafc;font-family:sans-serif;gap:14px;"><div style="font-weight:700;">🎵 ${safeTitle}</div><audio src="${objUrl}" controls autoplay style="width:min(520px,90vw);"></audio></body></html>`);
+  } else if (isImg) {
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${safeTitle}</title></head><body style="margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${objUrl}" style="max-width:96vw;max-height:96vh;"></body></html>`);
   } else {
-    w.document.write(`<html><body style="margin:0;height:100vh;"><iframe src="${att.dataUrl}" style="width:100%;height:100%;border:none;"></iframe></body></html>`);
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${safeTitle}</title></head><body style="margin:0;height:100vh;"><iframe src="${objUrl}" style="width:100%;height:100%;border:none;"></iframe></body></html>`);
   }
   w.document.close();
 };
@@ -17475,16 +17563,14 @@ window.exportLessonFolderZip = async function (folderId) {
       itemCount++;
     }
 
-    // 4. Uploaded Attachments (PDF, Word, Images, etc.)
+    // 4. Uploaded Attachments (Videos .mp4, PDF, Word, Images — passes native Blob directly to JSZip!)
     if (Array.isArray(folder.attachments) && folder.attachments.length > 0) {
       const matDir = rootDir.folder('05_Materials');
       folder.attachments.forEach((att, idx) => {
-        if (!att.dataUrl) return;
-        const commaIdx = att.dataUrl.indexOf(',');
-        if (commaIdx < 0) return;
-        const base64Body = att.dataUrl.slice(commaIdx + 1);
+        const blob = getFolderAttachmentBlob(att);
+        if (!blob) return;
         const safeAttName = (att.name || `material_${idx + 1}`).replace(/[\\/:*?"<>|]/g, '_');
-        matDir.file(safeAttName, base64Body, { base64: true });
+        matDir.file(safeAttName, blob);
         itemCount++;
       });
     }
@@ -17597,10 +17683,10 @@ function exportAllPlansAsJson() {
 
   const backupData = {
     appName: 'AI Lesson Plan Studio',
-    version: '3.0',
+    version: '3.1',
     exportDate: new Date().toISOString(),
     foldersCount: folders.length,
-    folders: folders,
+    folders: folders.map(f => stripBinaryAttachmentsForJson(f)),
     lessons: state.savedLessons || []
   };
 
